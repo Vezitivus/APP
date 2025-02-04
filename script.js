@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const beepSound = new Audio("beep.mp3");
 
     if (uid) {
-        document.getElementById("status").innerText = "Apstrādājam NFC...";
+        document.getElementById("status").innerText = "Apstrādājam ...";
         beepSound.play();
 
         fetch(`https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCw8RaXwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec?uid=${uid}`)
