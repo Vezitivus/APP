@@ -21,11 +21,4 @@ document.addEventListener("DOMContentLoaded", function () {
             console.error("Kļūda:", error);
             document.body.innerHTML = "<h1 class='error'>Kļūda: Savienojuma problēma.</h1>";
         });
-
-    document.getElementById("logoutBtn").addEventListener("click", function () {
-        document.getElementById("clickSound").play();
-        setTimeout(() => {
-            window.location.href = "https://vezitivus.github.io/APP/";
-        }, 500);
-    });
 });
