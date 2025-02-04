@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
     }
 
+    // Iegūst profila informāciju
     fetch(`https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCw8RaXwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec?uid=${uid}&action=getProfile`)
         .then(response => response.json())
         .then(data => {
@@ -22,18 +23,21 @@ document.addEventListener("DOMContentLoaded", function () {
             document.body.innerHTML = "<h1 class='error'>Kļūda: Savienojuma problēma.</h1>";
         });
 
+    // Izrakstīšanās funkcija
     document.getElementById("logoutBtn").addEventListener("click", function () {
         fetch(`https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCw8RaXwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec?uid=${uid}&action=logout`)
             .then(response => response.json())
             .then(result => {
                 if (result.status === "success") {
+                    alert("Izrakstīšanās veiksmīga!");
                     window.location.href = "index.html";
                 } else {
-                    console.error("Kļūda:", result.message);
+                    alert("Kļūda: " + result.message);
                 }
             })
             .catch(error => {
                 console.error("Kļūda:", error);
+                alert("Savienojuma kļūda!");
             });
     });
 });
