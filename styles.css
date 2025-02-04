@@ -27,19 +27,37 @@ body {
     margin-bottom: 20px;
 }
 
-.button {
-    background: linear-gradient(90deg, #444, #666);
+input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border: 1px solid #555;
+    background: #1c1c1e;
     color: white;
-    font-size: 18px;
-    padding: 12px 24px;
-    border-radius: 12px;
-    border: none;
+    font-size: 16px;
+    outline: none;
+}
+
+.button {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #555;
+    background: #333;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease-in-out;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
 .button:hover {
-    background: linear-gradient(90deg, #555, #777);
+    background: #444;
     transform: scale(1.05);
+}
+
+#status {
+    margin-top: 10px;
+    font-size: 14px;
 }
