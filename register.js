@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
     const params = new URLSearchParams(window.location.search);
     const uid = params.get("uid");
-    const audio = new Audio("success.mp3");
+    const successSound = document.getElementById("successSound");
 
     if (!uid) {
         document.getElementById("status").innerText = "NFC ID nav atrasts!";
@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         document.getElementById("status").innerText = "Saglabāju...";
 
-        fetch("https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCw8RaXwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec", {
+        fetch("https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: new URLSearchParams({ uid: uid, username: username })
@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(result => {
             if (result.status === "success") {
                 document.getElementById("status").innerText = "Reģistrācija veiksmīga!";
-                audio.play();
+                successSound.play();
                 setTimeout(() => {
                     window.location.href = result.redirectUrl;
                 }, 3000);
