@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
     const params = new URLSearchParams(window.location.search);
     const uid = params.get("uid");
+    const audio = new Audio("success.mp3");
 
     if (!uid) {
         document.getElementById("status").innerText = "NFC ID nav atrasts!";
@@ -25,9 +26,11 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(result => {
             if (result.status === "success") {
                 document.getElementById("status").innerText = "Reģistrācija veiksmīga!";
+                audio.play();
+                launchConfetti();
                 setTimeout(() => {
                     window.location.href = result.redirectUrl;
-                }, 1500);
+                }, 3000);
             } else {
                 document.getElementById("status").innerText = "Kļūda! " + result.message;
             }
@@ -37,4 +40,15 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("status").innerText = "Savienojuma kļūda!";
         });
     });
+
+    function launchConfetti() {
+        const confettiContainer = document.getElementById("confetti-container");
+        for (let i = 0; i < 100; i++) {
+            const confetti = document.createElement("div");
+            confetti.classList.add("confetti");
+            confetti.style.left = Math.random() * 100 + "vw";
+            confetti.style.animationDuration = Math.random() * 3 + 2 + "s";
+            confettiContainer.appendChild(confetti);
+        }
+    }
 });
