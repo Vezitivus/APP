@@ -15,21 +15,21 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         document.getElementById("status").innerText = "Saglabāju...";
-        
+
         fetch("https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCw8RaXwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: new URLSearchParams({ uid: uid, username: username })
         })
-        .then(response => response.text())
+        .then(response => response.json())
         .then(result => {
-            if (result === "success") {
+            if (result.status === "success") {
                 document.getElementById("status").innerText = "Reģistrācija veiksmīga!";
                 setTimeout(() => {
-                    window.location.href = `https://vezitivus.github.io/APP/?uid=${uid}`;
+                    window.location.href = result.redirectUrl;
                 }, 1500);
             } else {
-                document.getElementById("status").innerText = "Kļūda! Mēģini vēlreiz.";
+                document.getElementById("status").innerText = "Kļūda! " + result.message;
             }
         })
         .catch(error => {
