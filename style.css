@@ -1,44 +1,77 @@
+/* iOS līdzīgs tumšs dizains */
 body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    background-color: black;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #000;
     color: white;
+    text-align: center;
     margin: 0;
-    padding: 20px;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
 }
 
+/* Konteiners ar caurspīdīgu iOS stila efektu */
 .container {
+    width: 90%;
     max-width: 400px;
-    margin: auto;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
     padding: 20px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Ievades lauki un pogas */
+input, button {
+    width: 100%;
+    padding: 15px;
+    margin: 10px 0;
+    border: none;
     border-radius: 10px;
-    background: #333;
+    font-size: 16px;
 }
 
 input {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    border-radius: 5px;
-    border: none;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    outline: none;
+    text-align: center;
 }
 
+/* Poga ar hover efektu un skaņas efektu */
 button {
-    width: 100%;
-    padding: 10px;
-    background-color: #ffcc00;
+    background: linear-gradient(45deg, #ffcc00, #ff5500);
     color: black;
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
+    font-weight: bold;
     cursor: pointer;
+    transition: 0.3s;
 }
 
 button:hover {
-    background-color: #ffaa00;
+    background: linear-gradient(45deg, #ffaa00, #ff3300);
 }
 
-#status {
-    margin-top: 10px;
-    font-size: 14px;
+/* Skaņas efekts */
+button:active {
+    transform: scale(0.95);
+    audio.play();
+}
+
+/* Animācijas */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Salūta efekts reģistrācijai */
+#confetti-container {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
 }
