@@ -28,18 +28,18 @@ body {
 }
 
 .button {
-    background: linear-gradient(90deg, #ffcc00, #ff8800);
-    color: black;
+    background: linear-gradient(90deg, #444, #666);
+    color: white;
     font-size: 18px;
     padding: 12px 24px;
     border-radius: 12px;
     border: none;
     cursor: pointer;
     transition: all 0.3s ease-in-out;
-    box-shadow: 0 2px 10px rgba(255, 136, 0, 0.5);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
 .button:hover {
-    background: linear-gradient(90deg, #ffaa00, #ff5500);
+    background: linear-gradient(90deg, #555, #777);
     transform: scale(1.05);
 }
