@@ -6,8 +6,13 @@ document.addEventListener("DOMContentLoaded", function () {
         fetch(`https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCw8RaXwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec?uid=${uid}`)
             .then(response => response.text())
             .then(url => {
-                document.getElementById("status").innerText = "Novirzīšana...";
-                window.location.href = url; // Pāradresācija uz profilu / reģistrāciju
+                if (url.includes("register")) {
+                    document.getElementById("status").innerText = "Nepieciešama reģistrācija...";
+                    window.location.href = url;
+                } else {
+                    document.getElementById("status").innerText = "Atver profilu...";
+                    window.location.href = url;
+                }
             })
             .catch(error => {
                 console.error("Kļūda:", error);
