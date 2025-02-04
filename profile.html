@@ -3,16 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profils</title>
+    <title>Mans Profils</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <h1>Mans profils</h1>
-        <p><strong>Vārds:</strong> <span id="username">Ielādē...</span></p>
-        <p><strong>NFC ID:</strong> <span id="nfc-id">Ielādē...</span></p>
-        <button id="logoutBtn">Izrakstīties</button>
+        <h1 class="title">Mans Profils</h1>
+        <div class="profile-info">
+            <p><strong>Vārds:</strong> <span id="username">Ielādē...</span></p>
+            <p><strong>NFC ID:</strong> <span id="nfc-id">Ielādē...</span></p>
+        </div>
+        <button id="logoutBtn" class="button">Izrakstīties</button>
+        <audio id="clickSound" src="click.mp3"></audio>
     </div>
-    <script src="profile.js"></script>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const params = new URLSearchParams(window.location.search);
+            const uid = params.get("uid");
+
+            if (!uid) {
+                document.body.innerHTML = "<h1 class='error'>Kļūda: NFC ID nav atrasts!</h1>";
+                return;
+            }
+
+            fetch(`https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCw8RaXwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec?uid=${uid}&action=getProfile`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        document.getElementById("username").innerText = data.username;
+                        document.getElementById("nfc-id").innerText = data.uid;
+                    } else {
+                        document.body.innerHTML = "<h1 class='error'>Kļūda: Lietotāja profils nav atrasts!</h1>";
+                    }
+                })
+                .catch(error => {
+                    console.error("Kļūda:", error);
+                    document.body.innerHTML = "<h1 class='error'>Kļūda: Savienojuma problēma.</h1>";
+                });
+
+            document.getElementById("logoutBtn").addEventListener("click", function () {
+                document.getElementById("clickSound").play();
+                setTimeout(() => {
+                    window.location.href = "https://vezitivus.github.io/APP/";
+                }, 500);
+            });
+        });
+    </script>
 </body>
 </html>
+
+<style>
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        background: radial-gradient(circle at center, #1e1e2e, #121212);
+        color: white;
+        text-align: center;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+    }
+    .container {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 30px;
+        border-radius: 20px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        max-width: 350px;
+    }
+    .title {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+    .profile-info {
+        font-size: 18px;
+        margin-bottom: 20px;
+    }
+    .button {
+        background: #ffcc00;
+        color: black;
+        font-size: 18px;
+        padding: 12px 24px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+    .button:hover {
+        background: #ffaa00;
+    }
+    .error {
+        color: red;
+    }
+</style>
