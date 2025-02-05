@@ -28,8 +28,7 @@ document.addEventListener("DOMContentLoaded", function () {
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: new URLSearchParams({
                 uid: uid,
-                username: username,
-                profileID: `profile-${uid}` // Unikāls profile ID
+                username: username
             })
         })
             .then(response => response.json())
