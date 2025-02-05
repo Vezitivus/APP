@@ -2,7 +2,6 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background: linear-gradient(to bottom, #0a0a0a, #1c1c1e);
     color: white;
-    text-align: center;
     margin: 0;
     padding: 0;
     display: flex;
@@ -19,6 +18,7 @@ body {
     box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
     width: 90%;
     max-width: 400px;
+    text-align: center;
 }
 
 .title {
@@ -27,37 +27,53 @@ body {
     margin-bottom: 20px;
 }
 
-input {
-    width: 100%;
-    padding: 12px;
-    margin: 10px 0;
+.invitation-link {
+    display: inline-block;
+    padding: 8px 16px;
+    border: 1px solid white;
     border-radius: 8px;
-    border: 1px solid #555;
-    background: #1c1c1e;
     color: white;
+    text-decoration: none;
     font-size: 16px;
-    outline: none;
+    margin-bottom: 20px;
+    transition: all 0.3s;
+}
+
+.invitation-link:hover {
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .button {
-    width: 100%;
-    padding: 12px;
+    display: inline-block;
+    padding: 12px 20px;
+    margin: 10px 5px;
     border-radius: 8px;
-    border: 1px solid #555;
-    background: #333;
-    color: white;
     font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease-in-out;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.3s;
 }
 
-.button:hover {
-    background: #444;
-    transform: scale(1.05);
+.button.green {
+    background: #2ecc71;
+    color: white;
 }
 
-#status {
-    margin-top: 10px;
-    font-size: 14px;
+.button.green:hover {
+    background: #27ae60;
+}
+
+.button.red {
+    background: #e74c3c;
+    color: white;
+}
+
+.button.red:hover {
+    background: #c0392b;
+}
+
+video {
+    width: 100%;
+    border-radius: 12px;
+    margin-top: 20px;
 }
