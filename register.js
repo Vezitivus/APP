@@ -15,6 +15,8 @@ document.addEventListener("DOMContentLoaded", function () {
         inviteBtn.innerText = "Ielūgums apstiprināts";
         inviteBtn.classList.remove("dark");
         formSection.classList.remove("hidden");
+        usernameField.disabled = false;
+        registerBtn.disabled = false;
     }
 
     registerBtn.addEventListener("click", function () {
@@ -24,11 +26,11 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        // Saglabā datus Google Sheets
+        // Nosūtīt datus uz Google Sheets
         fetch("https://script.google.com/macros/s/YOUR_GOOGLE_SCRIPT_URL/exec", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({ username: username })
+            body: new URLSearchParams({ uid: "VZ001", username: username })
         }).then(response => response.json()).then(result => {
             if (result.status === "success") {
                 document.querySelector(".register-container").style.display = "none";
@@ -37,11 +39,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 celebrationVideo.play();
 
                 celebrationVideo.onended = function () {
-                    window.location.href = result.profileUrl;
+                    window.location.href = result.redirectUrl;
                 };
 
                 skipButton.addEventListener("click", function () {
-                    window.location.href = result.profileUrl;
+                    window.location.href = result.redirectUrl;
                 });
             } else {
                 alert("Reģistrācijas kļūda. Mēģini vēlreiz.");
