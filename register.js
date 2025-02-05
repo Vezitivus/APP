@@ -8,8 +8,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const celebrationVideo = document.getElementById("celebrationVideo");
     const skipButton = document.getElementById("skipButton");
 
-    // Sākotnējais ielūguma logs
-    if (localStorage.getItem("inviteAccepted") === "true") {
+    // Iegūst UID no URL parametriem
+    const urlParams = new URLSearchParams(window.location.search);
+    const uid = urlParams.get("uid");
+
+    // Pārbauda, vai ielūgums ir apstiprināts
+    if (localStorage.getItem("inviteAccepted") === "true" && uid) {
         inviteSection.classList.add("hidden");
         formSection.classList.remove("hidden");
     }
@@ -19,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function () {
         window.location.href = "invitation.html";
     });
 
-    // Reģistrācijas forma
+    // Reģistrē lietotāju
     registerButton.addEventListener("click", function () {
         const username = usernameField.value.trim();
         if (!username) {
@@ -31,7 +35,7 @@ document.addEventListener("DOMContentLoaded", function () {
         fetch("https://script.google.com/macros/s/YOUR_GOOGLE_SCRIPT_URL/exec", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({ uid: "VZ001", username: username })
+            body: new URLSearchParams({ uid: uid, username: username })
         }).then(response => response.json()).then(result => {
             if (result.status === "success") {
                 formSection.classList.add("hidden");
