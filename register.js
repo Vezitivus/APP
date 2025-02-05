@@ -16,13 +16,28 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        // Rāda sagatavošanas ekrānu
+        // Rāda sagatavošanas ekrānu ar video un "Izlaist" pogu
         document.querySelector(".glass-effect").innerHTML = `
             <h1 class="title">Tavs personīgais profils tiek sagatavots</h1>
             <p>Priecāšos tevi redzēt ballītē!</p>
-            <video src="celebration.MOV" autoplay playsinline></video>
+            <video id="celebrationVideo" src="celebration.MOV" autoplay playsinline></video>
+            <button id="skipButton" class="button">Izlaist</button>
         `;
 
+        const video = document.getElementById("celebrationVideo");
+        const skipButton = document.getElementById("skipButton");
+
+        // Kad video beidzas, pāriet uz profilu
+        video.addEventListener("ended", function () {
+            redirectToProfile(uid, username);
+        });
+
+        // Poga "Izlaist" ļauj pāriet uz profilu
+        skipButton.addEventListener("click", function () {
+            redirectToProfile(uid, username);
+        });
+
+        // Saglabā lietotāja vārdu un ģenerē profila URL
         fetch("https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCw8RaXwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -31,9 +46,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(response => response.json())
         .then(result => {
             if (result.status === "success") {
-                setTimeout(() => {
-                    window.location.href = result.redirectUrl;
-                }, 5000); // Profilu aizved pēc video beigām (~5s)
+                video.dataset.redirectUrl = result.redirectUrl; // Saglabā URL video datā
             } else {
                 document.querySelector(".glass-effect").innerHTML = "<p>Kļūda! " + result.message + "</p>";
             }
@@ -43,4 +56,11 @@ document.addEventListener("DOMContentLoaded", function () {
             document.querySelector(".glass-effect").innerHTML = "<p>Savienojuma kļūda!</p>";
         });
     });
+
+    // Funkcija profila novirzīšanai
+    function redirectToProfile(uid, username) {
+        const video = document.getElementById("celebrationVideo");
+        const redirectUrl = video.dataset.redirectUrl || `https://vezitivus.github.io/APP/profile.html?uid=${uid}`;
+        window.location.href = redirectUrl;
+    }
 });
