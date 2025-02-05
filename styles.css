@@ -25,16 +25,16 @@ body, html {
     box-sizing: border-box;
 }
 
-/* Stikla efekta stils */
+/* Centrēts konteiners ar stikla efektu */
 .glass-effect {
-    background: rgba(255, 255, 255, 0.8); /* Caurspīdīgs balts */
-    backdrop-filter: blur(15px); /* iOS stila miglainais efekts */
+    background: rgba(255, 255, 255, 0.1); /* Caurspīdīgs balts */
+    backdrop-filter: blur(15px); /* iOS stila miglainums */
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); /* Viegls ēnojums */
     padding: 20px;
-    border-radius: 24px; /* Apaļāki stūri Apple stilā */
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1); /* Viegls ēnojums */
-    width: 90%;
-    max-width: 500px; /* Laba proporcija mobilajiem */
     text-align: center;
+    width: 90%;
+    max-width: 400px;
 }
 
 /* Galvenais virsraksts */
