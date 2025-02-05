@@ -8,25 +8,14 @@
 </head>
 <body>
     <div class="invitation-container">
-        <h1 class="invite-title">Tu esi ielūgts uz VEZITIVUS</h1>
-        <p>Vai vēlies pievienoties?</p>
-        <div class="invite-buttons">
-            <button id="acceptInvite" class="button dark">Apstiprināt ielūgumu</button>
-            <button id="rejectInvite" class="button dark red">Noraidīt ielūgumu</button>
+        <div class="glass-effect">
+            <h1 class="title">VEZITIVUS WEEKEND Ielūgums</h1>
+            <p>TXTXTX</p>
+            <div class="buttons">
+                <a href="register.html" class="button green">Apstiprināt ielūgumu</a>
+                <a href="declined.html" class="button red">Noraidīt ielūgumu</a>
+            </div>
         </div>
     </div>
-
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const uid = urlParams.get("uid") || "VZ001"; // Saglabā precīzo ID
-
-        document.getElementById("acceptInvite").addEventListener("click", function () {
-            window.location.href = "register.html?uid=" + uid;
-        });
-
-        document.getElementById("rejectInvite").addEventListener("click", function () {
-            window.location.href = "declined.html";
-        });
-    </script>
 </body>
 </html>
