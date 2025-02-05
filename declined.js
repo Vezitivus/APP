@@ -1,14 +1,17 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const byeVideo = document.getElementById("byeVideo");
+    const container = document.querySelector(".glass-effect");
 
-    // Kad video beidzas, izpilda šo funkciju
-    byeVideo.addEventListener("ended", function () {
-        console.log("Video ir beidzies");
-        // Šeit vari pievienot darbību, piemēram, novirzīšanu vai ziņojumu
-    });
+    // Dinamiski pievieno HTML saturu
+    container.innerHTML = `
+        <h1 class="title">Žēl, ka šoreiz nepievienosies</h1>
+        <p>Bet ja pārdomāsi, reģistrācija vienmēr pieejama.</p>
+        <video id="byeVideo" src="bye.MOV" autoplay playsinline loop></video>
+    `;
 
-    // Ja video ielāde rada kļūdu
-    byeVideo.addEventListener("error", function () {
+    const video = document.getElementById("byeVideo");
+
+    // Pārbauda, vai video ir ielādējies bez kļūdām
+    video.addEventListener("error", function () {
         console.error("Kļūda ielādējot video!");
     });
 });
