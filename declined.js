@@ -1,27 +1,32 @@
 document.addEventListener("DOMContentLoaded", function () {
     const video = document.getElementById("byeVideo");
-    const playButton = document.getElementById("playButton");
 
-    // Poga, lai lietotājs uzsāktu video atskaņošanu
-    playButton.addEventListener("click", function () {
-        video.play()
-            .then(() => {
-                // Ja video veiksmīgi sākas, var paslēpt pogu
-                playButton.style.display = "none";
-                console.log("Video atskaņošanās uzsākta pēc lietotāja mijiedarbības.");
-            })
-            .catch(error => {
-                console.error("Kļūda atskaņojot video:", error);
-            });
+    // Kad lietotājs klikšķina uz video, tas pārslēdzas starp atskaņošanu un pauzi
+    video.addEventListener("click", function () {
+        if (video.paused) {
+            video.play()
+                .then(() => {
+                    console.log("Video sākts pēc lietotāja mijiedarbības.");
+                })
+                .catch(error => {
+                    console.error("Kļūda atskaņojot video:", error);
+                });
+        } else {
+            video.pause();
+            console.log("Video apturēts.");
+        }
     });
 
-    // Papildu notikumu klausītāji
     video.addEventListener("play", function () {
-        console.log("Video veiksmīgi sākts!");
+        console.log("Video atskaņo.");
+    });
+
+    video.addEventListener("pause", function () {
+        console.log("Video pauzēts.");
     });
 
     video.addEventListener("ended", function () {
-        console.log("Video beidzās un tiks atskaņots no jauna.");
+        console.log("Video beidzās un atkārtosies.");
     });
 
     video.addEventListener("error", function () {
