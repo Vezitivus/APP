@@ -97,7 +97,7 @@ p {
 
 /* Ievades lauks */
 input[type="text"] {
-    width: 100%;
+    width: 80%;
     padding: 12px 16px;
     margin-bottom: 20px;
     border: 1px solid #ddd;
