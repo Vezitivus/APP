@@ -22,22 +22,27 @@
             // Automātiska video atskaņošana ar skaņu
             declineVideo.muted = false;
             declineVideo.play().catch(error => {
-                console.warn("Pārlūks bloķēja automātisko atskaņošanu:", error);
+                console.warn("Pārlūks bloķēja automātisko atskaņošanu, mēģina atkārtoti:", error);
+                setTimeout(() => {
+                    declineVideo.play();
+                }, 500);
             });
 
-            // Atver video pilnekrānā
+            // Pilnekrāna aktivizēšana, ja iespējams
             function openFullScreen(video) {
                 if (video.requestFullscreen) {
                     video.requestFullscreen();
-                } else if (video.webkitRequestFullscreen) {
+                } else if (video.webkitRequestFullscreen) { 
                     video.webkitRequestFullscreen(); // Safari
-                } else if (video.msRequestFullscreen) {
+                } else if (video.msRequestFullscreen) { 
                     video.msRequestFullscreen(); // Edge
                 }
             }
 
-            // Kad lapa ielādējas, atver pilnekrāna režīmā
-            openFullScreen(declineVideo);
+            // Atver video pilnekrānā, ja pārlūks to atļauj
+            setTimeout(() => {
+                openFullScreen(declineVideo);
+            }, 500);
         });
     </script>
 </body>
