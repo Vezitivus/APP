@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const uid = new URLSearchParams(window.location.search).get("uid") || "VZ001"; // Noklusējuma UID
 
         // Nosūta datus uz Google Sheets
-        fetch("https://script.google.com/macros/s/YOUR_GOOGLE_SCRIPT_URL/exec", {
+        fetch("https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCw8RaXwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: new URLSearchParams({
@@ -42,14 +42,14 @@ document.addEventListener("DOMContentLoaded", function () {
                     celebrationVideo.muted = false;
                     celebrationVideo.play();
 
-                    // Kad video beidzas, pāradresē uz profilu
+                    // Kad video beidzas, pāradresē uz profilu tikai ar ID beigās
                     celebrationVideo.onended = function () {
-                        window.location.href = result.redirectUrl;
+                        window.location.href = `profile.html?uid=${uid}`;
                     };
 
-                    // Skip poga pāradresē uz profilu
+                    // Skip poga pāradresē uz profilu tikai ar ID beigās
                     skipButton.addEventListener("click", function () {
-                        window.location.href = result.redirectUrl;
+                        window.location.href = `profile.html?uid=${uid}`;
                     });
                 } else {
                     alert("Reģistrācijas kļūda: " + result.message);
