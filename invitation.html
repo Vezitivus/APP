@@ -12,24 +12,15 @@
             <h1 class="title">VEZITIVUS WEEKEND Ielūgums</h1>
             <p>TXTXTX</p>
             <div class="buttons">
-                <a id="acceptInvite" class="button green">Apstiprināt ielūgumu</a>
+                <button onclick="goBack()" class="button green">Apstiprināt ielūgumu</button>
                 <a href="declined.html" class="button red">Noraidīt ielūgumu</a>
             </div>
         </div>
     </div>
     <script>
-        // Saglabā reģistrācijas lapas saiti ar UID
-        document.addEventListener("DOMContentLoaded", function () {
-            const params = new URLSearchParams(window.location.search);
-            const uid = params.get("uid");
-            const acceptButton = document.getElementById("acceptInvite");
-
-            if (uid) {
-                acceptButton.href = `register.html?uid=${uid}`; // Pievieno UID reģistrācijas lapas saitei
-            } else {
-                acceptButton.href = "register.html"; // Bez UID, ja tas nav nodots
-            }
-        });
+        function goBack() {
+            window.history.back(); // Atgriežas iepriekšējā lapā
+        }
     </script>
 </body>
 </html>
