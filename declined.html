@@ -17,21 +17,6 @@
             </video>
         </div>
     </div>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const byeVideo = document.getElementById("byeVideo");
-
-            // Pievieno notikumu, ja nepieciešams darīt kaut ko pēc video beigām
-            byeVideo.addEventListener("ended", function () {
-                console.log("Video ir beidzies");
-                // Ja nepieciešama kāda darbība pēc video, to pievieno šeit
-            });
-
-            // Pārliecinās, vai video tiek pareizi ielādēts
-            byeVideo.addEventListener("error", function () {
-                console.error("Kļūda ielādējot video!");
-            });
-        });
-    </script>
+    <script src="declined.js"></script>
 </body>
 </html>
