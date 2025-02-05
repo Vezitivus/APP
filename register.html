@@ -10,10 +10,10 @@
     <div class="register-container">
         <div class="glass-effect">
             <h1 class="invite-title">IELŪGUMS</h1>
-            <button id="openInvite" class="button glow">Atvērt ielūgumu</button>
+            <button id="openInvite" class="button full dark">Atvērt ielūgumu</button>
 
             <input type="text" id="username" placeholder="Tavs vārds" required disabled>
-            <button id="registerBtn" class="button" disabled>Reģistrēties</button>
+            <button id="registerBtn" class="button full dark" disabled>Reģistrēties</button>
             <p id="status"></p>
             <p id="inviteWarning">Lai reģistrētos, nepieciešams apstiprināt ielūgumu.</p>
         </div>
@@ -44,7 +44,7 @@
                 registerBtn.disabled = false;
                 inviteWarning.style.display = "none";
                 inviteBtn.innerText = "Ielūgums apstiprināts";
-                inviteBtn.classList.remove("glow");
+                inviteBtn.classList.remove("dark");
                 inviteBtn.classList.add("confirmed");
             }
 
@@ -59,4 +59,13 @@
 
                 setTimeout(() => {
                     document.querySelector("h2").innerText = "Apsveicu! Tu esi reģistrēts VEZITIVUS WeekEnd!";
-                }, celebrationVideo.duration * 1000 -
+                }, celebrationVideo.duration * 1000 - 4000);
+
+                celebrationVideo.onended = function () {
+                    window.location.href = "profile.html";
+                };
+            });
+        });
+    </script>
+</body>
+</html>
