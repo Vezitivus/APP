@@ -17,8 +17,9 @@
 
     <script>
         document.getElementById("acceptInvite").addEventListener("click", function () {
+            const uid = "VZ001"; // Šeit var tikt izmantots dinamisks ID
             localStorage.setItem("inviteAccepted", "true");
-            window.location.href = "register.html";
+            window.location.href = "register.html?uid=" + uid;
         });
 
         document.getElementById("rejectInvite").addEventListener("click", function () {
