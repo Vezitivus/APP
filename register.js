@@ -1,6 +1,4 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const inviteSection = document.getElementById("inviteSection");
-    const formSection = document.getElementById("formSection");
     const openInviteButton = document.getElementById("openInvite");
     const registerButton = document.getElementById("registerBtn");
     const usernameField = document.getElementById("username");
@@ -10,18 +8,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Iegūst UID no URL parametriem
     const urlParams = new URLSearchParams(window.location.search);
-    const uid = urlParams.get("uid");
-
-    // Sākotnējais stāvoklis
-    if (localStorage.getItem("inviteAccepted") === "true" && uid) {
-        inviteSection.classList.add("hidden");
-        formSection.classList.remove("hidden");
-    }
+    const uid = urlParams.get("uid") || "VZ001"; // Noklusējuma UID, ja nav norādīts
 
     // Atver ielūguma lapu
     openInviteButton.addEventListener("click", function () {
-        const inviteUrl = "invitation.html?uid=" + (uid || "VZ001"); // Default ID, ja UID nav
-        window.location.href = inviteUrl;
+        window.location.href = "invitation.html?uid=" + uid;
     });
 
     // Reģistrē lietotāju
@@ -39,7 +30,6 @@ document.addEventListener("DOMContentLoaded", function () {
             body: new URLSearchParams({ uid: uid, username: username })
         }).then(response => response.json()).then(result => {
             if (result.status === "success") {
-                formSection.classList.add("hidden");
                 loadingScreen.classList.remove("hidden");
                 celebrationVideo.muted = false;
                 celebrationVideo.play();
