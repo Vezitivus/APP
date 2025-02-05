@@ -23,7 +23,8 @@
         <img src="loading.gif" class="loading-icon">
         <h2>Reģistrācija tiek apstrādāta</h2>
         <p>Lūdzu neaizver logu un izbaudi svētku sākšanos!</p>
-        <video id="celebrationVideo" src="celebration.mov" autoplay muted></video>
+        <video id="celebrationVideo" src="celebration.MOV" autoplay muted></video>
+        <button id="skipButton" class="button dark">Izlaist video</button>
     </div>
 
     <script>
@@ -34,6 +35,7 @@
             const inviteWarning = document.getElementById("inviteWarning");
             const loadingScreen = document.getElementById("loadingScreen");
             const celebrationVideo = document.getElementById("celebrationVideo");
+            const skipButton = document.getElementById("skipButton");
 
             inviteBtn.addEventListener("click", function () {
                 window.location.href = "invitation.html";
@@ -57,13 +59,13 @@
                     celebrationVideo.play();
                 }, 1000);
 
-                setTimeout(() => {
-                    document.querySelector("h2").innerText = "Apsveicu! Tu esi reģistrēts VEZITIVUS WeekEnd!";
-                }, celebrationVideo.duration * 1000 - 4000);
-
                 celebrationVideo.onended = function () {
                     window.location.href = "profile.html";
                 };
+
+                skipButton.addEventListener("click", function () {
+                    window.location.href = "profile.html";
+                });
             });
         });
     </script>
