@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ielūgums</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="invitation-container">
+        <div class="invite-background">TXT TXT TXT</div>
+        <div class="invite-buttons">
+            <button id="acceptInvite" class="button glow">Apstiprināt ielūgumu</button>
+            <button id="rejectInvite" class="button glow red">Noraidīt ielūgumu</button>
+        </div>
+        <audio id="byeMusic" src="bye.mp3"></audio>
+    </div>
+
+    <script>
+        document.getElementById("acceptInvite").addEventListener("click", function () {
+            localStorage.setItem("inviteAccepted", "true");
+            window.location.href = "register.html";
+        });
+
+        document.getElementById("rejectInvite").addEventListener("click", function () {
+            document.body.innerHTML = "<img src='deadpool.jpg' class='deadpool-img'>";
+            document.getElementById("byeMusic").play();
+        });
+    </script>
+</body>
+</html>
