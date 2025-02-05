@@ -8,28 +8,66 @@
 </head>
 <body>
     <div class="register-container">
-        <h1 class="invite-title">IELŪGUMS UZ VEZITIVUS</h1>
-
-        <button id="openInvite" class="button full dark">Atvērt ielūgumu</button>
-
         <div class="glass-effect">
-            <h2>REĢISTRĀCIJA</h2>
-            <input type="text" id="username" placeholder="Ievadi savu vārdu" required>
-            <button id="registerBtn" class="button full ios-button">Reģistrēties</button>
+            <h1 class="invite-title">IELŪGUMS</h1>
+            <button id="openInvite" class="button full dark">Atvērt ielūgumu</button>
+
+            <input type="text" id="username" placeholder="Tavs vārds" required disabled>
+            <button id="registerBtn" class="button full dark" disabled>Reģistrēties</button>
             <p id="status"></p>
+            <p id="inviteWarning">Lai reģistrētos, nepieciešams apstiprināt ielūgumu.</p>
         </div>
     </div>
 
     <div id="loadingScreen" class="hidden">
-        <div class="loading-content">
-            <img src="loading.gif" class="loading-icon">
-            <h2>Reģistrācija tiek apstrādāta...</h2>
-            <p>Lūdzu, neaizveriet logu un izbaudiet sākumu!</p>
-            <video id="celebrationVideo" src="celebration.MOV" autoplay playsinline></video>
-            <button id="skipButton" class="button ios-button">Izlaist video</button>
-        </div>
+        <img src="loading.gif" class="loading-icon">
+        <h2>Reģistrācija tiek apstrādāta</h2>
+        <p>Lūdzu neaizver logu un izbaudi svētku sākšanos!</p>
+        <video id="celebrationVideo" src="celebration.MOV" autoplay muted></video>
+        <button id="skipButton" class="button dark">Izlaist video</button>
     </div>
 
-    <script src="register.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const inviteBtn = document.getElementById("openInvite");
+            const usernameField = document.getElementById("username");
+            const registerBtn = document.getElementById("registerBtn");
+            const inviteWarning = document.getElementById("inviteWarning");
+            const loadingScreen = document.getElementById("loadingScreen");
+            const celebrationVideo = document.getElementById("celebrationVideo");
+            const skipButton = document.getElementById("skipButton");
+
+            inviteBtn.addEventListener("click", function () {
+                window.location.href = "invitation.html";
+            });
+
+            if (localStorage.getItem("inviteAccepted") === "true") {
+                usernameField.disabled = false;
+                registerBtn.disabled = false;
+                inviteWarning.style.display = "none";
+                inviteBtn.innerText = "Ielūgums apstiprināts";
+                inviteBtn.classList.remove("dark");
+                inviteBtn.classList.add("confirmed");
+            }
+
+            registerBtn.addEventListener("click", function () {
+                document.querySelector(".register-container").style.display = "none";
+                loadingScreen.classList.remove("hidden");
+
+                setTimeout(() => {
+                    celebrationVideo.muted = false;
+                    celebrationVideo.play();
+                }, 1000);
+
+                celebrationVideo.onended = function () {
+                    window.location.href = "profile.html";
+                };
+
+                skipButton.addEventListener("click", function () {
+                    window.location.href = "profile.html";
+                });
+            });
+        });
+    </script>
 </body>
 </html>
