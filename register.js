@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <video src="celebration.MOV" autoplay playsinline></video>
         `;
 
-        fetch("https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec", {
+        fetch("https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCw8RaXwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: new URLSearchParams({ uid: uid, username: username })
@@ -31,17 +31,9 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(response => response.json())
         .then(result => {
             if (result.status === "success") {
-                const video = document.querySelector("video");
-
-                // Automātiski pāriet uz profilu pēc video beigām
-                video.addEventListener("ended", () => {
-                    window.location.href = result.redirectUrl;
-                });
-
-                // Ja video nepabeidzas (drošībai), automātiski pārnes pēc 10 sekundēm
                 setTimeout(() => {
                     window.location.href = result.redirectUrl;
-                }, 10000);
+                }, 5000); // Profilu aizved pēc video beigām (~5s)
             } else {
                 document.querySelector(".glass-effect").innerHTML = "<p>Kļūda! " + result.message + "</p>";
             }
