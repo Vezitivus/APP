@@ -16,14 +16,16 @@
     </div>
 
     <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const uid = urlParams.get("uid") || "VZ001"; // Default ID, ja nav
+
         document.getElementById("acceptInvite").addEventListener("click", function () {
-            const uid = "VZ001"; // Šeit var tikt izmantots dinamisks ID
             localStorage.setItem("inviteAccepted", "true");
             window.location.href = "register.html?uid=" + uid;
         });
 
         document.getElementById("rejectInvite").addEventListener("click", function () {
-            window.location.href = "declined.html";
+            window.location.href = "declined.html?uid=" + uid;
         });
     </script>
 </body>
