@@ -12,10 +12,9 @@
             <h1 class="invite-title">IELŪGUMS</h1>
             <button id="openInvite" class="button full dark">Atvērt ielūgumu</button>
 
-            <input type="text" id="username" placeholder="Tavs vārds" required disabled>
-            <button id="registerBtn" class="button full dark" disabled>Reģistrēties</button>
+            <input type="text" id="username" placeholder="Tavs vārds" required>
+            <button id="registerBtn" class="button full dark">Reģistrēties</button>
             <p id="status"></p>
-            <p id="inviteWarning">Lai reģistrētos, nepieciešams apstiprināt ielūgumu.</p>
         </div>
     </div>
 
@@ -23,7 +22,7 @@
         <img src="loading.gif" class="loading-icon">
         <h2>Reģistrācija tiek apstrādāta</h2>
         <p>Lūdzu neaizver logu un izbaudi svētku sākšanos!</p>
-        <video id="celebrationVideo" src="celebration.MOV" autoplay muted></video>
+        <video id="celebrationVideo" src="celebration.MOV" autoplay playsinline></video>
         <button id="skipButton" class="button dark">Izlaist video</button>
     </div>
 
@@ -32,39 +31,42 @@
             const inviteBtn = document.getElementById("openInvite");
             const usernameField = document.getElementById("username");
             const registerBtn = document.getElementById("registerBtn");
-            const inviteWarning = document.getElementById("inviteWarning");
             const loadingScreen = document.getElementById("loadingScreen");
             const celebrationVideo = document.getElementById("celebrationVideo");
             const skipButton = document.getElementById("skipButton");
 
+            // Ielūguma atvēršana
             inviteBtn.addEventListener("click", function () {
                 window.location.href = "invitation.html";
             });
 
-            if (localStorage.getItem("inviteAccepted") === "true") {
-                usernameField.disabled = false;
-                registerBtn.disabled = false;
-                inviteWarning.style.display = "none";
-                inviteBtn.innerText = "Ielūgums apstiprināts";
-                inviteBtn.classList.remove("dark");
-                inviteBtn.classList.add("confirmed");
-            }
-
+            // Reģistrācijas pogas nospiešana
             registerBtn.addEventListener("click", function () {
+                const username = usernameField.value.trim();
+
+                if (!username) {
+                    alert("Lūdzu ievadi savu vārdu!");
+                    return;
+                }
+
+                // Parāda loading ekrānu un slēpj reģistrācijas formu
                 document.querySelector(".register-container").style.display = "none";
                 loadingScreen.classList.remove("hidden");
 
+                // Palaist "celebration" video
                 setTimeout(() => {
                     celebrationVideo.muted = false;
                     celebrationVideo.play();
                 }, 1000);
 
+                // Kad video beidzas, pāradresē uz profila lapu
                 celebrationVideo.onended = function () {
-                    window.location.href = "profile.html";
+                    window.location.href = `profile.html?username=${encodeURIComponent(username)}`;
                 };
 
+                // Skip poga pāradresē uz profilu
                 skipButton.addEventListener("click", function () {
-                    window.location.href = "profile.html";
+                    window.location.href = `profile.html?username=${encodeURIComponent(username)}`;
                 });
             });
         });
