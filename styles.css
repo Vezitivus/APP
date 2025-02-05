@@ -1,8 +1,8 @@
 /* Globālie iestatījumi */
 body, html {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: linear-gradient(to bottom, #f8f9fa, #e9ecef); /* Gaišs iOS stila fons */
-    color: #333; /* Neitrāla Apple līdzīga krāsa tekstam */
+    background: linear-gradient(to bottom, #0a0a0a, #1c1c1e); /* Tumšs iOS stila fons */
+    color: #fff; /* Balts teksts uz tumša fona */
     margin: 0;
     padding: 0;
     width: 100%;
@@ -27,10 +27,10 @@ body, html {
 
 /* Centrēts konteiners ar stikla efektu */
 .glass-effect {
-    background: rgba(255, 255, 255, 0.1); /* Caurspīdīgs balts */
+    background: rgba(255, 255, 255, 0.08); /* Caurspīdīgs tumšs */
     backdrop-filter: blur(15px); /* iOS stila miglainums */
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); /* Viegls ēnojums */
+    border-radius: 20px; /* Apaļas malas */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); /* Viegls tumšs ēnojums */
     padding: 20px;
     text-align: center;
     width: 90%;
@@ -42,14 +42,14 @@ body, html {
     font-size: 28px;
     font-weight: bold;
     margin-bottom: 20px;
-    color: #333; /* iOS raksturīgā neitrālā krāsa */
+    color: #fff; /* Balts teksts */
 }
 
 /* Teksta apraksti */
 p {
     font-size: 16px;
     line-height: 1.6;
-    color: #666; /* Viegli pelēks tonis */
+    color: #ccc; /* Viegli pelēks tonis */
 }
 
 /* Pogas vispārējais stils */
@@ -64,35 +64,35 @@ p {
     text-decoration: none;
     cursor: pointer;
     border: none;
-    background: linear-gradient(to bottom, #007aff, #0051c9); /* iOS zila poga */
+    background: linear-gradient(to bottom, #333, #111); /* Tumši pelēks gradients */
     color: white;
-    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3); /* iOS stila viegls ēnojums */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Tumša ēna */
     transition: all 0.3s ease;
 }
 
 .button:hover {
     transform: translateY(-2px); /* Mazs pacēlums uz hover */
-    box-shadow: 0 6px 14px rgba(0, 122, 255, 0.5);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5); /* Spēcīgāka ēna */
 }
 
 /* Zaļā poga */
 .button.green {
-    background: linear-gradient(to bottom, #34c759, #28a745); /* iOS zaļā poga */
-    box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
+    background: linear-gradient(to bottom, #2ecc71, #27ae60); /* Zaļā poga */
+    box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
 }
 
 .button.green:hover {
-    box-shadow: 0 6px 14px rgba(52, 199, 89, 0.5);
+    box-shadow: 0 6px 14px rgba(46, 204, 113, 0.5);
 }
 
 /* Sarkanā poga */
 .button.red {
-    background: linear-gradient(to bottom, #ff3b30, #d9261c); /* iOS sarkanā poga */
-    box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3);
+    background: linear-gradient(to bottom, #e74c3c, #c0392b); /* Sarkanā poga */
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
 }
 
 .button.red:hover {
-    box-shadow: 0 6px 14px rgba(255, 59, 48, 0.5);
+    box-shadow: 0 6px 14px rgba(231, 76, 60, 0.5);
 }
 
 /* Ievades lauks */
@@ -100,27 +100,27 @@ input[type="text"] {
     width: 80%;
     padding: 12px 16px;
     margin-bottom: 20px;
-    border: 1px solid #ddd;
-    border-radius: 24px; /* iOS apaļais ievades lauks */
-    background: rgba(255, 255, 255, 0.6);
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid #444; /* Tumšs rāmis */
+    border-radius: 24px; /* Apaļas malas */
+    background: rgba(255, 255, 255, 0.1); /* Caurspīdīgs tumšs fons */
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5); /* Iekšējā ēna */
     font-size: 16px;
-    color: #333;
+    color: white;
     outline: none;
     transition: all 0.3s ease;
 }
 
 input[type="text"]:focus {
-    border: 1px solid #007aff; /* iOS zilā fokusa krāsa */
-    box-shadow: 0 0 8px rgba(0, 122, 255, 0.3);
+    border: 1px solid #007aff; /* Zila fokusa krāsa */
+    box-shadow: 0 0 8px rgba(0, 122, 255, 0.3); /* Zils fokusa efekts */
 }
 
 /* Video pielāgošana */
 video {
     width: 100%;
-    border-radius: 16px; /* iOS stilā noapaļots video */
+    border-radius: 16px; /* Apaļas malas video */
     margin-top: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Tumša ēna */
     max-height: 300px;
 }
 
