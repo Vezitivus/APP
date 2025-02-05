@@ -67,3 +67,25 @@ video {
         transform: rotate(360deg);
     }
 }
+.declined-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    text-align: center;
+    background: black;
+}
+
+.message {
+    color: white;
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+video {
+    width: 90%;
+    max-width: 800px;
+    border-radius: 10px;
+}
