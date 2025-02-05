@@ -1,3 +1,4 @@
+/* Vispārējais ķermeņa stils */
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background: linear-gradient(to bottom, #0a0a0a, #1c1c1e);
@@ -10,6 +11,7 @@ body {
     height: 100vh;
 }
 
+/* Stils stikla efektam */
 .glass-effect {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(20px) saturate(180%);
@@ -21,12 +23,14 @@ body {
     text-align: center;
 }
 
+/* Galvenā virsraksta stils */
 .title {
     font-size: 24px;
     font-weight: bold;
     margin-bottom: 20px;
 }
 
+/* Saite ar rāmi */
 .invitation-link {
     display: inline-block;
     padding: 8px 16px;
@@ -43,7 +47,7 @@ body {
     background: rgba(255, 255, 255, 0.1);
 }
 
-/* Poga "Izlaist" */
+/* Pogas stils */
 .button {
     display: inline-block;
     padding: 12px 20px;
@@ -84,9 +88,53 @@ body {
     background: #c0392b;
 }
 
-/* Video pielāgošana */
+/* Video stils */
 video {
     width: 100%;
     border-radius: 12px;
     margin-top: 20px;
+}
+
+/* Stils profila lapai */
+.gif-container {
+    width: 100%;
+    height: auto;
+    overflow: hidden;
+}
+
+.full-width-gif {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.profile-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: calc(100vh - 300px); /* Pielāgo augstumu pēc gif */
+    margin-top: -20px;
+}
+
+.profile-info p {
+    font-size: 18px;
+    margin: 10px 0;
+}
+
+/* Stils declined lapai */
+.declined-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    padding: 20px;
+    text-align: center;
+}
+
+.declined-container video {
+    margin-top: 20px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 600px;
 }
