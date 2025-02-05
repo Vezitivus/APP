@@ -1,43 +1,51 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const params = new URLSearchParams(window.location.search);
-    const uid = params.get("uid");
-    const successSound = document.getElementById("successSound");
+    const inviteBtn = document.getElementById("openInvite");
+    const formSection = document.getElementById("formSection");
+    const registerBtn = document.getElementById("registerBtn");
+    const usernameField = document.getElementById("username");
+    const loadingScreen = document.getElementById("loadingScreen");
+    const celebrationVideo = document.getElementById("celebrationVideo");
+    const skipButton = document.getElementById("skipButton");
 
-    if (!uid) {
-        document.getElementById("status").innerText = "NFC ID nav atrasts!";
-        return;
+    inviteBtn.addEventListener("click", function () {
+        window.location.href = "invitation.html";
+    });
+
+    if (localStorage.getItem("inviteAccepted") === "true") {
+        inviteBtn.innerText = "Ielūgums apstiprināts";
+        inviteBtn.classList.remove("dark");
+        formSection.classList.remove("hidden");
     }
 
-    document.getElementById("registerBtn").addEventListener("click", function () {
-        const username = document.getElementById("username").value.trim();
-
-        if (username === "") {
-            document.getElementById("status").innerText = "Lūdzu, ievadi savu vārdu!";
+    registerBtn.addEventListener("click", function () {
+        const username = usernameField.value.trim();
+        if (!username) {
+            alert("Lūdzu ievadi savu vārdu!");
             return;
         }
 
-        document.getElementById("status").innerText = "Saglabāju...";
-
-        fetch("https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCw8RaXwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec", {
+        // Saglabā datus Google Sheets
+        fetch("https://script.google.com/macros/s/YOUR_GOOGLE_SCRIPT_URL/exec", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({ uid: uid, username: username })
-        })
-        .then(response => response.json())
-        .then(result => {
+            body: new URLSearchParams({ username: username })
+        }).then(response => response.json()).then(result => {
             if (result.status === "success") {
-                document.getElementById("status").innerText = "Reģistrācija veiksmīga!";
-                successSound.play();
-                setTimeout(() => {
-                    window.location.href = result.redirectUrl;
-                }, 2000);
+                document.querySelector(".register-container").style.display = "none";
+                loadingScreen.classList.remove("hidden");
+                celebrationVideo.muted = false;
+                celebrationVideo.play();
+
+                celebrationVideo.onended = function () {
+                    window.location.href = result.profileUrl;
+                };
+
+                skipButton.addEventListener("click", function () {
+                    window.location.href = result.profileUrl;
+                });
             } else {
-                document.getElementById("status").innerText = "Kļūda: " + result.message;
+                alert("Reģistrācijas kļūda. Mēģini vēlreiz.");
             }
-        })
-        .catch(error => {
-            console.error("Kļūda:", error);
-            document.getElementById("status").innerText = "Savienojuma kļūda!";
         });
     });
 });
