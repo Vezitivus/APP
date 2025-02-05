@@ -1,33 +1,26 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const inviteBtn = document.getElementById("openInvite");
+    const inviteSection = document.getElementById("inviteSection");
     const formSection = document.getElementById("formSection");
-    const registerBtn = document.getElementById("registerBtn");
+    const openInviteButton = document.getElementById("openInvite");
+    const registerButton = document.getElementById("registerBtn");
     const usernameField = document.getElementById("username");
     const loadingScreen = document.getElementById("loadingScreen");
     const celebrationVideo = document.getElementById("celebrationVideo");
     const skipButton = document.getElementById("skipButton");
 
-    // Pārbauda, vai ielūgums ir apstiprināts
+    // Sākotnējais ielūguma logs
     if (localStorage.getItem("inviteAccepted") === "true") {
-        activateRegistrationForm();
+        inviteSection.classList.add("hidden");
+        formSection.classList.remove("hidden");
     }
 
     // Atver ielūguma lapu
-    inviteBtn.addEventListener("click", function () {
+    openInviteButton.addEventListener("click", function () {
         window.location.href = "invitation.html";
     });
 
-    // Aktivizē reģistrācijas formu
-    function activateRegistrationForm() {
-        inviteBtn.innerText = "Ielūgums apstiprināts";
-        inviteBtn.classList.remove("dark");
-        formSection.classList.remove("hidden");
-        usernameField.disabled = false;
-        registerBtn.disabled = false;
-    }
-
-    // Reģistrē lietotāju
-    registerBtn.addEventListener("click", function () {
+    // Reģistrācijas forma
+    registerButton.addEventListener("click", function () {
         const username = usernameField.value.trim();
         if (!username) {
             alert("Lūdzu ievadi savu vārdu!");
@@ -41,7 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
             body: new URLSearchParams({ uid: "VZ001", username: username })
         }).then(response => response.json()).then(result => {
             if (result.status === "success") {
-                document.querySelector(".register-container").style.display = "none";
+                formSection.classList.add("hidden");
                 loadingScreen.classList.remove("hidden");
                 celebrationVideo.muted = false;
                 celebrationVideo.play();
