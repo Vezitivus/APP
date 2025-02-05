@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log("Video veiksmīgi sākts!");
     });
 
-    // Kad video beidzas, tas automātiski sākas no jauna (cilpošanas funkcija)
+    // Kad video beidzas, tas automātiski sākas no jauna
     video.addEventListener("ended", function () {
         console.log("Video beidzās un tiks atskaņots no jauna.");
     });
