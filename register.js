@@ -16,13 +16,15 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        // Rāda sagatavošanas ekrānu
+        // Rāda sagatavošanas ekrānu ar "Skip video" pogu
         document.querySelector(".glass-effect").innerHTML = `
             <h1 class="title">Tavs personīgais profils tiek sagatavots</h1>
             <p>Priecāšos tevi redzēt ballītē!</p>
-            <video src="celebration.MOV" autoplay playsinline></video>
+            <video id="celebrationVideo" src="celebration.MOV" autoplay playsinline></video>
+            <button id="skipVideo" class="button">Izlaist video</button>
         `;
 
+        // Reģistrācijas process
         fetch("https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCw8RaXwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -31,9 +33,17 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(response => response.json())
         .then(result => {
             if (result.status === "success") {
-                setTimeout(() => {
+                const video = document.getElementById("celebrationVideo");
+
+                // Automātiski pāriet uz profilu pēc video beigām
+                video.addEventListener("ended", () => {
                     window.location.href = result.redirectUrl;
-                }, 5000); // Profilu aizved pēc video beigām (~5s)
+                });
+
+                // Pāriet uz profilu, ja nospiesta "Skip video"
+                document.getElementById("skipVideo").addEventListener("click", () => {
+                    window.location.href = result.redirectUrl;
+                });
             } else {
                 document.querySelector(".glass-effect").innerHTML = "<p>Kļūda! " + result.message + "</p>";
             }
