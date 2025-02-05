@@ -8,8 +8,23 @@
 </head>
 <body>
     <div class="declined-container">
-        <h1>Žēl ka nepievienosies, bet ja pārdomā, reģistrācija vienmēr aktīva</h1>
-        <video src="bye.MOV" autoplay playsinline style="width: 100%; height: 100vh; object-fit: cover;"></video>
+        <div class="message">
+            <h1>Žēl, ka nepievienosies...</h1>
+            <p>Bet ja pārdomā, reģistrācija vienmēr aktīva!</p>
+        </div>
+        <video id="declineVideo" src="bye.MOV" autoplay playsinline controls></video>
     </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const declineVideo = document.getElementById("declineVideo");
+
+            // Mēģina ieslēgt skaņu automātiski
+            declineVideo.muted = false;
+            declineVideo.play().catch(error => {
+                console.warn("Autoplay with sound is restricted, user needs to unmute manually.");
+            });
+        });
+    </script>
 </body>
 </html>
