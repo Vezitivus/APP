@@ -9,38 +9,26 @@
 <body>
     <div class="register-container">
         <div class="glass-effect">
-            <h1 class="invite-title">IELŪGUMS</h1>
-            <button id="openInvite" class="button full dark">Atvērt ielūgumu</button>
-
-            <input type="text" id="username" placeholder="Tavs vārds" required>
-            <button id="registerBtn" class="button full dark">Reģistrēties</button>
+            <h1>Reģistrācija</h1>
+            <input type="text" id="username" placeholder="Ievadi savu vārdu">
+            <button id="registerBtn">Reģistrēties</button>
             <p id="status"></p>
         </div>
     </div>
-
-    <div id="loadingScreen" class="hidden">
-        <img src="loading.gif" class="loading-icon">
-        <h2>Reģistrācija tiek apstrādāta</h2>
-        <p>Lūdzu neaizver logu un izbaudi svētku sākšanos!</p>
-        <video id="celebrationVideo" src="celebration.MOV" autoplay playsinline></video>
-        <button id="skipButton" class="button dark">Izlaist video</button>
-    </div>
-
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            const inviteBtn = document.getElementById("openInvite");
-            const usernameField = document.getElementById("username");
             const registerBtn = document.getElementById("registerBtn");
-            const loadingScreen = document.getElementById("loadingScreen");
-            const celebrationVideo = document.getElementById("celebrationVideo");
-            const skipButton = document.getElementById("skipButton");
+            const usernameField = document.getElementById("username");
+            const statusElement = document.getElementById("status");
 
-            // Ielūguma atvēršana
-            inviteBtn.addEventListener("click", function () {
-                window.location.href = "invitation.html";
-            });
+            const params = new URLSearchParams(window.location.search);
+            const uid = params.get("uid");
 
-            // Reģistrācijas pogas nospiešana
+            if (!uid) {
+                statusElement.textContent = "Kļūda: Nav norādīts UID!";
+                return;
+            }
+
             registerBtn.addEventListener("click", function () {
                 const username = usernameField.value.trim();
 
@@ -49,25 +37,26 @@
                     return;
                 }
 
-                // Parāda loading ekrānu un slēpj reģistrācijas formu
-                document.querySelector(".register-container").style.display = "none";
-                loadingScreen.classList.remove("hidden");
-
-                // Palaist "celebration" video
-                setTimeout(() => {
-                    celebrationVideo.muted = false;
-                    celebrationVideo.play();
-                }, 1000);
-
-                // Kad video beidzas, pāradresē uz profila lapu
-                celebrationVideo.onended = function () {
-                    window.location.href = `profile.html?username=${encodeURIComponent(username)}`;
-                };
-
-                // Skip poga pāradresē uz profilu
-                skipButton.addEventListener("click", function () {
-                    window.location.href = `profile.html?username=${encodeURIComponent(username)}`;
-                });
+                fetch("https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCw8RaXwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: new URLSearchParams({
+                        uid: uid,
+                        username: username
+                    })
+                })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.status === "success") {
+                            window.location.href = result.redirectUrl;
+                        } else {
+                            alert("Kļūda reģistrācijas laikā: " + result.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Kļūda:", error);
+                        alert("Radās kļūda, mēģiniet vēlreiz.");
+                    });
             });
         });
     </script>
