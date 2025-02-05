@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.getElementById("registerBtn").addEventListener("click", function () {
         const username = document.getElementById("username").value.trim();
+
         if (username === "") {
             document.getElementById("status").innerText = "Lūdzu, ievadi savu vārdu!";
             return;
@@ -17,7 +18,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         document.getElementById("status").innerText = "Saglabāju...";
 
-        fetch("https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec", {
+        fetch("https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCw8RaXwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: new URLSearchParams({ uid: uid, username: username })
@@ -29,9 +30,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 successSound.play();
                 setTimeout(() => {
                     window.location.href = result.redirectUrl;
-                }, 3000);
+                }, 2000);
             } else {
-                document.getElementById("status").innerText = "Kļūda! " + result.message;
+                document.getElementById("status").innerText = "Kļūda: " + result.message;
             }
         })
         .catch(error => {
