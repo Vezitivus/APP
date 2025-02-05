@@ -3,23 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video kā poga</title>
+    <title>Žēl...</title>
     <link rel="stylesheet" href="styles.css">
-    <style>
-        /* Padara video vizuāli norādošu, ka tas ir interaktīvs */
-        video {
-            width: 100%;
-            height: auto;
-            cursor: pointer;
-        }
-    </style>
 </head>
 <body>
     <div class="declined-container">
         <div class="glass-effect">
-            <!-- Video elements ar ceļu uz bye.mp4; autoplay un muted atribūti ir izņemti,
-                 tāpēc video tiks atskaņots ar skaņu pēc lietotāja mijiedarbības -->
+            <h1 class="title">Žēl, ka šoreiz nepievienosies</h1>
+            <p>Bet ja pārdomāsi, reģistrācija vienmēr pieejama.</p>
+            <!-- Video bez autoplay un muted, jo iOS prasīs lietotāja mijiedarbību -->
             <video id="byeVideo" src="bye.mp4" playsinline loop></video>
+            <!-- Poga video atskaņošanai -->
+            <button id="playButton">Sākt video</button>
         </div>
     </div>
     <script src="declined.js"></script>
