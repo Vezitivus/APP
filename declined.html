@@ -11,11 +11,27 @@
         <div class="glass-effect">
             <h1 class="title">Žēl, ka šoreiz nepievienosies</h1>
             <p>Bet ja pārdomāsi, reģistrācija vienmēr pieejama.</p>
-            <video id="byeVideo" autoplay playsinline muted controls>
-                <source src="bye.MOV" type="video/mov">
+            <video id="byeVideo" autoplay playsinline controls>
+                <source src="bye.MOV" type="video/mp4">
                 Tavs pārlūks neatbalsta video atskaņošanu.
             </video>
         </div>
     </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const byeVideo = document.getElementById("byeVideo");
+
+            // Pievieno notikumu, ja nepieciešams darīt kaut ko pēc video beigām
+            byeVideo.addEventListener("ended", function () {
+                console.log("Video ir beidzies");
+                // Ja nepieciešama kāda darbība pēc video, to pievieno šeit
+            });
+
+            // Pārliecinās, vai video tiek pareizi ielādēts
+            byeVideo.addEventListener("error", function () {
+                console.error("Kļūda ielādējot video!");
+            });
+        });
+    </script>
 </body>
 </html>
