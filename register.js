@@ -7,11 +7,18 @@ document.addEventListener("DOMContentLoaded", function () {
     const celebrationVideo = document.getElementById("celebrationVideo");
     const skipButton = document.getElementById("skipButton");
 
+    // Pārbauda, vai ielūgums ir apstiprināts
+    if (localStorage.getItem("inviteAccepted") === "true") {
+        activateRegistrationForm();
+    }
+
+    // Atver ielūguma lapu
     inviteBtn.addEventListener("click", function () {
         window.location.href = "invitation.html";
     });
 
-    if (localStorage.getItem("inviteAccepted") === "true") {
+    // Aktivizē reģistrācijas formu
+    function activateRegistrationForm() {
         inviteBtn.innerText = "Ielūgums apstiprināts";
         inviteBtn.classList.remove("dark");
         formSection.classList.remove("hidden");
@@ -19,6 +26,7 @@ document.addEventListener("DOMContentLoaded", function () {
         registerBtn.disabled = false;
     }
 
+    // Reģistrē lietotāju
     registerBtn.addEventListener("click", function () {
         const username = usernameField.value.trim();
         if (!username) {
