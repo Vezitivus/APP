@@ -1,70 +1,64 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const openInviteButton = document.getElementById("openInvite");
-    const registerButton = document.getElementById("registerBtn");
+    const inviteBtn = document.getElementById("openInvite");
     const usernameField = document.getElementById("username");
+    const registerBtn = document.getElementById("registerBtn");
     const loadingScreen = document.getElementById("loadingScreen");
     const celebrationVideo = document.getElementById("celebrationVideo");
     const skipButton = document.getElementById("skipButton");
 
-    // Iegūst UID no URL parametriem
-    const urlParams = new URLSearchParams(window.location.search);
-    const uid = urlParams.get("uid") || "VZ001"; // Noklusējuma UID, ja nav norādīts
-
-    // Atver ielūguma lapu
-    openInviteButton.addEventListener("click", function () {
-        window.location.href = "invitation.html?uid=" + uid;
+    // Ielūguma atvēršana
+    inviteBtn.addEventListener("click", function () {
+        window.location.href = "invitation.html";
     });
 
-    // Aktivizē reģistrācijas pogu, ja ievadīts vārds
-    usernameField.addEventListener("input", function () {
-        registerButton.disabled = usernameField.value.trim() === "";
-    });
-
-    // Reģistrē lietotāju un atjauno Google Sheets datus
-    registerButton.addEventListener("click", function () {
+    // Reģistrācijas pogas nospiešana
+    registerBtn.addEventListener("click", function () {
         const username = usernameField.value.trim();
+
         if (!username) {
             alert("Lūdzu ievadi savu vārdu!");
             return;
         }
 
+        const uid = new URLSearchParams(window.location.search).get("uid") || "VZ001"; // Noklusējuma UID
+
         // Nosūta datus uz Google Sheets
-fetch("https://script.google.com/macros/s/YOUR_GOOGLE_SCRIPT_URL/exec", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ 
-        uid: uid, 
-        username: username 
-    })
-})
-.then(response => response.json())
-.then(result => {
-    if (result.status === "success") {
-        // Noslēpj reģistrācijas lapu un atver celebration video
-        document.querySelector(".register-container").classList.add("hidden");
-        loadingScreen.classList.remove("hidden");
+        fetch("https://script.google.com/macros/s/YOUR_GOOGLE_SCRIPT_URL/exec", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+                uid: uid,
+                username: username,
+                profileID: `profile-${uid}` // Unikāls profile ID
+            })
+        })
+            .then(response => response.json())
+            .then(result => {
+                if (result.status === "success") {
+                    // Parāda loading ekrānu un slēpj reģistrācijas formu
+                    document.querySelector(".register-container").style.display = "none";
+                    loadingScreen.classList.remove("hidden");
 
-        celebrationVideo.muted = false;
-        celebrationVideo.play();
+                    // Atskaņo "celebration" video
+                    celebrationVideo.muted = false;
+                    celebrationVideo.play();
 
-        celebrationVideo.onended = function () {
-            window.location.href = result.redirectUrl;
-        };
-    } else {
-        alert("Reģistrācijas kļūda: " + result.message);
-    }
-})
-.catch(error => {
-    console.error("Kļūda reģistrācijas laikā:", error);
-    alert("Neizdevās sazināties ar serveri. Pārbaudiet interneta savienojumu.");
-});
+                    // Kad video beidzas, pāradresē uz profilu
+                    celebrationVideo.onended = function () {
+                        window.location.href = result.redirectUrl;
+                    };
 
-        .catch(error => {
-            console.error("Kļūda reģistrācijas laikā:", error);
-            alert("Neizdevās sazināties ar serveri. Pārbaudiet interneta savienojumu.");
-        });
+                    // Skip poga pāradresē uz profilu
+                    skipButton.addEventListener("click", function () {
+                        window.location.href = result.redirectUrl;
+                    });
+                } else {
+                    alert("Reģistrācijas kļūda: " + result.message);
+                }
+            })
+            .catch(error => {
+                console.error("Kļūda reģistrācijas laikā:", error);
+                alert("Neizdevās sazināties ar serveri. Pārbaudiet interneta savienojumu.");
+            });
     });
-
-    // Padara reģistrācijas pogu aktīvu sākumā
-    registerButton.disabled = false;
 });
