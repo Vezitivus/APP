@@ -12,10 +12,11 @@
             <h1 class="invite-title">IELŪGUMS</h1>
             <button id="openInvite" class="button full dark">Atvērt ielūgumu</button>
 
-            <input type="text" id="username" placeholder="Tavs vārds" required disabled>
-            <button id="registerBtn" class="button full dark" disabled>Reģistrēties</button>
-            <p id="status"></p>
-            <p id="inviteWarning">Lai reģistrētos, nepieciešams apstiprināt ielūgumu.</p>
+            <div id="formSection" class="hidden">
+                <input type="text" id="username" placeholder="Tavs vārds" required>
+                <button id="registerBtn" class="button full dark">Reģistrēties</button>
+                <p id="status"></p>
+            </div>
         </div>
     </div>
 
@@ -30,9 +31,9 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const inviteBtn = document.getElementById("openInvite");
-            const usernameField = document.getElementById("username");
+            const formSection = document.getElementById("formSection");
             const registerBtn = document.getElementById("registerBtn");
-            const inviteWarning = document.getElementById("inviteWarning");
+            const usernameField = document.getElementById("username");
             const loadingScreen = document.getElementById("loadingScreen");
             const celebrationVideo = document.getElementById("celebrationVideo");
             const skipButton = document.getElementById("skipButton");
@@ -42,29 +43,40 @@
             });
 
             if (localStorage.getItem("inviteAccepted") === "true") {
-                usernameField.disabled = false;
-                registerBtn.disabled = false;
-                inviteWarning.style.display = "none";
                 inviteBtn.innerText = "Ielūgums apstiprināts";
                 inviteBtn.classList.remove("dark");
-                inviteBtn.classList.add("confirmed");
+                formSection.classList.remove("hidden");
             }
 
             registerBtn.addEventListener("click", function () {
-                document.querySelector(".register-container").style.display = "none";
-                loadingScreen.classList.remove("hidden");
+                const username = usernameField.value.trim();
+                if (!username) {
+                    alert("Lūdzu ievadi savu vārdu!");
+                    return;
+                }
 
-                setTimeout(() => {
-                    celebrationVideo.muted = false;
-                    celebrationVideo.play();
-                }, 1000);
+                // Saglabā datus Google Sheets
+                fetch("https://script.google.com/macros/s/YOUR_GOOGLE_SCRIPT_URL/exec", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: new URLSearchParams({ username: username, action: "register" })
+                }).then(response => response.json()).then(result => {
+                    if (result.status === "success") {
+                        document.querySelector(".register-container").style.display = "none";
+                        loadingScreen.classList.remove("hidden");
+                        celebrationVideo.muted = false;
+                        celebrationVideo.play();
 
-                celebrationVideo.onended = function () {
-                    window.location.href = "profile.html";
-                };
+                        celebrationVideo.onended = function () {
+                            window.location.href = "profile.html";
+                        };
 
-                skipButton.addEventListener("click", function () {
-                    window.location.href = "profile.html";
+                        skipButton.addEventListener("click", function () {
+                            window.location.href = "profile.html";
+                        });
+                    } else {
+                        alert("Reģistrācijas kļūda. Mēģini vēlreiz.");
+                    }
                 });
             });
         });
