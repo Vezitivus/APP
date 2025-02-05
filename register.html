@@ -9,13 +9,29 @@
 <body>
     <div class="register-container">
         <div class="glass-effect">
-            <h1 class="title">Reģistrācija</h1>
-            <input type="text" id="username" placeholder="Tavs vārds" required>
-            <button id="registerBtn" class="button">Reģistrēties</button>
+            <h1 class="invite-title">IELŪGUMS</h1>
+            <button id="openInvite" class="button glow">Atvērt ielūgumu</button>
+
+            <input type="text" id="username" placeholder="Tavs vārds" required disabled>
+            <button id="registerBtn" class="button" disabled>Reģistrēties</button>
             <p id="status"></p>
+            <p id="inviteWarning">Lai reģistrētos, nepieciešams apstiprināt ielūgumu.</p>
             <audio id="successSound" src="success.mp3"></audio>
         </div>
     </div>
-    <script src="register.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("openInvite").addEventListener("click", function () {
+                window.location.href = "invitation.html";
+            });
+
+            if (localStorage.getItem("inviteAccepted") === "true") {
+                document.getElementById("username").disabled = false;
+                document.getElementById("registerBtn").disabled = false;
+                document.getElementById("inviteWarning").style.display = "none";
+            }
+        });
+    </script>
 </body>
 </html>
