@@ -1,7 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
     const params = new URLSearchParams(window.location.search);
     const uid = params.get("uid");
-    const successSound = document.getElementById("successSound");
 
     if (!uid) {
         document.getElementById("status").innerText = "NFC ID nav atrasts!";
