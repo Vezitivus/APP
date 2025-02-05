@@ -12,26 +12,32 @@
             <h1>Žēl, ka nepievienosies...</h1>
             <p>Bet ja pārdomā, reģistrācija vienmēr ir aktīva!</p>
         </div>
-        <video id="declineVideo" src="bye.MOV" autoplay controls playsinline style="width: 100%; height: 100vh; object-fit: cover;"></video>
+        <video id="declineVideo" src="bye.MOV" autoplay playsinline></video>
     </div>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const declineVideo = document.getElementById("declineVideo");
-            
+
+            // Automātiska video atskaņošana ar skaņu
+            declineVideo.muted = false;
+            declineVideo.play().catch(error => {
+                console.warn("Pārlūks bloķēja automātisko atskaņošanu:", error);
+            });
+
             // Atver video pilnekrānā
-            if (declineVideo.requestFullscreen) {
-                declineVideo.requestFullscreen();
-            } else if (declineVideo.webkitRequestFullscreen) { 
-                declineVideo.webkitRequestFullscreen(); // Safari
-            } else if (declineVideo.msRequestFullscreen) { 
-                declineVideo.msRequestFullscreen(); // IE/Edge
+            function openFullScreen(video) {
+                if (video.requestFullscreen) {
+                    video.requestFullscreen();
+                } else if (video.webkitRequestFullscreen) {
+                    video.webkitRequestFullscreen(); // Safari
+                } else if (video.msRequestFullscreen) {
+                    video.msRequestFullscreen(); // Edge
+                }
             }
 
-            // Atskaņo video
-            declineVideo.play().catch(error => {
-                console.warn("Video nevar automātiski tikt atskaņots:", error);
-            });
+            // Kad lapa ielādējas, atver pilnekrāna režīmā
+            openFullScreen(declineVideo);
         });
     </script>
 </body>
