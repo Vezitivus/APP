@@ -11,7 +11,10 @@
         <div class="glass-effect">
             <h1 class="title">Žēl, ka šoreiz nepievienosies</h1>
             <p>Bet ja pārdomāsi, reģistrācija vienmēr pieejama.</p>
-            <video id="byeVideo" src="bye.mp4" autoplay playsinline loop></video>
+            <!-- Video bez autoplay un muted, jo iOS prasīs lietotāja mijiedarbību -->
+            <video id="byeVideo" src="bye.mp4" playsinline loop></video>
+            <!-- Poga video atskaņošanai -->
+            <button id="playButton">Sākt video</button>
         </div>
     </div>
     <script src="declined.js"></script>
