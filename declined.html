@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ielūgums Noraidīts</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="declined-container">
+        <video src="bye.MOV" autoplay muted playsinline style="width: 100%; height: 100vh; object-fit: cover;"></video>
+        <button id="restart" class="button dark">Atgriezties uz sākumu</button>
+    </div>
+
+    <script>
+        document.getElementById("restart").addEventListener("click", function () {
+            localStorage.removeItem("inviteAccepted");
+            window.location.href = "register.html";
+        });
+    </script>
+</body>
+</html>
