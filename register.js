@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const uid = urlParams.get("uid");
 
     // Sākotnējais stāvoklis
-    if (uid) {
+    if (localStorage.getItem("inviteAccepted") === "true" && uid) {
         inviteSection.classList.add("hidden");
         formSection.classList.remove("hidden");
     }
