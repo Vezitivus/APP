@@ -1,8 +1,8 @@
-/* Vispārējais stils visām lapām */
+/* Globālie iestatījumi */
 body, html {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: linear-gradient(to bottom, #0a0a0a, #1c1c1e);
-    color: white;
+    background: linear-gradient(to bottom, #f8f9fa, #e9ecef); /* Gaišs iOS stila fons */
+    color: #333; /* Neitrāla Apple līdzīga krāsa tekstam */
     margin: 0;
     padding: 0;
     width: 100%;
@@ -13,7 +13,7 @@ body, html {
     justify-content: center;
 }
 
-/* Lapas konteineris pilnā ekrānā */
+/* Konteiners centrēšanai pilnā ekrānā */
 .fullscreen-container {
     width: 100%;
     height: 100%;
@@ -25,71 +25,125 @@ body, html {
     box-sizing: border-box;
 }
 
-/* Stikla efekts centrā */
+/* Stikla efekta stils */
 .glass-effect {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px) saturate(180%);
+    background: rgba(255, 255, 255, 0.8); /* Caurspīdīgs balts */
+    backdrop-filter: blur(15px); /* iOS stila miglainais efekts */
     padding: 20px;
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
-    width: 100%;
-    max-width: 400px;
+    border-radius: 24px; /* Apaļāki stūri Apple stilā */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1); /* Viegls ēnojums */
+    width: 90%;
+    max-width: 500px; /* Laba proporcija mobilajiem */
     text-align: center;
 }
 
 /* Galvenais virsraksts */
 .title {
-    font-size: 24px;
+    font-size: 28px;
     font-weight: bold;
     margin-bottom: 20px;
+    color: #333; /* iOS raksturīgā neitrālā krāsa */
 }
 
-/* Pogas stils */
-.button {
-    display: inline-block;
-    padding: 12px 20px;
-    margin: 10px 5px;
-    border-radius: 8px;
+/* Teksta apraksti */
+p {
     font-size: 16px;
+    line-height: 1.6;
+    color: #666; /* Viegli pelēks tonis */
+}
+
+/* Pogas vispārējais stils */
+.button {
+    display: block;
+    padding: 14px 24px;
+    margin: 10px 0;
+    border-radius: 24px; /* iOS apaļās pogas */
+    font-size: 16px;
+    font-weight: bold;
     text-align: center;
     text-decoration: none;
     cursor: pointer;
-    border: 1px solid #555;
-    background: #333;
+    border: none;
+    background: linear-gradient(to bottom, #007aff, #0051c9); /* iOS zila poga */
     color: white;
-    transition: all 0.3s;
-    width: 100%;
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3); /* iOS stila viegls ēnojums */
+    transition: all 0.3s ease;
 }
 
 .button:hover {
-    background: #444;
-    transform: scale(1.05);
+    transform: translateY(-2px); /* Mazs pacēlums uz hover */
+    box-shadow: 0 6px 14px rgba(0, 122, 255, 0.5);
 }
 
 /* Zaļā poga */
 .button.green {
-    background: #2ecc71;
-    color: white;
+    background: linear-gradient(to bottom, #34c759, #28a745); /* iOS zaļā poga */
+    box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
 }
 
 .button.green:hover {
-    background: #27ae60;
+    box-shadow: 0 6px 14px rgba(52, 199, 89, 0.5);
 }
 
 /* Sarkanā poga */
 .button.red {
-    background: #e74c3c;
-    color: white;
+    background: linear-gradient(to bottom, #ff3b30, #d9261c); /* iOS sarkanā poga */
+    box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3);
 }
 
 .button.red:hover {
-    background: #c0392b;
+    box-shadow: 0 6px 14px rgba(255, 59, 48, 0.5);
+}
+
+/* Ievades lauks */
+input[type="text"] {
+    width: 100%;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 24px; /* iOS apaļais ievades lauks */
+    background: rgba(255, 255, 255, 0.6);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-size: 16px;
+    color: #333;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+input[type="text"]:focus {
+    border: 1px solid #007aff; /* iOS zilā fokusa krāsa */
+    box-shadow: 0 0 8px rgba(0, 122, 255, 0.3);
 }
 
 /* Video pielāgošana */
 video {
     width: 100%;
-    border-radius: 12px;
+    border-radius: 16px; /* iOS stilā noapaļots video */
     margin-top: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     max-height: 300px;
+}
+
+/* Mobilā mēroga pielāgošana */
+@media (max-width: 768px) {
+    .glass-effect {
+        padding: 16px;
+    }
+
+    .title {
+        font-size: 24px;
+    }
+
+    p {
+        font-size: 14px;
+    }
+
+    .button {
+        font-size: 14px;
+        padding: 12px 20px;
+    }
+
+    input[type="text"] {
+        font-size: 14px;
+    }
 }
