@@ -8,7 +8,8 @@
 </head>
 <body>
     <div class="invitation-container">
-        <div class="invite-background">TXT TXT TXT</div>
+        <h1 class="invite-title">Tu esi ielūgts uz VEZITIVUS</h1>
+        <p>Vai vēlies pievienoties?</p>
         <div class="invite-buttons">
             <button id="acceptInvite" class="button dark">Apstiprināt ielūgumu</button>
             <button id="rejectInvite" class="button dark red">Noraidīt ielūgumu</button>
@@ -17,15 +18,14 @@
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        const uid = urlParams.get("uid") || "VZ001"; // Default ID, ja nav
+        const uid = urlParams.get("uid") || "VZ001"; // Saglabā precīzo ID
 
         document.getElementById("acceptInvite").addEventListener("click", function () {
-            localStorage.setItem("inviteAccepted", "true");
             window.location.href = "register.html?uid=" + uid;
         });
 
         document.getElementById("rejectInvite").addEventListener("click", function () {
-            window.location.href = "declined.html?uid=" + uid;
+            window.location.href = "declined.html";
         });
     </script>
 </body>
