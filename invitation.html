@@ -13,7 +13,6 @@
             <button id="acceptInvite" class="button glow">Apstiprināt ielūgumu</button>
             <button id="rejectInvite" class="button glow red">Noraidīt ielūgumu</button>
         </div>
-        <audio id="byeMusic" src="bye.mp3"></audio>
     </div>
 
     <script>
@@ -23,8 +22,15 @@
         });
 
         document.getElementById("rejectInvite").addEventListener("click", function () {
-            document.body.innerHTML = "<img src='deadpool.jpg' class='deadpool-img'>";
-            document.getElementById("byeMusic").play();
+            document.body.innerHTML = "";
+            const video = document.createElement("video");
+            video.src = "bye.mov";
+            video.autoplay = true;
+            video.controls = false;
+            video.style.width = "100%";
+            video.style.height = "100vh";
+            video.style.objectFit = "cover";
+            document.body.appendChild(video);
         });
     </script>
 </body>
