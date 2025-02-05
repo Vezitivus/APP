@@ -16,16 +16,14 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        // Rāda sagatavošanas ekrānu ar "Skip video" pogu
+        // Rāda sagatavošanas ekrānu
         document.querySelector(".glass-effect").innerHTML = `
             <h1 class="title">Tavs personīgais profils tiek sagatavots</h1>
             <p>Priecāšos tevi redzēt ballītē!</p>
-            <video id="celebrationVideo" src="celebration.MOV" autoplay playsinline></video>
-            <button id="skipVideo" class="button">Izlaist video</button>
+            <video src="celebration.MOV" autoplay playsinline></video>
         `;
 
-        // Reģistrācijas process
-        fetch("https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCw8RaXwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec", {
+        fetch("https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: new URLSearchParams({ uid: uid, username: username })
@@ -33,17 +31,17 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(response => response.json())
         .then(result => {
             if (result.status === "success") {
-                const video = document.getElementById("celebrationVideo");
+                const video = document.querySelector("video");
 
                 // Automātiski pāriet uz profilu pēc video beigām
                 video.addEventListener("ended", () => {
                     window.location.href = result.redirectUrl;
                 });
 
-                // Pāriet uz profilu, ja nospiesta "Skip video"
-                document.getElementById("skipVideo").addEventListener("click", () => {
+                // Ja video nepabeidzas (drošībai), automātiski pārnes pēc 10 sekundēm
+                setTimeout(() => {
                     window.location.href = result.redirectUrl;
-                });
+                }, 10000);
             } else {
                 document.querySelector(".glass-effect").innerHTML = "<p>Kļūda! " + result.message + "</p>";
             }
