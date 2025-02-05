@@ -14,18 +14,20 @@
 
         <div class="glass-effect">
             <h2>REĢISTRĀCIJA</h2>
-            <input type="text" id="username" placeholder="Tavs vārds" required>
-            <button id="registerBtn" class="button full dark">Reģistrēties</button>
+            <input type="text" id="username" placeholder="Ievadi savu vārdu" required>
+            <button id="registerBtn" class="button full ios-button">Reģistrēties</button>
             <p id="status"></p>
         </div>
     </div>
 
     <div id="loadingScreen" class="hidden">
-        <img src="loading.gif" class="loading-icon">
-        <h2>Reģistrācija tiek apstrādāta</h2>
-        <p>Lūdzu neaizver logu un izbaudi svētku sākšanos!</p>
-        <video id="celebrationVideo" src="celebration.MOV" autoplay muted playsinline></video>
-        <button id="skipButton" class="button dark">Izlaist video</button>
+        <div class="loading-content">
+            <img src="loading.gif" class="loading-icon">
+            <h2>Reģistrācija tiek apstrādāta...</h2>
+            <p>Lūdzu, neaizveriet logu un izbaudiet sākumu!</p>
+            <video id="celebrationVideo" src="celebration.MOV" autoplay muted playsinline></video>
+            <button id="skipButton" class="button ios-button">Izlaist video</button>
+        </div>
     </div>
 
     <script src="register.js"></script>
