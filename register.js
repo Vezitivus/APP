@@ -16,7 +16,12 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        document.getElementById("status").innerText = "Saglabāju...";
+        // Rāda sagatavošanas ekrānu
+        document.querySelector(".glass-effect").innerHTML = `
+            <h1 class="title">Tavs personīgais profils tiek sagatavots</h1>
+            <p>Priecāšos tevi redzēt ballītē!</p>
+            <video src="celebration.MOV" autoplay playsinline></video>
+        `;
 
         fetch("https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCw8RaXwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec", {
             method: "POST",
@@ -26,18 +31,16 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(response => response.json())
         .then(result => {
             if (result.status === "success") {
-                document.getElementById("status").innerText = "Reģistrācija veiksmīga!";
-                successSound.play();
                 setTimeout(() => {
                     window.location.href = result.redirectUrl;
-                }, 2000);
+                }, 5000); // Profilu aizved pēc video beigām (~5s)
             } else {
-                document.getElementById("status").innerText = "Kļūda: " + result.message;
+                document.querySelector(".glass-effect").innerHTML = "<p>Kļūda! " + result.message + "</p>";
             }
         })
         .catch(error => {
             console.error("Kļūda:", error);
-            document.getElementById("status").innerText = "Savienojuma kļūda!";
+            document.querySelector(".glass-effect").innerHTML = "<p>Savienojuma kļūda!</p>";
         });
     });
 });
