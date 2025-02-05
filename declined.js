@@ -1,17 +1,18 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const container = document.querySelector(".glass-effect");
-
-    // Dinamiski pievieno HTML saturu
-    container.innerHTML = `
-        <h1 class="title">Žēl, ka šoreiz nepievienosies</h1>
-        <p>Bet ja pārdomāsi, reģistrācija vienmēr pieejama.</p>
-        <video id="byeVideo" src="bye.mov" autoplay playsinline loop></video>
-    `;
-
     const video = document.getElementById("byeVideo");
 
-    // Pārbauda, vai video ir ielādējies bez kļūdām
+    // Kad video sākas
+    video.addEventListener("play", function () {
+        console.log("Video veiksmīgi sākts!");
+    });
+
+    // Kad video beidzas, tas automātiski sākas no jauna (cilpošanas funkcija)
+    video.addEventListener("ended", function () {
+        console.log("Video beidzās un tiks atskaņots no jauna.");
+    });
+
+    // Kļūdu apstrāde
     video.addEventListener("error", function () {
-        console.error("Kļūda ielādējot video!");
+        console.error("Kļūda ielādējot video! Pārbaudiet faila ceļu un formātu.");
     });
 });
