@@ -3,47 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ielūgums Noraidīts</title>
+    <title>Žēl...</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="declined-container">
-        <div class="message">
-            <h1>Žēl, ka nepievienosies...</h1>
-            <p>Bet ja pārdomā, reģistrācija vienmēr ir aktīva!</p>
+        <div class="glass-effect">
+            <h1 class="title">Žēl, ka šoreiz nepievienosies</h1>
+            <p>Bet ja pārdomāsi, reģistrācija vienmēr pieejama.</p>
+            <video src="bye.MOV" autoplay playsinline></video>
         </div>
-        <video id="declineVideo" src="bye.MOV" autoplay playsinline></video>
     </div>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const declineVideo = document.getElementById("declineVideo");
-
-            // Automātiska video atskaņošana ar skaņu
-            declineVideo.muted = false;
-            declineVideo.play().catch(error => {
-                console.warn("Pārlūks bloķēja automātisko atskaņošanu, mēģina atkārtoti:", error);
-                setTimeout(() => {
-                    declineVideo.play();
-                }, 500);
-            });
-
-            // Pilnekrāna aktivizēšana, ja iespējams
-            function openFullScreen(video) {
-                if (video.requestFullscreen) {
-                    video.requestFullscreen();
-                } else if (video.webkitRequestFullscreen) { 
-                    video.webkitRequestFullscreen(); // Safari
-                } else if (video.msRequestFullscreen) { 
-                    video.msRequestFullscreen(); // Edge
-                }
-            }
-
-            // Atver video pilnekrānā, ja pārlūks to atļauj
-            setTimeout(() => {
-                openFullScreen(declineVideo);
-            }, 500);
-        });
-    </script>
 </body>
 </html>
