@@ -13,7 +13,6 @@
             <button id="acceptInvite" class="button dark">Apstiprināt ielūgumu</button>
             <button id="rejectInvite" class="button dark red">Noraidīt ielūgumu</button>
         </div>
-        <video id="byeVideo" src="bye.MOV" class="hidden" autoplay muted playsinline></video>
     </div>
 
     <script>
@@ -23,15 +22,7 @@
         });
 
         document.getElementById("rejectInvite").addEventListener("click", function () {
-            document.querySelector(".invitation-container").style.display = "none";
-            const byeVideo = document.getElementById("byeVideo");
-            byeVideo.classList.remove("hidden");
-            byeVideo.style.display = "block";
-            byeVideo.style.width = "100%";
-            byeVideo.style.height = "100vh";
-            byeVideo.style.objectFit = "cover";
-            byeVideo.muted = false;
-            byeVideo.play();
+            window.location.href = "declined.html";
         });
     </script>
 </body>
