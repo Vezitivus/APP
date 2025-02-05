@@ -12,15 +12,16 @@ document.addEventListener("DOMContentLoaded", function () {
     const urlParams = new URLSearchParams(window.location.search);
     const uid = urlParams.get("uid");
 
-    // Pārbauda, vai ielūgums ir apstiprināts
-    if (localStorage.getItem("inviteAccepted") === "true" && uid) {
+    // Sākotnējais stāvoklis
+    if (uid) {
         inviteSection.classList.add("hidden");
         formSection.classList.remove("hidden");
     }
 
     // Atver ielūguma lapu
     openInviteButton.addEventListener("click", function () {
-        window.location.href = "invitation.html";
+        const inviteUrl = "invitation.html?uid=" + (uid || "VZ001"); // Default ID, ja UID nav
+        window.location.href = inviteUrl;
     });
 
     // Reģistrē lietotāju
