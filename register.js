@@ -8,14 +8,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Iegūst UID no URL parametriem
     const urlParams = new URLSearchParams(window.location.search);
-    const uid = urlParams.get("uid") || "VZ001"; // Noklusējuma UID, ja nav norādīts
+    const uid = urlParams.get("uid") || "VZ001"; // Noklusējuma UID
 
     // Atver ielūguma lapu
     openInviteButton.addEventListener("click", function () {
         window.location.href = "invitation.html?uid=" + uid;
     });
 
-    // Reģistrē lietotāju
+    // Reģistrē lietotāju un saglabā datus Google Sheets
     registerButton.addEventListener("click", function () {
         const username = usernameField.value.trim();
         if (!username) {
@@ -23,7 +23,6 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        // Nosūtīt datus uz Google Sheets
         fetch("https://script.google.com/macros/s/YOUR_GOOGLE_SCRIPT_URL/exec", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
