@@ -10,19 +10,27 @@
     <div class="declined-container">
         <div class="message">
             <h1>Žēl, ka nepievienosies...</h1>
-            <p>Bet ja pārdomā, reģistrācija vienmēr aktīva!</p>
+            <p>Bet ja pārdomā, reģistrācija vienmēr ir aktīva!</p>
         </div>
-        <video id="declineVideo" src="bye.MOV" autoplay playsinline controls></video>
+        <video id="declineVideo" src="bye.MOV" autoplay controls playsinline style="width: 100%; height: 100vh; object-fit: cover;"></video>
     </div>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const declineVideo = document.getElementById("declineVideo");
+            
+            // Atver video pilnekrānā
+            if (declineVideo.requestFullscreen) {
+                declineVideo.requestFullscreen();
+            } else if (declineVideo.webkitRequestFullscreen) { 
+                declineVideo.webkitRequestFullscreen(); // Safari
+            } else if (declineVideo.msRequestFullscreen) { 
+                declineVideo.msRequestFullscreen(); // IE/Edge
+            }
 
-            // Mēģina ieslēgt skaņu automātiski
-            declineVideo.muted = false;
+            // Atskaņo video
             declineVideo.play().catch(error => {
-                console.warn("Autoplay with sound is restricted, user needs to unmute manually.");
+                console.warn("Video nevar automātiski tikt atskaņots:", error);
             });
         });
     </script>
