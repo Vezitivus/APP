@@ -8,15 +8,8 @@
 </head>
 <body>
     <div class="declined-container">
-        <video src="Bye.MOV" autoplay muted playsinline style="width: 100%; height: 100vh; object-fit: cover;"></video>
-        <button id="restart" class="button dark">Atgriezties uz sākumu</button>
+        <h1>Žēl ka nepievienosies, bet ja pārdomā, reģistrācija vienmēr aktīva</h1>
+        <video src="bye.MOV" autoplay muted playsinline style="width: 100%; height: 100vh; object-fit: cover;"></video>
     </div>
-
-    <script>
-        document.getElementById("restart").addEventListener("click", function () {
-            localStorage.removeItem("inviteAccepted");
-            window.location.href = "register.html";
-        });
-    </script>
 </body>
 </html>
