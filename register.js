@@ -6,6 +6,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const celebrationVideo = document.getElementById("celebrationVideo");
     const skipButton = document.getElementById("skipButton");
 
+    let redirectUrl = ""; // Mainīgais, lai saglabātu nākamās lapas URL
+
     // Ielūguma atvēršana
     inviteBtn.addEventListener("click", function () {
         window.location.href = "invitation.html";
@@ -34,22 +36,27 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(response => response.json())
             .then(result => {
                 if (result.status === "success") {
+                    // Saglabā profila URL, kas atrodas Google Sheets D kolonnā
+                    redirectUrl = result.redirectUrl;
+
                     // Parāda loading ekrānu un slēpj reģistrācijas formu
                     document.querySelector(".register-container").style.display = "none";
                     loadingScreen.classList.remove("hidden");
 
-                    // Atskaņo "celebration" video
-                    celebrationVideo.muted = false;
-                    celebrationVideo.play();
+                    // Pēc īsa aizkaves sāk video atskaņošanu
+                    setTimeout(() => {
+                        celebrationVideo.muted = false;
+                        celebrationVideo.play();
+                    }, 1000);
 
-                    // Kad video beidzas, pāradresē uz profilu tikai ar ID beigās
+                    // Kad video beidzas, pāradresē uz Google Sheets saglabāto URL
                     celebrationVideo.onended = function () {
-                        window.location.href = `profile.html?uid=${uid}`;
+                        window.location.href = redirectUrl;
                     };
 
-                    // Skip poga pāradresē uz profilu tikai ar ID beigās
+                    // Skip poga pāradresē uz Google Sheets saglabāto URL
                     skipButton.addEventListener("click", function () {
-                        window.location.href = `profile.html?uid=${uid}`;
+                        window.location.href = redirectUrl;
                     });
                 } else {
                     alert("Reģistrācijas kļūda: " + result.message);
