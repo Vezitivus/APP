@@ -14,78 +14,50 @@ body {
 .glass-effect {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(20px) saturate(180%);
-    padding: 30px;
+    padding: 20px;
     border-radius: 20px;
     box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
     width: 90%;
     max-width: 400px;
 }
 
-.button {
-    padding: 12px;
-    border-radius: 12px;
-    font-size: 16px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.button.full {
-    width: 100%;
-    margin-top: 10px;
-}
-
-.ios-button {
-    background: linear-gradient(to bottom, #ffffff, #d1d1d1);
-    color: black;
-    border: none;
-    box-shadow: 0 4px 10px rgba(255, 255, 255, 0.2);
-}
-
-.hidden {
-    display: none;
-}
-
-.loading-icon {
-    width: 80px;
-    height: 80px;
-    margin: 20px auto;
-    animation: spin 1s linear infinite;
-}
-
-video {
-    width: 100%;
-    max-width: 800px;
-    margin-top: 20px;
-}
-
-@keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
-}
-.declined-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    text-align: center;
-    background: black;
-}
-
-.message {
-    color: white;
-    font-size: 22px;
+.title {
+    font-size: 24px;
     font-weight: bold;
     margin-bottom: 20px;
 }
 
-video {
-    width: 90%;
-    max-width: 800px;
-    border-radius: 10px;
+input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border: 1px solid #555;
+    background: #1c1c1e;
+    color: white;
+    font-size: 16px;
+    outline: none;
+}
+
+.button {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #555;
+    background: #333;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+.button:hover {
+    background: #444;
+    transform: scale(1.05);
+}
+
+#status {
+    margin-top: 10px;
+    font-size: 14px;
 }
