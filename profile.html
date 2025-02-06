@@ -7,24 +7,26 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- Profil-lapas konteiners -->
   <div class="profile-page">
-    <!-- Liels virsraksts -->
+    <!-- Liels virsraksts augšpusē -->
     <h1 class="main-title">VEZITIVUS WeekEnd</h1>
 
-    <!-- Profila sadaļa -->
+    <!-- Profila sadaļa: kreisā puse (bilde) + labā puse (Vārds, ID) -->
     <section class="profile-section">
-      <!-- Kreisā puse: bilde -->
+      <!-- Kreisā puse -->
       <div class="profile-left">
+        <!-- Bildes konteiners -->
         <div class="image-container">
-          <input type="file" id="image-input" accept="image/*">
-          <!-- Pogas -->
-          <button id="upload-button" style="display:none;">Izvēlēties attēlu</button>
-          <button id="change-button" style="display:none;">Nomainīt attēlu</button>
-          <!-- Attēls -->
-          <img id="profile-image" src="" alt="Profilattēls">
+          <!-- Slēptais faila lauks -->
+          <input type="file" id="image-input" accept="image/*" style="display:none;">
+          <!-- Bildes elements -->
+          <img id="profile-image" src="" alt="Profilattēls" style="display:none;">
         </div>
+
+        <!-- Poga zem bildes kvadrāta, lai izvēlētos/nomainītu attēlu -->
+        <button id="change-button" style="margin-top: 10px;">Nomainīt attēlu</button>
       </div>
+
       <!-- Labā puse: Vārds un ID -->
       <div class="profile-right">
         <div class="info-group">
@@ -38,7 +40,7 @@
       </div>
     </section>
 
-    <!-- Apakšējās 3 pogas -->
+    <!-- Trīs pogas vienā rindā, ja vajag -->
     <section class="buttons-section">
       <div class="buttons-grid">
         <div class="grid-margin"></div>
@@ -51,7 +53,8 @@
       </div>
     </section>
   </div>
-  <!-- Koda faila piesaiste -->
+
+  <!-- JavaScript -->
   <script src="profile.js"></script>
 </body>
 </html>
