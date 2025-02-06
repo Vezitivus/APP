@@ -272,7 +272,4 @@ video {
   transform: translateY(-2px);
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
 }
-#place {
-  font-size: 1,5em;    /* aptuveni 3x lielāks nekā ~16px bāzes fontam */
-  font-weight: bold; /* ja gribat izcelt treknāk */
-}
+
