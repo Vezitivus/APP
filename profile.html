@@ -7,20 +7,25 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- Galvenais konteiners tieši profilam -->
+  <!-- Profil-lapas konteiners -->
   <div class="profile-page">
-    <!-- Virsraksts -->
+    <!-- Liels virsraksts -->
     <h1 class="main-title">VEZITIVUS WeekEnd</h1>
 
-    <!-- Profila sadaļa (kopa: kreisā + labā puse) -->
+    <!-- Profila sadaļa -->
     <section class="profile-section">
+      <!-- Kreisā puse: bilde -->
       <div class="profile-left">
         <div class="image-container">
           <input type="file" id="image-input" accept="image/*">
-          <button id="upload-button">Izvēlēties attēlu</button>
+          <!-- Pogas -->
+          <button id="upload-button" style="display:none;">Izvēlēties attēlu</button>
+          <button id="change-button" style="display:none;">Nomainīt attēlu</button>
+          <!-- Attēls -->
           <img id="profile-image" src="" alt="Profilattēls">
         </div>
       </div>
+      <!-- Labā puse: Vārds un ID -->
       <div class="profile-right">
         <div class="info-group">
           <p class="label">Vārds</p>
@@ -33,7 +38,7 @@
       </div>
     </section>
 
-    <!-- Trīs pogas vienā rindā -->
+    <!-- Apakšējās 3 pogas -->
     <section class="buttons-section">
       <div class="buttons-grid">
         <div class="grid-margin"></div>
@@ -46,8 +51,7 @@
       </div>
     </section>
   </div>
-
-  <!-- JS -->
+  <!-- Koda faila piesaiste -->
   <script src="profile.js"></script>
 </body>
 </html>
