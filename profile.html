@@ -11,23 +11,20 @@
     <!-- Liels virsraksts augšpusē -->
     <h1 class="main-title">VEZITIVUS WeekEnd</h1>
 
-    <!-- Profila sadaļa: kreisā puse (bilde) + labā puse (Vārds, ID) -->
     <section class="profile-section">
-      <!-- Kreisā puse -->
+      <!-- Kreisā puse: Attēla konteiners -->
       <div class="profile-left">
-        <!-- Bildes konteiners -->
         <div class="image-container">
-          <!-- Slēptais faila lauks -->
+          <!-- Slēpts faila ievades lauks -->
           <input type="file" id="image-input" accept="image/*" style="display:none;">
-          <!-- Bildes elements -->
+          <!-- Pats attēls -->
           <img id="profile-image" src="" alt="Profilattēls" style="display:none;">
         </div>
-
-        <!-- Poga zem bildes kvadrāta, lai izvēlētos/nomainītu attēlu -->
+        <!-- Poga zem bildes (viena poga: Izvēlēties/Nomainīt attēlu) -->
         <button id="change-button" style="margin-top: 10px;">Nomainīt attēlu</button>
       </div>
 
-      <!-- Labā puse: Vārds un ID -->
+      <!-- Labā puse: Vārds, ID, Kopvērtējuma vieta -->
       <div class="profile-right">
         <div class="info-group">
           <p class="label">Vārds</p>
@@ -37,10 +34,15 @@
           <p class="label">ID</p>
           <p class="value" id="nfc-id">Ielādē...</p>
         </div>
+        <!-- JAUNĀ RINDA - Kopvērtējuma vieta (H kolonna) -->
+        <div class="info-group">
+          <p class="label">Kopvērtējuma vieta</p>
+          <p class="value" id="place">Ielādē...</p>
+        </div>
       </div>
     </section>
 
-    <!-- Trīs pogas vienā rindā, ja vajag -->
+    <!-- Apakšējā rinda ar 3 pogām (neobligāts) -->
     <section class="buttons-section">
       <div class="buttons-grid">
         <div class="grid-margin"></div>
@@ -54,7 +56,7 @@
     </section>
   </div>
 
-  <!-- JavaScript -->
+  <!-- Profila JavaScript -->
   <script src="profile.js"></script>
 </body>
 </html>
