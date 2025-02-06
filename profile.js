@@ -10,20 +10,24 @@ document.addEventListener("DOMContentLoaded", async function () {
   const scriptUrl = "https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCw8RaXwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec";
   
   // 1) Iegūstam profila datus
+  let imageUrl = ""; // lai paturētu prātā, vai bilde jau ir
   try {
     const res = await fetch(`${scriptUrl}?action=getProfile&uid=${uid}`);
     const data = await res.json();
+
     if (data.status === "success") {
       document.getElementById("username").innerText = data.username;
       document.getElementById("nfc-id").innerText = data.uid;
+      imageUrl = data.imageUrl || "";
 
-      // Ja ir saglabāts attēls, rādām
-      if (data.imageUrl) {
-        const profileImage = document.getElementById("profile-image");
-        const uploadButton = document.getElementById("upload-button");
-        profileImage.src = data.imageUrl;
-        profileImage.style.display = "block";
-        uploadButton.style.display = "none";
+      if (imageUrl) {
+        // Ja jau ir bilde, parādām to un "Nomainīt attēlu" pogu
+        document.getElementById("profile-image").src = imageUrl;
+        document.getElementById("profile-image").style.display = "block";
+        document.getElementById("change-button").style.display = "inline-block";
+      } else {
+        // Ja nav bilde, rādam pogu "Izvēlēties attēlu"
+        document.getElementById("upload-button").style.display = "inline-block";
       }
     } else {
       document.body.innerHTML = `<h1 class='error'>Kļūda: ${data.message}</h1>`;
@@ -34,17 +38,25 @@ document.addEventListener("DOMContentLoaded", async function () {
     return;
   }
 
-  // 2) Pievienojam Cloudinary augšupielādes loģiku
-  const cloudName = "dmkpb05ww";  // jūsu Cloud name
+  // 2) Sagatavojam Cloudinary augšupielādi
+  const cloudName = "dmkpb05ww";    // jūsu Cloud name
   const uploadPreset = "Vezitivus"; // jūsu preset
-  const uploadButton = document.getElementById("upload-button");
   const imageInput   = document.getElementById("image-input");
   const profileImage = document.getElementById("profile-image");
+  const uploadBtn    = document.getElementById("upload-button");
+  const changeBtn    = document.getElementById("change-button");
 
-  uploadButton.addEventListener("click", () => {
+  // Kad nospiež "Izvēlēties attēlu"
+  uploadBtn.addEventListener("click", () => {
     imageInput.click();
   });
 
+  // Kad nospiež "Nomainīt attēlu"
+  changeBtn.addEventListener("click", () => {
+    imageInput.click();
+  });
+
+  // Kad lietotājs izvēlas failu:
   imageInput.addEventListener("change", async function () {
     const file = this.files[0];
     if (!file) return;
@@ -53,7 +65,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", uploadPreset);
-    // Norādam, ka vēlamies, lai attēli iet mapē "Vezitivus"
+    // Pievienojam folder parametru, ja vēlamies atsevišķu mapīti
     formData.append("folder", "Vezitivus");
 
     try {
@@ -64,12 +76,16 @@ document.addEventListener("DOMContentLoaded", async function () {
       const result = await resp.json();
 
       if (result.secure_url) {
-        // Parādām jauno attēlu
+        // 1) Parādām jauno attēlu
         profileImage.src = result.secure_url;
         profileImage.style.display = "block";
-        uploadButton.style.display = "none";
 
-        // Saglabājam URL Google Sheets
+        // Ja tikko augšupielādēta pirmā bilde, slēpjam "upload-button"
+        uploadBtn.style.display = "none";
+        // Rādam "Nomainīt attēlu" pogu
+        changeBtn.style.display = "inline-block";
+
+        // 2) Saglabājam URL Google Sheets
         const saveResp = await fetch(`${scriptUrl}?action=saveImage&uid=${uid}&imageUrl=${encodeURIComponent(result.secure_url)}`);
         const saveData = await saveResp.json();
         if (saveData.status === "success") {
