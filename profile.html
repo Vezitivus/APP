@@ -1,21 +1,55 @@
 <!DOCTYPE html>
 <html lang="lv">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mans Profils</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VEZITIVUS WeekEnd</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="profile-container">
-        <div class="glass-effect">
-            <h1 class="title">Mans Profils</h1>
-            <div class="profile-info">
-                <p><strong>Vārds:</strong> <span id="username">Ielādē...</span></p>
-                <p><strong>NFC ID:</strong> <span id="nfc-id">Ielādē...</span></p>
-            </div>
+  <div class="profile-page">
+    <!-- Lapu galvene -->
+    <header>
+      <h1 class="main-title">VEZITIVUS WeekEnd</h1>
+    </header>
+
+    <!-- Profila sadaļa -->
+    <section class="profile-section">
+      <!-- Kreisā puse: Profila un attēla ievades lauks -->
+      <div class="profile-left">
+        <h2>Mans profils</h2>
+        <div class="image-container">
+          <input type="file" id="image-input" accept="image/*" style="display:none;">
+          <button id="upload-button">Izvēlēties attēlu</button>
+          <img id="profile-image" src="" alt="Profilattēls" style="display:none;">
         </div>
-    </div>
-    <script src="profile.js"></script>
+      </div>
+      <!-- Labā puse: Lietotāja vārds un ID -->
+      <div class="profile-right">
+        <div class="info-group">
+          <p class="label">Vārds</p>
+          <p class="value" id="username">Ielādē...</p>
+        </div>
+        <div class="info-group">
+          <p class="label">My ID</p>
+          <p class="value" id="nfc-id">Ielādē...</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Apakšējā pogu rinda -->
+    <section class="buttons-section">
+      <div class="buttons-grid">
+        <div class="grid-margin"></div>
+        <button class="action-button">Poga 1</button>
+        <div class="grid-spacer"></div>
+        <button class="action-button">Poga 2</button>
+        <div class="grid-spacer"></div>
+        <button class="action-button">Poga 3</button>
+        <div class="grid-margin"></div>
+      </div>
+    </section>
+  </div>
+  <script src="profile.js"></script>
 </body>
 </html>
