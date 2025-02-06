@@ -153,7 +153,7 @@ video {
    (pievienojam, lai dizains tur atbilst skicei)
 ============================== */
 
-/* Konteiners visam profilam (lai var, piemēram, atdalīt no fullscreen-container, ja vajag) */
+/* PAPILDU STILI TIKAI PROFILE LAPAI */
 .profile-page {
     display: flex;
     flex-direction: column;
@@ -165,25 +165,28 @@ video {
     box-sizing: border-box;
 }
 
-/* Virsraksts lapas augšā */
 .main-title {
     font-size: 32px;
     margin-bottom: 20px;
-    text-align: left; /* vai center, pēc vajadzības */
+    text-align: left; /* vai center, kā vēlaties */
 }
 
-/* Profila sadaļa ar kreiso un labo pusi */
 .profile-section {
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: space-around;
-    gap: 20px;
+    justify-content: flex-start; /* lai labā puse būtu tuvāk kreisajai */
+    gap: 10px; /* Mazāka atstarpe starp kreiso un labo pusi */
     width: 100%;
     margin-bottom: 20px;
 }
 
-/* Kreisajā pusē – kvadrāts attēlam */
+.profile-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
 .image-container {
     position: relative;
     width: 150px;
@@ -197,21 +200,21 @@ video {
     overflow: hidden;
 }
 
-/* Slēpt faila input */
 .image-container input[type="file"] {
     display: none;
 }
 
-#upload-button {
+#upload-button,
+#change-button {
     background: rgba(255,255,255,0.1);
     color: #fff;
     border: none;
     padding: 10px 20px;
     border-radius: 8px;
     cursor: pointer;
+    margin-top: 10px;
 }
 
-/* Profilattēls pildīs visu kvadrātu */
 #profile-image {
     width: 100%;
     height: 100%;
@@ -219,38 +222,40 @@ video {
     display: none; /* Sākumā slēpts */
 }
 
-/* Labā puse – vārds, ID */
 .profile-right {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 10px;
+    gap: 6px; /* Mazs vertikālais atstatums starp Vārds un ID */
+    margin-left: 10px; /* Piebīdam to nedaudz tuvāk */
 }
 .profile-right .info-group .label {
     font-weight: bold;
     font-size: 18px;
-    margin-bottom: 5px;
+    margin-bottom: 2px;
 }
 .profile-right .info-group .value {
     font-size: 16px;
     color: #ccc;
 }
 
-/* Pogas rinda apakšā (3 pogas vienā rindā) */
 .buttons-section {
     margin-top: 20px;
     width: 100%;
 }
+
 .buttons-grid {
     display: grid;
     grid-template-columns: 3% 30% 2% 30% 2% 30% 3%;
     align-items: center;
     width: 100%;
 }
+
 .grid-margin,
 .grid-spacer {
     /* tukšas vietas starp pogām */
 }
+
 .action-button {
     width: 100%;
     padding: 14px 24px;
