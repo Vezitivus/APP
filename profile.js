@@ -1,55 +1,93 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", async function () {
+  // 1. Izlasa uid no URL ( ?uid=... )
   const params = new URLSearchParams(window.location.search);
   const uid = params.get("uid");
-
   if (!uid) {
-    document.body.innerHTML = "<h1 class='error'>Kļūda: NFC ID nav atrasts!</h1>";
+    document.body.innerHTML = "<h1 class='error'>Kļūda: NFC ID nav atrasts URL!</h1>";
     return;
   }
 
-  // Datu ielāde no Google Sheets (Apps Script)
-  fetch(`https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCw8RaXwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec?uid=${uid}&action=getProfile`)
-    .then(response => response.text())
-    .then(text => {
-      try {
-        const data = JSON.parse(text);
-        if (data.status === "success") {
-          document.getElementById("username").innerText = data.username;
-          document.getElementById("nfc-id").innerText = data.uid;
-        } else {
-          document.body.innerHTML = "<h1 class='error'>Kļūda: Lietotāja profils nav atrasts!</h1>";
-        }
-      } catch (error) {
-        console.warn("Atbilde nav JSON, tiek pārlādēts uz:", text);
-        window.location.href = text;
-      }
-    })
-    .catch(error => {
-      console.error("Kļūda fetch pieprasījumā:", error);
-      document.body.innerHTML = "<h1 class='error'>Kļūda: Savienojuma problēma.</h1>";
-    });
+  // 2. Ielādējam profila datus no Google Apps Script
+  try {
+    // Piemēram, jūsu Apps Script WebApp URL:
+    // https://script.google.com/macros/s/AKfycbxx.../exec?action=getProfile&uid=...
+    const res = await fetch(`https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?action=getProfile&uid=${uid}`);
+    const data = await res.json();
 
-  // Attēla augšupielādes funkcionalitāte
+    if (data.status === "success") {
+      document.getElementById("username").innerText = data.username;
+      document.getElementById("nfc-id").innerText = data.uid;
+      
+      // Ja imageUrl jau ir saglabāts, parādām attēlu
+      if (data.imageUrl) {
+        const profileImage = document.getElementById("profile-image");
+        const uploadButton = document.getElementById("upload-button");
+
+        profileImage.src = data.imageUrl;
+        profileImage.style.display = "block";
+        uploadButton.style.display = "none";
+      }
+    } else {
+      document.body.innerHTML = `<h1 class='error'>Kļūda: ${data.message}</h1>`;
+    }
+  } catch (err) {
+    console.error("Kļūda, ielādējot profilu:", err);
+    document.body.innerHTML = "<h1 class='error'>Kļūda: Savienojuma problēma.</h1>";
+    return;
+  }
+
+  // 3. Sagatavojam Cloudinary Unsigned upload
+  const cloudName = "JŪSU_CLOUD_NAME";  // piem., "dmkpb05ww"
+  const uploadPreset = "Vezitivus";     // jūsu izveidotais preset
+
+  // HTML elementi
   const uploadButton = document.getElementById("upload-button");
-  const imageInput = document.getElementById("image-input");
+  const imageInput   = document.getElementById("image-input");
   const profileImage = document.getElementById("profile-image");
 
-  uploadButton.addEventListener("click", function () {
+  // Nospiežot pogu, atver failu dialogu
+  uploadButton.addEventListener("click", () => {
     imageInput.click();
   });
 
-  imageInput.addEventListener("change", function () {
+  // Kad lietotājs izvēlas failu:
+  imageInput.addEventListener("change", async function () {
     const file = this.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        profileImage.src = e.target.result;
+    if (!file) return; // ja atcēla
+
+    // 3.1. Augšupielāde uz Cloudinary
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", uploadPreset);
+
+    try {
+      const resp = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+        method: "POST",
+        body: formData
+      });
+      const result = await resp.json();
+      
+      if (result.secure_url) {
+        // 1) Parādām attēlu lokāli
+        profileImage.src = result.secure_url;
         profileImage.style.display = "block";
-        uploadButton.style.display = "none"; // Paslēpt pogu, kad attēls ir izvēlēts
-        // Noņem sākotnējo fiksēto kvadrāta proporciju, lai augstums pielāgotos attēlam
-        profileImage.parentElement.classList.add("has-image");
-      };
-      reader.readAsDataURL(file);
+        uploadButton.style.display = "none";
+
+        // 2) Saglabājam Cloudinary URL Sheets (action=saveImage)
+        //    Izsaucam doGet ar action=saveImage
+        const saveResp = await fetch(`https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?action=saveImage&uid=${uid}&imageUrl=${encodeURIComponent(result.secure_url)}`);
+        const saveData = await saveResp.json();
+        
+        if (saveData.status === "success") {
+          console.log("Attēls veiksmīgi saglabāts:", saveData.message);
+        } else {
+          console.error("Attēla saglabāšanas kļūda:", saveData.message);
+        }
+      } else {
+        console.error("Cloudinary atgriezat neatbilstošu formātu:", result);
+      }
+    } catch (err) {
+      console.error("Kļūda augšupielādējot attēlu uz Cloudinary:", err);
     }
   });
 });
