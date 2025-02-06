@@ -1,28 +1,26 @@
 document.addEventListener("DOMContentLoaded", async function () {
-  // 1. Izlasa uid no URL ( ?uid=... )
   const params = new URLSearchParams(window.location.search);
   const uid = params.get("uid");
   if (!uid) {
-    document.body.innerHTML = "<h1 class='error'>Kļūda: NFC ID nav atrasts URL!</h1>";
+    document.body.innerHTML = "<h1 class='error'>Kļūda: NFC ID nav atrasts!</h1>";
     return;
   }
 
-  // 2. Ielādējam profila datus no Google Apps Script
+  // Google Apps Script URL
   const scriptUrl = "https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCw8RaXwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec";
-
+  
+  // 1) Iegūstam profila datus
   try {
     const res = await fetch(`${scriptUrl}?action=getProfile&uid=${uid}`);
     const data = await res.json();
-
     if (data.status === "success") {
       document.getElementById("username").innerText = data.username;
       document.getElementById("nfc-id").innerText = data.uid;
 
-      // Ja imageUrl jau ir saglabāts, parādām attēlu
+      // Ja ir saglabāts attēls, rādām
       if (data.imageUrl) {
         const profileImage = document.getElementById("profile-image");
         const uploadButton = document.getElementById("upload-button");
-
         profileImage.src = data.imageUrl;
         profileImage.style.display = "block";
         uploadButton.style.display = "none";
@@ -36,29 +34,27 @@ document.addEventListener("DOMContentLoaded", async function () {
     return;
   }
 
-  // 3. Sagatavojam Cloudinary Unsigned upload
-  const cloudName = "dmkpb05ww";  // JŪSU Cloud name
-  const uploadPreset = "Vezitivus"; // Jūsu Upload Preset Cloudinary
-
-  // HTML elementi
+  // 2) Pievienojam Cloudinary augšupielādes loģiku
+  const cloudName = "dmkpb05ww";  // jūsu Cloud name
+  const uploadPreset = "Vezitivus"; // jūsu preset
   const uploadButton = document.getElementById("upload-button");
   const imageInput   = document.getElementById("image-input");
   const profileImage = document.getElementById("profile-image");
 
-  // Kad nospiežam "Izvēlēties attēlu" -> atver failu dialogu
   uploadButton.addEventListener("click", () => {
     imageInput.click();
   });
 
-  // Kad lietotājs izvēlas failu:
   imageInput.addEventListener("change", async function () {
     const file = this.files[0];
-    if (!file) return; // ja atcēla
+    if (!file) return;
 
-    // 3.1. Augšupielāde uz Cloudinary
+    // Augšupielāde uz Cloudinary
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", uploadPreset);
+    // Norādam, ka vēlamies, lai attēli iet mapē "Vezitivus"
+    formData.append("folder", "Vezitivus");
 
     try {
       const resp = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
@@ -68,19 +64,18 @@ document.addEventListener("DOMContentLoaded", async function () {
       const result = await resp.json();
 
       if (result.secure_url) {
-        // 1) Parādām attēlu lokāli
+        // Parādām jauno attēlu
         profileImage.src = result.secure_url;
         profileImage.style.display = "block";
         uploadButton.style.display = "none";
 
-        // 2) Saglabājam Cloudinary URL Google Sheets
+        // Saglabājam URL Google Sheets
         const saveResp = await fetch(`${scriptUrl}?action=saveImage&uid=${uid}&imageUrl=${encodeURIComponent(result.secure_url)}`);
         const saveData = await saveResp.json();
-        
         if (saveData.status === "success") {
-          console.log("Attēls veiksmīgi saglabāts:", saveData.message);
+          console.log("Attēls saglabāts:", saveData.message);
         } else {
-          console.error("Attēla saglabāšanas kļūda:", saveData.message);
+          console.error("Neizdevās saglabāt attēlu:", saveData.message);
         }
       } else {
         console.error("Cloudinary atbilde nav derīga:", result);
