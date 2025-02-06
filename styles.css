@@ -15,26 +15,26 @@ html, body {
    PROFILA IZKĀRTOJUMS
 ======================================== */
 .profile-section {
-    display: flex;
-    flex-wrap: wrap;       /* Lai mazos ekrānos saliktos vienā kolonnā */
+    display: flex;          /* Uz lieliem ekrāniem divas kolonnas */
+    flex-wrap: wrap;        /* Ja ekrāns par šauru, kolonnas lauzīsies uz leju */
     width: 100%;
-    min-height: 100vh;     /* Lai vismaz aizņem ekrāna augstumu */
-    box-sizing: border-box;
-    padding: 20px;         /* Neliela atstarpe no malām */
-}
-
-/* Kreisā puse (attēls + poga) */
-.profile-left {
-    flex: 0 0 50%;         /* Uz lielākiem ekrāniem – 50% platums */
-    display: flex;
-    flex-direction: column;
-    align-items: center;   /* Saturu centrē horizontāli kolonnā */
-    justify-content: center;
+    min-height: 100vh;      /* Lai aizņem visu ekrāna augstumu */
     box-sizing: border-box;
     padding: 20px;
+    align-items: flex-start; /* Lai augšējās malas ir vienā līnijā */
 }
 
-/* Attēla ietvars */
+/* ===== Kreisā puse (attēls un poga) ===== */
+.profile-left {
+    flex: 0 0 300px;        /* Fiksēts ~300px platums */
+    display: flex;
+    flex-direction: column; 
+    align-items: center;    /* Centrs horizontāli kolonnā */
+    box-sizing: border-box;
+    margin-right: 20px;     /* Atstarpe starp kreiso un labo pusi */
+    margin-bottom: 20px;    /* Ja salūzt kolonnā, nodrošina atstarpi apakšā */
+}
+
 .image-container {
     width: 180px;
     height: 180px;
@@ -45,7 +45,7 @@ html, body {
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    margin-bottom: 16px; /* Atstarpe starp bildi un pogu */
+    margin-bottom: 16px; 
 }
 
 #profile-image {
@@ -65,50 +65,57 @@ html, body {
     transition: background 0.3s ease;
     font-size: 16px;
 }
-
 #change-button:hover {
     background: rgba(255, 255, 255, 0.2);
 }
 
-/* Labā puse (teksts) */
+/* ===== Labā puse (vārds, ID, vieta) ===== */
 .profile-right {
-    flex: 0 0 50%;         /* Uz lielākiem ekrāniem – 50% platums */
+    flex: 1;                /* Aizņem atlikušo vietu */
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     box-sizing: border-box;
-    padding: 20px;
+    margin-bottom: 20px;    /* Tikai gadījumā, ja salūst kolonnā */
 }
 
-/* Vārds (bold), ID un vieta */
-.user-name {
+/* Formatējums: “Vārds”, “Marcis”, utt. */
+.info-row {
+    margin-bottom: 12px; 
+}
+
+.info-label {
     font-weight: bold;
-    font-size: 24px;
-    margin-bottom: 12px;
+    font-size: 16px;
+    margin-bottom: 4px;
 }
-
-.user-id {
+.info-value {
     font-size: 18px;
     color: #ccc;
-    margin-bottom: 40px; /* 40px, kā prasīts - “atgrieztais atstatums” */
 }
 
-.user-place {
-    font-size: 16px;
-    color: #aaa;
-    margin-bottom: 20px;
+/* Piemērs lielākam “Kopvērtējuma vieta” stilam */
+.place-title {
+    margin-top: 20px;
+    font-size: 20px;
+    font-weight: bold;
+}
+.place-value {
+    font-size: 28px;        /* Lielāks, ja vajag “3.vieta” stilu */
+    color: #ffcc00;         /* Oranžs vai zelta tonis? */
+    margin: 8px 0;
 }
 
 /* ========================================
-   TRĪS POGAS (vienā rindā, centrētas)
+   TRĪS POGAS (vienā rindā, centrēti)
 ======================================== */
 .buttons-grid {
-    width: 100%;
     display: flex;
-    justify-content: center;  /* Pogu konteiners centrēts */
-    gap: 10px;                /* Atstarpe starp pogām */
+    justify-content: center;  
+    gap: 10px;  
+    width: 100%;
     box-sizing: border-box;
-    margin-top: 20px;
+    margin-top: 30px; /* Atstarpe starp saturu un pogām */
 }
 
 .action-button {
@@ -124,7 +131,6 @@ html, body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     transition: all 0.3s ease;
 }
-
 .action-button:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
@@ -132,28 +138,34 @@ html, body {
 
 /* ========================================
    RESPONSĪVAIS DIZAINS
-   - Zem 768px, kreiso un labo pusi rāda vienā kolonnā
+   - Zem 768px, rindas salaužas vienā kolonnā
 ======================================== */
 @media (max-width: 768px) {
-    .profile-left, .profile-right {
-        flex: 0 0 100%;
-        padding: 10px;   /* Mazāka atstarpe mobilajā */
+    .profile-section {
+        flex-direction: column;  /* Pāriet kolonnā */
+        align-items: center;
+    }
+    .profile-left {
+        flex: 0 0 auto;          /* Atļauj kļūt “auto” pēc platuma */
+        margin-right: 0;         /* Noņem sānu atstarpi, jo viss ir vienā kolonnā */
+    }
+    .profile-right {
+        flex: 0 0 auto;  
+        width: 100%;
     }
 
-    /* Samazini fontus, ja nepieciešams, piemēram: */
-    .user-name {
-        font-size: 20px;
-    }
-    .user-id {
-        font-size: 16px;
-        margin-bottom: 20px; /* Proporcionāli mazāks atstatums */
-    }
-    .user-place {
+    .info-label {
         font-size: 14px;
-        margin-bottom: 16px;
     }
-    
-    /* Pogas arī var būt mazākas */
+    .info-value {
+        font-size: 16px;
+    }
+    .place-title {
+        font-size: 18px;
+    }
+    .place-value {
+        font-size: 24px;
+    }
     .action-button {
         font-size: 14px;
         padding: 12px 16px;
