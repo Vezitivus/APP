@@ -1,143 +1,179 @@
-/* Globālie iestatījumi */
-body, html {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: linear-gradient(to bottom, #0a0a0a, #1c1c1e);
-  color: #fff;
+/* ----------------------------
+   Globālie iestatījumi
+---------------------------- */
+html, body {
   margin: 0;
   padding: 0;
-}
-
-/* Konteiners lapas saturam */
-.profile-page {
   width: 100%;
-  padding: 20px;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: linear-gradient(to bottom, #0a0a0a, #1c1c1e); /* Tumšs iOS stila fons */
+  color: #fff; /* Balts teksts */
   box-sizing: border-box;
 }
 
-/* Galvenes stils */
-header {
-  text-align: center;
-  margin-bottom: 20px;
+/* Padara, lai visi elementu izmēri aprēķinās, iekļaujot border un padding */
+*, *::before, *::after {
+  box-sizing: inherit;
 }
+
+/* ----------------------------
+   Profil-lapas konteiners
+---------------------------- */
+.profile-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+/* Galvenes virsraksts */
 .main-title {
   font-size: 36px;
   font-weight: bold;
+  margin-bottom: 20px;
+  text-align: center;
 }
 
-/* Profila sadaļas izkārtojums */
+/* ----------------------------
+   Stikla (glass) efekta konteiners
+---------------------------- */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  padding: 20px;
+  width: 100%;
+  max-width: 480px;
+  margin-bottom: 20px;
+}
+
+/* ----------------------------
+   Profila sadaļa (konteiners)
+---------------------------- */
 .profile-section {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: flex-start;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
   gap: 20px;
 }
 
-/* Kreisā puse – profils un attēla ievades laukums */
+/* Kreisā puse: attēla laukums */
 .profile-left {
-  flex: 1;
-  min-width: 300px;
-}
-.profile-left h2 {
-  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-/* Attēla konteineris ar sākotnējo kvadrāta izskatu */
+/* Attēla konteiners – liels kvadrāts ar apaļiem stūriem */
 .image-container {
   position: relative;
-  width: 40vw;
-  max-width: 300px;
+  width: 160px;
+  height: 160px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.1); /* Caurspīdīgs */
   border: 2px dashed #fff;
-  border-radius: 10px;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* Ja attēls nav izvēlēts – uztur kvadrāta proporciju */
-.image-container:not(.has-image) {
-  aspect-ratio: 1/1;
+/* Slēptais <input type="file"> ir iekš .image-container */
+.image-container input[type="file"] {
+  display: none;
 }
 
-/* Pēc attēla izvēles – konteineris pielāgojas attēla augstumam */
-.image-container.has-image {
-  aspect-ratio: auto;
-}
-
-/* Attēla stils */
-.image-container img {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-/* Izvēles pogas stils, kas centrēta konteinerī */
+/* Poga "Izvēlēties attēlu" centrēta laukumā */
 #upload-button {
   background: rgba(255, 255, 255, 0.1);
   border: none;
   color: #fff;
   padding: 10px 20px;
   cursor: pointer;
-  border-radius: 5px;
+  border-radius: 8px;
+  font-size: 14px;
 }
 
-/* Labā puse – informācija par lietotāju */
+/* Kad attēls ir izvēlēts, tas tiks parādīts */
+#profile-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none; /* Sākumā slēpts */
+}
+
+/* Labā puse: Vārds un ID */
 .profile-right {
-  flex: 1;
-  min-width: 200px;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   justify-content: center;
+  flex: 1;
 }
+
+/* Teksta grupas: apakšējā atstarpe */
 .info-group {
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 .info-group .label {
   font-size: 18px;
-  margin-bottom: 5px;
+  font-weight: bold;
+  margin-bottom: 4px;
 }
 .info-group .value {
   font-size: 16px;
   color: #ccc;
 }
 
-/* Pogas sadaļa ar grid izkārtojumu (3:30:2:30:2:30:3) */
+/* ----------------------------
+   Pogas sekcija apakšā
+---------------------------- */
 .buttons-section {
-  margin-top: 30px;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
 }
+
 .buttons-grid {
   display: grid;
   grid-template-columns: 3% 30% 2% 30% 2% 30% 3%;
-  width: 100%;
   align-items: center;
+  width: 100%;
 }
-.buttons-grid .grid-margin,
-.buttons-grid .grid-spacer {
-  /* Tukšās kolonnas kā atstarpes */
+
+/* Tukšās “kolonnas” kalpo par atstarpi/malu */
+.grid-margin,
+.grid-spacer {
+  /* tukša vieta */
 }
+
+/* Vienota poga visām trim, saglabājam modernu dizainu */
 .action-button {
   width: 100%;
-  padding: 10px;
+  padding: 14px 24px;
   border: none;
-  border-radius: 5px;
+  border-radius: 24px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  cursor: pointer;
   background: linear-gradient(to bottom, #333, #111);
   color: #fff;
-  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   transition: all 0.3s ease;
+  margin: 10px 0;
 }
+
 .action-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
 }
 
-/* Mobilā režīma pielāgojumi */
-@media (max-width: 768px) {
-  .profile-section {
-    flex-direction: column;
-    align-items: center;
-  }
-  .image-container {
-    width: 80vw;
-  }
-}
+/* ----------------------------
+   Papildu stili (ja vajag)
+---------------------------- */
+/* Piemērs, ja vēlaties ar .glass-effect aptvert visu saturu, varat to ievietot .profile-page iekšpusē */
