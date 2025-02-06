@@ -295,3 +295,9 @@ video {
   cursor: not-allowed;
 }
 
+.large-value {
+  font-size: 48px; /* Palielināts 3x, ja sākotnējais bija 16px */
+  font-weight: bold;
+  color: #ffffff; /* Baltā krāsā, bet var pielāgot */
+  text-align: center;
+}
