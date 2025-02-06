@@ -275,3 +275,32 @@ video {
     transform: translateY(-2px);
     box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
 }
+/* === JŪSU ORIĢINĀLIE STILI (nemainām) === */
+
+/* Papildus style, lai .profile-right būtu tuvāk kreisajai pusei */
+.profile-section {
+  justify-content: flex-start; /* ja vajag piespiest kreisajai malai */
+  gap: 10px; /* mazāka atstarpe starp bildes un vārda/ID kolonnu */
+}
+
+.profile-right {
+  margin-left: 15px; /* nedaudz kreisās malas atstatums */
+}
+
+/* Pogas “Nomainīt attēlu” stils */
+#change-button {
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* Ja vēlaties brīvi mainīt poga tekstu un dizainu hover laikā, var pievienot klases:
+#change-button:hover {
+  background: rgba(255,255,255,0.2);
+}
+*/
+
+/* #profile-image paliek width: 100%; height: 100%; object-fit: cover; utt. */
