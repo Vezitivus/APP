@@ -189,8 +189,8 @@ video {
 
 .image-container {
     position: relative;
-    width: 2000px;
-    height: 2000px;
+    width: 200px;
+    height: 200px;
     border-radius: 20px;
     border: 2px dashed #fff;
     background: rgba(255,255,255,0.1);
