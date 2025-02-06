@@ -41,8 +41,8 @@ body, html {
 .title {
     font-size: 28px;
     font-weight: bold;
-    margin-bottom: 20px;
-    color: #fff; /* Balts teksts */
+    margin-bottom: 16px;
+    color: #fff;
 }
 
 /* Teksta apraksti */
@@ -50,7 +50,7 @@ p {
     font-size: 16px;
     line-height: 1.4; /* Samazināts no 1.6 */
     color: #ccc; /* Viegli pelēks tonis */
-    margin: 8px 0; /* Mazāka atstarpe starp rindām */
+    margin: 8px 0; /* Mazākas atstarpes starp rindām */
 }
 
 /* Pogas vispārējais stils */
@@ -87,47 +87,33 @@ p {
     box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
 }
 
-/* Samazinām atstarpes starp informācijas rindām */
-.profile-right .info-group {
-    margin-bottom: 4px; /* Mazāka vertikālā atstarpe */
-    padding-bottom: 4px; /* Mazāks spilvens zem rindām */
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Plāna līnija */
-}
-
-.profile-right .info-group:last-child {
-    border-bottom: none; /* Pēdējā rinda bez apakšējās līnijas */
-}
-
-/* Stils kopvērtējuma vietai */
-.large-value {
-    font-size: 48px; /* Palielināts fonts */
-    font-weight: bold;
-    margin: 10px 0; /* Atstarpe ap vērtību */
-    color: #fff; /* Balts tonis */
-    text-align: center;
-}
-
-/* Check-In poga */
-.checkin-button {
-    display: block;
-    width: 94%;
-    margin: 20px auto;
-    padding: 14px 24px;
-    font-size: 18px;
-    font-weight: bold;
-    text-align: center;
-    color: #fff;
-    background-color: #28a745;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
+/* Ievades lauks */
+input[type="text"] {
+    width: 80%;
+    padding: 12px 16px;
+    margin-bottom: 16px; /* Samazināta atstarpe */
+    border: 1px solid #444;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+    font-size: 16px;
+    color: white;
+    outline: none;
     transition: all 0.3s ease;
 }
 
-.checkin-button:disabled {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.5);
-    cursor: not-allowed;
+input[type="text"]:focus {
+    border: 1px solid #007aff;
+    box-shadow: 0 0 8px rgba(0, 122, 255, 0.3);
+}
+
+/* Video pielāgošana */
+video {
+    width: 100%;
+    border-radius: 16px;
+    margin-top: 16px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    max-height: 300px;
 }
 
 /* Mobilā mēroga pielāgošana */
@@ -149,11 +135,96 @@ p {
         padding: 12px 20px;
     }
 
-    .checkin-button {
-        font-size: 16px; /* Samazināts mobilajam */
-    }
-
     input[type="text"] {
         font-size: 14px;
     }
+}
+
+/* ==============================
+   PROFILA SPECIFISKS STILS
+============================== */
+
+/* Profila lapa */
+.profile-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    width: 100%;
+    max-width: 600px;
+    margin: auto;
+    box-sizing: border-box;
+}
+
+/* Profila attēla konteiners */
+.image-container {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    border-radius: 20px;
+    border: 2px dashed #fff;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+#profile-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#change-button {
+    margin-top: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* Informācijas bloki */
+.profile-right .info-group {
+    margin-bottom: 8px; /* Samazināta vertikālā atstarpe */
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2); /* Viegla līnija */
+}
+
+.profile-right .info-group:last-child {
+    border-bottom: none; /* Noņem pēdējās rindas apakšējo līniju */
+}
+
+/* Kopvērtējuma vietas stils */
+.large-value {
+    font-size: 48px;
+    font-weight: bold;
+    margin: 8px 0;
+    color: #fff;
+    text-align: center;
+}
+
+/* Check-In poga */
+.checkin-button {
+    display: none; /* Pēc noklusējuma paslēpta */
+    width: 94%;
+    margin: 20px auto;
+    padding: 14px 24px;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    color: #fff;
+    background-color: #28a745;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.checkin-button:disabled {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.5);
+    cursor: not-allowed;
 }
