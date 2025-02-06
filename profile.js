@@ -15,10 +15,8 @@ document.addEventListener("DOMContentLoaded", async function () {
   const changeButton = document.getElementById("change-button");
   const imageInput = document.getElementById("image-input");
   const checkinButton = document.getElementById("checkin-button");
-  const checkinMessage = document.getElementById("checkin-message");
 
   // 1) Ielādējam profila datus
-  let checkinAvailableDate = null; // Datums no C4
   try {
     const res = await fetch(`${scriptUrl}?action=getProfile&uid=${uid}`);
     const data = await res.json();
@@ -37,21 +35,14 @@ document.addEventListener("DOMContentLoaded", async function () {
         changeButton.innerText = "Izvēlēties attēlu";
       }
 
-      // Check-In informācija
-      checkinAvailableDate = data.checkinDate; // C4 vērtība
-      if (data.checkinStatus === "TRUE") {
+      // Check-In pogas loģika
+      const checkinStatus = data.checkinStatus; // C kolonna
+      const globalCheckinEnabled = data.globalCheckinEnabled; // C4 vērtība
+
+      if (checkinStatus === "TRUE" || globalCheckinEnabled === "FALSE") {
         checkinButton.style.display = "none"; // Paslēpjam pogu
       } else {
-        const currentDate = new Date();
-        const availableDate = new Date(checkinAvailableDate);
-
-        if (currentDate >= availableDate) {
-          checkinButton.disabled = false; // Aktivizē pogu
-          checkinMessage.style.display = "none"; // Paslēpjam ziņojumu
-        } else {
-          checkinButton.disabled = true; // Atstāj pogu neaktīvu
-          checkinMessage.innerText = `Check-In pieejams līdz: ${checkinAvailableDate}`;
-        }
+        checkinButton.disabled = false; // Aktivizē pogu
       }
     } else {
       document.body.innerHTML = `<h1 class='error'>Kļūda: ${data.message}</h1>`;
@@ -119,7 +110,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
   });
 
-  // 3) Check-In pogas loģika
+  // 3) Check-In pogas darbība
   checkinButton.addEventListener("click", async function () {
     try {
       const checkinRes = await fetch(`${scriptUrl}?action=checkIn&uid=${uid}`);
