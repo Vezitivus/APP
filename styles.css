@@ -215,11 +215,17 @@ video {
   cursor: pointer;
 }
 
-.profile-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
+/* Samazinām atstarpi starp info-group blokiem un pievienojam plānu līniju */
+.profile-right .info-group {
+  margin-bottom: 8px;              /* mazāks apakšējais margin */
+  padding-bottom: 8px;             /* vieta pirms līnijas beigām */
+  border-bottom: 1px solid #ccc;   /* plāna gaiši pelēka / balta līnija */
+}
+
+/* Lai pēdējam blokam nerādītos apakšējā līnija */
+.profile-right .info-group:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
 }
 
 .info-group .label {
@@ -265,4 +271,8 @@ video {
 .action-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+}
+#place {
+  font-size: 3em;    /* aptuveni 3x lielāks nekā ~16px bāzes fontam */
+  font-weight: bold; /* ja gribat izcelt treknāk */
 }
