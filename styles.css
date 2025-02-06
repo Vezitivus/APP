@@ -159,39 +159,31 @@ video {
 }
 
 /* =========================================
-   PROFILA LAPAS STILI
+   PROFILA IZKĀRTOJUMS
 ========================================= */
-
-/* Kopējais konteiners profilam */
-.profile-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    max-width: 600px;
-    margin: auto;
-    padding: 20px;
-    box-sizing: border-box;
-}
-
-/* Galvenā profila sadaļa (kreisā un labā puse) */
 .profile-section {
+    /* Aizņem visu loga augstumu, horizontāli centrēts saturs */
     display: flex;
-    justify-content: space-between;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
     width: 100%;
-    margin-bottom: 20px;
+    box-sizing: border-box;
+    padding: 0 20px; /* Sānu atstarpes (ja vajag) */
+    gap: 40px;       /* Atstarpe starp kreiso un labo pusi */
 }
 
-/* Kreisā puse (attēls) */
+/* Kreisā puse ar attēlu un pogu */
 .profile-left {
+    flex: 0 0 300px; /* Var mainīt atkarībā no dizaina; nodrošina konstantu platumu vai var lietot procentus */
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 40%; /* Var koriģēt atkarībā no dizaina */
+    justify-content: center;
 }
 
 .image-container {
-    position: relative;
     width: 180px;
     height: 180px;
     border-radius: 20px;
@@ -201,7 +193,7 @@ video {
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    margin-bottom: 10px;
+    margin-bottom: 20px; /* Atstarpe starp attēlu un pogu */
 }
 
 #profile-image {
@@ -210,7 +202,7 @@ video {
     object-fit: cover;
 }
 
-/* Attēla maiņas poga */
+/* Attēla zemāk poga */
 #change-button {
     background: rgba(255, 255, 255, 0.1);
     border: none;
@@ -218,85 +210,52 @@ video {
     padding: 10px 20px;
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: background 0.3s ease;
 }
 
 #change-button:hover {
     background: rgba(255, 255, 255, 0.2);
 }
 
-/* Labā puse (info) */
+/* Labā puse: vārds, ID, vieta */
 .profile-right {
+    flex: 0 0 300px; /* Vai var lietot flex: 1; lai elastīgi aizņem atlikušo vietu */
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    width: 60%;
 }
 
-.info-group {
-    margin-bottom: 8px;
-    padding-bottom: 4px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.info-group:last-child {
-    border-bottom: none;
-}
-
-.info-group .label {
+/* Vārds (bold), ID, vieta */
+.user-name {
     font-weight: bold;
+    font-size: 24px;
+    margin-bottom: 0; /* Bez apakšējās atstarpes, jo talāk sekos 40px atstarpe */
+}
+
+/* 40px atstarpe starp .user-name un .user-id */
+.user-id {
+    margin-top: 40px;
     font-size: 18px;
-    color: #fff;
-}
-
-.info-group .value {
-    font-size: 30px; /* Palielināts izmērs tekstam */
     color: #ccc;
+    margin-bottom: 8px; /* Mazs atstarpes pirms vietas */
 }
 
-/* Liels skaitlis / novērtējums (ja nepieciešams) */
-.large-value {
-    font-size: 48px;
-    font-weight: bold;
-    margin: 8px 0;
-    text-align: center;
-    color: #fff;
+.user-place {
+    font-size: 16px;
+    color: #aaa;
 }
 
-/* Check-In poga */
-.checkin-button {
-    display: block;
-    width: 94%;
-    margin: 20px auto;
-    padding: 20px 24px;
-    font-size: 20px;
-    font-weight: bold;
-    text-align: center;
-    color: #fff;
-    background-color: #28a745; /* Zaļais tonis */
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.checkin-button:hover {
-    background-color: #218838;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.checkin-button:disabled {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.5);
-    cursor: not-allowed;
-}
-
-/* Apakšējās “action” pogas (piemēram, navigācijai) */
+/* =========================================
+   TRĪS POGAS (vienā rindā, centrētas, noteikta attiecība)
+========================================= */
 .buttons-grid {
     display: grid;
-    grid-template-columns: 3% 30% 2% 30% 2% 30% 3%; 
+    /* Sadalījums: 3% | 30% | 2% | 30% | 2% | 30% | 3% */
+    grid-template-columns: 3% 30% 2% 30% 2% 30% 3%;
+    align-items: center;
     gap: 10px;
     width: 100%;
+    margin-top: 40px; /* Ja vajag atstarpes virs pogu rindas */
 }
 
 .action-button {
@@ -307,14 +266,47 @@ video {
     text-align: center;
     cursor: pointer;
     border: none;
+    border-radius: 8px;
     background: linear-gradient(to bottom, #333, #111);
     color: #fff;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    border-radius: 8px;
     transition: all 0.3s ease;
 }
 
 .action-button:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+}
+
+/* Ja vēlies dažādus krāsu toņus, vari papildināt klases,
+   piemēram, .action-button.green, .action-button.red utml. */
+
+/* =========================================
+   RESPONSĪVS
+========================================= */
+@media (max-width: 768px) {
+    .profile-section {
+        flex-direction: column;
+        min-height: auto; /* Lai mobilajā view saturs “nespiežas” pilnā augstumā */
+        gap: 20px;
+    }
+    .profile-left, .profile-right {
+        flex: auto;
+        width: 100%;
+        max-width: 400px;
+    }
+    .user-name {
+        font-size: 20px;
+    }
+    .user-id {
+        font-size: 16px;
+    }
+    .user-place {
+        font-size: 14px;
+    }
+
+    .action-button {
+        font-size: 14px;
+        padding: 12px 20px;
+    }
 }
