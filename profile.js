@@ -8,16 +8,16 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 
   // 2. Ielādējam profila datus no Google Apps Script
+  const scriptUrl = "https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCw8RaXwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec";
+
   try {
-    // Piemēram, jūsu Apps Script WebApp URL:
-    // https://script.google.com/macros/s/AKfycbxx.../exec?action=getProfile&uid=...
-    const res = await fetch(`https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?action=getProfile&uid=${uid}`);
+    const res = await fetch(`${scriptUrl}?action=getProfile&uid=${uid}`);
     const data = await res.json();
 
     if (data.status === "success") {
       document.getElementById("username").innerText = data.username;
       document.getElementById("nfc-id").innerText = data.uid;
-      
+
       // Ja imageUrl jau ir saglabāts, parādām attēlu
       if (data.imageUrl) {
         const profileImage = document.getElementById("profile-image");
@@ -37,15 +37,15 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 
   // 3. Sagatavojam Cloudinary Unsigned upload
-  const cloudName = "JŪSU_CLOUD_NAME";  // piem., "dmkpb05ww"
-  const uploadPreset = "Vezitivus";     // jūsu izveidotais preset
+  const cloudName = "dmkpb05ww";  // JŪSU Cloud name
+  const uploadPreset = "Vezitivus"; // Jūsu Upload Preset Cloudinary
 
   // HTML elementi
   const uploadButton = document.getElementById("upload-button");
   const imageInput   = document.getElementById("image-input");
   const profileImage = document.getElementById("profile-image");
 
-  // Nospiežot pogu, atver failu dialogu
+  // Kad nospiežam "Izvēlēties attēlu" -> atver failu dialogu
   uploadButton.addEventListener("click", () => {
     imageInput.click();
   });
@@ -66,16 +66,15 @@ document.addEventListener("DOMContentLoaded", async function () {
         body: formData
       });
       const result = await resp.json();
-      
+
       if (result.secure_url) {
         // 1) Parādām attēlu lokāli
         profileImage.src = result.secure_url;
         profileImage.style.display = "block";
         uploadButton.style.display = "none";
 
-        // 2) Saglabājam Cloudinary URL Sheets (action=saveImage)
-        //    Izsaucam doGet ar action=saveImage
-        const saveResp = await fetch(`https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?action=saveImage&uid=${uid}&imageUrl=${encodeURIComponent(result.secure_url)}`);
+        // 2) Saglabājam Cloudinary URL Google Sheets
+        const saveResp = await fetch(`${scriptUrl}?action=saveImage&uid=${uid}&imageUrl=${encodeURIComponent(result.secure_url)}`);
         const saveData = await saveResp.json();
         
         if (saveData.status === "success") {
@@ -84,7 +83,7 @@ document.addEventListener("DOMContentLoaded", async function () {
           console.error("Attēla saglabāšanas kļūda:", saveData.message);
         }
       } else {
-        console.error("Cloudinary atgriezat neatbilstošu formātu:", result);
+        console.error("Cloudinary atbilde nav derīga:", result);
       }
     } catch (err) {
       console.error("Kļūda augšupielādējot attēlu uz Cloudinary:", err);
