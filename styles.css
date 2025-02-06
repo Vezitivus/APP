@@ -29,7 +29,7 @@ body, html {
 .glass-effect {
     background: rgba(255, 255, 255, 0.08); /* Caurspīdīgs tumšs */
     backdrop-filter: blur(15px); /* iOS stila miglainums */
-    border-radius: 20px; /* Apaļas malas */
+    border-radius: 20px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); /* Viegls tumšs ēnojums */
     padding: 20px;
     text-align: center;
@@ -48,8 +48,9 @@ body, html {
 /* Teksta apraksti */
 p {
     font-size: 16px;
-    line-height: 1.6;
+    line-height: 1.4; /* Samazināts no 1.6 */
     color: #ccc; /* Viegli pelēks tonis */
+    margin: 8px 0; /* Mazāka atstarpe starp rindām */
 }
 
 /* Pogas vispārējais stils */
@@ -57,71 +58,76 @@ p {
     display: block;
     padding: 14px 24px;
     margin: 10px 0;
-    border-radius: 24px; /* iOS apaļās pogas */
+    border-radius: 24px;
     font-size: 16px;
     font-weight: bold;
     text-align: center;
-    text-decoration: none;
     cursor: pointer;
     border: none;
-    background: linear-gradient(to bottom, #333, #111); /* Tumši pelēks gradients */
+    background: linear-gradient(to bottom, #333, #111);
     color: white;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Tumša ēna */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     transition: all 0.3s ease;
 }
 
 .button:hover {
-    transform: translateY(-2px); /* Mazs pacēlums uz hover */
-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5); /* Spēcīgāka ēna */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
 }
 
 /* Zaļā poga */
 .button.green {
-    background: linear-gradient(to bottom, #2ecc71, #27ae60); /* Zaļā poga */
+    background: linear-gradient(to bottom, #2ecc71, #27ae60);
     box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
-}
-
-.button.green:hover {
-    box-shadow: 0 6px 14px rgba(46, 204, 113, 0.5);
 }
 
 /* Sarkanā poga */
 .button.red {
-    background: linear-gradient(to bottom, #e74c3c, #c0392b); /* Sarkanā poga */
+    background: linear-gradient(to bottom, #e74c3c, #c0392b);
     box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
 }
 
-.button.red:hover {
-    box-shadow: 0 6px 14px rgba(231, 76, 60, 0.5);
+/* Samazinām atstarpes starp informācijas rindām */
+.profile-right .info-group {
+    margin-bottom: 4px; /* Mazāka vertikālā atstarpe */
+    padding-bottom: 4px; /* Mazāks spilvens zem rindām */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Plāna līnija */
 }
 
-/* Ievades lauks */
-input[type="text"] {
-    width: 80%;
-    padding: 12px 16px;
-    margin-bottom: 20px;
-    border: 1px solid #444; /* Tumšs rāmis */
-    border-radius: 24px; /* Apaļas malas */
-    background: rgba(255, 255, 255, 0.1); /* Caurspīdīgs tumšs fons */
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5); /* Iekšējā ēna */
-    font-size: 16px;
-    color: white;
-    outline: none;
+.profile-right .info-group:last-child {
+    border-bottom: none; /* Pēdējā rinda bez apakšējās līnijas */
+}
+
+/* Stils kopvērtējuma vietai */
+.large-value {
+    font-size: 48px; /* Palielināts fonts */
+    font-weight: bold;
+    margin: 10px 0; /* Atstarpe ap vērtību */
+    color: #fff; /* Balts tonis */
+    text-align: center;
+}
+
+/* Check-In poga */
+.checkin-button {
+    display: block;
+    width: 94%;
+    margin: 20px auto;
+    padding: 14px 24px;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    color: #fff;
+    background-color: #28a745;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
     transition: all 0.3s ease;
 }
 
-input[type="text"]:focus {
-    border: 1px solid #007aff; /* Zila fokusa krāsa */
-    box-shadow: 0 0 8px rgba(0, 122, 255, 0.3); /* Zils fokusa efekts */
-}
-
-/* Video pielāgošana */
-video {
-    width: 100%;
-    border-radius: 16px; /* Apaļas malas video */
-    margin-top: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Tumša ēna */
-    max-height: 300px;
+.checkin-button:disabled {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.5);
+    cursor: not-allowed;
 }
 
 /* Mobilā mēroga pielāgošana */
@@ -143,163 +149,11 @@ video {
         padding: 12px 20px;
     }
 
+    .checkin-button {
+        font-size: 16px; /* Samazināts mobilajam */
+    }
+
     input[type="text"] {
         font-size: 14px;
     }
-}
-
-/* ==============================
-   PAPILDU STILI TIKAI PROFILE LAPAI
-   (pievienojam, lai dizains tur atbilst skicei)
-============================== */
-
-.profile-page {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px;
-  width: 100%;
-  max-width: 600px;
-  margin: auto;
-  box-sizing: border-box;
-}
-
-.main-title {
-  font-size: 32px;
-  margin-bottom: 20px;
-  text-align: left; 
-}
-
-.profile-section {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 20px;
-  width: 100%;
-  margin-bottom: 20px;
-}
-
-.profile-left {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.image-container {
-  position: relative;
-  width: 200px;
-  height: 200px;
-  border-radius: 20px;
-  border: 2px dashed #fff;
-  background: rgba(255,255,255,0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-#profile-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-#change-button {
-  margin-top: 10px;
-  background: rgba(255,255,255,0.1);
-  border: none;
-  color: #fff;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-/* Samazinām atstarpi starp info-group blokiem un pievienojam plānu līniju */
-.profile-right .info-group {
-  margin-bottom: 0,2px;              /* mazāks apakšējais margin */
-  padding-bottom: 0,2px;             /* vieta pirms līnijas beigām */
-  border-bottom: 1px solid #ccc;   /* plāna gaiši pelēka / balta līnija */
-}
-
-/* Lai pēdējam blokam nerādītos apakšējā līnija */
-.profile-right .info-group:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-}
-
-.info-group .label {
-  font-weight: bold;
-  font-size: 18px;
-  margin-bottom: 4px;
-}
-.info-group .value {
-  font-size: 16px;
-  color: #ccc;
-}
-
-.buttons-section {
-  margin-top: 20px;
-  width: 100%;
-}
-
-.buttons-grid {
-  display: grid;
-  grid-template-columns: 3% 30% 2% 30% 2% 30% 3%;
-  align-items: center;
-  width: 100%;
-}
-.grid-margin,
-.grid-spacer {
-  /* tukšs */
-}
-.action-button {
-  width: 100%;
-  padding: 14px 24px;
-  margin: 10px 0;
-  border-radius: 24px;
-  font-size: 16px;
-  font-weight: bold;
-  text-align: center;
-  cursor: pointer;
-  border: none;
-  background: linear-gradient(to bottom, #333, #111);
-  color: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
-}
-.action-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
-}
-/* Check-In poga */
-.checkin-button {
-  display: block;
-  width: 94%; /* Gandrīz pilna ekrāna platums */
-  margin: 20px auto; /* Centrs ar automātisku noformējumu */
-  padding: 14px 24px;
-  font-size: 18px;
-  font-weight: bold;
-  text-align: center;
-  color: #fff;
-  background-color: #28a745; /* Zaļa poga */
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.checkin-button:disabled {
-  background-color: rgba(255, 255, 255, 0.1); /* Neaktīva - pelēka */
-  color: rgba(255, 255, 255, 0.5);
-  cursor: not-allowed;
-}
-
-.large-value {
-    margin-top: 0,2px;
-    margin-top: 0,2px;
-  font-size: 48px; /* Palielināts 3x, ja sākotnējais bija 16px */
-  font-weight: bold;
-  color: #ffffff; /* Baltā krāsā, bet var pielāgot */
-  text-align: center;
 }
