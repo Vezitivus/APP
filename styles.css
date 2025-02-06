@@ -49,6 +49,11 @@ p {
   line-height: 1.6;
   color: #ccc;
 }
+p+ {
+  font-size: 40px;
+  line-height: 1.6;
+  color: #ccc;
+}
 
 /* Pogas vispārējais stils */
 .button {
