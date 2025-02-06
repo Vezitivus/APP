@@ -16,6 +16,9 @@ document.addEventListener("DOMContentLoaded", async function () {
   const imageInput = document.getElementById("image-input");
   const checkinButton = document.getElementById("checkin-button");
 
+  // Paslēpjam Check-In pogu uzreiz pēc ielādes
+  checkinButton.style.display = "none";
+
   // 1) Ielādējam profila datus
   try {
     const res = await fetch(`${scriptUrl}?action=getProfile&uid=${uid}`);
@@ -39,10 +42,8 @@ document.addEventListener("DOMContentLoaded", async function () {
       const checkinStatus = data.checkinStatus; // C kolonna
       const globalCheckinEnabled = data.globalCheckinEnabled; // C4 vērtība
 
-      if (checkinStatus === "TRUE" || globalCheckinEnabled === "FALSE") {
-        checkinButton.style.display = "none"; // Paslēpjam pogu
-      } else {
-        checkinButton.disabled = false; // Aktivizē pogu
+      if (globalCheckinEnabled === "TRUE" && checkinStatus === "FALSE") {
+        checkinButton.style.display = "block"; // Parādām pogu
       }
     } else {
       document.body.innerHTML = `<h1 class='error'>Kļūda: ${data.message}</h1>`;
@@ -114,6 +115,8 @@ document.addEventListener("DOMContentLoaded", async function () {
   checkinButton.addEventListener("click", async function () {
     try {
       const checkinRes = await fetch(`${scriptUrl}?action=checkIn&uid=${uid}`);
+      if (!checkinRes.ok) throw new Error("Savienojuma kļūda ar serveri.");
+
       const checkinData = await checkinRes.json();
 
       if (checkinData.status === "success") {
