@@ -272,4 +272,26 @@ video {
   transform: translateY(-2px);
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
 }
+/* Check-In poga */
+.checkin-button {
+  display: block;
+  width: 94%; /* Gandrīz pilna ekrāna platums */
+  margin: 20px auto; /* Centrs ar automātisku noformējumu */
+  padding: 14px 24px;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  color: #fff;
+  background-color: #28a745; /* Zaļa poga */
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.checkin-button:disabled {
+  background-color: rgba(255, 255, 255, 0.1); /* Neaktīva - pelēka */
+  color: rgba(255, 255, 255, 0.5);
+  cursor: not-allowed;
+}
 
