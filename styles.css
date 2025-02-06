@@ -217,8 +217,8 @@ video {
 
 /* Samazinām atstarpi starp info-group blokiem un pievienojam plānu līniju */
 .profile-right .info-group {
-  margin-bottom: 8px;              /* mazāks apakšējais margin */
-  padding-bottom: 8px;             /* vieta pirms līnijas beigām */
+  margin-bottom: 2px;              /* mazāks apakšējais margin */
+  padding-bottom: 2px;             /* vieta pirms līnijas beigām */
   border-bottom: 1px solid #ccc;   /* plāna gaiši pelēka / balta līnija */
 }
 
@@ -273,6 +273,6 @@ video {
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
 }
 #place {
-  font-size: 3em;    /* aptuveni 3x lielāks nekā ~16px bāzes fontam */
+  font-size: 1,5em;    /* aptuveni 3x lielāks nekā ~16px bāzes fontam */
   font-weight: bold; /* ja gribat izcelt treknāk */
 }
