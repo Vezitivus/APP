@@ -8,19 +8,16 @@
 </head>
 <body>
   <div class="profile-page">
-    <!-- Liels virsraksts augšpusē -->
     <h1 class="main-title">VEZITIVUS WeekEnd</h1>
 
     <section class="profile-section">
-      <!-- Kreisā puse: Attēla konteiners -->
+      <!-- Kreisā puse: bilde -->
       <div class="profile-left">
         <div class="image-container">
-          <!-- Slēpts faila ievades lauks -->
           <input type="file" id="image-input" accept="image/*" style="display:none;">
-          <!-- Pats attēls -->
           <img id="profile-image" src="" alt="Profilattēls" style="display:none;">
         </div>
-        <!-- Poga zem bildes (viena poga: Izvēlēties/Nomainīt attēlu) -->
+        <!-- Poga zem bildes -->
         <button id="change-button" style="margin-top: 10px;">Nomainīt attēlu</button>
       </div>
 
@@ -34,7 +31,6 @@
           <p class="label">ID</p>
           <p class="value" id="nfc-id">Ielādē...</p>
         </div>
-        <!-- JAUNĀ RINDA - Kopvērtējuma vieta (H kolonna) -->
         <div class="info-group">
           <p class="label">Kopvērtējuma vieta</p>
           <p class="value" id="place">Ielādē...</p>
@@ -42,7 +38,7 @@
       </div>
     </section>
 
-    <!-- Apakšējā rinda ar 3 pogām (neobligāts) -->
+    <!-- Apakšējās 3 pogas, ja vajag -->
     <section class="buttons-section">
       <div class="buttons-grid">
         <div class="grid-margin"></div>
@@ -56,7 +52,6 @@
     </section>
   </div>
 
-  <!-- Profila JavaScript -->
   <script src="profile.js"></script>
 </body>
 </html>
