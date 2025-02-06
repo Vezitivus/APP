@@ -1,5 +1,7 @@
-/* Globālie iestatījumi */
-body, html {
+/* =========================================
+   GLOBĀLIE IESTATĪJUMI
+========================================= */
+html, body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background: linear-gradient(to bottom, #0a0a0a, #1c1c1e); /* Tumšs iOS stila fons */
     color: #fff; /* Balts teksts uz tumša fona */
@@ -7,13 +9,10 @@ body, html {
     padding: 0;
     width: 100%;
     height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    /* Noņemts display: flex un centrēšana, lai to iestatītu tikai tad, ja nepieciešams */
 }
 
-/* Konteiners centrēšanai pilnā ekrānā */
+/* Ja vēlies visu saturu centrēt pilnekrānā, pielieto .fullscreen-container */
 .fullscreen-container {
     width: 100%;
     height: 100%;
@@ -25,19 +24,25 @@ body, html {
     box-sizing: border-box;
 }
 
-/* Centrēts konteiners ar stikla efektu */
+/* =========================================
+   STIKLA EFEKTS (GLASSMORPHISM)
+========================================= */
 .glass-effect {
-    background: rgba(255, 255, 255, 0.08); /* Caurspīdīgs tumšs */
+    background: rgba(255, 255, 255, 0.08); /* Caurspīdīgs tumšs slānis */
     backdrop-filter: blur(15px); /* iOS stila miglainums */
+    -webkit-backdrop-filter: blur(15px); /* Safari atbalstam */
     border-radius: 20px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); /* Viegls tumšs ēnojums */
     padding: 20px;
     text-align: center;
     width: 90%;
     max-width: 400px;
+    margin: 0 auto; /* Lai centrs būtu horizontāli */
 }
 
-/* Galvenais virsraksts */
+/* =========================================
+   TEKSTA STILI
+========================================= */
 .title {
     font-size: 28px;
     font-weight: bold;
@@ -45,17 +50,18 @@ body, html {
     color: #fff;
 }
 
-/* Teksta apraksti */
 p {
     font-size: 16px;
-    line-height: 1.4; /* Samazināts no 1.6 */
+    line-height: 1.4;
     color: #ccc; /* Viegli pelēks tonis */
-    margin: 8px 0; /* Mazākas atstarpes starp rindām */
+    margin: 8px 0;
 }
 
-/* Pogas vispārējais stils */
+/* =========================================
+   POGAS (vispārīgais stils + variācijas)
+========================================= */
 .button {
-    display: block;
+    display: inline-block;
     padding: 14px 24px;
     margin: 10px 0;
     border-radius: 24px;
@@ -65,7 +71,7 @@ p {
     cursor: pointer;
     border: none;
     background: linear-gradient(to bottom, #333, #111);
-    color: white;
+    color: #fff;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     transition: all 0.3s ease;
 }
@@ -87,36 +93,46 @@ p {
     box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
 }
 
-/* Ievades lauks */
-input[type="text"] {
+/* =========================================
+   IEVADES LAUKI
+========================================= */
+input[type="text"],
+input[type="email"],
+input[type="password"] {
     width: 80%;
     padding: 12px 16px;
-    margin-bottom: 16px; /* Samazināta atstarpe */
+    margin-bottom: 16px;
     border: 1px solid #444;
     border-radius: 24px;
     background: rgba(255, 255, 255, 0.1);
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
     font-size: 16px;
-    color: white;
+    color: #fff;
     outline: none;
     transition: all 0.3s ease;
 }
 
-input[type="text"]:focus {
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus {
     border: 1px solid #007aff;
     box-shadow: 0 0 8px rgba(0, 122, 255, 0.3);
 }
 
-/* Video pielāgošana */
+/* =========================================
+   VIDEO
+========================================= */
 video {
     width: 100%;
+    max-height: 300px;
     border-radius: 16px;
     margin-top: 16px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-    max-height: 300px;
 }
 
-/* Mobilā mēroga pielāgošana */
+/* =========================================
+   RESPONSĪVIE IESTATĪJUMI
+========================================= */
 @media (max-width: 768px) {
     .glass-effect {
         padding: 16px;
@@ -135,144 +151,47 @@ video {
         padding: 12px 20px;
     }
 
-    input[type="text"] {
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
         font-size: 14px;
     }
 }
 
-/* ==============================
-   PROFILA SPECIFISKS STILS
-============================== */
+/* =========================================
+   PROFILA LAPAS STILI
+========================================= */
 
-/* Profila lapa */
-.profile-page {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-    width: 100%;
-    max-width: 600px;
-    margin: auto;
-    box-sizing: border-box;
-}
-
-/* Profila attēla konteiners */
-.image-container {
-    position: relative;
-    width: 180px;
-    height: 180px;
-    border-radius: 20px;
-    border: 2px dashed #fff;
-    background: rgba(255, 255, 255, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-}
-
-#profile-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-#change-button {
-    margin-top: 10px;
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
-    color: #fff;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-/* Informācijas bloki */
-.profile-right .info-group {
-    margin-bottom: 8px; /* Samazināta vertikālā atstarpe */
-    padding-bottom: 4px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2); /* Viegla līnija */
-}
-
-.profile-right .info-group:last-child {
-    border-bottom: none; /* Noņem pēdējās rindas apakšējo līniju */
-}
-
-/* Kopvērtējuma vietas stils */
-.large-value {
-    font-size: 48px;
-    font-weight: bold;
-    margin: 8px 0;
-    color: #fff;
-    text-align: center;
-}
-
-/* Check-In poga */
-.checkin-button {
-    display: none; /* Pēc noklusējuma paslēpta */
-    width: 94%;
-    margin: 20px auto;
-    padding: 14px 24px;
-    font-size: 18px;
-    font-weight: bold;
-    text-align: center;
-    color: #fff;
-    background-color: #28a745;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.checkin-button:disabled {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.5);
-    cursor: not-allowed;
-}
-/* Globālie iestatījumi */
-body, html {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: linear-gradient(to bottom, #0a0a0a, #1c1c1e); /* Tumšs iOS stila fons */
-    color: #fff; /* Balts teksts uz tumša fona */
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Centrālais profila konteiners */
+/* Kopējais konteiners profilam */
 .profile-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 20px;
     width: 100%;
     max-width: 600px;
+    margin: auto;
+    padding: 20px;
     box-sizing: border-box;
 }
 
-/* Profila galvenā sadaļa (labā un kreisā puse) */
+/* Galvenā profila sadaļa (kreisā un labā puse) */
 .profile-section {
     display: flex;
-    flex-direction: row;
     justify-content: space-between;
     width: 100%;
     margin-bottom: 20px;
 }
 
-/* Kreisā puse (attēla konteiners) */
+/* Kreisā puse (attēls) */
 .profile-left {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 40%; /* Attēla puses platums */
+    width: 40%; /* Var koriģēt atkarībā no dizaina */
 }
 
 .image-container {
+    position: relative;
     width: 180px;
     height: 180px;
     border-radius: 20px;
@@ -291,6 +210,7 @@ body, html {
     object-fit: cover;
 }
 
+/* Attēla maiņas poga */
 #change-button {
     background: rgba(255, 255, 255, 0.1);
     border: none;
@@ -305,18 +225,22 @@ body, html {
     background: rgba(255, 255, 255, 0.2);
 }
 
-/* Labā puse (informācijas bloki) */
+/* Labā puse (info) */
 .profile-right {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    width: 60%; /* Informācijas puses platums */
+    width: 60%;
 }
 
 .info-group {
-    margin-bottom: 12px;
-    padding-bottom: 8px;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.info-group:last-child {
+    border-bottom: none;
 }
 
 .info-group .label {
@@ -326,8 +250,17 @@ body, html {
 }
 
 .info-group .value {
-    font-size: 30px; /* Palielināts fonta izmērs */
+    font-size: 30px; /* Palielināts izmērs tekstam */
     color: #ccc;
+}
+
+/* Liels skaitlis / novērtējums (ja nepieciešams) */
+.large-value {
+    font-size: 48px;
+    font-weight: bold;
+    margin: 8px 0;
+    text-align: center;
+    color: #fff;
 }
 
 /* Check-In poga */
@@ -340,7 +273,7 @@ body, html {
     font-weight: bold;
     text-align: center;
     color: #fff;
-    background-color: #28a745; /* Zaļā poga */
+    background-color: #28a745; /* Zaļais tonis */
     border: none;
     border-radius: 12px;
     cursor: pointer;
@@ -358,10 +291,10 @@ body, html {
     cursor: not-allowed;
 }
 
-/* Apakšējās pogas */
+/* Apakšējās “action” pogas (piemēram, navigācijai) */
 .buttons-grid {
     display: grid;
-    grid-template-columns: 3% 30% 2% 30% 2% 30% 3%; /* Pogu attiecības: 3:30:2:30:2:30:3 */
+    grid-template-columns: 3% 30% 2% 30% 2% 30% 3%; 
     gap: 10px;
     width: 100%;
 }
@@ -375,7 +308,7 @@ body, html {
     cursor: pointer;
     border: none;
     background: linear-gradient(to bottom, #333, #111);
-    color: white;
+    color: #fff;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     border-radius: 8px;
     transition: all 0.3s ease;
@@ -385,4 +318,3 @@ body, html {
     transform: translateY(-2px);
     box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
 }
-
