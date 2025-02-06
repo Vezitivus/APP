@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", async function() {
+document.addEventListener("DOMContentLoaded", async function () {
   const params = new URLSearchParams(window.location.search);
   const uid = params.get("uid");
   if (!uid) {
@@ -6,23 +6,27 @@ document.addEventListener("DOMContentLoaded", async function() {
     return;
   }
 
-  // Google Apps Script WebApp
-  const scriptUrl = "https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCw8RaXwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec";
+  // Google Apps Script WebApp URL
+  const scriptUrl =
+    "https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCw8RaXwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec";
 
   // HTML elementi
   const profileImage = document.getElementById("profile-image");
   const changeButton = document.getElementById("change-button");
-  const imageInput   = document.getElementById("image-input");
+  const imageInput = document.getElementById("image-input");
+  const checkinButton = document.getElementById("checkin-button");
+  const checkinMessage = document.getElementById("checkin-message");
 
   // 1) Ielādējam profila datus
+  let checkinAvailableDate = null; // Datums no C4
   try {
     const res = await fetch(`${scriptUrl}?action=getProfile&uid=${uid}`);
     const data = await res.json();
     if (data.status === "success") {
       // Parādam Vārdu, ID, Kopvērtējuma vietu
       document.getElementById("username").innerText = data.username || "";
-      document.getElementById("nfc-id").innerText   = data.uid || "";
-      document.getElementById("place").innerText    = data.place || "";
+      document.getElementById("nfc-id").innerText = data.uid || "";
+      document.getElementById("place").innerText = data.place || "";
 
       // Ja attēls jau ir
       if (data.imageUrl) {
@@ -30,8 +34,24 @@ document.addEventListener("DOMContentLoaded", async function() {
         profileImage.style.display = "block";
         changeButton.innerText = "Nomainīt attēlu";
       } else {
-        // Nav attēla
         changeButton.innerText = "Izvēlēties attēlu";
+      }
+
+      // Check-In informācija
+      checkinAvailableDate = data.checkinDate; // C4 vērtība
+      if (data.checkinStatus === "TRUE") {
+        checkinButton.style.display = "none"; // Paslēpjam pogu
+      } else {
+        const currentDate = new Date();
+        const availableDate = new Date(checkinAvailableDate);
+
+        if (currentDate >= availableDate) {
+          checkinButton.disabled = false; // Aktivizē pogu
+          checkinMessage.style.display = "none"; // Paslēpjam ziņojumu
+        } else {
+          checkinButton.disabled = true; // Atstāj pogu neaktīvu
+          checkinMessage.innerText = `Check-In pieejams līdz: ${checkinAvailableDate}`;
+        }
       }
     } else {
       document.body.innerHTML = `<h1 class='error'>Kļūda: ${data.message}</h1>`;
@@ -44,7 +64,7 @@ document.addEventListener("DOMContentLoaded", async function() {
   }
 
   // 2) Cloudinary iestatījumi
-  const cloudName    = "dmkpb05ww";
+  const cloudName = "dmkpb05ww";
   const uploadPreset = "Vezitivus";
 
   // Kad nospiež pogu, atver failu dialogu
@@ -53,7 +73,7 @@ document.addEventListener("DOMContentLoaded", async function() {
   });
 
   // Kad fails izvēlēts
-  imageInput.addEventListener("change", async function() {
+  imageInput.addEventListener("change", async function () {
     const file = this.files[0];
     if (!file) return;
 
@@ -66,7 +86,7 @@ document.addEventListener("DOMContentLoaded", async function() {
     try {
       const resp = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
         method: "POST",
-        body: formData
+        body: formData,
       });
       const result = await resp.json();
       console.log("Cloudinary atbilde:", result);
@@ -78,9 +98,10 @@ document.addEventListener("DOMContentLoaded", async function() {
         changeButton.innerText = "Nomainīt attēlu";
 
         // 2) Sūtām uz Apps Script => vispirms dzēs veco, tad saglabā jauno
-        const saveUrl = `${scriptUrl}?action=saveImage&uid=${uid}`
-          + `&imageUrl=${encodeURIComponent(result.secure_url)}`
-          + `&publicId=${encodeURIComponent(result.public_id)}`;
+        const saveUrl =
+          `${scriptUrl}?action=saveImage&uid=${uid}` +
+          `&imageUrl=${encodeURIComponent(result.secure_url)}` +
+          `&publicId=${encodeURIComponent(result.public_id)}`;
 
         const saveResp = await fetch(saveUrl);
         const saveData = await saveResp.json();
@@ -95,6 +116,24 @@ document.addEventListener("DOMContentLoaded", async function() {
       }
     } catch (uploadErr) {
       console.error("Kļūda augšupielādējot attēlu Cloudinary:", uploadErr);
+    }
+  });
+
+  // 3) Check-In pogas loģika
+  checkinButton.addEventListener("click", async function () {
+    try {
+      const checkinRes = await fetch(`${scriptUrl}?action=checkIn&uid=${uid}`);
+      const checkinData = await checkinRes.json();
+
+      if (checkinData.status === "success") {
+        checkinButton.style.display = "none"; // Paslēpjam pogu
+        alert("Check-In veiksmīgi reģistrēts!");
+      } else {
+        alert("Kļūda Check-In procesā: " + checkinData.message);
+      }
+    } catch (err) {
+      console.error("Kļūda Check-In procesā:", err);
+      alert("Savienojuma problēma, lūdzu mēģiniet vēlreiz.");
     }
   });
 });
