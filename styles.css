@@ -1,188 +1,40 @@
-/* =========================================
-   GLOBĀLIE IESTATĪJUMI
-========================================= */
+/* ========================================
+   PAMATI
+======================================== */
 html, body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: linear-gradient(to bottom, #0a0a0a, #1c1c1e); /* Tumšs iOS stila fons */
-    color: #fff; /* Balts teksts uz tumša fona */
     margin: 0;
     padding: 0;
     width: 100%;
     height: 100%;
-    /* Noņemts display: flex un centrēšana, lai to iestatītu tikai tad, ja nepieciešams */
-}
-
-/* Ja vēlies visu saturu centrēt pilnekrānā, pielieto .fullscreen-container */
-.fullscreen-container {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    box-sizing: border-box;
-}
-
-/* =========================================
-   STIKLA EFEKTS (GLASSMORPHISM)
-========================================= */
-.glass-effect {
-    background: rgba(255, 255, 255, 0.08); /* Caurspīdīgs tumšs slānis */
-    backdrop-filter: blur(15px); /* iOS stila miglainums */
-    -webkit-backdrop-filter: blur(15px); /* Safari atbalstam */
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); /* Viegls tumšs ēnojums */
-    padding: 20px;
-    text-align: center;
-    width: 90%;
-    max-width: 400px;
-    margin: 0 auto; /* Lai centrs būtu horizontāli */
-}
-
-/* =========================================
-   TEKSTA STILI
-========================================= */
-.title {
-    font-size: 28px;
-    font-weight: bold;
-    margin-bottom: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(to bottom, #0a0a0a, #1c1c1e);
     color: #fff;
 }
 
-p {
-    font-size: 16px;
-    line-height: 1.4;
-    color: #ccc; /* Viegli pelēks tonis */
-    margin: 8px 0;
-}
-
-/* =========================================
-   POGAS (vispārīgais stils + variācijas)
-========================================= */
-.button {
-    display: inline-block;
-    padding: 14px 24px;
-    margin: 10px 0;
-    border-radius: 24px;
-    font-size: 16px;
-    font-weight: bold;
-    text-align: center;
-    cursor: pointer;
-    border: none;
-    background: linear-gradient(to bottom, #333, #111);
-    color: #fff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s ease;
-}
-
-.button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
-}
-
-/* Zaļā poga */
-.button.green {
-    background: linear-gradient(to bottom, #2ecc71, #27ae60);
-    box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
-}
-
-/* Sarkanā poga */
-.button.red {
-    background: linear-gradient(to bottom, #e74c3c, #c0392b);
-    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
-}
-
-/* =========================================
-   IEVADES LAUKI
-========================================= */
-input[type="text"],
-input[type="email"],
-input[type="password"] {
-    width: 80%;
-    padding: 12px 16px;
-    margin-bottom: 16px;
-    border: 1px solid #444;
-    border-radius: 24px;
-    background: rgba(255, 255, 255, 0.1);
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
-    font-size: 16px;
-    color: #fff;
-    outline: none;
-    transition: all 0.3s ease;
-}
-
-input[type="text"]:focus,
-input[type="email"]:focus,
-input[type="password"]:focus {
-    border: 1px solid #007aff;
-    box-shadow: 0 0 8px rgba(0, 122, 255, 0.3);
-}
-
-/* =========================================
-   VIDEO
-========================================= */
-video {
-    width: 100%;
-    max-height: 300px;
-    border-radius: 16px;
-    margin-top: 16px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-}
-
-/* =========================================
-   RESPONSĪVIE IESTATĪJUMI
-========================================= */
-@media (max-width: 768px) {
-    .glass-effect {
-        padding: 16px;
-    }
-
-    .title {
-        font-size: 24px;
-    }
-
-    p {
-        font-size: 14px;
-    }
-
-    .button {
-        font-size: 14px;
-        padding: 12px 20px;
-    }
-
-    input[type="text"],
-    input[type="email"],
-    input[type="password"] {
-        font-size: 14px;
-    }
-}
-
-/* =========================================
+/* ========================================
    PROFILA IZKĀRTOJUMS
-========================================= */
+======================================== */
 .profile-section {
-    /* Aizņem visu loga augstumu, horizontāli centrēts saturs */
     display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
+    flex-wrap: wrap;       /* Lai mazos ekrānos saliktos vienā kolonnā */
     width: 100%;
+    min-height: 100vh;     /* Lai vismaz aizņem ekrāna augstumu */
     box-sizing: border-box;
-    padding: 0 20px; /* Sānu atstarpes (ja vajag) */
-    gap: 40px;       /* Atstarpe starp kreiso un labo pusi */
+    padding: 20px;         /* Neliela atstarpe no malām */
 }
 
-/* Kreisā puse ar attēlu un pogu */
+/* Kreisā puse (attēls + poga) */
 .profile-left {
-    flex: 0 0 300px; /* Var mainīt atkarībā no dizaina; nodrošina konstantu platumu vai var lietot procentus */
+    flex: 0 0 50%;         /* Uz lielākiem ekrāniem – 50% platums */
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: center;   /* Saturu centrē horizontāli kolonnā */
     justify-content: center;
+    box-sizing: border-box;
+    padding: 20px;
 }
 
+/* Attēla ietvars */
 .image-container {
     width: 180px;
     height: 180px;
@@ -193,7 +45,7 @@ video {
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    margin-bottom: 20px; /* Atstarpe starp attēlu un pogu */
+    margin-bottom: 16px; /* Atstarpe starp bildi un pogu */
 }
 
 #profile-image {
@@ -202,64 +54,64 @@ video {
     object-fit: cover;
 }
 
-/* Attēla zemāk poga */
+/* Poga zem attēla */
 #change-button {
     background: rgba(255, 255, 255, 0.1);
     border: none;
     color: #fff;
-    padding: 10px 20px;
+    padding: 12px 20px;
     border-radius: 8px;
     cursor: pointer;
     transition: background 0.3s ease;
+    font-size: 16px;
 }
 
 #change-button:hover {
     background: rgba(255, 255, 255, 0.2);
 }
 
-/* Labā puse: vārds, ID, vieta */
+/* Labā puse (teksts) */
 .profile-right {
-    flex: 0 0 300px; /* Vai var lietot flex: 1; lai elastīgi aizņem atlikušo vietu */
+    flex: 0 0 50%;         /* Uz lielākiem ekrāniem – 50% platums */
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 20px;
 }
 
-/* Vārds (bold), ID, vieta */
+/* Vārds (bold), ID un vieta */
 .user-name {
     font-weight: bold;
     font-size: 24px;
-    margin-bottom: 0; /* Bez apakšējās atstarpes, jo talāk sekos 40px atstarpe */
+    margin-bottom: 12px;
 }
 
-/* 40px atstarpe starp .user-name un .user-id */
 .user-id {
-    margin-top: 40px;
     font-size: 18px;
     color: #ccc;
-    margin-bottom: 8px; /* Mazs atstarpes pirms vietas */
+    margin-bottom: 40px; /* 40px, kā prasīts - “atgrieztais atstatums” */
 }
 
 .user-place {
     font-size: 16px;
     color: #aaa;
+    margin-bottom: 20px;
 }
 
-/* =========================================
-   TRĪS POGAS (vienā rindā, centrētas, noteikta attiecība)
-========================================= */
+/* ========================================
+   TRĪS POGAS (vienā rindā, centrētas)
+======================================== */
 .buttons-grid {
-    display: grid;
-    /* Sadalījums: 3% | 30% | 2% | 30% | 2% | 30% | 3% */
-    grid-template-columns: 3% 30% 2% 30% 2% 30% 3%;
-    align-items: center;
-    gap: 10px;
     width: 100%;
-    margin-top: 40px; /* Ja vajag atstarpes virs pogu rindas */
+    display: flex;
+    justify-content: center;  /* Pogu konteiners centrēts */
+    gap: 10px;                /* Atstarpe starp pogām */
+    box-sizing: border-box;
+    margin-top: 20px;
 }
 
 .action-button {
-    width: 100%;
     padding: 14px 24px;
     font-size: 16px;
     font-weight: bold;
@@ -278,35 +130,32 @@ video {
     box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
 }
 
-/* Ja vēlies dažādus krāsu toņus, vari papildināt klases,
-   piemēram, .action-button.green, .action-button.red utml. */
-
-/* =========================================
-   RESPONSĪVS
-========================================= */
+/* ========================================
+   RESPONSĪVAIS DIZAINS
+   - Zem 768px, kreiso un labo pusi rāda vienā kolonnā
+======================================== */
 @media (max-width: 768px) {
-    .profile-section {
-        flex-direction: column;
-        min-height: auto; /* Lai mobilajā view saturs “nespiežas” pilnā augstumā */
-        gap: 20px;
-    }
     .profile-left, .profile-right {
-        flex: auto;
-        width: 100%;
-        max-width: 400px;
+        flex: 0 0 100%;
+        padding: 10px;   /* Mazāka atstarpe mobilajā */
     }
+
+    /* Samazini fontus, ja nepieciešams, piemēram: */
     .user-name {
         font-size: 20px;
     }
     .user-id {
         font-size: 16px;
+        margin-bottom: 20px; /* Proporcionāli mazāks atstatums */
     }
     .user-place {
         font-size: 14px;
+        margin-bottom: 16px;
     }
-
+    
+    /* Pogas arī var būt mazākas */
     .action-button {
         font-size: 14px;
-        padding: 12px 20px;
+        padding: 12px 16px;
     }
 }
