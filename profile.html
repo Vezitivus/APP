@@ -10,8 +10,8 @@
   <div class="profile-page">
     <h1 class="main-title">VEZITIVUS WeekEnd</h1>
 
+    <!-- Profila sadaļa -->
     <section class="profile-section">
-      <!-- Kreisā puse: bilde + poga -->
       <div class="profile-left">
         <div class="image-container">
           <input type="file" id="image-input" accept="image/*" style="display:none;">
@@ -19,8 +19,6 @@
         </div>
         <button id="change-button" style="margin-top: 10px;">Nomainīt attēlu</button>
       </div>
-
-      <!-- Labā puse: Vārds, ID, Kopvērtējuma vieta -->
       <div class="profile-right">
         <div class="info-group">
           <p class="label">Vārds</p>
@@ -37,7 +35,13 @@
       </div>
     </section>
 
-    <!-- Apakšējās pogas (neobligāti) -->
+    <!-- CHECK-IN poga -->
+    <section class="checkin-section">
+      <button id="checkin-button" class="checkin-button">Check-In priekš aktivitātēm</button>
+      <p id="checkin-message" class="checkin-message">Check-In pieejams līdz: Ielādē...</p>
+    </section>
+
+    <!-- Apakšējās pogas -->
     <section class="buttons-section">
       <div class="buttons-grid">
         <div class="grid-margin"></div>
