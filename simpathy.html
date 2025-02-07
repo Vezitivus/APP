@@ -40,7 +40,7 @@
       gap: 20px;
       justify-content: center;
     }
-    /* Noklusējuma attēla konteineris: fiksēts izmērs ar 1 sekundes pāreju */
+    /* Noklusējuma attēla konteineris: fiksēts izmērs ar 2 sekundes pāreju */
     .image-container {
       position: relative;
       width: 160px;
@@ -50,23 +50,23 @@
       background: rgba(255, 255, 255, 0.1);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       backdrop-filter: blur(6px);
-      transition: all 1s ease;
+      transition: all 2s ease;
       cursor: pointer;
       flex: 0 0 auto;
     }
-    /* Kad attēls ir izvēlēts, tā konteineris paplašināsies līdz 90% no ekrāna platuma un centrēsies */
+    /* Kad attēls ir izvēlēts, tā konteineris paplašināsies līdz 90% no ekrāna platuma, augstums kļūs automātisks un tiks centrēts */
     .image-container.selected {
       width: 90%;
       height: auto;
       margin: 0 auto 20px auto;
       flex: 0 0 90%;
     }
-    /* Noklusējuma attēla stils */
+    /* Noklusējuma attēla stils ar 2 sekundes pāreju */
     .image-container img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transition: all 1s ease;
+      transition: all 2s ease;
     }
     /* Kad konteineris ir izvēlēts, attēls pielāgojas tā, lai būtu redzams pilnībā (object-fit: contain) */
     .image-container.selected img {
@@ -74,7 +74,7 @@
       height: auto;
       object-fit: contain;
     }
-    /* Balsošanas poga – sākumā neredzama, parādās tikai tad, kad attēls ir izvēlēts */
+    /* Balsošanas poga – sākumā neredzama, parādās tikai tad, kad attēls ir izvēlēts; pāreja 2 sekundēs */
     .vote-button {
       position: absolute;
       bottom: 10px;
@@ -88,7 +88,7 @@
       color: #fff;
       cursor: pointer;
       opacity: 0;
-      transition: opacity 1s ease;
+      transition: opacity 2s ease;
     }
     .image-container.selected .vote-button {
       opacity: 1;
@@ -125,7 +125,7 @@
   </div>
   
   <script>
-    // Jaunais Google Apps Script Web App deploy URL
+    // Google Apps Script Web App deploy URL
     const scriptUrl = "https://script.google.com/macros/s/AKfycby8p72BLoVvL0VwBePZ278XmJ1CW23l58ZKJgSuu1qoROM9oytJNb1zPVhJ8JDYqW9EYg/exec";
 
     async function fetchImages() {
@@ -184,7 +184,6 @@
           container.classList.toggle("selected");
         });
 
-        // Ja pirmā bilde, nodrošina, ka tā ir novietota augšā
         if(index === 0) {
           container.style.marginTop = "0";
         }
