@@ -167,7 +167,9 @@
         const voteButton = document.createElement("button");
         voteButton.className = "vote-button";
         voteButton.textContent = "Balsot";
-        voteButton.disabled = image.votes >= 3;
+        // Vairs neizmantojam ierobežojumu, lai deaktivizētu pogu – tā vienmēr ir aktīva,
+        // ja vien lietotāja profilam ir atlikušās balsis.
+        voteButton.disabled = false;
         voteButton.addEventListener("click", async (e) => {
           e.stopPropagation();
           const urlParams = new URLSearchParams(window.location.search);
@@ -216,13 +218,10 @@
         });
         const result = await response.json();
         if(result.status === "success"){
+          // Atjaunojam balsu skaitu attēla konteinerī
           let newVotes = parseInt(container.dataset.votes) + 1;
           container.dataset.votes = newVotes;
           voteCountElement.textContent = newVotes;
-          if(newVotes >= 3){
-            voteButton.disabled = true;
-            voteButton.textContent = "Balsojums aizņemts";
-          }
         } else {
           alert(result.message);
         }
