@@ -6,30 +6,33 @@
   <title>Vezitivus Score board</title>
   <link rel="stylesheet" href="styles.css">
   <style>
-    /* Papildu stili score board lapai – modernam, iOS like dizainam */
+    /* Fiksēts virsraksts lapas augšā */
+    .fixed-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(10, 10, 10, 0.9); /* saskaņots ar lapas fonu */
+      color: #fff;
+      padding: 20px 0;
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+      z-index: 100;
+    }
+    /* Score board konteineris, kas palielinās pēc vajadzības */
     .scoreboard-container {
       background: rgba(255, 255, 255, 0.08);
       backdrop-filter: blur(15px);
       border-radius: 20px;
       padding: 20px;
       max-width: 600px;
-      margin: 20px auto;
+      margin: 120px auto 20px auto; /* atstāj vietu fiksētajam virsrakstam (apm. 120px) */
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-      position: relative;
-      max-height: 80vh;       /* Konteinera maksimālais augstums, lai saturs būtu ritināms */
-      overflow-y: auto;       /* Vertikāla ritināšana */
-    }
-    .scoreboard-title {
-      font-size: 28px;
-      font-weight: bold;
-      text-align: center;
-      margin-bottom: 20px;
-      color: #fff;
     }
     .scoreboard-table {
       width: 100%;
       border-collapse: collapse;
-      display: none; /* Sākumā paslēpta, kamēr dati tiek ielādēti */
     }
     .scoreboard-table th,
     .scoreboard-table td {
@@ -39,14 +42,11 @@
     }
     .scoreboard-table th {
       background: rgba(255, 255, 255, 0.1);
-      position: sticky;  /* Fiksē galvenes šūnas */
-      top: 0;            /* Fiksācija uz konteineru augšas */
-      z-index: 1;
     }
     .scoreboard-table tr:nth-child(even) {
       background: rgba(255, 255, 255, 0.05);
     }
-    /* iOS stila loading spinneris */
+    /* iOS stila loading spinneris – centrēts konteinerī */
     #loader {
       border: 4px solid rgba(255, 255, 255, 0.3);
       border-top: 4px solid #fff;
@@ -54,44 +54,41 @@
       width: 40px;
       height: 40px;
       animation: spin 1s linear infinite;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
+      margin: 40px auto;
     }
     @keyframes spin {
-      0% { transform: translate(-50%, -50%) rotate(0deg); }
-      100% { transform: translate(-50%, -50%) rotate(360deg); }
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
-  <div class="profile-page">
-    <h1 class="main-title">Vezitivus Score board</h1>
-    <div class="scoreboard-container">
-      <!-- Loading spinner, kamēr dati ielādējas -->
-      <div id="loader"></div>
-      
-      <!-- Score board tabula -->
-      <table class="scoreboard-table" id="scoreboard-table">
-        <thead>
-          <tr>
-            <th>Vieta</th>
-            <th>Vārds</th>
-            <th>Punkti</th>
-            <th>Aktivitātes</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Score board dati tiks ielādēti šeit -->
-        </tbody>
-      </table>
-    </div>
+  <!-- Fiksētais virsraksts -->
+  <div class="fixed-header">Vezitivus Score board</div>
+  
+  <!-- Score board konteineris -->
+  <div class="scoreboard-container">
+    <!-- Loading spinneris, kamēr dati ielādējas -->
+    <div id="loader"></div>
+    
+    <!-- Score board tabula (sākumā paslēpta) -->
+    <table class="scoreboard-table" id="scoreboard-table" style="display: none;">
+      <thead>
+        <tr>
+          <th>Vieta</th>
+          <th>Vārds</th>
+          <th>Punkti</th>
+          <th>Aktivitātes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Dati tiks ielādēti šeit -->
+      </tbody>
+    </table>
   </div>
 
   <script>
-    /* Norādi savu Google Apps Script Web App URL ar action=scoreboard.
-       Pārliecinies, ka URL ir pareizs */
+    // Norādi savu Google Apps Script Web App URL ar action=scoreboard
     const scriptUrl = "https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCw8RaXwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec?action=scoreboard";
 
     async function fetchScoreboardData() {
