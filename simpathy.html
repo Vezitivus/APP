@@ -59,7 +59,6 @@
       width: 90%;
       margin: 0 auto 20px auto;
       flex: 0 0 90%;
-      /* Augstums tiek iestatīts dinamiski ar JavaScript, izmantojot inline stilu */
     }
     /* Attēla stils ar 0,5s pāreju */
     .image-container img {
@@ -159,7 +158,6 @@
       images.forEach((image, index) => {
         const container = document.createElement("div");
         container.className = "image-container";
-        // Sākotnējais augstums
         container.style.height = "160px";
         container.dataset.imageUrl = image.imageUrl;
         container.dataset.votes = image.votes;
@@ -170,7 +168,8 @@
         
         const voteCount = document.createElement("div");
         voteCount.className = "vote-count";
-        voteCount.textContent = image.votes;
+        // Ja balsu skaits nav noteikts (vai ir 0), tad parādīsies "0"
+        voteCount.textContent = (typeof image.votes !== "undefined" && image.votes !== null) ? image.votes : 0;
         container.appendChild(voteCount);
         
         const voteButton = document.createElement("button");
@@ -182,27 +181,24 @@
           const urlParams = new URLSearchParams(window.location.search);
           const uid = urlParams.get("uid") || "defaultUid";
           await voteForImage(container.dataset.imageUrl, container, voteCount, voteButton, uid);
-          // Pēc balsu iesniegšanas noņem "selected" klasi un iestata sākotnējo augstumu
           container.classList.remove("selected");
           container.style.height = "160px";
         });
         container.appendChild(voteButton);
         
         container.addEventListener("click", () => {
-          // Noņem "selected" klasi no visiem konteineriem, tad pievieno tikai šim
           document.querySelectorAll(".image-container").forEach(c => {
             if(c !== container){
               c.classList.remove("selected");
               c.style.height = "160px";
             }
           });
-          // Ja konteineris jau ir izvēlēts, kontrakcējam to; pretējā gadījumā paplašinām
           if(container.classList.contains("selected")){
             container.classList.remove("selected");
             container.style.height = "160px";
           } else {
             container.classList.add("selected");
-            let targetHeight = window.innerWidth * 0.9; // 90% no ekrāna platuma kā mērķa augstums
+            let targetHeight = window.innerWidth * 0.9;
             container.style.height = targetHeight + "px";
           }
         });
