@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <h1 class="title">Tavs personīgais profils tiek sagatavots</h1>
             <p>Priecāšos tevi redzēt ballītē!</p>
             <video id="celebrationVideo" src="celebration.MOV" autoplay playsinline></video>
-            <button id="skipButton" class="button">Izlaist</button>
+            <button id="skipButton" class="button">Izlaist video</button>
         `;
 
         const video = document.getElementById("celebrationVideo");
