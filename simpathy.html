@@ -3,78 +3,208 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VEZITIVUS WeekEnd</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>Simpatijas balva</title>
+  <style>
+    /* Fona stils – lineārs gradienta fons, kas aizpilda visu ekrānu */
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1F1C2C, #928DAB);
+      background-size: cover;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    
+    /* Fiksēts virsraksts lapas augšā, kurā ir gan uzraksts, gan profila balsu atlikums */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 20px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+      z-index: 1000;
+    }
+    
+    /* Profila balsu atlikuma informācija – centrēts, ar mazāku fontu */
+    .profile-info {
+      text-align: center;
+      font-size: 14px;
+      margin-top: 70px; /* zem virsraksta */
+      margin-bottom: 20px;
+    }
+    
+    /* Aplis ar baltu malu, kurā attēlota balsu atlikuma vērtība – izmantoti "mazāki" izmēri */
+    .vote-remaining {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      line-height: 20px;
+      text-align: center;
+      margin-left: 10px;
+      font-weight: bold;
+      font-size: 12px;
+      vertical-align: middle;
+    }
+    
+    /* Stilizācija emoji elementam */
+    .emoji {
+      margin-right: 5px;
+      vertical-align: middle;
+      font-size: 16px;
+    }
+    
+    /* Saturs zem virsraksta */
+    .content {
+      margin-top: 80px;
+      padding: 20px;
+    }
+    
+    /* Papildu stili attēlu režģa konteineram */
+    .image-container {
+      margin: 10px;
+      cursor: pointer;
+      transition: height 0.3s ease;
+      overflow: hidden;
+      border: 2px solid transparent;
+    }
+    
+    .image-container.selected {
+      border-color: #fff;
+    }
+    
+    /* Piemērs, kā attēli var tikt izvietoti režģī – pielāgojiet pēc vajadzības */
+    .content .image-container img {
+      width: 100%;
+      display: block;
+    }
+  </style>
 </head>
 <body>
-  <div class="profile-page">
-    <h1 class="main-title">VEZITIVUS WeekEnd</h1>
-
-    <!-- Profila sadaļa -->
-    <section class="profile-section">
-      <div class="profile-left">
-        <div class="image-container">
-          <input type="file" id="image-input" accept="image/*" style="display:none;">
-          <img id="profile-image" src="" alt="Profilattēls" style="display:none;">
-        </div>
-        <button id="change-button" style="margin-top: 10px;">Nomainīt attēlu</button>
-      </div>
-      <div class="profile-right">
-        <div class="info-group">
-          <p class="label">Vārds</p>
-          <p class="value" id="username">Ielādē...</p>
-        </div>
-        <div class="info-group">
-          <p class="label">ID</p>
-          <p class="value" id="nfc-id">Ielādē...</p>
-        </div>
-        <div class="info-group">
-          <p class="label">Kopvērtējuma vieta</p>
-          <!-- Emoji ir ievietots tieši pirms skaitļa, kas, cerams, atbilst dizaina prasībām (skaitļa aplis novietots augšā blakus "Simpatijas balva") -->
-          <p class="large-value" id="place"><span class="emoji">✋</span> Ielādē...</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- CHECK-IN poga -->
-    <section class="checkin-section">
-      <button id="checkin-button" class="checkin-button">Check-In priekš aktivitātēm</button>
-    </section>
-
-    <!-- Apakšējās pogas (profile.html) -->
-    <section class="buttons-section">
-      <div class="buttons-grid">
-        <div class="grid-margin"></div>
-        <!-- 1. Poga: Piedalīties aktivitātēs -->
-        <button class="action-button" onclick="window.location.href='activity.html'">
-          Piedalīties aktivitātēs
-        </button>
-        <div class="grid-spacer"></div>
-        <!-- 2. Poga: Simpatijas balva – tagad ar dinamiski pielāgotu pāradresācijas URL -->
-        <button class="action-button" onclick="redirectToSimpathy()">
-          Simpatijas balva
-        </button>
-        <div class="grid-spacer"></div>
-        <!-- 3. Poga: Score Board -->
-        <button class="action-button" onclick="window.location.href='score.html'">
-          Score Board
-        </button>
-        <div class="grid-margin"></div>
-      </div>
-    </section>
-
-    <script>
-      // Ja UID jau ielādējas profila lapā, tad to esam uzstādījuši attiecīgajā elementā,
-      // piemēram, <p class="value" id="nfc-id">Ielādē...</p>
-      function redirectToSimpathy() {
-        const uid = document.getElementById("nfc-id").innerText.trim();
-        // Ja nav definēts redirectUrl, tad noklusējuma vērtība
-        const redirectUrl = `https://vezitivus.github.io/APP/simpathy.html?uid=${uid}`;
-        window.location.href = redirectUrl;
-      }
-    </script>
-
+  <!-- Fiksēts virsraksts lapas augšā -->
+  <div class="header">Simpatijas balva</div>
+  
+  <!-- Jauna sadaļa profila balsu atlikumam -->
+  <div class="profile-info">
+    Balsu skaits:
+    <!-- Bloks ar virsrakstu, emoji un balsu atlikuma aplīti -->
+    <div class="header" style="position: static; font-size: 20px; padding: 10px; margin-top: 20px;">
+      Simpatijas balva
+      <span class="emoji">✋</span>
+      <span id="profileVotes" class="vote-remaining">0</span>
+    </div>
   </div>
-  <script src="profile.js"></script>
+  
+  <!-- Galvenais saturs zem balsu atlikuma -->
+  <div class="content">
+    <p>Šeit var būt lapas saturs, piemēram, attēli, apraksti vai citi interaktīvi elementi.</p>
+    <!-- Šajā piemērā demonstrējam attēlu režģi ar balsošanas funkcionalitāti -->
+  </div>
+  
+  <script>
+    // Dummy funkcija, lai atjaunotu profila balsu atlikumu
+    function fetchProfile() {
+      // Parasti šeit notiek AJAX pieprasījums uz serveri, lai iegūtu balsu skaitu
+      document.getElementById('profileVotes').innerText = "42";
+    }
+    
+    // Dummy funkcija, lai demonstrētu balsošanas funkcionalitāti
+    async function voteForImage(imageUrl, container, voteCountElement, voteButton, uid) {
+      try {
+        // Šeit jānorāda jūsu servera URL, kur notiek balsošanas apstrāde
+        const scriptUrl = "https://jusu-serveris.example.com/api";
+        const response = await fetch(scriptUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: `action=vote&imageUrl=${encodeURIComponent(imageUrl)}&uid=${encodeURIComponent(uid)}`
+        });
+        const result = await response.json();
+        if(result.status === "success"){
+          container.dataset.votes = result.votes;
+          voteCountElement.textContent = result.votes;
+        } else {
+          alert(result.message);
+        }
+      } catch(e) {
+        console.error("Error voting", e);
+      }
+    }
+    
+    // Dummy funkcija attēlu ielādei un inicializācijai
+    function fetchImages() {
+      const grid = document.querySelector('.content');
+      if(!grid) return;
+      
+      // Demonstrācijai izveidojam 3 attēlu konteinerus
+      [0, 1, 2].forEach((index) => {
+        let container = document.createElement('div');
+        container.classList.add('image-container');
+        container.style.height = "160px";
+        container.dataset.imageUrl = "https://via.placeholder.com/300?text=Image+" + (index + 1);
+        container.dataset.votes = "0";
+        
+        // Izveidojam attēlu elementu
+        let img = document.createElement('img');
+        img.src = container.dataset.imageUrl;
+        container.appendChild(img);
+        
+        // Izveidojam elementu balsu skaita attēlošanai
+        let voteCount = document.createElement('span');
+        voteCount.textContent = "0";
+        container.appendChild(voteCount);
+        
+        // Izveidojam balsošanas pogu
+        let voteButton = document.createElement('button');
+        voteButton.textContent = "Balsot";
+        voteButton.disabled = false;
+        voteButton.addEventListener("click", async (e) => {
+          e.stopPropagation();
+          voteButton.disabled = true;
+          const urlParams = new URLSearchParams(window.location.search);
+          const uid = urlParams.get("uid") || "defaultUid";
+          await voteForImage(container.dataset.imageUrl, container, voteCount, voteButton, uid);
+          container.classList.remove("selected");
+          container.style.height = "160px";
+          fetchProfile();
+          voteButton.disabled = false;
+        });
+        container.appendChild(voteButton);
+        
+        // Klikšķa notikums attēlu konteineram – maina izmērus un stilu
+        container.addEventListener("click", () => {
+          document.querySelectorAll(".image-container").forEach(c => {
+            if(c !== container){
+              c.classList.remove("selected");
+              c.style.height = "160px";
+            }
+          });
+          if(container.classList.contains("selected")){
+            container.classList.remove("selected");
+            container.style.height = "160px";
+          } else {
+            container.classList.add("selected");
+            let targetHeight = window.innerWidth * 0.9;
+            container.style.height = targetHeight + "px";
+          }
+        });
+        
+        if(index === 0) {
+          container.style.marginTop = "0";
+        }
+        
+        grid.appendChild(container);
+      });
+    }
+    
+    document.addEventListener("DOMContentLoaded", () => {
+      fetchProfile();
+      fetchImages();
+    });
+  </script>
 </body>
 </html>
