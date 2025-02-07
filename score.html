@@ -16,7 +16,8 @@
       margin: 20px auto;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
       position: relative;
-      min-height: 150px; /* garantē vietu spinnerim */
+      max-height: 80vh;       /* Konteinera maksimālais augstums, lai saturs būtu ritināms */
+      overflow-y: auto;       /* Vertikāla ritināšana */
     }
     .scoreboard-title {
       font-size: 28px;
@@ -28,15 +29,19 @@
     .scoreboard-table {
       width: 100%;
       border-collapse: collapse;
-      display: none; /* sākumā paslēpts, kamēr dati ielādējas */
+      display: none; /* Sākumā paslēpta, kamēr dati tiek ielādēti */
     }
-    .scoreboard-table th, .scoreboard-table td {
+    .scoreboard-table th,
+    .scoreboard-table td {
       padding: 12px 8px;
       text-align: left;
       color: #fff;
     }
     .scoreboard-table th {
       background: rgba(255, 255, 255, 0.1);
+      position: sticky;  /* Fiksē galvenes šūnas */
+      top: 0;            /* Fiksācija uz konteineru augšas */
+      z-index: 1;
     }
     .scoreboard-table tr:nth-child(even) {
       background: rgba(255, 255, 255, 0.05);
