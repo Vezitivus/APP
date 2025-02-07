@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Simpatijas balva</title>
   <style>
-    /* Dinamisks fons ar lineāru gradientu, kas aizpilda visu ekrānu */
+    /* Fona stils – lineārs gradienta fons, kas aizpilda visu ekrānu */
     html, body {
       margin: 0;
       padding: 0;
@@ -21,60 +21,60 @@
       top: 0;
       left: 0;
       width: 100%;
-      background: rgba(0, 0, 0, 0.7);
+      background: rgba(0,0,0,0.7);
       padding: 20px;
       text-align: center;
       font-size: 28px;
       font-weight: bold;
       z-index: 1000;
     }
-    /* Saturs zem virsraksta – ar pietiekamu atstarpi */
+    /* Saturs zem virsraksta */
     .content {
       margin-top: 80px;
       padding: 20px;
     }
-    /* Attēlu režģis: flex konteiners */
+    /* Attēlu režģa konteiners */
     .image-grid {
       display: flex;
       flex-wrap: wrap;
       gap: 20px;
       justify-content: center;
     }
-    /* Noklusējuma attēla konteineris: fiksēts izmērs ar 2 sekundes pāreju */
+    /* Noklusējuma attēla konteineris – fiksēts izmērs ar 2s pāreju */
     .image-container {
       position: relative;
       width: 160px;
       height: 160px;
       overflow: hidden;
       border-radius: 12px;
-      background: rgba(255, 255, 255, 0.1);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      background: rgba(255,255,255,0.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       backdrop-filter: blur(6px);
       transition: all 2s ease;
       cursor: pointer;
       flex: 0 0 auto;
     }
-    /* Kad attēls ir izvēlēts, tā konteineris paplašināsies līdz 90% no ekrāna platuma, augstums kļūs automātisks un tiks centrēts */
+    /* Kad konteineram tiek pievienota klase "selected", tiek mainīts platums un (ar JavaScript iestatītu) augstums */
     .image-container.selected {
       width: 90%;
-      height: auto;
       margin: 0 auto 20px auto;
       flex: 0 0 90%;
+      /* Augstumu mantojam no inline stila (no JS) – neizmantojam "height: auto", jo tā nav animējama */
     }
-    /* Noklusējuma attēla stils ar 2 sekundes pāreju */
+    /* Attēla stils ar 2s pāreju */
     .image-container img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       transition: all 2s ease;
     }
-    /* Kad konteineris ir izvēlēts, attēls pielāgojas tā, lai būtu redzams pilnībā (object-fit: contain) */
+    /* Kad konteineris ir izvēlēts, attēls pielāgojas (object-fit: contain) */
     .image-container.selected img {
       width: 100%;
-      height: auto;
+      height: 100%;
       object-fit: contain;
     }
-    /* Balsošanas poga – sākumā neredzama, parādās tikai tad, kad attēls ir izvēlēts; pāreja 2 sekundēs */
+    /* Balsošanas poga – sākumā neredzama, parādās tikai tad, kad konteineram ir klase "selected"; pāreja 2s */
     .vote-button {
       position: absolute;
       bottom: 10px;
@@ -102,7 +102,7 @@
       position: absolute;
       top: 10px;
       right: 10px;
-      background: rgba(0, 0, 0, 0.6);
+      background: rgba(0,0,0,0.6);
       padding: 4px 8px;
       border-radius: 10px;
       font-size: 14px;
@@ -127,7 +127,7 @@
   <script>
     // Google Apps Script Web App deploy URL
     const scriptUrl = "https://script.google.com/macros/s/AKfycby8p72BLoVvL0VwBePZ278XmJ1CW23l58ZKJgSuu1qoROM9oytJNb1zPVhJ8JDYqW9EYg/exec";
-
+    
     async function fetchImages() {
       try {
         const response = await fetch(scriptUrl + "?action=getImages");
@@ -137,31 +137,33 @@
         } else {
           console.error(result.message);
         }
-      } catch (e) {
+      } catch(e) {
         console.error("Error fetching images", e);
       } finally {
         document.getElementById("loader").style.display = "none";
       }
     }
-
+    
     function displayImages(images) {
       const grid = document.getElementById("imageGrid");
       grid.innerHTML = "";
       images.forEach((image, index) => {
         const container = document.createElement("div");
         container.className = "image-container";
+        // Sākotnējais augstums
+        container.style.height = "160px";
         container.dataset.imageUrl = image.imageUrl;
         container.dataset.votes = image.votes;
-
+        
         const img = document.createElement("img");
         img.src = image.imageUrl;
         container.appendChild(img);
-
+        
         const voteCount = document.createElement("div");
         voteCount.className = "vote-count";
         voteCount.textContent = image.votes;
         container.appendChild(voteCount);
-
+        
         const voteButton = document.createElement("button");
         voteButton.className = "vote-button";
         voteButton.textContent = "Balsot";
@@ -171,19 +173,34 @@
           const urlParams = new URLSearchParams(window.location.search);
           const uid = urlParams.get("uid") || "defaultUid";
           await voteForImage(container.dataset.imageUrl, container, voteCount, voteButton, uid);
-          // Pēc balsu iesniegšanas noņem "selected" klasi, lai attēls samazinātos atpakaļ
+          // Pēc balsu iesniegšanas kontrakcija: noņem selected klasi un iestata sākotnējo augstumu
           container.classList.remove("selected");
+          container.style.height = "160px";
         });
         container.appendChild(voteButton);
-
+        
+        // Pievieno klikšķa notikumu attēla konteinerim, lai tas paplašinātos vai kontrakcētos ar animāciju
         container.addEventListener("click", () => {
-          // Noņem "selected" klasi no visiem konteineriem, tad pievieno tikai šim
-          document.querySelectorAll(".image-container").forEach(c => {
-            if(c !== container) c.classList.remove("selected");
-          });
-          container.classList.toggle("selected");
+          // Ja šis konteineris jau ir izvēlēts, kontrakcējam to
+          if(container.classList.contains("selected")){
+            container.classList.remove("selected");
+            container.style.height = "160px";
+          } else {
+            // Noņem selected klasi no citiem konteineriem un iestata to sākotnējo augstumu
+            document.querySelectorAll(".image-container").forEach(c => {
+              if(c !== container){
+                c.classList.remove("selected");
+                c.style.height = "160px";
+              }
+            });
+            // Pievieno selected klasi un aprēķina mērķa augstumu – 90% no ekrāna platuma
+            container.classList.add("selected");
+            let targetHeight = window.innerWidth * 0.9;
+            container.style.height = targetHeight + "px";
+          }
         });
-
+        
+        // Pirmā bilde – ja nepieciešams, nodrošina, ka tā ir piesieta pie augšas
         if(index === 0) {
           container.style.marginTop = "0";
         }
@@ -191,7 +208,7 @@
         grid.appendChild(container);
       });
     }
-
+    
     async function voteForImage(imageUrl, container, voteCountElement, voteButton, uid) {
       try {
         const response = await fetch(scriptUrl, {
@@ -215,7 +232,7 @@
         console.error("Error voting", e);
       }
     }
-
+    
     document.addEventListener("DOMContentLoaded", fetchImages);
   </script>
 </body>
