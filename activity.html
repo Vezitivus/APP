@@ -241,7 +241,7 @@
         const container = $("<div class='video-container'></div>");
         container.attr("data-video-url", video.videoUrl);
         
-        // Video elements – sākumā statisks attēls
+        // Video elements – sākumā statisks attēls, video netiek automātiski atskaņots
         const vidEl = $("<video muted playsinline></video>");
         vidEl.attr("src", video.videoUrl);
         container.append(vidEl);
@@ -262,9 +262,9 @@
         }
         container.append(likeButton);
         
-        // Klikšķa apstrāde – palielina/deselektē video un sāk atskaņošanu
+        // Klikšķa apstrāde – video palaižas tikai tad, kad lietotājs uzklikšķina uz konteinerā
         container.on("click", function(){
-          if(container.hasClass("selected")) {
+          if(container.hasClass("selected")){
             container.removeClass("selected");
             vidEl[0].pause();
             container.css("height", "160px");
@@ -275,7 +275,7 @@
             });
             container.addClass("selected");
             container.css("height", window.innerWidth * 0.9 + "px");
-            vidEl[0].play();
+            vidEl[0].play(); // Video tiek palaists tikai, kad konteineris ir aktivizēts
           }
         });
         
