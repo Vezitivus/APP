@@ -1,164 +1,153 @@
 <!DOCTYPE html>
 <html lang="lv">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Simpatijas balva ✋</title> 
-<style>
-/* Fona stils – lineārs gradienta fons, kas aizpilda visu ekrānu */
-html, body {
-  margin: 0;
-  padding: 0;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #1F1C2C, #928DAB);
-  background-size: cover;
-  color: #fff;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-/* Fiksēts virsraksts lapas augšā */
-/* Fiksēts virsraksts lapas augšā, kurā ir gan uzraksts, gan profila balsu atlikums */
-.header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  background: rgba(0,0,0,0.7);
-  padding: 20px;
-  text-align: center;
-  font-size: 28px;
-  font-weight: bold;
-  z-index: 1000;
-}
-/* Profila balsu atlikuma informācija – centrēts, ar mazāku fontu */
-.profile-info {
-  text-align: center;
-  font-size: 14px;
-  margin-top: 70px; /* zem virsraksta */
-  margin-bottom: 20px;
-}
-/* Aplis ar baltu malu, kurā attēlota balsu atlikuma vērtība */
-/* Aplis ar baltu malu, kurā attēlota balsu atlikuma vērtība – 2x mazāks */
-.vote-remaining {
-  display: inline-block;
-  width: 40px;
-  height: 40px;
-  width: 20px;
-  height: 20px;
-  border: 2px solid #fff;
-  border-radius: 50%;
-  line-height: 40px;
-  line-height: 20px;
-  text-align: center;
-  margin-left: 10px;
-  font-weight: bold;
-  font-size: 12px;
-  vertical-align: middle;
-}
-/* Stilizācija emoji elementam */
-.emoji {
-  margin-right: 5px;
-  vertical-align: middle;
-  font-size: 16px;
-}
-/* Saturs zem virsraksta */
-.content {
-  margin-top: 20px;
-  margin-top: 80px;
-  padding: 20px;
-}
-/* Attēlu režģa konteiners */
-.image-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  justify-content: center;
-}
-/* Noklusējuma attēla konteineris – fiksēts izmērs ar 0,5s pāreju */
-.image-container {
-  position: relative;
-  width: 160px;
-  height: 160px;
-  overflow: hidden;
-  border-radius: 12px;
-  background: rgba(255,255,255,0.1);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  backdrop-filter: blur(6px);
-  transition: all 0.5s ease;
-  cursor: pointer;
-  flex: 0 0 auto;
-}
-/* Kad konteinerim tiek pievienota klase "selected", tiek mainīts platums un augstums */
-.image-container.selected {
-  width: 90%;
-  margin: 0 auto 20px auto;
-  flex: 0 0 90%;
-}
-/* Attēla stils ar 0,5s pāreju */
-.image-container img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: all 0.5s ease;
-}
-/* Kad konteineris ir izvēlēts, attēls pielāgojas tā, lai būtu redzams pilnībā */
-.image-container.selected img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-/* Balsošanas poga – sākumā neredzama, parādās tikai tad, kad konteineram ir klase "selected"; pāreja 0,5s */
-.vote-button {
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 8px 16px;
-  font-size: 16px;
-  border: none;
-  border-radius: 20px;
-  background: linear-gradient(90deg, #2ecc71, #27ae60);
-  color: #fff;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.5s ease;
-}
-.image-container.selected .vote-button {
-  opacity: 1;
-}
-.vote-button:disabled {
-  background: #555;
-  cursor: not-allowed;
-}
-/* Balsu skaita rādītājs */
-.vote-count {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: rgba(0,0,0,0.6);
-  padding: 4px 8px;
-  border-radius: 10px;
-  font-size: 14px;
-}
-/* Loader stils ar iOS-style spinner */
-#loader {
-  margin: 40px auto;
-  width: 40px;
-  height: 40px;
-  border: 4px solid rgba(255,255,255,0.3);
-  border-top: 4px solid #fff;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simpatijas balva ✋</title> 
+  <style>
+    /* Fona stils – lineārs gradienta fons, kas aizpilda visu ekrānu */
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1F1C2C, #928DAB);
+      background-size: cover;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    /* Fiksēts virsraksts lapas augšā, kurā ir gan uzraksts, gan balsu atlikums */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(0,0,0,0.7);
+      padding: 20px;
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+      z-index: 1000;
+    }
+    /* Profila balsu atlikuma stilizācija */
+    .vote-remaining {
+      display: inline-block;
+      /* Ja vēlaties "mazāku" aplīti, varat pielāgot izmērus */
+      width: 20px;
+      height: 20px;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      line-height: 20px;
+      text-align: center;
+      margin-left: 10px;
+      font-weight: bold;
+      font-size: 12px;
+      vertical-align: middle;
+    }
+    /* Stilizācija emoji elementam */
+    .emoji {
+      margin-right: 5px;
+      vertical-align: middle;
+      font-size: 16px;
+    }
+    /* Saturs zem virsraksta */
+    .content {
+      margin-top: 80px;
+      padding: 20px;
+    }
+    /* Attēlu režģa konteiners */
+    .image-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
+    /* Noklusējuma attēla konteineris – fiksēts izmērs ar 0,5s pāreju */
+    .image-container {
+      position: relative;
+      width: 160px;
+      height: 160px;
+      overflow: hidden;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      backdrop-filter: blur(6px);
+      transition: all 0.5s ease;
+      cursor: pointer;
+      flex: 0 0 auto;
+    }
+    /* Kad konteinerim tiek pievienota klase "selected", mainās izmēri */
+    .image-container.selected {
+      width: 90%;
+      margin: 0 auto 20px auto;
+      flex: 0 0 90%;
+    }
+    /* Attēla stils ar 0,5s pāreju */
+    .image-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: all 0.5s ease;
+    }
+    /* Ja konteineris ir izvēlēts, attēls pielāgojas tā, lai būtu redzams pilnībā */
+    .image-container.selected img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    /* Balsošanas poga – sākumā neredzama; parādās tikai tad, kad konteineram ir klase "selected" */
+    .vote-button {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 8px 16px;
+      font-size: 16px;
+      border: none;
+      border-radius: 20px;
+      background: linear-gradient(90deg, #2ecc71, #27ae60);
+      color: #fff;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    .image-container.selected .vote-button {
+      opacity: 1;
+    }
+    .vote-button:disabled {
+      background: #555;
+      cursor: not-allowed;
+    }
+    /* Balsu skaita rādītājs attēla konteinerī */
+    .vote-count {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0,0,0,0.6);
+      padding: 4px 8px;
+      border-radius: 10px;
+      font-size: 14px;
+    }
+    /* Loader stils ar iOS-style spinner */
+    #loader {
+      margin: 40px auto;
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(255,255,255,0.3);
+      border-top: 4px solid #fff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body>
-  <div class="header">Simpatijas balva</div>
-  
-
+  <!-- Atjaunotais virsraksts ar balsu skaita rādītāju blakus emoji rokai -->
+  <div class="header">
+    Simpatijas balva <span class="emoji">✋</span> <span id="profileVotes" class="vote-remaining">0</span>
+  </div>
   
   <div class="content">
     <!-- iOS stilā animēts spinner -->
@@ -169,128 +158,128 @@ html, body {
   </div>
   
   <script>
-  // Google Apps Script Web App deploy URL
-  const scriptUrl = "https://script.google.com/macros/s/AKfycby8p72BLoVvL0VwBePZ278XmJ1CW23l58ZKJgSuu1qoROM9oytJNb1zPVhJ8JDYqW9EYg/exec";
+    // Google Apps Script Web App deploy URL
+    const scriptUrl = "https://script.google.com/macros/s/AKfycby8p72BLoVvL0VwBePZ278XmJ1CW23l58ZKJgSuu1qoROM9oytJNb1zPVhJ8JDYqW9EYg/exec";
   
-  async function fetchProfile() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const uid = urlParams.get("uid") || "defaultUid";
-    try {
-      const response = await fetch(scriptUrl + "?action=getProfile&uid=" + encodeURIComponent(uid));
-      const result = await response.json();
-      if(result.status === "success"){
-        document.getElementById("profileVotes").textContent = result.remaining;
-      } else {
-        document.getElementById("profileVotes").textContent = "0";
+    async function fetchProfile() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const uid = urlParams.get("uid") || "defaultUid";
+      try {
+        const response = await fetch(scriptUrl + "?action=getProfile&uid=" + encodeURIComponent(uid));
+        const result = await response.json();
+        if (result.status === "success") {
+          document.getElementById("profileVotes").textContent = result.remaining;
+        } else {
+          document.getElementById("profileVotes").textContent = "0";
+        }
+      } catch (e) {
+        console.error("Error fetching profile", e);
       }
-    } catch(e) {
-      console.error("Error fetching profile", e);
     }
-  }
   
-  async function fetchImages() {
-    try {
-      const response = await fetch(scriptUrl + "?action=getImages");
-      const result = await response.json();
-      if(result.status === "success"){
-        displayImages(result.data);
-      } else {
-        console.error(result.message);
+    async function fetchImages() {
+      try {
+        const response = await fetch(scriptUrl + "?action=getImages");
+        const result = await response.json();
+        if (result.status === "success") {
+          displayImages(result.data);
+        } else {
+          console.error(result.message);
+        }
+      } catch (e) {
+        console.error("Error fetching images", e);
+      } finally {
+        document.getElementById("loader").style.display = "none";
       }
-    } catch(e) {
-      console.error("Error fetching images", e);
-    } finally {
-      document.getElementById("loader").style.display = "none";
     }
-  }
   
-  function displayImages(images) {
-    const grid = document.getElementById("imageGrid");
-    grid.innerHTML = "";
-    images.forEach((image, index) => {
-      const container = document.createElement("div");
-      container.className = "image-container";
-      container.style.height = "160px";
-      container.dataset.imageUrl = image.imageUrl;
-      container.dataset.votes = image.votes;
-      
-      const img = document.createElement("img");
-      img.src = image.imageUrl;
-      container.appendChild(img);
-      
-      const voteCount = document.createElement("div");
-      voteCount.className = "vote-count";
-      voteCount.textContent = (typeof image.votes !== "undefined" && image.votes !== null) ? image.votes : 0;
-      container.appendChild(voteCount);
-      
-      const voteButton = document.createElement("button");
-      voteButton.className = "vote-button";
-      voteButton.textContent = "Balsot";
-      voteButton.disabled = false;
-      voteButton.addEventListener("click", async (e) => {
-        e.stopPropagation();
-        // Uzreiz padara pogu neaktīvu, lai novērstu vairākkārtīgu nospiešanu
-        voteButton.disabled = true;
-        const urlParams = new URLSearchParams(window.location.search);
-        const uid = urlParams.get("uid") || "defaultUid";
-        await voteForImage(container.dataset.imageUrl, container, voteCount, voteButton, uid);
-        container.classList.remove("selected");
+    function displayImages(images) {
+      const grid = document.getElementById("imageGrid");
+      grid.innerHTML = "";
+      images.forEach((image, index) => {
+        const container = document.createElement("div");
+        container.className = "image-container";
         container.style.height = "160px";
-        // Pēc balsošanas atjaunojam arī profila balsu atlikumu
-        fetchProfile();
-        // Pēc operācijas atkārtoti aktivizējam pogu
+        container.dataset.imageUrl = image.imageUrl;
+        container.dataset.votes = image.votes;
+  
+        const img = document.createElement("img");
+        img.src = image.imageUrl;
+        container.appendChild(img);
+  
+        const voteCount = document.createElement("div");
+        voteCount.className = "vote-count";
+        voteCount.textContent = (typeof image.votes !== "undefined" && image.votes !== null) ? image.votes : 0;
+        container.appendChild(voteCount);
+  
+        const voteButton = document.createElement("button");
+        voteButton.className = "vote-button";
+        voteButton.textContent = "Balsot";
         voteButton.disabled = false;
-      });
-      container.appendChild(voteButton);
-      
-      container.addEventListener("click", () => {
-        document.querySelectorAll(".image-container").forEach(c => {
-          if(c !== container){
-            c.classList.remove("selected");
-            c.style.height = "160px";
-          }
-        });
-        if(container.classList.contains("selected")){
+        voteButton.addEventListener("click", async (e) => {
+          e.stopPropagation();
+          // Uzreiz padara pogu neaktīvu, lai novērstu vairākkārtīgu nospiešanu
+          voteButton.disabled = true;
+          const urlParams = new URLSearchParams(window.location.search);
+          const uid = urlParams.get("uid") || "defaultUid";
+          await voteForImage(container.dataset.imageUrl, container, voteCount, voteButton, uid);
           container.classList.remove("selected");
           container.style.height = "160px";
-        } else {
-          container.classList.add("selected");
-          let targetHeight = window.innerWidth * 0.9;
-          container.style.height = targetHeight + "px";
+          // Pēc balsošanas atjaunojam arī profila balsu atlikumu
+          fetchProfile();
+          // Pēc operācijas atkārtoti aktivizējam pogu
+          voteButton.disabled = false;
+        });
+        container.appendChild(voteButton);
+  
+        container.addEventListener("click", () => {
+          document.querySelectorAll(".image-container").forEach(c => {
+            if(c !== container){
+              c.classList.remove("selected");
+              c.style.height = "160px";
+            }
+          });
+          if(container.classList.contains("selected")){
+            container.classList.remove("selected");
+            container.style.height = "160px";
+          } else {
+            container.classList.add("selected");
+            let targetHeight = window.innerWidth * 0.9;
+            container.style.height = targetHeight + "px";
+          }
+        });
+  
+        if(index === 0) {
+          container.style.marginTop = "0";
         }
-      });
-      
-      if(index === 0) {
-        container.style.marginTop = "0";
-      }
-      
-      grid.appendChild(container);
-    });
-  }
   
-  async function voteForImage(imageUrl, container, voteCountElement, voteButton, uid) {
-    try {
-      const response = await fetch(scriptUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: `action=vote&imageUrl=${encodeURIComponent(imageUrl)}&uid=${encodeURIComponent(uid)}`
+        grid.appendChild(container);
       });
-      const result = await response.json();
-      if(result.status === "success"){
-        container.dataset.votes = result.votes;
-        voteCountElement.textContent = result.votes;
-      } else {
-        alert(result.message);
-      }
-    } catch(e) {
-      console.error("Error voting", e);
     }
-  }
   
-  document.addEventListener("DOMContentLoaded", () => {
-    fetchProfile();
-    fetchImages();
-  });
+    async function voteForImage(imageUrl, container, voteCountElement, voteButton, uid) {
+      try {
+        const response = await fetch(scriptUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: `action=vote&imageUrl=${encodeURIComponent(imageUrl)}&uid=${encodeURIComponent(uid)}`
+        });
+        const result = await response.json();
+        if(result.status === "success"){
+          container.dataset.votes = result.votes;
+          voteCountElement.textContent = result.votes;
+        } else {
+          alert(result.message);
+        }
+      } catch(e) {
+        console.error("Error voting", e);
+      }
+    }
+  
+    document.addEventListener("DOMContentLoaded", () => {
+      fetchProfile();
+      fetchImages();
+    });
   </script>
 </body>
 </html>
