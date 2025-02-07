@@ -11,10 +11,11 @@
     html, body {
       margin: 0;
       padding: 0;
-      background: linear-gradient(135deg, #1F1C2C, #928DAB);
+      background: linear-gradient(180deg, #2c3e50, #34495e);
       color: white;
       font-family: Arial, sans-serif;
       text-align: center;
+      min-height: 100vh;
     }
     .header {
       padding: 20px;
@@ -34,6 +35,11 @@
       border-radius: 5px;
       cursor: pointer;
       border: none;
+    }
+    .warning-text {
+      font-size: 14px;
+      color: #ffcc00;
+      margin-top: 10px;
     }
     .video-grid {
       display: flex;
@@ -72,8 +78,13 @@
   <div class="header">VEZITIVUS LENTA</div>
   
   <div id="uploadSection">
-    <button id="uploadVideoBtn">📤 Augšupielādēt video</button>
-    <input type="file" id="videoFileInput" accept="video/*">
+    <label for="videoFileInput" id="uploadLabel" style="cursor: pointer;">
+      <button id="uploadVideoBtn">📤 Augšupielādēt video</button>
+    </label>
+    <input type="file" id="videoFileInput" accept="video/*" title="Izvēlieties video failu, lai to augšupielādētu" />
+    <p class="warning-text">
+      Lūdzu, augšupielādējiet tikai saturu, kas atbilst VEZITIVUS vadlīnijām.
+    </p>
   </div>
   
   <div class="video-grid" id="videoGrid"></div>
