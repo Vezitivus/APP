@@ -28,9 +28,28 @@
       font-weight: bold;
       z-index: 1000;
     }
+    /* Profila balsu atlikuma informācija – centrēts, ar mazāku fontu */
+    .profile-info {
+      text-align: center;
+      font-size: 14px;
+      margin-top: 70px; /* zem virsraksta */
+      margin-bottom: 20px;
+    }
+    /* Aplis ar baltu malu, kurā attēlota balsu atlikuma vērtība */
+    .vote-remaining {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      line-height: 40px;
+      text-align: center;
+      margin-left: 10px;
+      font-weight: bold;
+    }
     /* Saturs zem virsraksta */
     .content {
-      margin-top: 80px;
+      margin-top: 20px;
       padding: 20px;
     }
     /* Attēlu režģa konteiners */
@@ -124,6 +143,13 @@
 </head>
 <body>
   <div class="header">Simpatijas balva</div>
+  
+  <!-- Jauna sadaļa profila balsu atlikumam -->
+  <div class="profile-info">
+    Balsu skaits:
+    <span id="profileVotes" class="vote-remaining">0</span>
+  </div>
+  
   <div class="content">
     <!-- iOS stilā animēts spinner -->
     <div id="loader"></div>
@@ -135,6 +161,22 @@
   <script>
     // Google Apps Script Web App deploy URL
     const scriptUrl = "https://script.google.com/macros/s/AKfycby8p72BLoVvL0VwBePZ278XmJ1CW23l58ZKJgSuu1qoROM9oytJNb1zPVhJ8JDYqW9EYg/exec";
+    
+    async function fetchProfile() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const uid = urlParams.get("uid") || "defaultUid";
+      try {
+        const response = await fetch(scriptUrl + "?action=getProfile&uid=" + encodeURIComponent(uid));
+        const result = await response.json();
+        if(result.status === "success"){
+          document.getElementById("profileVotes").textContent = result.remaining;
+        } else {
+          document.getElementById("profileVotes").textContent = "0";
+        }
+      } catch(e) {
+        console.error("Error fetching profile", e);
+      }
+    }
     
     async function fetchImages() {
       try {
@@ -168,7 +210,6 @@
         
         const voteCount = document.createElement("div");
         voteCount.className = "vote-count";
-        // Ja balsu skaits nav noteikts (vai ir 0), tad parādīsies "0"
         voteCount.textContent = (typeof image.votes !== "undefined" && image.votes !== null) ? image.votes : 0;
         container.appendChild(voteCount);
         
@@ -183,6 +224,8 @@
           await voteForImage(container.dataset.imageUrl, container, voteCount, voteButton, uid);
           container.classList.remove("selected");
           container.style.height = "160px";
+          // Pēc balsošanas atjaunojam arī profila balsu atlikumu
+          fetchProfile();
         });
         container.appendChild(voteButton);
         
@@ -220,9 +263,8 @@
         });
         const result = await response.json();
         if(result.status === "success"){
-          let newVotes = parseInt(container.dataset.votes) + 1;
-          container.dataset.votes = newVotes;
-          voteCountElement.textContent = newVotes;
+          container.dataset.votes = result.votes;
+          voteCountElement.textContent = result.votes;
         } else {
           alert(result.message);
         }
@@ -231,7 +273,10 @@
       }
     }
     
-    document.addEventListener("DOMContentLoaded", fetchImages);
+    document.addEventListener("DOMContentLoaded", () => {
+      fetchProfile();
+      fetchImages();
+    });
   </script>
 </body>
 </html>
