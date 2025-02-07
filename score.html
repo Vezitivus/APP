@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vezitivus Score board</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Papildu stili score board lapai, lai radītu mūsdienīgu iOS-like dizainu */
+    .scoreboard-container {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(15px);
+      border-radius: 20px;
+      padding: 20px;
+      max-width: 600px;
+      margin: 20px auto;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+    .scoreboard-title {
+      font-size: 28px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 20px;
+      color: #fff;
+    }
+    .scoreboard-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .scoreboard-table th, .scoreboard-table td {
+      padding: 12px 8px;
+      text-align: left;
+      color: #fff;
+    }
+    .scoreboard-table th {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .scoreboard-table tr:nth-child(even) {
+      background: rgba(255, 255, 255, 0.05);
+    }
+  </style>
+</head>
+<body>
+  <div class="profile-page">
+    <h1 class="main-title">Vezitivus Score board</h1>
+    <div class="scoreboard-container">
+      <table class="scoreboard-table" id="scoreboard-table">
+        <thead>
+          <tr>
+            <th>Vieta</th>
+            <th>Vārds</th>
+            <th>Punkti</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Score board dati tiks ielādēti šeit -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // Google Sheets publiskā JSON feed adrese
+    // Sheet ID: 1KYwqQ4gpwnXuMjNGjET1KnZVh2hmgadAl1rpmCttdnk
+    // Šeit tiek izmantots "od6" kā noklusējuma lapa; ja lapa "SB" nav pirmā,
+    // nepieciešams pielāgot sheet numuru.
+    const sheetID = '1KYwqQ4gpwnXuMjNGjET1KnZVh2hmgadAl1rpmCttdnk';
+    const sheetNumber = 'od6';
+    const url = `https://spreadsheets.google.com/feeds/list/${sheetID}/${sheetNumber}/public/values?alt=json`;
+
+    async function fetchScoreboardData() {
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        const entries = data.feed.entry;
+        const tbody = document.querySelector('#scoreboard-table tbody');
+        tbody.innerHTML = '';
+        // Iterējam caur katru ierakstu un aizpildām tabulu
+        entries.forEach(entry => {
+          // Pieņemam, ka jūsu Google Sheets kolonnas ir nosauktas atbilstoši (bez lielajiem burtiem)
+          const vieta = entry.gsx$vieta ? entry.gsx$vieta.$t : '';
+          const vards = entry.gsx$vards ? entry.gsx$vards.$t : '';
+          const punkti = entry.gsx$punkti ? entry.gsx$punkti.$t : '';
+          const row = document.createElement('tr');
+          row.innerHTML = `<td>${vieta}</td><td>${vards}</td><td>${punkti}</td>`;
+          tbody.appendChild(row);
+        });
+      } catch (error) {
+        console.error('Kļūda ielādējot score board datus:', error);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+      fetchScoreboardData();
+    });
+  </script>
+</body>
+</html>
