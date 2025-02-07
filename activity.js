@@ -1,7 +1,6 @@
 // Cloudinary iestatījumi
 const CLOUDINARY_CLOUD_NAME = "dmkpb05ww";
 const CLOUDINARY_UPLOAD_PRESET = "Vezitivus";
-const CLOUDINARY_ASSET_FOLDER = "samples/ecommerce";
 
 // URL parametru apstrāde
 const urlParams = new URLSearchParams(window.location.search);
@@ -18,7 +17,6 @@ function uploadVideoFile(file) {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-  formData.append("folder", CLOUDINARY_ASSET_FOLDER);
 
   fetch(cloudUrl, { method: "POST", body: formData })
     .then(response => response.json())
@@ -83,7 +81,7 @@ function renderFeed(videos) {
   videos.forEach(function(video) {
     const videoContainer = $(`
       <div class="video-container">
-        <img class="video-thumbnail" src="https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/w_400,h_250,c_fill/${extractPublicId(video.videoUrl)}.jpg" />
+        <img class="video-thumbnail" src="${video.videoUrl}.jpg" />
         <i class="fas fa-play-circle play-overlay"></i>
       </div>
     `);
@@ -94,29 +92,10 @@ function renderFeed(videos) {
           <source src="${video.videoUrl}" type="video/mp4">
         </video>
       `);
-      pauseOtherVideos(this);
     });
 
     grid.append(videoContainer);
   });
-}
-
-// Funkcija, kas izslēdz visus citus video
-function pauseOtherVideos(currentContainer) {
-  $(".video-container video").each(function() {
-    if (!$(this).is($(currentContainer).find("video"))) {
-      this.pause();
-      $(this).closest(".video-container").html(`
-        <img class="video-thumbnail" src="https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/w_400,h_250,c_fill/${extractPublicId(this.src)}.jpg" />
-        <i class="fas fa-play-circle play-overlay"></i>
-      `);
-    }
-  });
-}
-
-// Izgūst publisko ID no Cloudinary URL
-function extractPublicId(url) {
-  return url.split('/').pop().split('.')[0];
 }
 
 // Kad lapa ielādējas
