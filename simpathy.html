@@ -107,18 +107,27 @@
       border-radius: 10px;
       font-size: 14px;
     }
-    /* Loader stils */
+    /* Loader stils ar iOS-style spinner */
     #loader {
-      text-align: center;
-      font-size: 18px;
       margin: 40px auto;
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(255,255,255,0.3);
+      border-top: 4px solid #fff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
   <div class="header">Simpatijas balva</div>
   <div class="content">
-    <div id="loader">Loading...</div>
+    <!-- iOS stilā animēts spinner -->
+    <div id="loader"></div>
     <div class="image-grid" id="imageGrid">
       <!-- Dinamiski ielādētie attēli tiks ievietoti šeit -->
     </div>
@@ -167,8 +176,6 @@
         const voteButton = document.createElement("button");
         voteButton.className = "vote-button";
         voteButton.textContent = "Balsot";
-        // Vairs neizmantojam ierobežojumu, lai deaktivizētu pogu – tā vienmēr ir aktīva,
-        // ja vien lietotāja profilam ir atlikušās balsis.
         voteButton.disabled = false;
         voteButton.addEventListener("click", async (e) => {
           e.stopPropagation();
@@ -200,7 +207,6 @@
           }
         });
         
-        // Pirmā bilde – nodrošina, ka tā ir novietota augšā, ja nepieciešams
         if(index === 0) {
           container.style.marginTop = "0";
         }
@@ -218,7 +224,6 @@
         });
         const result = await response.json();
         if(result.status === "success"){
-          // Atjaunojam balsu skaitu attēla konteinerī
           let newVotes = parseInt(container.dataset.votes) + 1;
           container.dataset.votes = newVotes;
           voteCountElement.textContent = newVotes;
