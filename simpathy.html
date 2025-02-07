@@ -33,14 +33,14 @@
       margin-top: 80px;
       padding: 20px;
     }
-    /* Attēlu režģis: flex konteiners, kas automātiski saliek rindas un saglabā atstarpi */
+    /* Attēlu režģis: flex konteiners */
     .image-grid {
       display: flex;
       flex-wrap: wrap;
       gap: 20px;
       justify-content: center;
     }
-    /* Noklusējuma attēla konteineris: fiksēts izmērs */
+    /* Noklusējuma attēla konteineris: fiksēts izmērs ar 1 sekundes pāreju */
     .image-container {
       position: relative;
       width: 160px;
@@ -50,15 +50,13 @@
       background: rgba(255, 255, 255, 0.1);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       backdrop-filter: blur(6px);
-      transition: all 0.3s ease;
+      transition: all 1s ease;
       cursor: pointer;
       flex: 0 0 auto;
     }
-    /* Kad attēls ir izvēlēts, tā konteineris paplašināsies līdz 90% no ekrāna platuma, 
-       tiks novietots pa centrā un automātiski izraisīs pārējo elementu nobīdi uz leju */
+    /* Kad attēls ir izvēlēts, tā konteineris paplašināsies līdz 90% no ekrāna platuma un centrēsies */
     .image-container.selected {
       width: 90%;
-      /* height būs automātiska – ja attēlam ir citāda proporcija */
       height: auto;
       margin: 0 auto 20px auto;
       flex: 0 0 90%;
@@ -68,9 +66,9 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transition: all 0.3s ease;
+      transition: all 1s ease;
     }
-    /* Kad konteineris ir izvēlēts, attēls pielāgojas tā, lai tiktu redzēts pilnībā (object-fit: contain) */
+    /* Kad konteineris ir izvēlēts, attēls pielāgojas tā, lai būtu redzams pilnībā (object-fit: contain) */
     .image-container.selected img {
       width: 100%;
       height: auto;
@@ -90,7 +88,7 @@
       color: #fff;
       cursor: pointer;
       opacity: 0;
-      transition: opacity 0.3s ease;
+      transition: opacity 1s ease;
     }
     .image-container.selected .vote-button {
       opacity: 1;
@@ -173,6 +171,8 @@
           const urlParams = new URLSearchParams(window.location.search);
           const uid = urlParams.get("uid") || "defaultUid";
           await voteForImage(container.dataset.imageUrl, container, voteCount, voteButton, uid);
+          // Pēc balsu iesniegšanas noņem "selected" klasi, lai attēls samazinātos atpakaļ
+          container.classList.remove("selected");
         });
         container.appendChild(voteButton);
 
