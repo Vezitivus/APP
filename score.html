@@ -6,30 +6,37 @@
   <title>Vezitivus Score board</title>
   <link rel="stylesheet" href="styles.css">
   <style>
-    /* Fiksēts virsraksts lapas augšā */
+    /* Fiksēts lapas virsraksts augšā */
     .fixed-header {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
-      background: rgba(10, 10, 10, 0.9); /* saskaņots ar lapas fonu */
+      background: rgba(10, 10, 10, 0.9); /* pielāgo pēc vajadzības */
       color: #fff;
       padding: 20px 0;
       text-align: center;
       font-size: 28px;
       font-weight: bold;
-      z-index: 100;
+      z-index: 1000;
     }
-    /* Score board konteineris, kas palielinās pēc vajadzības */
+    /* Konteiners, lai saturs sāktu tieši zem fiksētā virsraksta */
+    .content-container {
+      margin-top: 80px; /* atstāj vietu fiksētajam virsrakstam; pielāgo pēc vajadzības */
+      padding: 20px;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    /* Score board konteineris */
     .scoreboard-container {
       background: rgba(255, 255, 255, 0.08);
       backdrop-filter: blur(15px);
       border-radius: 20px;
-      padding: 20px;
-      max-width: 600px;
-      margin: 120px auto 20px auto; /* atstāj vietu fiksētajam virsrakstam (apm. 120px) */
+      padding: 0;  /* tabulas robežai nav liekas iekšējās atstarpes */
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }
+    /* Score board tabulas stils */
     .scoreboard-table {
       width: 100%;
       border-collapse: collapse;
@@ -40,8 +47,13 @@
       text-align: left;
       color: #fff;
     }
+    /* Tabulas galvene – fiksēta pozīcija attiecībā pret skatāmā loga augšu, 
+       lai tā vienmēr būtu redzama tieši zem fiksētā lapas virsraksta */
     .scoreboard-table th {
       background: rgba(255, 255, 255, 0.1);
+      position: sticky;
+      top: 80px; /* jāatbilst fiksētā virsraksta augstumam */
+      z-index: 10;
     }
     .scoreboard-table tr:nth-child(even) {
       background: rgba(255, 255, 255, 0.05);
@@ -63,28 +75,30 @@
   </style>
 </head>
 <body>
-  <!-- Fiksētais virsraksts -->
+  <!-- Fiksēts lapas virsraksts -->
   <div class="fixed-header">Vezitivus Score board</div>
   
-  <!-- Score board konteineris -->
-  <div class="scoreboard-container">
-    <!-- Loading spinneris, kamēr dati ielādējas -->
-    <div id="loader"></div>
-    
-    <!-- Score board tabula (sākumā paslēpta) -->
-    <table class="scoreboard-table" id="scoreboard-table" style="display: none;">
-      <thead>
-        <tr>
-          <th>Vieta</th>
-          <th>Vārds</th>
-          <th>Punkti</th>
-          <th>Aktivitātes</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Dati tiks ielādēti šeit -->
-      </tbody>
-    </table>
+  <!-- Konteiners, lai saturs sāktu tieši zem fiksētā virsraksta -->
+  <div class="content-container">
+    <div class="scoreboard-container">
+      <!-- Loading spinneris -->
+      <div id="loader"></div>
+      
+      <!-- Score board tabula (sākumā paslēpta) -->
+      <table class="scoreboard-table" id="scoreboard-table" style="display: none;">
+        <thead>
+          <tr>
+            <th>Vieta</th>
+            <th>Vārds</th>
+            <th>Punkti</th>
+            <th>Aktivitātes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Dati tiks ielādēti šeit -->
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <script>
