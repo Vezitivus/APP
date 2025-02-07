@@ -15,6 +15,8 @@
       max-width: 600px;
       margin: 20px auto;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      position: relative;
+      min-height: 150px; /* garantē vietu spinnerim */
     }
     .scoreboard-title {
       font-size: 28px;
@@ -26,6 +28,7 @@
     .scoreboard-table {
       width: 100%;
       border-collapse: collapse;
+      display: none; /* sākumā paslēpts, kamēr dati ielādējas */
     }
     .scoreboard-table th, .scoreboard-table td {
       padding: 12px 8px;
@@ -38,12 +41,33 @@
     .scoreboard-table tr:nth-child(even) {
       background: rgba(255, 255, 255, 0.05);
     }
+    /* iOS stila loading spinneris */
+    #loader {
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top: 4px solid #fff;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    @keyframes spin {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
   </style>
 </head>
 <body>
   <div class="profile-page">
     <h1 class="main-title">Vezitivus Score board</h1>
     <div class="scoreboard-container">
+      <!-- Loading spinner, kamēr dati ielādējas -->
+      <div id="loader"></div>
+      
+      <!-- Score board tabula -->
       <table class="scoreboard-table" id="scoreboard-table">
         <thead>
           <tr>
@@ -61,10 +85,8 @@
   </div>
 
   <script>
-    /* Šeit tiek izmantots jūsu Google Apps Script Web App URL.
-       Pārliecinieties, ka tas atbilst jūsu izvietošanas URL.
-       Mēs pieprasām datus ar parametru action=scoreboard, 
-       kas mūsu skriptā izgūst datus no lapas "SB". */
+    /* Norādi savu Google Apps Script Web App URL ar action=scoreboard.
+       Pārliecinies, ka URL ir pareizs */
     const scriptUrl = "https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCw8RaXwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec?action=scoreboard";
 
     async function fetchScoreboardData() {
@@ -84,6 +106,9 @@
             `;
             tbody.appendChild(tr);
           });
+          // Paslēp spinneri un parādi tabulu
+          document.getElementById("loader").style.display = "none";
+          document.getElementById("scoreboard-table").style.display = "table";
         } else {
           console.error("Kļūda: " + result.message);
         }
