@@ -1,3 +1,7 @@
+Share
+
+MS
+You said:
 <!DOCTYPE html>
 <html lang="lv">
 <head>
@@ -5,127 +9,76 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VEZITIVUS WeekEnd</title>
   <link rel="stylesheet" href="styles.css">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background-color: #f4f4f4;
-    }
-
-    .profile-page {
-      width: 90%;
-      max-width: 600px;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      text-align: center;
-    }
-
-    .profile-section {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-
-    .image-container {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      overflow: hidden;
-      border: 2px solid #ddd;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background-color: #fff;
-    }
-
-    #profile-image {
-      width: 100%;
-      height: auto;
-      display: none;
-    }
-
-    .info-group {
-      margin: 10px 0;
-    }
-
-    .checkin-section {
-      margin: 20px 0;
-    }
-
-    .checkin-button, .action-button {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      background-color: #28a745;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    .checkin-button:hover, .action-button:hover {
-      background-color: #218838;
-    }
-
-    .buttons-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-  </style>
 </head>
 <body>
   <div class="profile-page">
     <h1 class="main-title">VEZITIVUS WeekEnd</h1>
 
+    <!-- Profila sadaļa -->
     <section class="profile-section">
-      <div class="image-container">
-        <input type="file" id="image-input" accept="image/*" style="display:none;">
-        <img id="profile-image" src="" alt="Profilattēls">
+      <div class="profile-left">
+        <div class="image-container">
+          <input type="file" id="image-input" accept="image/*" style="display:none;">
+          <img id="profile-image" src="" alt="Profilattēls" style="display:none;">
+        </div>
+        <button id="change-button" style="margin-top: 10px;">Nomainīt attēlu</button>
       </div>
-      <button id="change-button">Nomainīt attēlu</button>
-      <div class="info-group">
-        <p class="label">Vārds</p>
-        <p class="value" id="username">Ielādē...</p>
-      </div>
-      <div class="info-group">
-        <p class="label">ID</p>
-        <p class="value" id="nfc-id">Ielādē...</p>
-      </div>
-      <div class="info-group">
-        <p class="label">Kopvērtējuma vieta</p>
-        <p class="large-value" id="place">Ielādē...</p>
+      <div class="profile-right">
+        <div class="info-group">
+          <p class="label">Vārds</p>
+          <p class="value" id="username">Ielādē...</p>
+        </div>
+        <div class="info-group">
+          <p class="label">ID</p>
+          <p class="value" id="nfc-id">Ielādē...</p>
+        </div>
+        <div class="info-group">
+          <p class="label">Kopvērtējuma vieta</p>
+          <p class="large-value" id="place">Ielādē...</p+>
+        </div>
       </div>
     </section>
 
+    <!-- CHECK-IN poga -->
     <section class="checkin-section">
       <button id="checkin-button" class="checkin-button">Check-In priekš aktivitātēm</button>
     </section>
 
-    <section class="buttons-section">
-      <div class="buttons-grid">
-        <button class="action-button" onclick="window.location.href='activity.html'">Piedalīties aktivitātēs</button>
-        <button class="action-button" onclick="redirectToSimpathy()">Simpatijas balva</button>
-        <button class="action-button" onclick="window.location.href='score.html'">Score Board</button>
-      </div>
-    </section>
+    <!-- Apakšējās pogas -->
+    <!-- Apakšējās pogas (profile.html) -->
+<section class="buttons-section">
+  <div class="buttons-grid">
+    <div class="grid-margin"></div>
+    <!-- 1. Poga: Piedalīties aktivitātēs -->
+    <button class="action-button" onclick="window.location.href='activity.html'">
+      Piedalīties aktivitātēs
+    </button>
+    <div class="grid-spacer"></div>
+    <!-- 2. Poga: Simpatijas balva – tagad ar dinamiski pielāgotu pāradresācijas URL -->
+    <button class="action-button" onclick="redirectToSimpathy()">
+      Simpatijas balva
+    </button>
+    <div class="grid-spacer"></div>
+    <!-- 3. Poga: Score Board -->
+    <button class="action-button" onclick="window.location.href='score.html'">
+      Score Board
+    </button>
+    <div class="grid-margin"></div>
   </div>
+</section>
 
-  <script>
-    function redirectToSimpathy() {
-      const uid = document.getElementById("nfc-id").innerText.trim();
-      const redirectUrl = `https://vezitivus.github.io/APP/simpathy.html?uid=${uid}`;
-      window.location.href = redirectUrl;
-    }
-  </script>
+<script>
+  // Ja UID jau ielādējas profila lapā, tad to esam uzstādījuši attiecīgajā elementā,
+  // piemēram, <p class="value" id="nfc-id">Ielādē...</p>
+  function redirectToSimpathy() {
+    const uid = document.getElementById("nfc-id").innerText.trim();
+    // Ja nav definēts redirectUrl, tad noklusējuma vērtība
+    const redirectUrl = https://vezitivus.github.io/APP/simpathy.html?uid=${uid};
+    window.location.href = redirectUrl;
+  }
+</script>
+
+  </div>
   <script src="profile.js"></script>
 </body>
 </html>
