@@ -30,7 +30,8 @@
         </div>
         <div class="info-group">
           <p class="label">Kopvērtējuma vieta</p>
-          <p class="large-value" id="place">Ielādē...</p+>
+          <span class="emoji">✋</span>
+          <p class="large-value" id="place">Ielādē...</p>
         </div>
       </div>
     </section>
@@ -40,7 +41,6 @@
       <button id="checkin-button" class="checkin-button">Check-In priekš aktivitātēm</button>
     </section>
 
-    <!-- Apakšējās pogas -->
     <!-- Apakšējās pogas (profile.html) -->
     <section class="buttons-section">
       <div class="buttons-grid">
@@ -63,16 +63,16 @@
       </div>
     </section>
 
-<script>
-  // Ja UID jau ielādējas profila lapā, tad to esam uzstādījuši attiecīgajā elementā,
-  // piemēram, <p class="value" id="nfc-id">Ielādē...</p>
-  function redirectToSimpathy() {
-    const uid = document.getElementById("nfc-id").innerText.trim();
-    // Ja nav definēts redirectUrl, tad noklusējuma vērtība
-    const redirectUrl = `https://vezitivus.github.io/APP/simpathy.html?uid=${uid}`;
-    window.location.href = redirectUrl;
-  }
-</script>
+    <script>
+      // Ja UID jau ielādējas profila lapā, tad to esam uzstādījuši attiecīgajā elementā,
+      // piemēram, <p class="value" id="nfc-id">Ielādē...</p>
+      function redirectToSimpathy() {
+        const uid = document.getElementById("nfc-id").innerText.trim();
+        // Ja nav definēts redirectUrl, tad noklusējuma vērtība
+        const redirectUrl = `https://vezitivus.github.io/APP/simpathy.html?uid=${uid}`;
+        window.location.href = redirectUrl;
+      }
+    </script>
 
   </div>
   <script src="profile.js"></script>
