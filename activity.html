@@ -154,21 +154,21 @@
   </div>
   
   <script>
-    // Definējam Cloudinary konta datus
+    // Cloudinary konfigurācija (klienta pusē izmantojam tikai nepieciešamo informāciju)
     const CLOUDINARY_CLOUD_NAME = "dmkpb05ww";
     const CLOUDINARY_UPLOAD_PRESET = "Vezitivus";
     const CLOUDINARY_ASSET_FOLDER = "samples/ecommerce";
     
-    // URL parametru apstrāde (piemēram, activity.html?uid=VZ001)
+    // URL parametru apstrāde, piemēram: activity.html?uid=VZ001
     const urlParams = new URLSearchParams(window.location.search);
     const uid = urlParams.get('uid');
-    if (uid) {
+    if(uid) {
       $('#uploadSection').show();
     } else {
       $('#uploadSection').hide();
     }
     
-    // Cloudinary augšupielādes funkcija, izmantojot unsigned upload API
+    // Funkcija, kas augšupielādē video failu uz Cloudinary, izmantojot unsigned upload API
     function uploadVideoFile(file) {
       const cloudUrl = "https://api.cloudinary.com/v1_1/" + CLOUDINARY_CLOUD_NAME + "/video/upload";
       const formData = new FormData();
@@ -183,7 +183,7 @@
       .then(response => response.json())
       .then(data => {
         console.log("Video augšupielādēts:", data.secure_url);
-        if (data.secure_url) {
+        if(data.secure_url) {
           saveVideo(data.secure_url);
         } else {
           alert("Video augšupielāde neizdevās.");
@@ -194,9 +194,9 @@
       });
     }
     
-    // Poga "Augšupielādēt video" – aktivizē paslēpto faila ievades lauku
+    // Poga "Augšupielādēt video" aktivizē paslēpto faila ievades lauku
     $("#uploadVideoBtn").on("click", function(){
-      if (uid) {
+      if(uid) {
         $("#videoFileInput").click();
       } else {
         alert("Lai augšupielādētu video, piesakieties savā profilā!");
@@ -205,7 +205,7 @@
     
     $("#videoFileInput").on("change", function(){
       const file = this.files[0];
-      if (file) {
+      if(file) {
         uploadVideoFile(file);
       }
     });
@@ -215,7 +215,7 @@
     
     // Saglabā video, izsaucot Google Apps Script (action=saveVideo)
     function saveVideo(videoUrl) {
-      if (!uid) {
+      if(!uid) {
         alert("Lai saglabātu video, piesakieties savā profilā!");
         return;
       }
@@ -229,19 +229,23 @@
         });
     }
     
-    // Iegūst video feed (action=getVideos)
+    // Iegūst video feed, izmantojot JSONP, lai apietu CORS problēmas
     function loadFeed() {
-      $.getJSON(googleScriptUrl + "?action=getVideos")
-        .done(function(data){
-          console.log("Iegūtie video:", data);
-          renderFeed(data.data);
-        })
-        .fail(function(jqxhr, textStatus, error){
+      $.ajax({
+        url: googleScriptUrl,
+        dataType: "jsonp",
+        data: { action: "getVideos" },
+        success: function(response) {
+          console.log("Iegūtie video:", response);
+          renderFeed(response.data);
+        },
+        error: function(jqxhr, textStatus, error) {
           console.error("Kļūda, iegūstot video:", textStatus, error);
-        })
-        .always(function(){
+        },
+        complete: function() {
           $("#loader").hide();
-        });
+        }
+      });
     }
     
     // Attēlo video ierakstus
@@ -263,7 +267,7 @@
         
         // Like poga – sirds ikona
         const likeButton = $("<button class='like-button'><i class='fa-regular fa-heart'></i></button>");
-        if (!uid) {
+        if(!uid) {
           likeButton.prop("disabled", true);
         } else {
           likeButton.on("click", function(e){
@@ -275,7 +279,7 @@
         
         // Klikšķa apstrāde – palielina/deselektē video un sāk atskaņošanu
         container.on("click", function(){
-          if (container.hasClass("selected")) {
+          if(container.hasClass("selected")) {
             container.removeClass("selected");
             vidEl[0].pause();
             container.css("height", "160px");
@@ -296,7 +300,7 @@
     
     // Reģistrē like darbību
     function likeVideo(videoUrl, container, likeCountElement) {
-      if (!uid) {
+      if(!uid) {
         alert("Lūdzu piesakieties, lai varētu likot video.");
         return;
       }
