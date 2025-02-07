@@ -1,120 +1,225 @@
-/****************************************************
- * Google Apps Script – Simpatijas balvas Web App
- * Izmanto Google Sheets: 
- * ID: 1KYwqQ4gpwnXuMjNGjET1KnZVh2hmgadAl1rpmCttdnk
- * Lapas nosaukums: "Lapa1"
- *
- * GET: action=getImages – izgūst visus attēlus no kolonnas E (indekss 4)
- *       un aprēķina balsu skaitu, skaitot visas nedzēstas vērtības no kolonnām V un tālāk.
- *
- * POST: action=vote & imageUrl=... & uid=... – pārbauda, vai balsotājam (uid)
- *       vēl nav bijušas 3 balsis; ja balsu skaits ir mazāks, tad attiecīgajā rindā (kurā atrodas imageUrl)
- *       pirmajā tukšajā balsu šūnā (kolonnās V un tālāk) ievieto balsotāja uid.
- ****************************************************/
-
-function doGet(e) {
-  var action = e.parameter.action;
-  if (action === "getImages") {
-    return getImages();
-  }
-  return ContentService.createTextOutput("Invalid action");
-}
-
-function doPost(e) {
-  var action = e.parameter.action;
-  if (action === "vote") {
-    return voteForImage(e);
-  }
-  return ContentService.createTextOutput("Invalid action");
-}
-
-function getImages() {
-  var ss = SpreadsheetApp.openById("1KYwqQ4gpwnXuMjNGjET1KnZVh2hmgadAl1rpmCttdnk");
-  var sheet = ss.getSheetByName("Lapa1");
-  var data = sheet.getDataRange().getValues();
-  var images = [];
-  // Pieņemam, ka pirmajā rindā ir galvenes; dati sākas ar 2. rindu (i = 1)
-  for (var i = 1; i < data.length; i++) {
-    var row = data[i];
-    var imageUrl = row[4]; // kolonna E (indekss 4)
-    if (imageUrl) {
-      // Aprēķina balsu skaitu – skaitām visas nedzēstas vērtības sākot no kolonnas V (indekss 21)
-      var votes = 0;
-      for (var j = 21; j < row.length; j++) {
-        if (row[j] !== "" && row[j] !== null) {
-          votes++;
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simpatijas balva</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Fona un bāzes stils */
+    body, html {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #1F1C2C, #928DAB);
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      height: 100%;
+    }
+    /* Fiksēts lapas virsraksts ar gradienta efektu un ēnu */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: linear-gradient(90deg, #3a3a3a, #000);
+      padding: 20px 0;
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+    /* Saturs zem virsraksta */
+    .content {
+      margin-top: 100px; /* atstāj vietu fiksētajam virsrakstam */
+      padding: 20px;
+    }
+    /* Attēlu režģa konteineris – centrēts, ar elastīgu izkārtojumu */
+    .image-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
+    /* Katrs attēla konteiners ar glasmorfisma efektu */
+    .image-container {
+      position: relative;
+      width: 160px;
+      height: 160px;
+      overflow: hidden;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(6px);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+    }
+    .image-container:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+    }
+    .image-container.selected {
+      transform: scale(1.1);
+      z-index: 10;
+    }
+    .image-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border: 2px solid transparent;
+      transition: border-color 0.3s ease;
+    }
+    .image-container.selected img {
+      border-color: #fff;
+    }
+    /* Balsošanas poga – ar apaļiem stūriem un gradienta fonu */
+    .vote-button {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 8px 16px;
+      font-size: 16px;
+      border: none;
+      border-radius: 20px;
+      background: linear-gradient(90deg, #2ecc71, #27ae60);
+      color: #fff;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .image-container.selected .vote-button {
+      opacity: 1;
+    }
+    .vote-button:hover:not(:disabled) {
+      background: linear-gradient(90deg, #28b463, #239b56);
+    }
+    .vote-button:disabled {
+      background: #555;
+      cursor: not-allowed;
+    }
+    /* Rādīt pašreizējo balsu skaitu – stilizēts rādītājs */
+    .vote-count {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 4px 8px;
+      border-radius: 10px;
+      font-size: 14px;
+    }
+    /* Loader stils – moderns, centrēts */
+    #loader {
+      text-align: center;
+      font-size: 18px;
+      margin: 40px auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">Simpatijas balva</div>
+  <div class="content">
+    <div id="loader">Loading...</div>
+    <div class="image-grid" id="imageGrid">
+      <!-- Dinamiski ielādētie attēli tiks šeit -->
+    </div>
+  </div>
+  
+  <script>
+    // Jaunais Google Apps Script Web App deploy URL
+    const scriptUrl = "https://script.google.com/macros/s/AKfycby8p72BLoVvL0VwBePZ278XmJ1CW23l58ZKJgSuu1qoROM9oytJNb1zPVhJ8JDYqW9EYg/exec";
+    
+    // Funkcija, kas izgūst attēlu datus no Google Sheets (action=getImages)
+    async function fetchImages() {
+      try {
+        const response = await fetch(scriptUrl + "?action=getImages");
+        const result = await response.json();
+        if(result.status === "success"){
+          displayImages(result.data);
+        } else {
+          console.error(result.message);
         }
-      }
-      images.push({ imageUrl: imageUrl, votes: votes });
-    }
-  }
-  return ContentService
-         .createTextOutput(JSON.stringify({ status: "success", data: images }))
-         .setMimeType(ContentService.MimeType.JSON);
-}
-
-function countVotesForVoter(voterUid) {
-  var ss = SpreadsheetApp.openById("1KYwqQ4gpwnXuMjNGjET1KnZVh2hmgadAl1rpmCttdnk");
-  var sheet = ss.getSheetByName("Lapa1");
-  var data = sheet.getDataRange().getValues();
-  var totalVotes = 0;
-  for (var i = 1; i < data.length; i++) {
-    var row = data[i];
-    for (var j = 21; j < row.length; j++) {
-      if (row[j] && row[j].toString() === voterUid) {
-        totalVotes++;
+      } catch (e) {
+        console.error("Error fetching images", e);
+      } finally {
+        document.getElementById("loader").style.display = "none";
       }
     }
-  }
-  return totalVotes;
-}
-
-function voteForImage(e) {
-  var imageUrl = e.parameter.imageUrl;
-  var voterUid = e.parameter.uid;
-  if (!imageUrl || !voterUid) {
-    return ContentService
-           .createTextOutput(JSON.stringify({ status: "error", message: "Trūkst imageUrl vai uid parameter" }))
-           .setMimeType(ContentService.MimeType.JSON);
-  }
-  
-  // Pārbauda, cik balsu jau ir reģistrētas no šī balsotāja visā dokumentā
-  var votesCast = countVotesForVoter(voterUid);
-  if (votesCast >= 3) {
-    return ContentService
-           .createTextOutput(JSON.stringify({ status: "error", message: "Maksimālais balsu skaits sasniegts" }))
-           .setMimeType(ContentService.MimeType.JSON);
-  }
-  
-  var ss = SpreadsheetApp.openById("1KYwqQ4gpwnXuMjNGjET1KnZVh2hmgadAl1rpmCttdnk");
-  var sheet = ss.getSheetByName("Lapa1");
-  var data = sheet.getDataRange().getValues();
-  
-  // Meklējam rindu, kurā kolonnas E vērtība sakrīt ar imageUrl
-  for (var i = 1; i < data.length; i++) {
-    var row = data[i];
-    if (row[4] === imageUrl) {
-      // Meklē pirmo tukšo šūnu kolonnās V un tālāk, lai ievietotu balsotāja uid
-      var voteColumn = -1;
-      for (var j = 21; j < row.length; j++) {
-        if (row[j] === "" || row[j] === null) {
-          voteColumn = j;
-          break;
+    
+    // Funkcija, kas renderē attēlus režģī
+    function displayImages(images) {
+      const grid = document.getElementById("imageGrid");
+      grid.innerHTML = "";
+      images.forEach(image => {
+        // image objekts satur: { imageUrl: "...", votes: <skaits> }
+        const container = document.createElement("div");
+        container.className = "image-container";
+        container.dataset.imageUrl = image.imageUrl;
+        container.dataset.votes = image.votes;
+    
+        const img = document.createElement("img");
+        img.src = image.imageUrl;
+        container.appendChild(img);
+    
+        // Balsu skaita attēlojums
+        const voteCount = document.createElement("div");
+        voteCount.className = "vote-count";
+        voteCount.textContent = image.votes;
+        container.appendChild(voteCount);
+    
+        // Balsošanas poga
+        const voteButton = document.createElement("button");
+        voteButton.className = "vote-button";
+        voteButton.textContent = "Balsot";
+        voteButton.disabled = image.votes >= 3;
+        voteButton.addEventListener("click", async (e) => {
+          e.stopPropagation();
+          // Pieņemam, ka balsotāja uid tiek pāradresēts lapā kā URL parametrs
+          const urlParams = new URLSearchParams(window.location.search);
+          const uid = urlParams.get("uid") || "defaultUid";
+          await voteForImage(container.dataset.imageUrl, container, voteCount, voteButton, uid);
+        });
+        container.appendChild(voteButton);
+    
+        // Noklikšķinot uz attēla – izvēlas/atceļ izvēli (tikai viens var būt izvēlēts vienlaikus)
+        container.addEventListener("click", () => {
+          const allContainers = document.querySelectorAll(".image-container");
+          allContainers.forEach(c => {
+            if(c !== container) c.classList.remove("selected");
+          });
+          container.classList.toggle("selected");
+        });
+    
+        grid.appendChild(container);
+      });
+    }
+    
+    // Funkcija, kas nosūta balsi uz serveri (action=vote)
+    async function voteForImage(imageUrl, container, voteCountElement, voteButton, uid) {
+      try {
+        const response = await fetch(scriptUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: `action=vote&imageUrl=${encodeURIComponent(imageUrl)}&uid=${encodeURIComponent(uid)}`
+        });
+        const result = await response.json();
+        if(result.status === "success"){
+          let newVotes = parseInt(container.dataset.votes) + 1;
+          container.dataset.votes = newVotes;
+          voteCountElement.textContent = newVotes;
+          if(newVotes >= 3){
+            voteButton.disabled = true;
+            voteButton.textContent = "Balsojums aizņemts";
+          }
+        } else {
+          alert(result.message);
         }
+      } catch(e) {
+        console.error("Error voting", e);
       }
-      if (voteColumn === -1) {
-        return ContentService
-               .createTextOutput(JSON.stringify({ status: "error", message: "Nav pieejamu balsu kolonu" }))
-               .setMimeType(ContentService.MimeType.JSON);
-      }
-      // Ievieto balsotāja uid attiecīgajā šūnā
-      sheet.getRange(i + 1, voteColumn + 1).setValue(voterUid);
-      return ContentService
-             .createTextOutput(JSON.stringify({ status: "success", message: "Balsojums reģistrēts" }))
-             .setMimeType(ContentService.MimeType.JSON);
     }
-  }
-  return ContentService
-         .createTextOutput(JSON.stringify({ status: "error", message: "Attēts nav atrasts" }))
-         .setMimeType(ContentService.MimeType.JSON);
-}
+    
+    document.addEventListener("DOMContentLoaded", fetchImages);
+  </script>
+</body>
+</html>
