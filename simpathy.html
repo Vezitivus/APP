@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Simpatijas balva</title>
   <style>
-    /* Dinamisks fons, kas aizpilda visu ekrānu */
+    /* Dinamisks fons ar lineāru gradientu, kas aizpilda visu ekrānu */
     html, body {
       margin: 0;
       padding: 0;
@@ -15,7 +15,7 @@
       color: #fff;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
-    /* Fiksēts virsraksts augšā */
+    /* Fiksēts virsraksts lapas augšā */
     .header {
       position: fixed;
       top: 0;
@@ -28,52 +28,55 @@
       font-weight: bold;
       z-index: 1000;
     }
-    /* Saturs zem virsraksta; pietiekams atstatums, lai fiksētais virsraksts neradītu traucējumus */
+    /* Saturs zem virsraksta – ar pietiekamu atstarpi */
     .content {
       margin-top: 80px;
       padding: 20px;
     }
-    /* Attēlu režģa konteiners */
+    /* Attēlu režģis: flex konteiners, kas automātiski saliek rindas un saglabā atstarpi */
     .image-grid {
       display: flex;
       flex-wrap: wrap;
       gap: 20px;
       justify-content: center;
     }
-    /* Katrs attēla konteiners – noklusējuma izmēri, glasmorfisms un animācijas efekti */
+    /* Noklusējuma attēla konteineris: fiksēts izmērs */
     .image-container {
       position: relative;
-      width: 160px;  /* fiksēta platuma vērtība */
-      height: 160px; /* noklusējuma augstums */
+      width: 160px;
+      height: 160px;
       overflow: hidden;
       border-radius: 12px;
       background: rgba(255, 255, 255, 0.1);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       backdrop-filter: blur(6px);
-      transition: transform 0.3s ease, height 0.3s ease;
+      transition: all 0.3s ease;
       cursor: pointer;
+      flex: 0 0 auto;
     }
-    /* Kad attēls tiek izvēlēts, tā konteineris palielinās līdz dinamiskam (aptuveni pilnam ekrāna augstumam, atņemot fiksētu virsrakstu un papildus atstarpes) */
+    /* Kad attēls ir izvēlēts, tā konteineris paplašināsies līdz 90% no ekrāna platuma, 
+       tiks novietots pa centrā un automātiski izraisīs pārējo elementu nobīdi uz leju */
     .image-container.selected {
-      height: calc(100vh - 100px);
-      transform: scale(1.0);
-      z-index: 10;
+      width: 90%;
+      /* height būs automātiska – ja attēlam ir citāda proporcija */
+      height: auto;
+      margin: 0 auto 20px auto;
+      flex: 0 0 90%;
     }
-    /* Attēla stils */
+    /* Noklusējuma attēla stils */
     .image-container img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transition: transform 0.3s ease;
+      transition: all 0.3s ease;
     }
-    /* Pirmā bilde – no papildu atstarpēm netiek pievienoti */
-    .image-grid .image-container:first-child {
-      margin-top: 0;
+    /* Kad konteineris ir izvēlēts, attēls pielāgojas tā, lai tiktu redzēts pilnībā (object-fit: contain) */
+    .image-container.selected img {
+      width: 100%;
+      height: auto;
+      object-fit: contain;
     }
-    .image-grid .image-container:first-child img {
-      border: none;
-    }
-    /* Balsošanas poga, kas parādās tikai, ja attēls ir izvēlēts */
+    /* Balsošanas poga – sākumā neredzama, parādās tikai tad, kad attēls ir izvēlēts */
     .vote-button {
       position: absolute;
       bottom: 10px;
@@ -119,7 +122,7 @@
   <div class="content">
     <div id="loader">Loading...</div>
     <div class="image-grid" id="imageGrid">
-      <!-- Dinamiski ielādētie attēli tiks šeit -->
+      <!-- Dinamiski ielādētie attēli tiks ievietoti šeit -->
     </div>
   </div>
   
@@ -174,14 +177,14 @@
         container.appendChild(voteButton);
 
         container.addEventListener("click", () => {
-          // Noņem "selected" klasi no visiem konteineriem, tad pārslēdz izvēli tikai uz šo
+          // Noņem "selected" klasi no visiem konteineriem, tad pievieno tikai šim
           document.querySelectorAll(".image-container").forEach(c => {
             if(c !== container) c.classList.remove("selected");
           });
           container.classList.toggle("selected");
         });
 
-        // Ja pirmā bilde, nodrošina, ka tā ir piesieta pie augšas
+        // Ja pirmā bilde, nodrošina, ka tā ir novietota augšā
         if(index === 0) {
           container.style.marginTop = "0";
         }
