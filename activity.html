@@ -154,6 +154,12 @@
   </div>
   
   <script>
+    // Definējam Cloudinary konta datus
+    const CLOUDINARY_CLOUD_NAME = "dmkpb05ww";
+    // Lai gan API key un secret ir jūsu, API secret nevajadzētu tikt izmantots klienta pusē
+    const CLOUDINARY_API_KEY = "858897888683582";
+    const CLOUDINARY_API_SECRET = "";  // Nepieciešams tikai servera pusē
+  
     // URL parametru apstrāde (piemēram, activity.html?uid=VZ001)
     const urlParams = new URLSearchParams(window.location.search);
     const uid = urlParams.get('uid');
@@ -169,7 +175,7 @@
       const cloudUrl = "https://api.cloudinary.com/v1_1/" + CLOUDINARY_CLOUD_NAME + "/video/upload";
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("upload_preset", "your_unsigned_preset");
+      formData.append("upload_preset", "your_unsigned_preset"); // Nomainiet uz savu unsigned upload preset
       formData.append("folder", "Lenta");
       
       fetch(cloudUrl, {
