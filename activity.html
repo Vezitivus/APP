@@ -4,155 +4,78 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VEZITIVUS LENTA</title>
-  <!-- Font Awesome CSS (bez integrity atribūta) -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <!-- jQuery -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-  <!-- Sasaista ārējo JavaScript failu -->
   <script src="activity.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <style>
     html, body {
       margin: 0;
       padding: 0;
-      min-height: 100vh;
       background: linear-gradient(135deg, #1F1C2C, #928DAB);
-      background-size: cover;
-      color: #fff;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
     }
     .header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      background: rgba(0,0,0,0.8);
       padding: 20px;
-      text-align: center;
       font-size: 28px;
       font-weight: bold;
-      z-index: 1000;
+      background: rgba(0, 0, 0, 0.8);
     }
     #uploadSection {
-      text-align: center;
-      margin-top: 90px;
+      display: none;
+      margin: 20px;
     }
     #uploadVideoBtn {
       background: #007bff;
       color: #fff;
-      border: none;
       padding: 10px 20px;
       font-size: 1em;
       border-radius: 5px;
       cursor: pointer;
-    }
-    #uploadVideoBtn:hover {
-      background: #0056b3;
-    }
-    .warning-text {
-      text-align: center;
-      margin: 10px 20px;
-      font-size: 0.9em;
-      color: #ddd;
-    }
-    #loader {
-      margin: 40px auto;
-      width: 40px;
-      height: 40px;
-      border: 4px solid rgba(255,255,255,0.3);
-      border-top: 4px solid #fff;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      border: none;
     }
     .video-grid {
       display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      justify-content: center;
-      padding: 20px;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      margin-top: 20px;
     }
     .video-container {
+      width: 80%;
+      max-width: 400px;
       position: relative;
-      width: 160px;
-      height: 160px;
-      overflow: hidden;
-      border-radius: 12px;
-      background: rgba(0,0,0,0.2);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      transition: all 0.5s ease;
       cursor: pointer;
-      flex: 0 0 auto;
     }
-    .video-container.selected {
-      width: 90%;
-      margin: 0 auto 20px auto;
-      flex: 0 0 90%;
-      height: auto;
-    }
-    .video-container video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: all 0.5s ease;
-    }
-    .video-container.selected video {
+    .video-thumbnail {
       width: 100%;
       height: auto;
-      object-fit: contain;
-    }
-    .like-button {
-      position: absolute;
-      bottom: 10px;
-      right: 10px;
-      font-size: 28px;
-      color: #e74c3c;
-      background: rgba(0,0,0,0.5);
-      border: none;
-      border-radius: 50%;
-      padding: 10px;
-      cursor: pointer;
-      opacity: 0;
-      transition: opacity 0.5s ease;
-    }
-    .video-container.selected .like-button {
-      opacity: 1;
-    }
-    .like-count {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: rgba(0,0,0,0.6);
-      padding: 4px 8px;
       border-radius: 10px;
-      font-size: 14px;
     }
-    /* Paslēpts faila ievades lauks */
+    .play-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 50px;
+      color: white;
+      text-shadow: 2px 2px 10px black;
+      pointer-events: none;
+    }
     #videoFileInput {
       display: none;
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    VEZITIVUS LENTA
-  </div>
+  <div class="header">VEZITIVUS LENTA</div>
   
-  <div id="uploadSection" style="display:none;">
-    <button id="uploadVideoBtn">Augšupielādēt video</button>
+  <div id="uploadSection">
+    <button id="uploadVideoBtn">📤 Augšupielādēt video</button>
     <input type="file" id="videoFileInput" accept="video/*">
   </div>
   
-  <p class="warning-text">
-    Lūdzu ievērojiet, ka video saturam jāatbilst VEZITIVUS iekšējo vadlīniju prasībām – saturs ir paredzēts iekšējai lietošanai.
-  </p>
-  
-  <div id="loader"></div>
-  
-  <div class="video-grid" id="videoGrid">
-    <!-- Video ieraksti tiks ielādēti šeit -->
-  </div>
+  <div class="video-grid" id="videoGrid"></div>
 </body>
 </html>
