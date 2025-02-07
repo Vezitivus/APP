@@ -1,15 +1,120 @@
-<!DOCTYPE html>
-<html lang="lv">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simpatijas balva</title>
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <div class="profile-page">
-    <h1 class="main-title">Simpatijas balva</h1>
-    <p style="text-align:center;">Pagaidām šī lapa ir izstrādes stadijā.</p>
-  </div>
-</body>
-</html>
+/****************************************************
+ * Google Apps Script – Simpatijas balvas Web App
+ * Izmanto Google Sheets: 
+ * ID: 1KYwqQ4gpwnXuMjNGjET1KnZVh2hmgadAl1rpmCttdnk
+ * Lapas nosaukums: "Lapa1"
+ *
+ * GET: action=getImages – izgūst visus attēlus no kolonnas E (indekss 4)
+ *       un aprēķina balsu skaitu, skaitot visas nedzēstas vērtības no kolonnām V un tālāk.
+ *
+ * POST: action=vote & imageUrl=... & uid=... – pārbauda, vai balsotājam (uid)
+ *       vēl nav bijušas 3 balsis; ja balsu skaits ir mazāks, tad attiecīgajā rindā (kurā atrodas imageUrl)
+ *       pirmajā tukšajā balsu šūnā (kolonnās V un tālāk) ievieto balsotāja uid.
+ ****************************************************/
+
+function doGet(e) {
+  var action = e.parameter.action;
+  if (action === "getImages") {
+    return getImages();
+  }
+  return ContentService.createTextOutput("Invalid action");
+}
+
+function doPost(e) {
+  var action = e.parameter.action;
+  if (action === "vote") {
+    return voteForImage(e);
+  }
+  return ContentService.createTextOutput("Invalid action");
+}
+
+function getImages() {
+  var ss = SpreadsheetApp.openById("1KYwqQ4gpwnXuMjNGjET1KnZVh2hmgadAl1rpmCttdnk");
+  var sheet = ss.getSheetByName("Lapa1");
+  var data = sheet.getDataRange().getValues();
+  var images = [];
+  // Pieņemam, ka pirmajā rindā ir galvenes; dati sākas ar 2. rindu (i = 1)
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    var imageUrl = row[4]; // kolonna E (indekss 4)
+    if (imageUrl) {
+      // Aprēķina balsu skaitu – skaitām visas nedzēstas vērtības sākot no kolonnas V (indekss 21)
+      var votes = 0;
+      for (var j = 21; j < row.length; j++) {
+        if (row[j] !== "" && row[j] !== null) {
+          votes++;
+        }
+      }
+      images.push({ imageUrl: imageUrl, votes: votes });
+    }
+  }
+  return ContentService
+         .createTextOutput(JSON.stringify({ status: "success", data: images }))
+         .setMimeType(ContentService.MimeType.JSON);
+}
+
+function countVotesForVoter(voterUid) {
+  var ss = SpreadsheetApp.openById("1KYwqQ4gpwnXuMjNGjET1KnZVh2hmgadAl1rpmCttdnk");
+  var sheet = ss.getSheetByName("Lapa1");
+  var data = sheet.getDataRange().getValues();
+  var totalVotes = 0;
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    for (var j = 21; j < row.length; j++) {
+      if (row[j] && row[j].toString() === voterUid) {
+        totalVotes++;
+      }
+    }
+  }
+  return totalVotes;
+}
+
+function voteForImage(e) {
+  var imageUrl = e.parameter.imageUrl;
+  var voterUid = e.parameter.uid;
+  if (!imageUrl || !voterUid) {
+    return ContentService
+           .createTextOutput(JSON.stringify({ status: "error", message: "Trūkst imageUrl vai uid parameter" }))
+           .setMimeType(ContentService.MimeType.JSON);
+  }
+  
+  // Pārbauda, cik balsu jau ir reģistrētas no šī balsotāja visā dokumentā
+  var votesCast = countVotesForVoter(voterUid);
+  if (votesCast >= 3) {
+    return ContentService
+           .createTextOutput(JSON.stringify({ status: "error", message: "Maksimālais balsu skaits sasniegts" }))
+           .setMimeType(ContentService.MimeType.JSON);
+  }
+  
+  var ss = SpreadsheetApp.openById("1KYwqQ4gpwnXuMjNGjET1KnZVh2hmgadAl1rpmCttdnk");
+  var sheet = ss.getSheetByName("Lapa1");
+  var data = sheet.getDataRange().getValues();
+  
+  // Meklējam rindu, kurā kolonnas E vērtība sakrīt ar imageUrl
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    if (row[4] === imageUrl) {
+      // Meklē pirmo tukšo šūnu kolonnās V un tālāk, lai ievietotu balsotāja uid
+      var voteColumn = -1;
+      for (var j = 21; j < row.length; j++) {
+        if (row[j] === "" || row[j] === null) {
+          voteColumn = j;
+          break;
+        }
+      }
+      if (voteColumn === -1) {
+        return ContentService
+               .createTextOutput(JSON.stringify({ status: "error", message: "Nav pieejamu balsu kolonu" }))
+               .setMimeType(ContentService.MimeType.JSON);
+      }
+      // Ievieto balsotāja uid attiecīgajā šūnā
+      sheet.getRange(i + 1, voteColumn + 1).setValue(voterUid);
+      return ContentService
+             .createTextOutput(JSON.stringify({ status: "success", message: "Balsojums reģistrēts" }))
+             .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+  return ContentService
+         .createTextOutput(JSON.stringify({ status: "error", message: "Attēts nav atrasts" }))
+         .setMimeType(ContentService.MimeType.JSON);
+}
