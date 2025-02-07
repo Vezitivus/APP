@@ -9,7 +9,6 @@
   <!-- jQuery -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <style>
-    /* Fona stils – lineārs gradienta fons, kas aizpilda visu ekrānu */
     html, body {
       margin: 0;
       padding: 0;
@@ -19,7 +18,6 @@
       color: #fff;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
-    /* Fiksēts virsraksts */
     .header {
       position: fixed;
       top: 0;
@@ -32,7 +30,6 @@
       font-weight: bold;
       z-index: 1000;
     }
-    /* Augšupielādes pogas stils */
     #uploadSection {
       text-align: center;
       margin-top: 90px;
@@ -49,14 +46,12 @@
     #uploadVideoBtn:hover {
       background: #0056b3;
     }
-    /* Brīdinājuma teksts */
     .warning-text {
       text-align: center;
       margin: 10px 20px;
       font-size: 0.9em;
       color: #ddd;
     }
-    /* Loader stils */
     #loader {
       margin: 40px auto;
       width: 40px;
@@ -70,7 +65,6 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-    /* Video feedu konteinera režģa stils */
     .video-grid {
       display: flex;
       flex-wrap: wrap;
@@ -78,7 +72,6 @@
       justify-content: center;
       padding: 20px;
     }
-    /* Noklusējuma video konteineris – sākumā 160px augstums */
     .video-container {
       position: relative;
       width: 160px;
@@ -91,27 +84,23 @@
       cursor: pointer;
       flex: 0 0 auto;
     }
-    /* Kad konteineris ir izvēlēts – palielinās */
     .video-container.selected {
       width: 90%;
       margin: 0 auto 20px auto;
       flex: 0 0 90%;
       height: auto;
     }
-    /* Video elements – sākumā pielāgots konteinerim */
     .video-container video {
       width: 100%;
       height: 100%;
       object-fit: cover;
       transition: all 0.5s ease;
     }
-    /* Kad konteineris ir izvēlēts – video tiek pilnībā attēlots */
     .video-container.selected video {
       width: 100%;
       height: auto;
       object-fit: contain;
     }
-    /* Like ikona – sirds, kas rādās uz video, kad tas ir izvēlēts */
     .like-button {
       position: absolute;
       bottom: 10px;
@@ -129,7 +118,6 @@
     .video-container.selected .like-button {
       opacity: 1;
     }
-    /* Like skaita rādītājs */
     .like-count {
       position: absolute;
       top: 10px;
@@ -146,59 +134,52 @@
   </style>
 </head>
 <body>
-  <!-- Fiksēts virsraksts -->
   <div class="header">
     VEZITIVUS LENTA
   </div>
   
-  <!-- Augšupielādes pogas sadaļa – redzama tikai, ja URL satur uid -->
   <div id="uploadSection" style="display:none;">
     <button id="uploadVideoBtn">Augšupielādēt video</button>
-    <!-- Paslēpts faila ievades lauks video augšupielādei -->
     <input type="file" id="videoFileInput" accept="video/*">
   </div>
   
-  <!-- Brīdinājuma teksts -->
   <p class="warning-text">
     Lūdzu ievērojiet, ka video saturam jāatbilst VEZITIVUS iekšējo vadlīniju prasībām – saturs ir paredzēts iekšējai lietošanai.
   </p>
   
-  <!-- Loader -->
   <div id="loader"></div>
   
-  <!-- Video feedu konteiners -->
   <div class="video-grid" id="videoGrid">
-    <!-- Dinamiski ielādētie video ieraksti tiks ievietoti šeit -->
+    <!-- Video ieraksti tiks ielādēti šeit -->
   </div>
   
   <script>
-    /********** URL Parametru Apstrāde **********/
-    // Piemēram: activity.html?uid=VZ001
+    // URL parametru apstrāde (piemēram, activity.html?uid=VZ001)
     const urlParams = new URLSearchParams(window.location.search);
     const uid = urlParams.get('uid');
-    if(uid) {
+    if (uid) {
       $('#uploadSection').show();
     } else {
       $('#uploadSection').hide();
     }
-  
-    /********** Cloudinary Augšupielāde Ar AJAX **********/
-    // Izmantojam Cloudinary unsigned upload API. Aizvietojiet "your_unsigned_preset" ar jūsu unsigned upload preset nosaukumu.
+    
+    // Cloudinary augšupielādes funkcija, izmantojot unsigned upload API
+    // Aizvietojiet "your_unsigned_preset" ar jūsu unsigned upload preset nosaukumu
     function uploadVideoFile(file) {
-      const url = "https://api.cloudinary.com/v1_1/dmkpb05ww/video/upload";
+      const cloudUrl = "https://api.cloudinary.com/v1_1/" + CLOUDINARY_CLOUD_NAME + "/video/upload";
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("upload_preset", "your_unsigned_preset"); // Nomainiet uz savu unsigned upload preset
+      formData.append("upload_preset", "your_unsigned_preset");
       formData.append("folder", "Lenta");
-  
-      fetch(url, {
+      
+      fetch(cloudUrl, {
         method: "POST",
         body: formData
       })
       .then(response => response.json())
       .then(data => {
         console.log("Video augšupielādēts:", data.secure_url);
-        if(data.secure_url) {
+        if (data.secure_url) {
           saveVideo(data.secure_url);
         } else {
           alert("Video augšupielāde neizdevās.");
@@ -208,49 +189,48 @@
         console.error("Kļūda video augšupielādē:", error);
       });
     }
-  
-    // Poga "Augšupielādēt video" nospiež paslēpto faila ievadi
+    
+    // Poga "Augšupielādēt video" – aktivizē paslēpto faila ievades lauku
     $("#uploadVideoBtn").on("click", function(){
-      if(uid) {
+      if (uid) {
         $("#videoFileInput").click();
       } else {
         alert("Lai augšupielādētu video, piesakieties savā profilā!");
       }
     });
-  
-    // Kad tiek izvēlēts fails, izsaucam augšupielādes funkciju
+    
     $("#videoFileInput").on("change", function(){
       const file = this.files[0];
-      if(file) {
+      if (file) {
         uploadVideoFile(file);
       }
     });
-  
-    /********** Google Apps Script Servisa URL **********/
+    
+    // Google Apps Script servisa URL
     const googleScriptUrl = "https://script.google.com/macros/s/AKfycbyDO5hMMHgqgbCfZ_AHyQRRe6_9S_7hTx420k2busDFeWIoKCI-9wEeApXiry7vv6MxWQ/exec";
-  
-    /********** Funkcija – Video Saglabāšana **********/
+    
+    // Saglabā video, izsaucot Google Apps Script (action=saveVideo)
     function saveVideo(videoUrl) {
-      if(!uid) {
+      if (!uid) {
         alert("Lai saglabātu video, piesakieties savā profilā!");
         return;
       }
       $.post(googleScriptUrl, { action: "saveVideo", uid: uid, videoUrl: videoUrl })
         .done(function(response){
-          console.log('Video saglabāts:', response);
+          console.log("Video saglabāts:", response);
           loadFeed();
         })
         .fail(function(error){
-          console.error('Neizdevās saglabāt video:', error);
+          console.error("Neizdevās saglabāt video:", error);
         });
     }
-  
-    /********** Funkcija – Video Feed Ielāde **********/
+    
+    // Iegūst video feed (action=getVideos)
     function loadFeed() {
       $.getJSON(googleScriptUrl + "?action=getVideos")
         .done(function(data){
           console.log("Iegūtie video:", data);
-          renderFeed(data);
+          renderFeed(data.data);
         })
         .fail(function(jqxhr, textStatus, error){
           console.error("Kļūda, iegūstot video:", textStatus, error);
@@ -259,27 +239,27 @@
           $("#loader").hide();
         });
     }
-  
-    /********** Funkcija – Feed Attēlošana **********/
+    
+    // Attēlo video ierakstus
     function renderFeed(videos) {
       const grid = $("#videoGrid");
       grid.empty();
       videos.forEach(function(video){
         const container = $("<div class='video-container'></div>");
         container.attr("data-video-url", video.videoUrl);
-  
+        
         // Video elements – sākumā statisks attēls
         const vidEl = $("<video muted playsinline></video>");
         vidEl.attr("src", video.videoUrl);
         container.append(vidEl);
-  
+        
         // Like skaita rādītājs
         const likeCount = $("<div class='like-count'></div>").text(video.likes ? video.likes.length : 0);
         container.append(likeCount);
-  
+        
         // Like poga – sirds ikona
         const likeButton = $("<button class='like-button'><i class='fa-regular fa-heart'></i></button>");
-        if(!uid) {
+        if (!uid) {
           likeButton.prop("disabled", true);
         } else {
           likeButton.on("click", function(e){
@@ -288,10 +268,10 @@
           });
         }
         container.append(likeButton);
-  
-        // Klikšķa apstrāde – palielina konteineru un atskaņo video
+        
+        // Klikšķa apstrāde – palielina/deselektē video un sāk atskaņošanu
         container.on("click", function(){
-          if(container.hasClass("selected")){
+          if (container.hasClass("selected")) {
             container.removeClass("selected");
             vidEl[0].pause();
             container.css("height", "160px");
@@ -305,20 +285,20 @@
             vidEl[0].play();
           }
         });
-  
+        
         grid.append(container);
       });
     }
-  
-    /********** Funkcija – Like Apstrāde **********/
+    
+    // Reģistrē like darbību
     function likeVideo(videoUrl, container, likeCountElement) {
-      if(!uid) {
+      if (!uid) {
         alert("Lūdzu piesakieties, lai varētu likot video.");
         return;
       }
       $.post(googleScriptUrl, { action: "likeVideo", uid: uid, videoUrl: videoUrl })
         .done(function(response){
-          console.log('Video like reģistrēts:', response);
+          console.log("Video like reģistrēts:", response);
           let currentLikes = parseInt(likeCountElement.text());
           likeCountElement.text(currentLikes + 1);
         })
@@ -326,8 +306,7 @@
           console.error("Kļūda, saglabājot like:", error);
         });
     }
-  
-    // Ielādējam video feed, kad lapa ir gatava
+    
     $(document).ready(function(){
       loadFeed();
     });
