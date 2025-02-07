@@ -4,10 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VEZITIVUS LENTA</title>
-  <!-- Font Awesome sirds ikonas attēlošanai -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
-        integrity="sha512-pVIjqRwZ+PDc8OqV+Y5M+DE1S1ozI94JH8HJKvMtHcblZ8xwSgSot9M/pM0LK7P0rEamxZFO7nZ2HnR8PR9F3Q==" 
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- Font Awesome CSS (bez integrity atribūta) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <!-- jQuery -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <style>
@@ -21,7 +19,7 @@
       color: #fff;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
-    /* Fiksēts virsraksts lapas augšā */
+    /* Fiksēts virsraksts */
     .header {
       position: fixed;
       top: 0;
@@ -107,7 +105,7 @@
       object-fit: cover;
       transition: all 0.5s ease;
     }
-    /* Ja konteineris ir izvēlēts – video tiek pilnībā attēlots */
+    /* Kad konteineris ir izvēlēts – video tiek pilnībā attēlots */
     .video-container.selected video {
       width: 100%;
       height: auto;
@@ -184,13 +182,13 @@
       $('#uploadSection').hide();
     }
   
-    /********** Cloudinary Upload Ar AJAX **********/
-    // Izmantojam Cloudinary unsigned upload API
+    /********** Cloudinary Augšupielāde Ar AJAX **********/
+    // Izmantojam Cloudinary unsigned upload API. Aizvietojiet "your_unsigned_preset" ar jūsu unsigned upload preset nosaukumu.
     function uploadVideoFile(file) {
       const url = "https://api.cloudinary.com/v1_1/dmkpb05ww/video/upload";
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("upload_preset", "unsigned_preset_if_needed"); // Aizvietojiet ar savu unsigned upload preset nosaukumu
+      formData.append("upload_preset", "your_unsigned_preset"); // Nomainiet uz savu unsigned upload preset
       formData.append("folder", "Lenta");
   
       fetch(url, {
@@ -211,7 +209,7 @@
       });
     }
   
-    // Poga "Augšupielādēt video" – nospiež paslēpto faila ievadi
+    // Poga "Augšupielādēt video" nospiež paslēpto faila ievadi
     $("#uploadVideoBtn").on("click", function(){
       if(uid) {
         $("#videoFileInput").click();
@@ -220,7 +218,7 @@
       }
     });
   
-    // Kad tiek izvēlēts fails, izsaucam upload funkciju
+    // Kad tiek izvēlēts fails, izsaucam augšupielādes funkciju
     $("#videoFileInput").on("change", function(){
       const file = this.files[0];
       if(file) {
