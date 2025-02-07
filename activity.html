@@ -156,10 +156,9 @@
   <script>
     // Definējam Cloudinary konta datus
     const CLOUDINARY_CLOUD_NAME = "dmkpb05ww";
-    // Lai gan API key un secret ir jūsu, API secret nevajadzētu tikt izmantots klienta pusē
-    const CLOUDINARY_API_KEY = "858897888683582";
-    const CLOUDINARY_API_SECRET = "-";  // Nepieciešams tikai servera pusē
-  
+    const CLOUDINARY_UPLOAD_PRESET = "Vezitivus";
+    const CLOUDINARY_ASSET_FOLDER = "samples/ecommerce";
+    
     // URL parametru apstrāde (piemēram, activity.html?uid=VZ001)
     const urlParams = new URLSearchParams(window.location.search);
     const uid = urlParams.get('uid');
@@ -170,13 +169,12 @@
     }
     
     // Cloudinary augšupielādes funkcija, izmantojot unsigned upload API
-    // Aizvietojiet "your_unsigned_preset" ar jūsu unsigned upload preset nosaukumu
     function uploadVideoFile(file) {
       const cloudUrl = "https://api.cloudinary.com/v1_1/" + CLOUDINARY_CLOUD_NAME + "/video/upload";
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("upload_preset", "your_unsigned_preset"); // Nomainiet uz savu unsigned upload preset
-      formData.append("folder", "Lenta");
+      formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+      formData.append("folder", CLOUDINARY_ASSET_FOLDER);
       
       fetch(cloudUrl, {
         method: "POST",
