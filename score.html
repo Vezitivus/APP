@@ -6,7 +6,7 @@
   <title>Vezitivus Score board</title>
   <link rel="stylesheet" href="styles.css">
   <style>
-    /* Papildu stili score board lapai, lai radītu mūsdienīgu iOS-like dizainu */
+    /* Papildu stili score board lapai – modernam, iOS like dizainam */
     .scoreboard-container {
       background: rgba(255, 255, 255, 0.08);
       backdrop-filter: blur(15px);
@@ -50,6 +50,7 @@
             <th>Vieta</th>
             <th>Vārds</th>
             <th>Punkti</th>
+            <th>Aktivitātes</th>
           </tr>
         </thead>
         <tbody>
@@ -60,39 +61,38 @@
   </div>
 
   <script>
-    // Google Sheets publiskā JSON feed adrese
-    // Sheet ID: 1KYwqQ4gpwnXuMjNGjET1KnZVh2hmgadAl1rpmCttdnk
-    // Šeit tiek izmantots "od6" kā noklusējuma lapa; ja lapa "SB" nav pirmā,
-    // nepieciešams pielāgot sheet numuru.
-    const sheetID = '1KYwqQ4gpwnXuMjNGjET1KnZVh2hmgadAl1rpmCttdnk';
-    const sheetNumber = 'od6';
-    const url = `https://spreadsheets.google.com/feeds/list/${sheetID}/${sheetNumber}/public/values?alt=json`;
+    /* Šeit tiek izmantots jūsu Google Apps Script Web App URL.
+       Pārliecinieties, ka tas atbilst jūsu izvietošanas URL.
+       Mēs pieprasām datus ar parametru action=scoreboard, 
+       kas mūsu skriptā izgūst datus no lapas "SB". */
+    const scriptUrl = "https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCw8RaXwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec?action=scoreboard";
 
     async function fetchScoreboardData() {
       try {
-        const response = await fetch(url);
-        const data = await response.json();
-        const entries = data.feed.entry;
-        const tbody = document.querySelector('#scoreboard-table tbody');
-        tbody.innerHTML = '';
-        // Iterējam caur katru ierakstu un aizpildām tabulu
-        entries.forEach(entry => {
-          // Pieņemam, ka jūsu Google Sheets kolonnas ir nosauktas atbilstoši (bez lielajiem burtiem)
-          const vieta = entry.gsx$vieta ? entry.gsx$vieta.$t : '';
-          const vards = entry.gsx$vards ? entry.gsx$vards.$t : '';
-          const punkti = entry.gsx$punkti ? entry.gsx$punkti.$t : '';
-          const row = document.createElement('tr');
-          row.innerHTML = `<td>${vieta}</td><td>${vards}</td><td>${punkti}</td>`;
-          tbody.appendChild(row);
-        });
+        const response = await fetch(scriptUrl);
+        const result = await response.json();
+        if (result.status === "success") {
+          const tbody = document.querySelector('#scoreboard-table tbody');
+          tbody.innerHTML = "";
+          result.data.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${row.vieta}</td>
+              <td>${row.vards}</td>
+              <td>${row.punkti}</td>
+              <td>${row.aktivitates}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } else {
+          console.error("Kļūda: " + result.message);
+        }
       } catch (error) {
-        console.error('Kļūda ielādējot score board datus:', error);
+        console.error("Kļūda ielādējot score board datus:", error);
       }
     }
 
-    document.addEventListener("DOMContentLoaded", function() {
-      fetchScoreboardData();
-    });
+    document.addEventListener("DOMContentLoaded", fetchScoreboardData);
   </script>
 </body>
 </html>
