@@ -15,7 +15,7 @@
       color: #fff;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
-    /* Fiksēts virsraksts lapas augšā */
+    /* Fiksēts virsraksts lapas augšā, kurā ir gan uzraksts, gan profila balsu atlikums */
     .header {
       position: fixed;
       top: 0;
@@ -28,28 +28,23 @@
       font-weight: bold;
       z-index: 1000;
     }
-    /* Profila balsu atlikuma informācija – centrēts, ar mazāku fontu */
-    .profile-info {
-      text-align: center;
-      font-size: 14px;
-      margin-top: 70px; /* zem virsraksta */
-      margin-bottom: 20px;
-    }
-    /* Aplis ar baltu malu, kurā attēlota balsu atlikuma vērtība */
+    /* Aplis ar baltu malu, kurā attēlota balsu atlikuma vērtība – 2x mazāks */
     .vote-remaining {
       display: inline-block;
-      width: 40px;
-      height: 40px;
+      width: 20px;
+      height: 20px;
       border: 2px solid #fff;
       border-radius: 50%;
-      line-height: 40px;
+      line-height: 20px;
       text-align: center;
       margin-left: 10px;
       font-weight: bold;
+      font-size: 12px;
+      vertical-align: middle;
     }
     /* Saturs zem virsraksta */
     .content {
-      margin-top: 20px;
+      margin-top: 80px;
       padding: 20px;
     }
     /* Attēlu režģa konteiners */
@@ -142,11 +137,9 @@
   </style>
 </head>
 <body>
-  <div class="header">Simpatijas balva</div>
-  
-  <!-- Jauna sadaļa profila balsu atlikumam -->
-  <div class="profile-info">
-    Balsu skaits:
+  <!-- Header satur gan virsrakstu "Simpatijas balva" gan balsu atlikuma aplīti -->
+  <div class="header">
+    Simpatijas balva
     <span id="profileVotes" class="vote-remaining">0</span>
   </div>
   
@@ -219,13 +212,17 @@
         voteButton.disabled = false;
         voteButton.addEventListener("click", async (e) => {
           e.stopPropagation();
+          // Uzreiz padara pogu neaktīvu, lai novērstu vairākkārtīgu nospiešanu
+          voteButton.disabled = true;
           const urlParams = new URLSearchParams(window.location.search);
           const uid = urlParams.get("uid") || "defaultUid";
           await voteForImage(container.dataset.imageUrl, container, voteCount, voteButton, uid);
           container.classList.remove("selected");
           container.style.height = "160px";
-          // Pēc balsošanas atjaunojam arī profila balsu atlikumu
+          // Atjaunojam arī profila balsu atlikumu
           fetchProfile();
+          // Pēc operācijas atkārtoti aktivizējam pogu
+          voteButton.disabled = false;
         });
         container.appendChild(voteButton);
         
