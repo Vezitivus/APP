@@ -2,13 +2,238 @@
 <html lang="lv">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VEZITIVUS AKTIVITATE</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>VEZITIVUS LENTA</title>
+  <!-- Font Awesome sirdsdzīmes (like pogai) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-pVIjqRwZ+PDc8OqV+Y5M+DE1S1ozI94JH8HJKvMtHcblZ8xwSgSot9M/pM0LK7P0rEamxZFO7nZ2HnR8PR9F3Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- jQuery -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <!-- Cloudinary Upload Widget -->
+  <script src="https://widget.cloudinary.com/v2.0/global/all.js" type="text/javascript"></script>
+  <style>
+    /* Moderns un elegants stils */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f9f9f9;
+      color: #333;
+    }
+    header {
+      background: #000;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      margin: 0;
+      font-size: 2.5em;
+      letter-spacing: 2px;
+    }
+    main {
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    #uploadSection {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    #uploadVideoBtn {
+      background: #007bff;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1em;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #uploadVideoBtn:hover {
+      background: #0056b3;
+    }
+    .warning-text {
+      font-size: 0.9em;
+      color: #555;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .video-entry {
+      background: #fff;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    video {
+      width: 100%;
+      border-radius: 10px;
+      display: block;
+    }
+    .like-section {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .like-button {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 1.5em;
+      color: #e74c3c;
+    }
+    .like-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+    .like-count {
+      margin-left: 8px;
+      font-size: 1em;
+    }
+  </style>
 </head>
 <body>
-  <div class="profile-page">
-    <h1 class="main-title">VEZITIVUS AKTIVITATE</h1>
-  </div>
+  <header>
+    <h1>VEZITIVUS LENTA</h1>
+  </header>
+  <main>
+    <!-- Augšupielādes pogas sadaļa (redzama tikai, ja URL satur uid) -->
+    <div id="uploadSection" style="display:none;">
+      <button id="uploadVideoBtn">Augšupielādēt video</button>
+    </div>
+    <!-- Uzlabots brīdinājuma teksts -->
+    <p class="warning-text">
+      Lūdzu ievērojiet, ka publicētajam saturam jāatbilst VEZITIVUS iekšējo vadlīniju prasībām – saturs ir paredzēts iekšējai lietošanai, un nevajadzētu publicēt nepieņemamus materiālus.
+    </p>
+    <!-- Video feed, kurā attēloti augšupielādētie video un to like informācija -->
+    <div id="feed"></div>
+  </main>
+
+  <script>
+    /********** URL Parametru Apstrāde **********/
+    // Piemēram, activity.html?uid=VZ001
+    const urlParams = new URLSearchParams(window.location.search);
+    const uid = urlParams.get('uid');
+    if(uid) {
+      $('#uploadSection').show();
+    } else {
+      $('#uploadSection').hide();
+    }
+
+    /********** Cloudinary Upload Widget Konfigurācija **********/
+    const cloudinaryConfig = {
+      cloudName: 'dmkpb05ww',
+      apiKey: '858897888683582',
+      apiSecret: 'jkTzEMBCQF-Tmr5a1A68adW0OJA', // Ražošanas vidē nedrīkst publicēt!
+      folder: 'Lenta'
+    };
+
+    // Inicializējam widget video augšupielādei
+    var myWidget = cloudinary.createUploadWidget({
+      cloudName: cloudinaryConfig.cloudName,
+      uploadPreset: 'unsigned_preset_if_needed', // Aizvietojiet ar jūsu unsigned upload preset
+      folder: cloudinaryConfig.folder,
+      resourceType: 'video'
+    }, (error, result) => {
+      if (!error && result && result.event === "success") {
+        console.log('Video augšupielādēts:', result.info.secure_url);
+        saveVideo(result.info.secure_url);
+      } else if(error) {
+        console.error('Augšupielādes kļūda:', error);
+      }
+    });
+
+    // Pogas darbība – ja ir norādīts uid, atveram widget; citādi, parādām paziņojumu
+    document.getElementById("uploadVideoBtn").addEventListener("click", function(){
+      if(uid) {
+        myWidget.open();
+      } else {
+        alert("Lai augšupielādētu video, lūdzu, piesakieties savā profilā!");
+      }
+    }, false);
+
+    /********** Google Apps Script Servisa URL **********/
+    const googleScriptUrl = 'https://script.google.com/macros/s/AKfycbyDO5hMMHgqgbCfZ_AHyQRRe6_9S_7hTx420k2busDFeWIoKCI-9wEeApXiry7vv6MxWQ/exec';
+
+    /********** Funkcija – Video Saglabāšana **********/
+    function saveVideo(videoUrl) {
+      if(!uid) {
+        alert("Lai saglabātu video, piesakieties savā profilā!");
+        return;
+      }
+      $.post(googleScriptUrl, { action: "saveVideo", uid: uid, videoUrl: videoUrl })
+        .done(function(response){
+          console.log('Video saglabāts:', response);
+          loadFeed();
+        })
+        .fail(function(error){
+          console.error('Neizdevās saglabāt video:', error);
+        });
+    }
+
+    /********** Funkcija – Video Feed Ielāde **********/
+    function loadFeed() {
+      $.getJSON(googleScriptUrl + "?action=getVideos")
+        .done(function(data){
+          console.log("Iegūtie video:", data);
+          renderFeed(data);
+        })
+        .fail(function(jqxhr, textStatus, error){
+          console.error("Kļūda, iegūstot video:", textStatus, error);
+        });
+    }
+
+    /********** Funkcija – Feed Attēlošana **********/
+    function renderFeed(videos) {
+      const feed = $("#feed");
+      feed.empty();
+      videos.forEach(function(video){
+        const videoContainer = $("<div class='video-entry'></div>");
+        const videoElement = $("<video controls></video>");
+        const source = $("<source>").attr("src", video.videoUrl).attr("type", "video/mp4");
+        videoElement.append(source);
+        videoContainer.append(videoElement);
+
+        // Like sadaļa ar sirds ikonu un esošo like skaitu
+        const likeSection = $("<div class='like-section'></div>");
+        const likeButton = $("<button class='like-button'><i class='fa-regular fa-heart'></i></button>");
+        const likeCount = $("<span class='like-count'></span>").text(video.likes ? video.likes.length : 0);
+        
+        // Ja nav pieslēguma (nav uid), like poga tiek deaktivēta
+        if(!uid) {
+          likeButton.prop("disabled", true);
+        } else {
+          likeButton.on("click", function(){
+            likeVideo(video.videoUrl);
+          });
+        }
+        likeSection.append(likeButton);
+        likeSection.append(likeCount);
+        videoContainer.append(likeSection);
+
+        feed.append(videoContainer);
+      });
+    }
+
+    /********** Funkcija – Like Apstrāde **********/
+    function likeVideo(videoUrl) {
+      if(!uid) {
+        alert("Lūdzu piesakieties, lai varētu likot video.");
+        return;
+      }
+      $.post(googleScriptUrl, { action: "likeVideo", uid: uid, videoUrl: videoUrl })
+        .done(function(response){
+          console.log('Video like reģistrēts:', response);
+          loadFeed();
+        })
+        .fail(function(error){
+          console.error("Kļūda, saglabājot like:", error);
+        });
+    }
+
+    // Ielādējam video feed, kad lapa ir gatava
+    $(document).ready(function(){
+      loadFeed();
+    });
+  </script>
 </body>
 </html>
