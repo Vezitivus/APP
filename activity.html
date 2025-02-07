@@ -154,7 +154,7 @@
   </div>
   
   <script>
-    // Cloudinary konfigurācija (klienta pusē izmantojam tikai nepieciešamo informāciju)
+    // Cloudinary konfigurācija
     const CLOUDINARY_CLOUD_NAME = "dmkpb05ww";
     const CLOUDINARY_UPLOAD_PRESET = "Vezitivus";
     const CLOUDINARY_ASSET_FOLDER = "samples/ecommerce";
@@ -213,27 +213,12 @@
     // Google Apps Script servisa URL
     const googleScriptUrl = "https://script.google.com/macros/s/AKfycbyDO5hMMHgqgbCfZ_AHyQRRe6_9S_7hTx420k2busDFeWIoKCI-9wEeApXiry7vv6MxWQ/exec";
     
-    // Saglabā video, izsaucot Google Apps Script (action=saveVideo)
-    function saveVideo(videoUrl) {
-      if(!uid) {
-        alert("Lai saglabātu video, piesakieties savā profilā!");
-        return;
-      }
-      $.post(googleScriptUrl, { action: "saveVideo", uid: uid, videoUrl: videoUrl })
-        .done(function(response){
-          console.log("Video saglabāts:", response);
-          loadFeed();
-        })
-        .fail(function(error){
-          console.error("Neizdevās saglabāt video:", error);
-        });
-    }
-    
-    // Iegūst video feed, izmantojot JSONP, lai apietu CORS problēmas
+    // Iegūst video feed, izmantojot JSONP, lai apietu CORS ierobežojumus
     function loadFeed() {
       $.ajax({
         url: googleScriptUrl,
         dataType: "jsonp",
+        jsonp: "callback",
         data: { action: "getVideos" },
         success: function(response) {
           console.log("Iegūtie video:", response);
