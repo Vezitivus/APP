@@ -50,7 +50,7 @@ p {
   color: #ccc;
 }
 p+ {
-  font-size: 40px;
+  font-size: 100px;
   line-height: 1.6;
   color: #ccc;
 }
@@ -247,7 +247,7 @@ video {
   width: 100%;
   padding: 14px 24px;
   margin: 10px 0;
-  border-radius: 24px;
+  border-radius: 10px;
   font-size: 12px;
   font-weight: bold;
   text-align: center;
