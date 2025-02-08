@@ -3,30 +3,27 @@ const CLOUDINARY_CLOUD_NAME = "dmkpb05ww";
 const CLOUDINARY_UPLOAD_PRESET = "Vezitivus";
 const CLOUDINARY_ASSET_FOLDER = "vezitivus_videos";
 
-// URL parametru pārbaude (vienreizēja definēšana)
+// Manuālais video saraksts (pielāgo ar saviem resursiem)
+const videos = [
+  "https://res.cloudinary.com/dmkpb05ww/video/upload/v1672930000/vezitivus_videos/video1.mp4",
+  "https://res.cloudinary.com/dmkpb05ww/video/upload/v1672930000/vezitivus_videos/video2.mp4"
+];
+
 $(document).ready(function () {
-  const urlParams = new URLSearchParams(window.location.search);
-  const uid = urlParams.get('uid');
+  // Aktivizē augšupielādes pogu
+  $("#uploadVideoBtn").on("click", function () {
+    $("#videoFileInput").click();
+  });
 
-  // Aktivizē augšupielādes pogu, ja UID ir norādīts
-  if (uid) {
-    $("#uploadVideoBtn").prop("disabled", false);
+  // Kad tiek izvēlēts fails, augšupielādē uz Cloudinary
+  $("#videoFileInput").on("change", function () {
+    const file = this.files[0];
+    if (file) {
+      uploadVideoFile(file);
+    }
+  });
 
-    $("#uploadVideoBtn").on("click", function () {
-      $("#videoFileInput").click();
-    });
-
-    $("#videoFileInput").on("change", function () {
-      const file = this.files[0];
-      if (file) {
-        uploadVideoFile(file);
-      }
-    });
-  } else {
-    $("#uploadSection").hide(); // Paslēpj augšupielādes sekciju, ja UID nav norādīts
-  }
-
-  // Ielādē video lentu
+  // Ielādē video sarakstu
   loadFeed();
 });
 
@@ -43,6 +40,7 @@ function uploadVideoFile(file) {
     .then(data => {
       if (data.public_id) {
         alert("Video veiksmīgi augšupielādēts!");
+        videos.push(`https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${data.public_id}.mp4`);
         loadFeed(); // Atjaunina video sarakstu
       } else {
         alert("Video augšupielāde neizdevās.");
@@ -51,27 +49,14 @@ function uploadVideoFile(file) {
     .catch(error => console.error("Augšupielādes kļūda:", error));
 }
 
-// Ielādē video lentu no Cloudinary
+// Ielādē video lentu
 function loadFeed() {
-  const cloudinaryApiUrl = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/list/${CLOUDINARY_ASSET_FOLDER}.json`;
-
-  $.get(cloudinaryApiUrl)
-    .done(response => {
-      renderFeed(response.resources);
-    })
-    .fail(error => console.error("Kļūda, ielādējot video:", error));
-}
-
-// Attēlo video lentu
-function renderFeed(videos) {
   const grid = $("#videoGrid");
   grid.empty();
 
-  videos.forEach(video => {
-    const cloudinaryUrl = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${video.public_id}.mp4`;
-
+  videos.forEach(videoUrl => {
     const container = $("<div class='video-container'></div>");
-    const videoElement = $("<video controls muted playsinline></video>").attr("src", cloudinaryUrl);
+    const videoElement = $("<video controls muted playsinline></video>").attr("src", videoUrl);
 
     container.append(videoElement);
     grid.append(container);
