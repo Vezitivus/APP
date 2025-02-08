@@ -10,26 +10,17 @@ const uid = urlParams.get('uid');
 $(document).ready(function () {
   // Aktivizē augšupielādes pogu, ja UID ir URL
   if (uid) {
-    $("#uploadVideoBtn").prop("disabled", false);
-  }
-
-  // Kad augšupielādes poga tiek nospiesta
-  $("#uploadVideoBtn").on("click", function () {
-    if (!$(this).prop("disabled")) {
+    $("#uploadVideoBtn").on("click", function () {
       $("#videoFileInput").click();
-    }
-  });
+    });
 
-  // Kad tiek izvēlēts fails, augšupielādē uz Cloudinary
-  $("#videoFileInput").on("change", function () {
-    const file = this.files[0];
-    if (file) {
-      uploadVideoFile(file);
-    }
-  });
-
-  // Ielādē video lentu
-  loadFeed();
+    $("#videoFileInput").on("change", function () {
+      const file = this.files[0];
+      if (file) {
+        uploadVideoFile(file);
+      }
+    });
+  }
 });
 
 // Augšupielādē video uz Cloudinary
