@@ -1,13 +1,7 @@
 // Cloudinary konfigurācija
 const CLOUDINARY_CLOUD_NAME = "dmkpb05ww";
-const CLOUDINARY_UPLOAD_PRESET = "Vezitivus";
+const CLOUDINARY_UPLOAD_PRESET = "Vezitivus"; // Unsigned preset
 const CLOUDINARY_ASSET_FOLDER = "vezitivus_videos";
-
-// Manuālais video saraksts (pielāgo ar saviem resursiem)
-const videos = [
-  "https://res.cloudinary.com/dmkpb05ww/video/upload/v1672930000/vezitivus_videos/video1.mp4",
-  "https://res.cloudinary.com/dmkpb05ww/video/upload/v1672930000/vezitivus_videos/video2.mp4"
-];
 
 $(document).ready(function () {
   // Aktivizē augšupielādes pogu
@@ -23,7 +17,7 @@ $(document).ready(function () {
     }
   });
 
-  // Ielādē video sarakstu
+  // Ielādē video lentu
   loadFeed();
 });
 
@@ -40,8 +34,10 @@ function uploadVideoFile(file) {
     .then(data => {
       if (data.public_id) {
         alert("Video veiksmīgi augšupielādēts!");
+        console.log(`Video URL: https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${data.public_id}.mp4`);
+        // Pievieno video URL lentai
         videos.push(`https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${data.public_id}.mp4`);
-        loadFeed(); // Atjaunina video sarakstu
+        loadFeed(); // Atjauno video sarakstu
       } else {
         alert("Video augšupielāde neizdevās.");
       }
@@ -51,10 +47,29 @@ function uploadVideoFile(file) {
 
 // Ielādē video lentu
 function loadFeed() {
+  const cloudinaryApiUrl = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/resources/video/list/${CLOUDINARY_ASSET_FOLDER}.json`;
+
+  fetch(cloudinaryApiUrl)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP kļūda: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      renderFeed(data.resources);
+    })
+    .catch(error => console.error("Kļūda, ielādējot video:", error));
+}
+
+// Attēlo video lentu
+function renderFeed(videos) {
   const grid = $("#videoGrid");
   grid.empty();
 
-  videos.forEach(videoUrl => {
+  videos.forEach(video => {
+    const videoUrl = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${video.public_id}.mp4`;
+
     const container = $("<div class='video-container'></div>");
     const videoElement = $("<video controls muted playsinline></video>").attr("src", videoUrl);
 
