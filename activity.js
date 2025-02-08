@@ -3,13 +3,15 @@ const CLOUDINARY_CLOUD_NAME = "dmkpb05ww";
 const CLOUDINARY_UPLOAD_PRESET = "Vezitivus";
 const CLOUDINARY_ASSET_FOLDER = "vezitivus_videos";
 
-// URL parametru pārbaude
-const urlParams = new URLSearchParams(window.location.search);
-const uid = urlParams.get('uid');
-
+// URL parametru pārbaude (vienreizēja definēšana)
 $(document).ready(function () {
-  // Aktivizē augšupielādes pogu, ja UID ir URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const uid = urlParams.get('uid');
+
+  // Aktivizē augšupielādes pogu, ja UID ir norādīts
   if (uid) {
+    $("#uploadVideoBtn").prop("disabled", false);
+
     $("#uploadVideoBtn").on("click", function () {
       $("#videoFileInput").click();
     });
@@ -20,7 +22,12 @@ $(document).ready(function () {
         uploadVideoFile(file);
       }
     });
+  } else {
+    $("#uploadSection").hide(); // Paslēpj augšupielādes sekciju, ja UID nav norādīts
   }
+
+  // Ielādē video lentu
+  loadFeed();
 });
 
 // Augšupielādē video uz Cloudinary
