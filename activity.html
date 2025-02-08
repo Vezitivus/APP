@@ -5,18 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VEZITIVUS LENTA</title>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-  <script>
-    // URL parametru pārbaude, lai noteiktu, vai UID ir norādīts
-    const urlParams = new URLSearchParams(window.location.search);
-    const uid = urlParams.get('uid');
-
-    // Ja UID nav norādīts, paslēp augšupielādes sekciju
-    $(document).ready(function () {
-      if (!uid) {
-        $("#uploadSection").hide(); // Paslēpj augšupielādes sekciju
-      }
-    });
-  </script>
+  <script src="activity.js"></script>
   <style>
     body {
       background: linear-gradient(135deg, #1F1C2C, #928DAB);
@@ -84,7 +73,5 @@
 
   <!-- Video lenta -->
   <div class="video-grid" id="videoGrid"></div>
-
-  <script src="activity.js"></script>
 </body>
 </html>
