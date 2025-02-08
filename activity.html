@@ -7,14 +7,9 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <script src="activity.js"></script>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
     body {
       background: linear-gradient(135deg, #1F1C2C, #928DAB);
-      color: #fff;
+      color: white;
       font-family: sans-serif;
       display: flex;
       flex-direction: column;
@@ -22,14 +17,13 @@
       min-height: 100vh;
     }
     .header {
-      text-align: center;
-      font-size: 24px;
-      padding: 20px;
       width: 100%;
-      background: rgba(0,0,0,0.8);
+      text-align: center;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 20px;
+      font-size: 24px;
       position: fixed;
       top: 0;
-      left: 0;
     }
     #uploadSection {
       margin-top: 80px;
@@ -39,11 +33,9 @@
       background: #007bff;
       color: white;
       padding: 10px 20px;
-      font-size: 1em;
       border: none;
       border-radius: 5px;
       cursor: pointer;
-      transition: 0.3s;
     }
     #uploadVideoBtn:disabled {
       background: gray;
@@ -54,15 +46,13 @@
       flex-wrap: wrap;
       gap: 20px;
       justify-content: center;
-      padding: 20px;
       margin-top: 20px;
     }
     .video-container {
       width: 200px;
       height: 200px;
-      border-radius: 12px;
+      border-radius: 10px;
       overflow: hidden;
-      background: rgba(0,0,0,0.2);
     }
     .video-container video {
       width: 100%;
@@ -73,36 +63,12 @@
 </head>
 <body>
   <div class="header">VEZITIVUS LENTA</div>
-
+  
   <div id="uploadSection">
     <button id="uploadVideoBtn" disabled>Augšupielādēt video</button>
-    <input type="file" id="videoFileInput" accept="video/*" style="display:none;">
+    <input type="file" id="videoFileInput" accept="video/*" style="display: none;">
   </div>
 
   <div class="video-grid" id="videoGrid"></div>
-
-  <script>
-    $(document).ready(function() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const uid = urlParams.get('uid');
-      
-      if (uid) {
-        $("#uploadVideoBtn").prop("disabled", false);
-      }
-      
-      $("#uploadVideoBtn").on("click", function() {
-        if (!$(this).prop("disabled")) {
-          $("#videoFileInput").click();
-        }
-      });
-
-      $("#videoFileInput").on("change", function() {
-        const file = this.files[0];
-        if (file) {
-          uploadVideoFile(file);
-        }
-      });
-    });
-  </script>
 </body>
 </html>
