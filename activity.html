@@ -13,12 +13,10 @@
     html, body {
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-      color: white;
+      font-family: Arial, sans-serif;
       background: linear-gradient(to bottom, #1f1c2c, #928dab);
+      color: white;
       text-align: center;
-      min-height: 100vh;
-      -webkit-overflow-scrolling: touch;
     }
     .header {
       padding: 20px;
@@ -28,7 +26,6 @@
     }
     #uploadSection {
       margin: 20px;
-      display: none;
     }
     #uploadVideoBtn {
       background: #007bff;
@@ -36,12 +33,8 @@
       padding: 10px 20px;
       border: none;
       border-radius: 20px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
       font-size: 16px;
-      transition: transform 0.2s;
-    }
-    #uploadVideoBtn:active {
-      transform: scale(0.95);
+      cursor: pointer;
     }
     .video-grid {
       display: flex;
@@ -54,21 +47,13 @@
       position: relative;
       width: 300px;
       height: 200px;
-      margin-bottom: 20px;
-      transition: transform 0.3s ease-in-out;
-      cursor: pointer;
-    }
-    .video-container.expanded {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(1.2);
-      z-index: 1000;
-      background: rgba(0, 0, 0, 0.9);
+      border-radius: 12px;
+      overflow: hidden;
+      background: black;
     }
     .video-container video {
-      border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      width: 100%;
+      height: 100%;
     }
   </style>
 </head>
