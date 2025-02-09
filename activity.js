@@ -1,16 +1,13 @@
-const CLOUDINARY_CLOUD_NAME = "dmkpb05ww";
-const CLOUDINARY_UPLOAD_PRESET = "Vezitivus";
-const VIDEO_FOLDER = "vezitivus_videos";
+// Cloudinary iestatījumi
+const CLOUDINARY_CLOUD_NAME = "dmkpb05ww"; // Tavs Cloudinary konta nosaukums
+const CLOUDINARY_UPLOAD_PRESET = "Vezitivus"; // Tavs Upload Preset
+const VIDEO_FOLDER = "vezitivus_videos"; // Mape, kurā saglabā video
 
-// Dinamiska video ielāde
-const REMOTE_VIDEO_URLS = [
-  "vezitivus_videos/video1",
-  "vezitivus_videos/video2",
-];
-
-// Pārbauda, vai URL satur UID (lai parādītu augšupielādes pogu)
+// Pārbauda, vai URL satur UID
 const urlParams = new URLSearchParams(window.location.search);
 const uid = urlParams.get("uid");
+
+// Ja UID ir norādīts, parāda augšupielādes sadaļu
 if (uid) {
   document.getElementById("uploadSection").style.display = "block";
 }
@@ -29,7 +26,7 @@ function uploadVideo(file) {
     .then(response => response.json())
     .then(data => {
       if (data.public_id) {
-        addVideoToPlayer(data.public_id);
+        addVideoToPlayer(data.public_id); // Pievieno video galerijai
       } else {
         alert("Augšupielāde neizdevās.");
       }
@@ -37,7 +34,7 @@ function uploadVideo(file) {
     .catch(error => console.error("Augšupielādes kļūda:", error));
 }
 
-// Funkcija pievienošanai Cloudinary Video Player
+// Funkcija video pievienošanai Cloudinary Video Player
 function addVideoToPlayer(publicId) {
   const videoGrid = document.getElementById("videoGrid");
 
@@ -58,8 +55,8 @@ function addVideoToPlayer(publicId) {
     controls: true,
     autoplay: false,
     muted: false,
-    width: 600,
-    height: 400,
+    width: 300,
+    height: 200,
   });
 
   player.source(publicId, {
@@ -67,15 +64,24 @@ function addVideoToPlayer(publicId) {
   });
 }
 
-// Funkcija video ielādei
+// Funkcija esošo video ielādei
 function loadVideos() {
-  REMOTE_VIDEO_URLS.forEach(publicId => {
-    addVideoToPlayer(publicId);
-  });
+  const videoGrid = document.getElementById("videoGrid");
+
+  fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/resources/video?prefix=${VIDEO_FOLDER}`)
+    .then(response => response.json())
+    .then(data => {
+      data.resources.forEach(video => {
+        addVideoToPlayer(video.public_id);
+      });
+    })
+    .catch(error => console.error("Kļūda, iegūstot video:", error));
 }
 
+// Kad lapa ielādējas, ielādē esošos video
 document.addEventListener("DOMContentLoaded", loadVideos);
 
+// Pievieno augšupielādes funkcionalitāti
 document.getElementById("uploadVideoBtn").addEventListener("click", () => {
   const fileInput = document.getElementById("videoFileInput");
   fileInput.click();
@@ -88,6 +94,7 @@ document.getElementById("uploadVideoBtn").addEventListener("click", () => {
   };
 });
 
+// Video palielināšana, uzspiežot uz video
 document.addEventListener("click", (event) => {
   const videoContainer = event.target.closest(".video-container");
   if (videoContainer) {
