@@ -1,6 +1,7 @@
-const CLOUDINARY_CLOUD_NAME = "dmkpb05ww"; // Jūsu Cloudinary konts
+const CLOUDINARY_CLOUD_NAME = "dmkpb05ww"; // Jūsu Cloudinary konta nosaukums
 const CLOUDINARY_UPLOAD_PRESET = "Vezitivus"; // Cloudinary Upload Preset
 const VIDEO_FOLDER = "vezitivus_videos"; // Mape Cloudinary kontā
+
 const REMOTE_VIDEO_URLS = [
   "https://upload.wikimedia.org/wikipedia/commons/transcoded/c/cf/TourDeFrance2015_Etape8_PassageRennes.webm/TourDeFrance2015_Etape8_PassageRennes.webm.1080p.vp9.webm",
   "https://upload.wikimedia.org/wikipedia/commons/4/45/Example_video.mp4"
@@ -54,8 +55,9 @@ function addVideoToGallery(publicId) {
 
 // Funkcija video ielādei no attāliem resursiem (Fetch Mode)
 function loadVideos() {
+  const videoGrid = document.getElementById("videoGrid");
+
   REMOTE_VIDEO_URLS.forEach(url => {
-    const videoGrid = document.getElementById("videoGrid");
     const cloudinaryUrl = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/fetch/c_fit,w_300,h_200/${url}`;
 
     const container = document.createElement("div");
@@ -69,6 +71,11 @@ function loadVideos() {
 
     videoGrid.appendChild(container);
   });
+
+  // Noņem loading ekrānu, kad visi video ir ielādēti
+  setTimeout(() => {
+    document.getElementById("loadingScreen").classList.add("hidden");
+  }, 3000);
 }
 
 // Kad lapa ielādējas, parāda esošos video
