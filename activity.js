@@ -2,13 +2,6 @@ const CLOUDINARY_CLOUD_NAME = "dmkpb05ww"; // Tavs Cloudinary konta nosaukums
 const CLOUDINARY_UPLOAD_PRESET = "Vezitivus"; // Tavs Upload Preset
 const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbyDO5hMMHgqgbCfZ_AHyQRRe6_9S_7hTx420k2busDFeWIoKCI-9wEeApXiry7vv6MxWQ/exec";
 
-// Pārbauda, vai URL satur UID (lai parādītu augšupielādes pogu)
-const urlParams = new URLSearchParams(window.location.search);
-const uid = urlParams.get("uid");
-if (uid) {
-  document.getElementById("uploadSection").style.display = "block";
-}
-
 // Funkcija video augšupielādei uz Cloudinary un saglabāšanai Google Sheets
 function uploadVideo(file) {
   const formData = new FormData();
@@ -61,27 +54,12 @@ function addVideoToPlayer(publicId) {
   const container = document.createElement("div");
   container.classList.add("video-container");
 
-  container.innerHTML = `
-    <video id="videoPlayer_${publicId}" controls></video>
-  `;
+  const video = document.createElement("video");
+  video.setAttribute("controls", true);
+  video.src = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${publicId}.mp4`;
 
+  container.appendChild(video);
   videoGrid.appendChild(container);
-
-  const cld = cloudinary.Cloudinary.new({
-    cloud_name: CLOUDINARY_CLOUD_NAME,
-  });
-
-  const player = cld.videoPlayer(`videoPlayer_${publicId}`, {
-    controls: true,
-    autoplay: false,
-    muted: false,
-    width: 300,
-    height: 200,
-  });
-
-  player.source(publicId, {
-    sourceTypes: ["mp4"],
-  });
 }
 
 // Funkcija, kas ielādē video no Google Sheets un pievieno galerijai
@@ -89,8 +67,8 @@ function loadVideosFromGoogleSheets() {
   fetch(`${GOOGLE_SHEETS_URL}?action=getVideos`)
     .then(response => response.json())
     .then(data => {
-      if (data.status === "success" && data.videos) {
-        data.videos.forEach(video => {
+      if (data.status === "success" && data.data) {
+        data.data.forEach(video => {
           addVideoToPlayer(video.publicId);
         });
       } else {
