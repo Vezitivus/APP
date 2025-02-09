@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VEZITIVUS LENTA</title>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-  <script src="activity.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
     html, body {
@@ -25,12 +24,13 @@
     }
     #uploadSection {
       margin: 20px;
+      display: none; /* Pēc noklusējuma paslēpts */
     }
     #uploadVideoBtn {
       background: #007bff;
       color: white;
-      border: none;
       padding: 10px 20px;
+      border: none;
       border-radius: 5px;
       cursor: pointer;
     }
@@ -44,7 +44,7 @@
     .video-container {
       position: relative;
       width: 300px;
-      height: 180px;
+      height: 200px;
       border-radius: 10px;
       overflow: hidden;
       background: rgba(255, 255, 255, 0.1);
@@ -54,13 +54,7 @@
     .video-container:hover {
       transform: scale(1.05);
     }
-    .video-container img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
     .video-container video {
-      display: none;
       width: 100%;
       height: 100%;
       object-fit: cover;
@@ -80,11 +74,15 @@
 <body>
   <div class="header">VEZITIVUS LENTA</div>
 
+  <!-- Augšupielādes sadaļa (rādīsies tikai, ja ir UID) -->
   <div id="uploadSection">
     <input type="file" id="videoFileInput" accept="video/*" style="display: none;" />
     <button id="uploadVideoBtn">📤 Augšupielādēt video</button>
   </div>
 
+  <!-- Video galerija -->
   <div class="video-grid" id="videoGrid"></div>
+
+  <script src="activity.js"></script>
 </body>
 </html>
