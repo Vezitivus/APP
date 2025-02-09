@@ -2,7 +2,14 @@ const CLOUDINARY_CLOUD_NAME = "dmkpb05ww"; // Tavs Cloudinary konta nosaukums
 const CLOUDINARY_UPLOAD_PRESET = "Vezitivus"; // Tavs Upload Preset
 const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbyDO5hMMHgqgbCfZ_AHyQRRe6_9S_7hTx420k2busDFeWIoKCI-9wEeApXiry7vv6MxWQ/exec";
 
-// Funkcija video augšupielādei uz Cloudinary un saglabāšanai Google Sheets
+// Pārbauda, vai URL satur UID (lai parādītu augšupielādes pogu)
+const urlParams = new URLSearchParams(window.location.search);
+const uid = urlParams.get("uid");
+if (uid) {
+  document.getElementById("uploadSection").style.display = "block";
+}
+
+// Funkcija video augšupielādei uz Cloudinary un Public ID saglabāšanai Google Sheets
 function uploadVideo(file) {
   const formData = new FormData();
   formData.append("file", file);
@@ -15,8 +22,8 @@ function uploadVideo(file) {
     .then(response => response.json())
     .then(data => {
       if (data.public_id) {
-        saveVideoToGoogleSheets(data.public_id); // Saglabā public ID Google Sheets
-        addVideoToPlayer(data.public_id); // Pievieno video galerijai
+        saveVideoToGoogleSheets(data.public_id); // Saglabā Public ID Google Sheets
+        addVideoToGrid(data.public_id); // Pievieno video galerijai
       } else {
         alert("Augšupielāde neizdevās.");
       }
@@ -48,7 +55,7 @@ function saveVideoToGoogleSheets(publicId) {
 }
 
 // Funkcija, kas pievieno video galerijai
-function addVideoToPlayer(publicId) {
+function addVideoToGrid(publicId) {
   const videoGrid = document.getElementById("videoGrid");
 
   const container = document.createElement("div");
@@ -69,7 +76,7 @@ function loadVideosFromGoogleSheets() {
     .then(data => {
       if (data.status === "success" && data.data) {
         data.data.forEach(video => {
-          addVideoToPlayer(video.publicId);
+          addVideoToGrid(video.publicId);
         });
       } else {
         console.error("Kļūda, ielādējot video:", data.message);
