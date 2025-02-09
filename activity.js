@@ -1,23 +1,19 @@
-// Cloudinary iestatījumi
 const CLOUDINARY_CLOUD_NAME = "dmkpb05ww"; // Tavs Cloudinary konta nosaukums
 const CLOUDINARY_UPLOAD_PRESET = "Vezitivus"; // Tavs Upload Preset
-const VIDEO_FOLDER = "vezitivus_videos"; // Mape, kurā saglabā video
+const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbyDO5hMMHgqgbCfZ_AHyQRRe6_9S_7hTx420k2busDFeWIoKCI-9wEeApXiry7vv6MxWQ/exec";
 
-// Pārbauda, vai URL satur UID
+// Pārbauda, vai URL satur UID (lai parādītu augšupielādes pogu)
 const urlParams = new URLSearchParams(window.location.search);
 const uid = urlParams.get("uid");
-
-// Ja UID ir norādīts, parāda augšupielādes sadaļu
 if (uid) {
   document.getElementById("uploadSection").style.display = "block";
 }
 
-// Funkcija video augšupielādei uz Cloudinary
+// Funkcija video augšupielādei uz Cloudinary un saglabāšanai Google Sheets
 function uploadVideo(file) {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-  formData.append("folder", VIDEO_FOLDER);
 
   fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/video/upload`, {
     method: "POST",
@@ -26,6 +22,7 @@ function uploadVideo(file) {
     .then(response => response.json())
     .then(data => {
       if (data.public_id) {
+        saveVideoToGoogleSheets(data.public_id); // Saglabā public ID Google Sheets
         addVideoToPlayer(data.public_id); // Pievieno video galerijai
       } else {
         alert("Augšupielāde neizdevās.");
@@ -34,7 +31,30 @@ function uploadVideo(file) {
     .catch(error => console.error("Augšupielādes kļūda:", error));
 }
 
-// Funkcija video pievienošanai Cloudinary Video Player
+// Funkcija, kas saglabā Public ID Google Sheets
+function saveVideoToGoogleSheets(publicId) {
+  fetch(GOOGLE_SHEETS_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      action: "saveVideo",
+      publicId: publicId,
+    }),
+  })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === "success") {
+        console.log("Public ID saglabāts Google Sheets:", publicId);
+      } else {
+        console.error("Kļūda, saglabājot Google Sheets:", data.message);
+      }
+    })
+    .catch(error => console.error("Kļūda ar Google Sheets:", error));
+}
+
+// Funkcija, kas pievieno video galerijai
 function addVideoToPlayer(publicId) {
   const videoGrid = document.getElementById("videoGrid");
 
@@ -64,22 +84,24 @@ function addVideoToPlayer(publicId) {
   });
 }
 
-// Funkcija esošo video ielādei
-function loadVideos() {
-  const videoGrid = document.getElementById("videoGrid");
-
-  fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/resources/video?prefix=${VIDEO_FOLDER}`)
+// Funkcija, kas ielādē video no Google Sheets un pievieno galerijai
+function loadVideosFromGoogleSheets() {
+  fetch(`${GOOGLE_SHEETS_URL}?action=getVideos`)
     .then(response => response.json())
     .then(data => {
-      data.resources.forEach(video => {
-        addVideoToPlayer(video.public_id);
-      });
+      if (data.status === "success" && data.videos) {
+        data.videos.forEach(video => {
+          addVideoToPlayer(video.publicId);
+        });
+      } else {
+        console.error("Kļūda, ielādējot video:", data.message);
+      }
     })
-    .catch(error => console.error("Kļūda, iegūstot video:", error));
+    .catch(error => console.error("Kļūda ar Google Sheets:", error));
 }
 
-// Kad lapa ielādējas, ielādē esošos video
-document.addEventListener("DOMContentLoaded", loadVideos);
+// Kad lapa ielādējas, ielādē video no Google Sheets
+document.addEventListener("DOMContentLoaded", loadVideosFromGoogleSheets);
 
 // Pievieno augšupielādes funkcionalitāti
 document.getElementById("uploadVideoBtn").addEventListener("click", () => {
@@ -92,12 +114,4 @@ document.getElementById("uploadVideoBtn").addEventListener("click", () => {
       uploadVideo(file);
     }
   };
-});
-
-// Video palielināšana, uzspiežot uz video
-document.addEventListener("click", (event) => {
-  const videoContainer = event.target.closest(".video-container");
-  if (videoContainer) {
-    videoContainer.classList.toggle("expanded");
-  }
 });
