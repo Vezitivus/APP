@@ -1,8 +1,19 @@
-const CLOUDINARY_CLOUD_NAME = "dmkpb05ww";
-const CLOUDINARY_UPLOAD_PRESET = "Vezitivus";
-const VIDEO_FOLDER = "vezitivus_videos"; // Norādiet mapi Cloudinary kontā
+const CLOUDINARY_CLOUD_NAME = "dmkpb05ww"; // Jūsu Cloudinary konts
+const CLOUDINARY_UPLOAD_PRESET = "Vezitivus"; // Cloudinary Upload Preset
+const VIDEO_FOLDER = "vezitivus_videos"; // Mape Cloudinary kontā
+const REMOTE_VIDEO_URLS = [
+  "https://upload.wikimedia.org/wikipedia/commons/transcoded/c/cf/TourDeFrance2015_Etape8_PassageRennes.webm/TourDeFrance2015_Etape8_PassageRennes.webm.1080p.vp9.webm",
+  "https://upload.wikimedia.org/wikipedia/commons/4/45/Example_video.mp4"
+];
 
-// Funkcija augšupielādei uz Cloudinary
+// Pārbauda, vai URL satur UID (lai parādītu augšupielādes pogu)
+const urlParams = new URLSearchParams(window.location.search);
+const uid = urlParams.get("uid");
+if (uid) {
+  document.getElementById("uploadSection").style.display = "block";
+}
+
+// Funkcija video augšupielādei uz Cloudinary
 function uploadVideo(file) {
   const formData = new FormData();
   formData.append("file", file);
@@ -16,7 +27,6 @@ function uploadVideo(file) {
     .then(response => response.json())
     .then(data => {
       if (data.public_id) {
-        // Pievieno video galerijai
         addVideoToGallery(data.public_id);
       } else {
         alert("Augšupielāde neizdevās.");
@@ -28,42 +38,43 @@ function uploadVideo(file) {
 // Funkcija video pievienošanai galerijai
 function addVideoToGallery(publicId) {
   const videoGrid = document.getElementById("videoGrid");
+  const cloudinaryUrl = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${publicId}.mp4`;
 
   const container = document.createElement("div");
   container.classList.add("video-container");
 
   container.innerHTML = `
-    <img src="https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/c_fit,w_300,h_180/${publicId}.jpg" alt="Video Thumbnail" />
-    <i class="fas fa-play-circle play-overlay"></i>
     <video controls>
-      <source src="https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${publicId}.mp4" type="video/mp4">
+      <source src="${cloudinaryUrl}" type="video/mp4">
     </video>
   `;
-
-  container.addEventListener("click", () => {
-    const video = container.querySelector("video");
-    const img = container.querySelector("img");
-
-    video.style.display = "block";
-    img.style.display = "none";
-    video.play();
-  });
 
   videoGrid.appendChild(container);
 }
 
-// Funkcija video galerijas ielādei
+// Funkcija video ielādei no attāliem resursiem (Fetch Mode)
 function loadVideos() {
-  const videoPublicIds = [
-    // Šeit norādiet sākotnējos public ID no Cloudinary vai dinamiski ielādējiet
-  ];
+  REMOTE_VIDEO_URLS.forEach(url => {
+    const videoGrid = document.getElementById("videoGrid");
+    const cloudinaryUrl = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/fetch/c_fit,w_300,h_200/${url}`;
 
-  videoPublicIds.forEach(publicId => {
-    addVideoToGallery(publicId);
+    const container = document.createElement("div");
+    container.classList.add("video-container");
+
+    container.innerHTML = `
+      <video controls>
+        <source src="${cloudinaryUrl}" type="video/mp4">
+      </video>
+    `;
+
+    videoGrid.appendChild(container);
   });
 }
 
-// Augšupielādes pogas funkcionalitāte
+// Kad lapa ielādējas, parāda esošos video
+document.addEventListener("DOMContentLoaded", loadVideos);
+
+// Pievieno augšupielādes funkcionalitāti
 document.getElementById("uploadVideoBtn").addEventListener("click", () => {
   const fileInput = document.getElementById("videoFileInput");
   fileInput.click();
@@ -75,6 +86,3 @@ document.getElementById("uploadVideoBtn").addEventListener("click", () => {
     }
   };
 });
-
-// Ielādē galeriju, kad lapa ir gatava
-document.addEventListener("DOMContentLoaded", loadVideos);
