@@ -33,16 +33,7 @@ function uploadVideo(file) {
 
 // Funkcija, kas saglabā Public ID Google Sheets
 function saveVideoToGoogleSheets(publicId) {
-  fetch(GOOGLE_SHEETS_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      action: "saveVideo",
-      publicId: publicId,
-    }),
-  })
+  fetch(`${GOOGLE_SHEETS_URL}?action=saveVideo&publicId=${encodeURIComponent(publicId)}`)
     .then(response => response.json())
     .then(data => {
       if (data.status === "success") {
