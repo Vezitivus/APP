@@ -11,8 +11,45 @@ if (uid) {
   document.getElementById("uploadSection").style.display = "block";
 }
 
-// Funkcija video pievienošanai galerijā
-function addVideoToGrid(publicId, reactionsData = {}) {
+// Funkcija video augšupielādei uz Cloudinary un Public ID + UID saglabāšanai Google Sheets
+function uploadVideo(file) {
+  document.getElementById("uploadLoadingScreen").style.display = "flex"; 
+  document.getElementById("uploadVideoBtn").disabled = true;
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+  fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/video/upload`, {
+    method: "POST",
+    body: formData,
+  })
+    .then(response => response.json())
+    .then(data => {
+      if (data.public_id) {
+        saveVideoToGoogleSheets(data.public_id, uid);
+        addVideoToGrid(data.public_id, true);
+      } else {
+        alert("Augšupielāde neizdevās.");
+      }
+    })
+    .catch(error => console.error("Augšupielādes kļūda:", error))
+    .finally(() => {
+      document.getElementById("uploadLoadingScreen").style.display = "none";
+      document.getElementById("uploadVideoBtn").disabled = false;
+    });
+}
+
+// Funkcija, kas saglabā Public ID un UID Google Sheets
+function saveVideoToGoogleSheets(publicId, uid) {
+  fetch(`${GOOGLE_SHEETS_URL}?action=saveVideo&publicId=${encodeURIComponent(publicId)}&uid=${encodeURIComponent(uid)}`)
+    .then(response => response.json())
+    .then(data => console.log("Saglabāts:", data))
+    .catch(error => console.error("Kļūda ar Google Sheets:", error));
+}
+
+// Funkcija, kas pievieno video galerijai
+function addVideoToGrid(publicId, isNew = false, reactionsData = {}) {
   const videoGrid = document.getElementById("videoGrid");
 
   const container = document.createElement("div");
@@ -20,13 +57,14 @@ function addVideoToGrid(publicId, reactionsData = {}) {
 
   const video = document.createElement("video");
   video.setAttribute("controls", true);
-  video.setAttribute("playsinline", true);
+  video.setAttribute("playsinline", true); // Neļauj atvērt pilnekrānā uz iOS
   video.setAttribute("poster", `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${publicId}.jpg`);
   video.src = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${publicId}.mp4`;
 
-  video.addEventListener("click", () => {
+  video.addEventListener("click", (event) => {
+    event.stopPropagation();
     document.querySelectorAll(".video-container").forEach(el => el.classList.remove("active"));
-    document.querySelectorAll(".reaction-container").forEach(el => {
+    document.querySelectorAll(".reaction-wrapper").forEach(el => {
       el.style.maxHeight = "0px";
       el.style.opacity = "0";
       el.style.transform = "translateY(-10px)";
@@ -35,12 +73,15 @@ function addVideoToGrid(publicId, reactionsData = {}) {
     container.classList.add("active");
 
     // Pārvieto emoji lauku zem video
-    const reactionContainer = container.nextElementSibling;
-    reactionContainer.style.maxHeight = "60px"; 
-    reactionContainer.style.opacity = "1";
-    reactionContainer.style.transform = "translateY(10px)";
-    reactionContainer.style.width = `${container.clientWidth}px`; // Automātiski pielāgo platumu video blokam
+    const reactionWrapper = container.nextElementSibling;
+    reactionWrapper.style.maxHeight = "60px"; 
+    reactionWrapper.style.opacity = "1";
+    reactionWrapper.style.transform = "translateY(10px)";
+    reactionWrapper.style.width = `${container.clientWidth}px`; // Automātiski pielāgo platumu video blokam
   });
+
+  const reactionWrapper = document.createElement("div");
+  reactionWrapper.classList.add("reaction-wrapper");
 
   const reactionContainer = document.createElement("div");
   reactionContainer.classList.add("reaction-container");
@@ -54,15 +95,17 @@ function addVideoToGrid(publicId, reactionsData = {}) {
     reactionContainer.appendChild(reactionBtn);
   });
 
+  reactionWrapper.appendChild(reactionContainer);
+
   container.appendChild(video);
   videoGrid.appendChild(container);
-  videoGrid.appendChild(reactionContainer);
+  videoGrid.appendChild(reactionWrapper);
 }
 
-// Kad klikšķina uz overlay, aizver video un emoji lauku
+// Kad klikšķina uz overlay, noņem aktivizāciju
 document.getElementById("overlay").addEventListener("click", () => {
   document.querySelectorAll(".video-container").forEach(el => el.classList.remove("active"));
-  document.querySelectorAll(".reaction-container").forEach(el => {
+  document.querySelectorAll(".reaction-wrapper").forEach(el => {
     el.style.maxHeight = "0px";
     el.style.opacity = "0";
     el.style.transform = "translateY(-10px)";
@@ -85,18 +128,20 @@ function addReaction(publicId, column, button) {
     .catch(error => console.error("Reakcijas pievienošanas kļūda:", error));
 }
 
-// Funkcija, kas ielādē video no Google Sheets
+// Funkcija, kas ielādē video no Google Sheets un pievieno galerijai
 function loadVideosFromGoogleSheets() {
   fetch(`${GOOGLE_SHEETS_URL}?action=getVideos`)
     .then(response => response.json())
     .then(data => {
       if (data.status === "success" && data.data) {
-        data.data.reverse().forEach(video => addVideoToGrid(video.publicId, video.reactions));
+        data.data.reverse().forEach(video => {
+          addVideoToGrid(video.publicId, video.reactions);
+        });
+      } else {
+        console.error("Kļūda, ielādējot video:", data.message);
       }
     })
     .catch(error => console.error("Kļūda ar Google Sheets:", error));
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  loadVideosFromGoogleSheets();
-});
+document.addEventListener("DOMContentLoaded", loadVideosFromGoogleSheets);
