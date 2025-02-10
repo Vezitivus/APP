@@ -59,19 +59,29 @@
     .video-container.active {
       transform: scale(1.2);
       z-index: 10;
-      margin-bottom: 60px; /* Nobīda emoji laukumu zem video */
+    }
+    .reaction-wrapper {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 10px;
+      transition: max-height 0.3s ease, opacity 0.3s ease;
     }
     .reaction-container {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
       width: 45%;
-      text-align: center;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 10px;
+      border-radius: 12px;
       opacity: 0;
       transform: translateY(-10px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
     }
-    .video-container.active + .reaction-container {
-      max-height: 60px;
+    .video-container.active + .reaction-wrapper .reaction-container {
       opacity: 1;
       transform: translateY(10px);
     }
