@@ -8,8 +8,8 @@
   <style>
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to bottom, #1E3C72, #2A5298); /* Zilais fons */
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(to bottom, #1E3C72, #2A5298);
       color: white;
       text-align: center;
       height: 100vh;
@@ -36,7 +36,7 @@
     .video-grid {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 15px;
       justify-content: center;
       padding: 20px;
     }
@@ -56,51 +56,32 @@
       object-fit: cover;
     }
     .reaction-container {
-      display: none;
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      background: rgba(255, 255, 255, 0.5);
+      display: flex;
+      justify-content: center;
+      gap: 10px;
       padding: 10px;
-      text-align: center;
-      border-radius: 0 0 12px 12px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 12px;
+      margin-top: 5px;
     }
     .reaction-btn {
       border: none;
       background: rgba(255, 255, 255, 0.3);
-      padding: 6px 10px;
-      font-size: 16px;
-      border-radius: 12px;
+      padding: 6px 12px;
+      font-size: 18px;
+      border-radius: 20px;
       cursor: pointer;
-      margin: 3px;
       transition: 0.3s;
       color: black;
     }
     .reaction-btn:hover {
       background: rgba(255, 255, 255, 0.7);
     }
-    .video-container.active .reaction-container {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-    }
-    #overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 5;
-    }
   </style>
 </head>
 <body>
 
   <div class="header">VEZITIVUS LENTA</div>
-
-  <div id="overlay"></div>
 
   <div id="uploadSection">
     <input type="file" id="videoFileInput" accept="video/*" style="display: none;" />
