@@ -26,11 +26,20 @@ function addVideoToGrid(publicId, reactionsData = {}) {
 
   video.addEventListener("click", () => {
     document.querySelectorAll(".video-container").forEach(el => el.classList.remove("active"));
-    document.querySelectorAll(".reaction-container").forEach(el => el.style.maxHeight = "0px");
+    document.querySelectorAll(".reaction-container").forEach(el => {
+      el.style.maxHeight = "0px";
+      el.style.opacity = "0";
+      el.style.transform = "translateY(-10px)";
+    });
 
     container.classList.add("active");
+
+    // Pārvieto emoji lauku zem video
     const reactionContainer = container.nextElementSibling;
-    reactionContainer.style.maxHeight = "50px"; // Emoji lauka augstums
+    reactionContainer.style.maxHeight = "60px"; 
+    reactionContainer.style.opacity = "1";
+    reactionContainer.style.transform = "translateY(10px)";
+    reactionContainer.style.width = `${container.clientWidth}px`; // Automātiski pielāgo platumu video blokam
   });
 
   const reactionContainer = document.createElement("div");
@@ -53,7 +62,11 @@ function addVideoToGrid(publicId, reactionsData = {}) {
 // Kad klikšķina uz overlay, aizver video un emoji lauku
 document.getElementById("overlay").addEventListener("click", () => {
   document.querySelectorAll(".video-container").forEach(el => el.classList.remove("active"));
-  document.querySelectorAll(".reaction-container").forEach(el => el.style.maxHeight = "0px");
+  document.querySelectorAll(".reaction-container").forEach(el => {
+    el.style.maxHeight = "0px";
+    el.style.opacity = "0";
+    el.style.transform = "translateY(-10px)";
+  });
   document.getElementById("overlay").style.display = "none";
 });
 
