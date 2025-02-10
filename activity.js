@@ -60,7 +60,6 @@ function addVideoToGrid(publicId, isNew = false) {
   );
   video.src = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${publicId}.mp4`;
 
-  // Video klikšķis aktivizē palielināšanu
   video.addEventListener("click", () => {
     document.querySelectorAll(".video-container").forEach(el => {
       el.classList.remove("active");
@@ -70,9 +69,9 @@ function addVideoToGrid(publicId, isNew = false) {
 
   container.appendChild(video);
   if (isNew) {
-    videoGrid.prepend(container); // Jauns video tiek pievienots augšpusē
+    videoGrid.prepend(container);
   } else {
-    videoGrid.appendChild(container); // Esošie video tiek pievienoti beigās
+    videoGrid.appendChild(container);
   }
 }
 
@@ -85,14 +84,13 @@ function loadVideosFromGoogleSheets() {
       if (data.status === "success" && data.data) {
         data.data.reverse().forEach(video => {
           addVideoToGrid(video.publicId);
-        }); // Reverse, lai jaunākie būtu augšā
+        });
       } else {
         console.error("Kļūda, ielādējot video:", data.message);
       }
     })
     .catch(error => console.error("Kļūda ar Google Sheets:", error))
     .finally(() => {
-      // Slēdz loading ekrānu
       loadingScreen.style.display = "none";
     });
 }
