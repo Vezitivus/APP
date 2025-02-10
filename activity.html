@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VEZITIVUS LENTA</title>
-
   <style>
     body {
       margin: 0;
@@ -19,8 +18,9 @@
       padding: 20px;
       font-size: 24px;
       font-weight: bold;
-      background: rgba(0, 0, 0, 0.7);
+      background: rgba(0,0,0,0.7);
     }
+    /* Augšupielādes sadaļa parādās, ja ir uid */
     #uploadSection {
       margin: 20px;
       display: none;
@@ -33,6 +33,7 @@
       border-radius: 20px;
       cursor: pointer;
     }
+    /* Video un reakciju blokiem izmantojam wrapperu */
     .video-grid {
       display: flex;
       flex-wrap: wrap;
@@ -40,11 +41,14 @@
       justify-content: center;
       padding: 20px;
     }
+    .video-wrapper {
+      width: 45%; /* Video bloks ir 45% ekrāna platumā */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
     .video-container {
-      width: 45%;
-      border-radius: 12px;
-      overflow: hidden;
-      background: black;
+      width: 100%;
       position: relative;
       cursor: pointer;
       transition: transform 0.3s ease, margin-bottom 0.3s ease;
@@ -59,46 +63,38 @@
     .video-container.active {
       transform: scale(1.2);
       z-index: 10;
+      margin-bottom: 60px; /* Noliek emoji laukumu zem video */
     }
-    .reaction-wrapper {
+    /* Reakciju laukums – ir tieši zem video bloka un pielāgots tā platumam */
+    .reaction-container {
       width: 100%;
       display: flex;
       justify-content: center;
-      flex-direction: column;
-      align-items: center;
-      margin-top: 10px;
-      transition: max-height 0.3s ease, opacity 0.3s ease;
-    }
-    .reaction-container {
-      display: flex;
-      justify-content: center;
       gap: 10px;
-      width: 45%;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 10px;
-      border-radius: 12px;
+      background: transparent; /* Bez fona */
+      padding: 5px 0;
       opacity: 0;
       transform: translateY(-10px);
       transition: opacity 0.3s ease, transform 0.3s ease;
     }
-    .video-container.active + .reaction-wrapper .reaction-container {
+    /* Kad video blokam pievienota active klase, reakciju laukums parādās */
+    .video-wrapper.active .reaction-container {
       opacity: 1;
       transform: translateY(10px);
     }
     .reaction-btn {
       border: none;
-      background: rgba(255, 255, 255, 0.3);
+      background: rgba(255,255,255,0.3);
       padding: 6px 8px;
       font-size: 14px;
       border-radius: 20px;
       cursor: pointer;
-      margin: 3px;
       transition: 0.3s;
       color: black;
       width: 20%;
     }
     .reaction-btn:hover {
-      background: rgba(255, 255, 255, 0.7);
+      background: rgba(255,255,255,0.7);
     }
     #overlay {
       display: none;
@@ -107,7 +103,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0,0,0,0.5);
       z-index: 5;
     }
     #uploadLoadingScreen {
@@ -116,7 +112,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0,0,0,0.8);
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -129,22 +125,21 @@
   </style>
 </head>
 <body>
-
   <div class="header">VEZITIVUS LENTA</div>
-
+  
   <div id="overlay"></div>
-
+  
   <div id="uploadLoadingScreen">
     <p>Tavs video tiek augšupielādēts...</p>
   </div>
-
+  
   <div id="uploadSection">
     <input type="file" id="videoFileInput" accept="video/*" style="display: none;" />
     <button id="uploadVideoBtn">📤 Augšupielādēt video</button>
   </div>
-
+  
   <div class="video-grid" id="videoGrid"></div>
-
+  
   <script src="activity.js"></script>
 </body>
 </html>
