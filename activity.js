@@ -3,7 +3,7 @@ const CLOUDINARY_UPLOAD_PRESET = "Vezitivus";
 const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbyDO5hMMHgqgbCfZ_AHyQRRe6_9S_7hTx420k2busDFeWIoKCI-9wEeApXiry7vv6MxWQ/exec";
 
 const reactions = ["❤️", "😂", "😢", "🔥"];
-const reactionColumns = ["C", "D", "E", "F"];
+const reactionColumns = { "❤️": "C", "😂": "D", "😢": "E", "🔥": "F" };
 
 const urlParams = new URLSearchParams(window.location.search);
 const uid = urlParams.get("uid");
@@ -57,6 +57,7 @@ function addVideoToGrid(publicId, isNew = false, reactionsData = {}) {
 
   const video = document.createElement("video");
   video.setAttribute("controls", true);
+  video.setAttribute("playsinline", true); // Neļauj atvērt pilnekrānā uz iOS
   video.setAttribute("poster", `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${publicId}.jpg`);
   video.src = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${publicId}.mp4`;
 
@@ -70,14 +71,12 @@ function addVideoToGrid(publicId, isNew = false, reactionsData = {}) {
   const reactionContainer = document.createElement("div");
   reactionContainer.classList.add("reaction-container");
 
-  reactions.forEach((emoji, index) => {
+  reactions.forEach((emoji) => {
+    const column = reactionColumns[emoji];
     const reactionBtn = document.createElement("button");
     reactionBtn.classList.add("reaction-btn");
-    reactionBtn.innerHTML = `${emoji} ${reactionsData[reactionColumns[index]] || 0}`;
-    reactionBtn.addEventListener("click", (event) => {
-      event.stopPropagation();
-      addReaction(publicId, reactionColumns[index], reactionBtn);
-    });
+    reactionBtn.innerHTML = `${emoji} ${reactionsData[column] || 0}`;
+    reactionBtn.addEventListener("click", () => addReaction(publicId, column, reactionBtn));
     reactionContainer.appendChild(reactionBtn);
   });
 
@@ -114,7 +113,7 @@ function loadVideosFromGoogleSheets() {
     .then(data => {
       if (data.status === "success" && data.data) {
         data.data.reverse().forEach(video => {
-          addVideoToGrid(video.publicId, false, video.reactions);
+          addVideoToGrid(video.publicId, video.reactions);
         });
       } else {
         console.error("Kļūda, ielādējot video:", data.message);
@@ -123,18 +122,4 @@ function loadVideosFromGoogleSheets() {
     .catch(error => console.error("Kļūda ar Google Sheets:", error));
 }
 
-// Kad lapa ielādējas, ielādē video no Google Sheets
 document.addEventListener("DOMContentLoaded", loadVideosFromGoogleSheets);
-
-// Pievieno augšupielādes funkcionalitāti
-document.getElementById("uploadVideoBtn").addEventListener("click", () => {
-  const fileInput = document.getElementById("videoFileInput");
-  fileInput.click();
-
-  fileInput.onchange = () => {
-    const file = fileInput.files[0];
-    if (file) {
-      uploadVideo(file);
-    }
-  };
-});
