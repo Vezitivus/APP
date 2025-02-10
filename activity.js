@@ -52,10 +52,10 @@ function saveVideoToGoogleSheets(publicId, uid) {
 function addVideoToGrid(publicId, isNew = false, reactionsData = {}) {
   const videoGrid = document.getElementById("videoGrid");
 
-  // Izveido wrapperu, kas satur gan video bloku, gan reakciju lauku
+  // Izveido wrapperu, kas satur video bloku un reakciju laukumu
   const wrapper = document.createElement("div");
   wrapper.classList.add("video-wrapper");
-  wrapper.style.width = "45%"; // Video bloka platums 45% no ekrāna
+  wrapper.style.width = "45%"; // Video bloka platums 45%
 
   // Video konteiners
   const videoContainer = document.createElement("div");
@@ -63,31 +63,22 @@ function addVideoToGrid(publicId, isNew = false, reactionsData = {}) {
 
   const video = document.createElement("video");
   video.setAttribute("controls", true);
-  video.setAttribute("playsinline", true);
+  video.setAttribute("playsinline", true); // Neļauj pilnekrānā uz iOS
   video.setAttribute("poster", `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${publicId}.jpg`);
   video.src = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${publicId}.mp4`;
 
   video.addEventListener("click", (event) => {
     event.stopPropagation();
-    // Noņem "active" klasi visiem wrapperiem
+    // Jauns klikšķis aktivizē tikai šo wrapperu, pārējie zaudē active statusu
     document.querySelectorAll(".video-wrapper").forEach(el => el.classList.remove("active"));
     wrapper.classList.add("active");
-    document.getElementById("overlay").style.display = "block";
   });
 
   videoContainer.appendChild(video);
 
-  // Reakciju wrapper – tiek novietots zem video konteinerā
-  const reactionWrapper = document.createElement("div");
-  reactionWrapper.classList.add("reaction-wrapper");
-  // Inicializētā stāvoklī reakciju wrapper ir paslēpts
-  reactionWrapper.style.maxHeight = "0px";
-  reactionWrapper.style.opacity = "0";
-  reactionWrapper.style.transform = "translateY(-10px)";
-
+  // Reakciju laukums, kas ir tieši zem video bloka
   const reactionContainer = document.createElement("div");
   reactionContainer.classList.add("reaction-container");
-  // Fona īpašība izņemta, lai nebūtu tumšinājums
 
   reactions.forEach((emoji) => {
     const column = reactionColumns[emoji];
@@ -101,9 +92,12 @@ function addVideoToGrid(publicId, isNew = false, reactionsData = {}) {
     reactionContainer.appendChild(reactionBtn);
   });
 
+  // Reakciju wrapper, kas nodrošina, ka reakcijas tiek izvietotas zem video
+  const reactionWrapper = document.createElement("div");
+  reactionWrapper.classList.add("reaction-wrapper");
   reactionWrapper.appendChild(reactionContainer);
 
-  // Pievieno video konteinera un reakciju wrapperu wrapperā
+  // Pievieno video un reakciju laukumu wrapperā
   wrapper.appendChild(videoContainer);
   wrapper.appendChild(reactionWrapper);
 
@@ -113,10 +107,11 @@ function addVideoToGrid(publicId, isNew = false, reactionsData = {}) {
   }
 }
 
-// Kad klikšķina uz overlay, noņem aktivizāciju
-document.getElementById("overlay").addEventListener("click", () => {
-  document.querySelectorAll(".video-wrapper").forEach(el => el.classList.remove("active"));
-  document.getElementById("overlay").style.display = "none";
+// Globalizēts klikšķu notikumu klausītājs, ja tiek klikšķināts ārpus video wrapperiem, tad deaktīvejam visus
+document.addEventListener("click", (event) => {
+  if (!event.target.closest(".video-wrapper")) {
+    document.querySelectorAll(".video-wrapper").forEach(el => el.classList.remove("active"));
+  }
 });
 
 // Funkcija, kas pievieno reakciju Google Sheets
