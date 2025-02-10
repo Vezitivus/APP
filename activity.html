@@ -33,7 +33,7 @@
       border-radius: 20px;
       cursor: pointer;
     }
-    /* Video un reakciju bloki – katrs video un tā reakcijas ir ietverti video-wrapper elementā ar platumu 45% */
+    /* Video un reakciju bloki */
     .video-grid {
       display: flex;
       flex-wrap: wrap;
@@ -41,6 +41,7 @@
       justify-content: center;
       padding: 20px;
     }
+    /* Katrs video un reakciju lauks ietverts video-wrapper elementā ar platumu 45% */
     .video-wrapper {
       width: 45%;
       display: flex;
@@ -70,20 +71,30 @@
       border-radius: 12px;
       transition: transform 0.3s ease;
     }
-    /* Reakciju wrapper ir izvietots zem video, sākotnēji paslēpts */
+    /* Jaunais stils – individuāls video ielādes pārklājums */
+    .video-loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 18px;
+      z-index: 5;
+    }
+    /* Reakciju lauks – animācija ar max-height, kas nodrošina “iznirstošu” efektu */
     .reaction-wrapper {
       width: 100%;
       overflow: hidden;
-      transition: max-height 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
+      transition: max-height 0.3s ease;
       max-height: 0;
-      opacity: 0;
-      transform: translateY(-10px);
     }
-    /* Kad video-wrapper ir aktīvs, reakciju wrapper plūstoši parādās zem video */
     .video-wrapper.active .reaction-wrapper {
       max-height: 60px;
-      opacity: 1;
-      transform: translateY(10px);
     }
     .reaction-container {
       display: flex;
@@ -108,8 +119,43 @@
     .reaction-btn:hover {
       background: rgba(255, 255, 255, 0.7);
     }
-    /* Overlay – ja nepieciešams, bet šeit to izslēdzam, lai video paliktu aktīvs */
+    /* Overlay – ja nepieciešams deaktivizēt video, šeit izslēgts */
     #overlay {
+      display: none;
+    }
+    /* Augšupielādes loading ekrāns */
+    #uploadLoadingScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      font-size: 20px;
+      color: white;
+      display: none;
+    }
+    /* Video ielādes loading ekrāns – tiek rādīts, kamēr pirmais video ielādējas */
+    #loadingScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      font-size: 20px;
+      color: white;
+    }
+    #loadingScreen.hidden {
       display: none;
     }
   </style>
@@ -118,13 +164,19 @@
 
   <div class="header">VEZITIVUS LENTA</div>
 
-  <!-- Augšupielādes sadaļa -->
+  <div id="loadingScreen">
+    <p>Ielādē video...</p>
+  </div>
+
+  <div id="uploadLoadingScreen">
+    <p>Tavs video tiek augšupielādēts...</p>
+  </div>
+
   <div id="uploadSection">
     <input type="file" id="videoFileInput" accept="video/*" style="display: none;" />
     <button id="uploadVideoBtn">📤 Augšupielādēt video</button>
   </div>
 
-  <!-- Video galerija -->
   <div class="video-grid" id="videoGrid"></div>
 
   <script src="activity.js"></script>
