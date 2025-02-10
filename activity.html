@@ -69,7 +69,7 @@
       border-radius: 12px;
       transition: transform 0.3s ease;
     }
-    /* (Iepriekšējais video loading pārklājums ir izņemts) */
+    /* Reakciju lauks – sākotnēji paslēpts ar max-height: 0 */
     .reaction-wrapper {
       width: 100%;
       overflow: hidden;
@@ -82,8 +82,7 @@
     .reaction-container {
       display: flex;
       justify-content: center;
-      gap: 10px;
-      width: 100%;
+      gap: 5px; /* samazināts atstarpe */
       background: transparent;
       padding: 10px 0;
     }
@@ -94,15 +93,15 @@
       font-size: 14px;
       border-radius: 20px;
       cursor: pointer;
-      margin: 3px;
+      margin: 2px; /* mazāks atstatums */
       transition: 0.3s;
       color: black;
-      width: 20%;
+      /* Fiksētā platuma noteikums izņemts, lai pogas pielāgotu savu platumu pēc satura */
     }
     .reaction-btn:hover {
       background: rgba(255, 255, 255, 0.7);
     }
-    /* Augšupielādes loading ekrāns – saglabāts */
+    /* Saglabāts augšupielādes loading ekrāns */
     #uploadLoadingScreen {
       position: fixed;
       top: 0;
