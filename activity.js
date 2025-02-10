@@ -20,16 +20,9 @@ function addVideoToGrid(publicId, reactionsData = {}) {
 
   const video = document.createElement("video");
   video.setAttribute("controls", true);
-  video.setAttribute("playsinline", true); // Neļauj atvērt pilnekrānā uz iOS
+  video.setAttribute("playsinline", true);
   video.setAttribute("poster", `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${publicId}.jpg`);
   video.src = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${publicId}.mp4`;
-
-  video.addEventListener("click", (event) => {
-    event.stopPropagation();
-    document.querySelectorAll(".video-container").forEach(el => el.classList.remove("active"));
-    container.classList.add("active");
-    document.getElementById("overlay").style.display = "block";
-  });
 
   const reactionContainer = document.createElement("div");
   reactionContainer.classList.add("reaction-container");
@@ -48,44 +41,18 @@ function addVideoToGrid(publicId, reactionsData = {}) {
   videoGrid.appendChild(container);
 }
 
-// Kad klikšķina uz overlay, noņem aktivizāciju
-document.getElementById("overlay").addEventListener("click", () => {
-  document.querySelectorAll(".video-container").forEach(el => el.classList.remove("active"));
-  document.getElementById("overlay").style.display = "none";
-});
-
-// Funkcija, kas pievieno reakciju Google Sheets
-function addReaction(publicId, column, button) {
-  fetch(`${GOOGLE_SHEETS_URL}?action=addReaction&publicId=${encodeURIComponent(publicId)}&column=${column}`)
-    .then(response => response.json())
-    .then(data => {
-      if (data.status === "success") {
-        const currentCount = parseInt(button.textContent.split(" ")[1], 10) || 0;
-        button.innerHTML = `${button.textContent.split(" ")[0]} ${currentCount + 1}`;
-      } else {
-        console.error("Kļūda, pievienojot reakciju:", data.message);
-      }
-    })
-    .catch(error => console.error("Reakcijas pievienošanas kļūda:", error));
-}
-
 // Funkcija, kas ielādē video no Google Sheets
 function loadVideosFromGoogleSheets() {
   fetch(`${GOOGLE_SHEETS_URL}?action=getVideos`)
     .then(response => response.json())
     .then(data => {
       if (data.status === "success" && data.data) {
-        data.data.reverse().forEach(video => {
-          addVideoToGrid(video.publicId, video.reactions);
-        });
-      } else {
-        console.error("Kļūda, ielādējot video:", data.message);
+        data.data.reverse().forEach(video => addVideoToGrid(video.publicId, video.reactions));
       }
     })
     .catch(error => console.error("Kļūda ar Google Sheets:", error));
 }
 
-// Kad lapa ielādējas, ielādē video no Google Sheets
 document.addEventListener("DOMContentLoaded", () => {
   loadVideosFromGoogleSheets();
 });
