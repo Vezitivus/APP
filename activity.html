@@ -62,10 +62,26 @@
     .video-container video:hover {
       cursor: pointer;
     }
+    #loadingScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      font-size: 20px;
+    }
   </style>
 </head>
 <body>
   <div class="header">VEZITIVUS LENTA</div>
+
+  <div id="loadingScreen">📼 Ielādē videoklipus...</div>
 
   <div id="uploadSection">
     <input type="file" id="videoFileInput" accept="video/*" style="display: none;" />
