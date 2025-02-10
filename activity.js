@@ -31,6 +31,7 @@ function uploadVideo(file) {
   .then(data => {
     if (data.public_id) {
       saveVideoToGoogleSheets(data.public_id, uid);
+      // Pievienojam video ar uzreiz parādāmu loading efektu video blokā
       addVideoToGrid(data.public_id, true);
     } else {
       alert("Augšupielāde neizdevās.");
@@ -54,14 +55,20 @@ function saveVideoToGoogleSheets(publicId, uid) {
 function addVideoToGrid(publicId, isNew = false, reactionsData = {}) {
   const videoGrid = document.getElementById("videoGrid");
 
-  // Izveido video-wrapper, kas satur video un reakciju lauku
+  // Izveidojam video-wrapper, kas satur gan video, gan reakciju lauku
   const wrapper = document.createElement("div");
   wrapper.classList.add("video-wrapper");
   wrapper.style.width = "45%";
 
-  // Video konteiners
+  // Izveidojam video konteineru
   const videoContainer = document.createElement("div");
   videoContainer.classList.add("video-container");
+
+  // Pievienojam individuālu loading pārklājumu video blokam
+  const loadingOverlay = document.createElement("div");
+  loadingOverlay.classList.add("video-loading-overlay");
+  loadingOverlay.textContent = "Ielādē video...";
+  videoContainer.appendChild(loadingOverlay);
 
   const video = document.createElement("video");
   video.setAttribute("controls", true);
@@ -69,33 +76,35 @@ function addVideoToGrid(publicId, isNew = false, reactionsData = {}) {
   video.setAttribute("poster", `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${publicId}.jpg`);
   video.src = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${publicId}.mp4`;
 
-  // Ja pirmais video ielādējas, noņemam loading screen
+  // Noņemam globālo loading screen, kad ielādējas pirmais video, un arī paslēpjam individuālo pārklājumu
   video.addEventListener("loadeddata", () => {
     if (!firstVideoLoaded) {
       document.getElementById("loadingScreen").classList.add("hidden");
       firstVideoLoaded = true;
     }
+    loadingOverlay.style.display = "none";
   });
 
-  video.addEventListener("click", (event) => {
-    event.stopPropagation();
+  // Ja video tiek atskaņots (vai uzklikšķināts), aktivizējam reakciju lauku
+  // (Izmantojam gan "click", gan "play" notikumus, lai nodrošinātu, ka reakciju lauks tiek parādīts uzreiz)
+  function activateVideo() {
     document.querySelectorAll(".video-wrapper").forEach(el => el.classList.remove("active"));
     wrapper.classList.add("active");
+  }
+  video.addEventListener("click", (event) => {
+    event.stopPropagation();
+    activateVideo();
   });
+  video.addEventListener("play", activateVideo);
 
   videoContainer.appendChild(video);
 
-  // Reakciju wrapper – izvietots zem video
+  // Reakciju wrapper – izvietots zem video, sākotnēji paslēpts ar max-height=0
   const reactionWrapper = document.createElement("div");
   reactionWrapper.classList.add("reaction-wrapper");
-  // Sākotnēji reakciju wrapper ir paslēpts (max-height: 0, opacity: 0, translateY(-10px))
-  reactionWrapper.style.maxHeight = "0px";
-  reactionWrapper.style.opacity = "0";
-  reactionWrapper.style.transform = "translateY(-10px)";
 
   const reactionContainer = document.createElement("div");
   reactionContainer.classList.add("reaction-container");
-  // Fona īpašība izņemta, lai emoji lauks būtu caurspīdīgs
 
   reactions.forEach((emoji) => {
     const column = reactionColumns[emoji];
@@ -113,9 +122,10 @@ function addVideoToGrid(publicId, isNew = false, reactionsData = {}) {
   reactionWrapper.appendChild(reactionContainer);
   wrapper.appendChild(videoContainer);
   wrapper.appendChild(reactionWrapper);
-  videoGrid.appendChild(wrapper);
   if (isNew) {
     videoGrid.prepend(wrapper);
+  } else {
+    videoGrid.appendChild(wrapper);
   }
 }
 
@@ -126,8 +136,7 @@ function updateTotalReactions(reactionContainer) {
     const count = parseInt(btn.textContent.split(" ")[1], 10) || 0;
     total += count;
   });
-  // Ja vēlaties parādīt kopējo reakciju skaitu, to varat darīt šeit
-  // Piemēram: reactionContainer.parentElement.querySelector(".reaction-total").textContent = "Kopā: " + total;
+  // Ja vēlies, vari parādīt kopējo reakciju skaitu šeit
 }
 
 function addReaction(publicId, column, button) {
@@ -150,7 +159,7 @@ function loadVideosFromGoogleSheets() {
     .then(data => {
       if (data.status === "success" && data.data) {
         data.data.reverse().forEach(video => {
-          addVideoToGrid(video.publicId, video.reactions);
+          addVideoToGrid(video.publicId, false, video.reactions);
         });
       } else {
         console.error("Kļūda, ielādējot video:", data.message);
