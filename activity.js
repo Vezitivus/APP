@@ -24,6 +24,15 @@ function addVideoToGrid(publicId, reactionsData = {}) {
   video.setAttribute("poster", `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${publicId}.jpg`);
   video.src = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${publicId}.mp4`;
 
+  video.addEventListener("click", () => {
+    document.querySelectorAll(".video-container").forEach(el => el.classList.remove("active"));
+    document.querySelectorAll(".reaction-container").forEach(el => el.style.maxHeight = "0px");
+
+    container.classList.add("active");
+    const reactionContainer = container.nextElementSibling;
+    reactionContainer.style.maxHeight = "50px"; // Emoji lauka augstums
+  });
+
   const reactionContainer = document.createElement("div");
   reactionContainer.classList.add("reaction-container");
 
@@ -37,8 +46,30 @@ function addVideoToGrid(publicId, reactionsData = {}) {
   });
 
   container.appendChild(video);
-  container.appendChild(reactionContainer);
   videoGrid.appendChild(container);
+  videoGrid.appendChild(reactionContainer);
+}
+
+// Kad klikšķina uz overlay, aizver video un emoji lauku
+document.getElementById("overlay").addEventListener("click", () => {
+  document.querySelectorAll(".video-container").forEach(el => el.classList.remove("active"));
+  document.querySelectorAll(".reaction-container").forEach(el => el.style.maxHeight = "0px");
+  document.getElementById("overlay").style.display = "none";
+});
+
+// Funkcija, kas pievieno reakciju Google Sheets
+function addReaction(publicId, column, button) {
+  fetch(`${GOOGLE_SHEETS_URL}?action=addReaction&publicId=${encodeURIComponent(publicId)}&column=${column}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === "success") {
+        const currentCount = parseInt(button.textContent.split(" ")[1], 10) || 0;
+        button.innerHTML = `${button.textContent.split(" ")[0]} ${currentCount + 1}`;
+      } else {
+        console.error("Kļūda, pievienojot reakciju:", data.message);
+      }
+    })
+    .catch(error => console.error("Reakcijas pievienošanas kļūda:", error));
 }
 
 // Funkcija, kas ielādē video no Google Sheets
