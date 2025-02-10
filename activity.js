@@ -12,6 +12,9 @@ if (uid) {
   document.getElementById("uploadSection").style.display = "block";
 }
 
+// Globāls karogs, lai noteiktu, vai jau ir pievienots pirmais video konteineris
+let firstVideoAdded = false;
+
 function uploadVideo(file) {
   document.getElementById("uploadLoadingScreen").style.display = "flex"; 
   document.getElementById("uploadVideoBtn").disabled = true;
@@ -41,7 +44,6 @@ function uploadVideo(file) {
 }
 
 function saveVideoToGoogleSheets(publicId, uid) {
-  // Saglabājam: A - publicId, B - uid, C - 0 (❤️), D - 0 (😂), E - 0 (😢), F - 0 (🔥)
   fetch(`${GOOGLE_SHEETS_URL}?action=saveVideo&publicId=${encodeURIComponent(publicId)}&uid=${encodeURIComponent(uid)}`)
     .then(response => response.json())
     .then(data => console.log("Saglabāts:", data))
@@ -51,7 +53,7 @@ function saveVideoToGoogleSheets(publicId, uid) {
 function addVideoToGrid(publicId, isNew = false, reactionsData = {}) {
   const videoGrid = document.getElementById("videoGrid");
 
-  // Izveidojam video-wrapper, kas satur gan video, gan reakciju lauku
+  // Izveidojam video-wrapper, kas satur video un reakciju lauku
   const wrapper = document.createElement("div");
   wrapper.classList.add("video-wrapper");
   wrapper.style.width = "45%";
@@ -80,7 +82,7 @@ function addVideoToGrid(publicId, isNew = false, reactionsData = {}) {
 
   videoContainer.appendChild(video);
 
-  // Reakciju wrapper – sākotnēji paslēpts ar max-height: 0, kas izplīst uz leju, kad video ir aktivs
+  // Reakciju wrapper – sākotnēji paslēpts ar max-height: 0
   const reactionWrapper = document.createElement("div");
   reactionWrapper.classList.add("reaction-wrapper");
 
@@ -109,6 +111,15 @@ function addVideoToGrid(publicId, isNew = false, reactionsData = {}) {
   } else {
     videoGrid.appendChild(wrapper);
   }
+  
+  // Ja tas ir pirmais video konteineris, paslēpjam lapas ielādes ekrānu
+  if (!firstVideoAdded) {
+    firstVideoAdded = true;
+    const pageLoadingScreen = document.getElementById("pageLoadingScreen");
+    if (pageLoadingScreen) {
+      pageLoadingScreen.style.display = "none";
+    }
+  }
 }
 
 function updateTotalReactions(reactionContainer) {
@@ -118,7 +129,7 @@ function updateTotalReactions(reactionContainer) {
     const count = parseInt(btn.textContent.split(" ")[1], 10) || 0;
     total += count;
   });
-  // Šeit vari parādīt kopējo reakciju skaitu, ja nepieciešams
+  // Papildus darbības, ja nepieciešams
 }
 
 function addReaction(publicId, column, button) {
