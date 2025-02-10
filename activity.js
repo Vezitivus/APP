@@ -23,7 +23,7 @@ function uploadVideo(file) {
     .then(data => {
       if (data.public_id) {
         saveVideoToGoogleSheets(data.public_id); // Saglabā Public ID Google Sheets
-        addVideoToGrid(data.public_id); // Pievieno video galerijai
+        addVideoToGrid(data.public_id, true); // Pievieno video galerijas augšpusē
       } else {
         alert("Augšupielāde neizdevās.");
       }
@@ -46,7 +46,7 @@ function saveVideoToGoogleSheets(publicId) {
 }
 
 // Funkcija, kas pievieno video galerijai
-function addVideoToGrid(publicId) {
+function addVideoToGrid(publicId, isNew = false) {
   const videoGrid = document.getElementById("videoGrid");
 
   const container = document.createElement("div");
@@ -69,7 +69,11 @@ function addVideoToGrid(publicId) {
   });
 
   container.appendChild(video);
-  videoGrid.appendChild(container);
+  if (isNew) {
+    videoGrid.prepend(container); // Jauns video tiek pievienots augšpusē
+  } else {
+    videoGrid.appendChild(container); // Esošie video tiek pievienoti beigās
+  }
 }
 
 // Funkcija, kas ielādē video no Google Sheets un pievieno galerijai
@@ -79,9 +83,9 @@ function loadVideosFromGoogleSheets() {
     .then(response => response.json())
     .then(data => {
       if (data.status === "success" && data.data) {
-        data.data.forEach(video => {
+        data.data.reverse().forEach(video => {
           addVideoToGrid(video.publicId);
-        });
+        }); // Reverse, lai jaunākie būtu augšā
       } else {
         console.error("Kļūda, ielādējot video:", data.message);
       }
