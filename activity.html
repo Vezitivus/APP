@@ -9,7 +9,7 @@
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: linear-gradient(to bottom, #1E3C72, #2A5298); /* Atgriezts zilais fons */
+      background: linear-gradient(to bottom, #1E3C72, #2A5298); /* Zilais fons */
       color: white;
       text-align: center;
       height: 100vh;
@@ -64,6 +64,7 @@
     .video-container video:hover {
       cursor: pointer;
     }
+    /* iOS-stila loading aplītis */
     #loadingScreen {
       position: fixed;
       top: 0;
@@ -71,19 +72,31 @@
       width: 100%;
       height: 100%;
       background: rgba(0, 0, 0, 0.8);
-      color: white;
       display: flex;
       justify-content: center;
       align-items: center;
       z-index: 1000;
-      font-size: 20px;
+    }
+    .loader {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top: 4px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
   <div class="header">VEZITIVUS LENTA</div>
 
-  <div id="loadingScreen">📼 Ielādē videoklipus...</div>
+  <div id="loadingScreen">
+    <div class="loader"></div>
+  </div>
 
   <div id="uploadSection">
     <input type="file" id="videoFileInput" accept="video/*" style="display: none;" />
