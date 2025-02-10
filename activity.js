@@ -74,6 +74,7 @@ function addVideoToGrid(publicId) {
 
 // Funkcija, kas ielādē video no Google Sheets un pievieno galerijai
 function loadVideosFromGoogleSheets() {
+  const loadingScreen = document.getElementById("loadingScreen");
   fetch(`${GOOGLE_SHEETS_URL}?action=getVideos`)
     .then(response => response.json())
     .then(data => {
@@ -85,7 +86,11 @@ function loadVideosFromGoogleSheets() {
         console.error("Kļūda, ielādējot video:", data.message);
       }
     })
-    .catch(error => console.error("Kļūda ar Google Sheets:", error));
+    .catch(error => console.error("Kļūda ar Google Sheets:", error))
+    .finally(() => {
+      // Slēdz loading ekrānu
+      loadingScreen.style.display = "none";
+    });
 }
 
 // Kad lapa ielādējas, ielādē video no Google Sheets
