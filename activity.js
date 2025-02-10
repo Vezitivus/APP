@@ -24,11 +24,6 @@ function addVideoToGrid(publicId, reactionsData = {}) {
   video.setAttribute("poster", `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${publicId}.jpg`);
   video.src = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${publicId}.mp4`;
 
-  video.addEventListener("loadeddata", () => {
-    console.log(`✅ Video ielādēts: ${publicId}`);
-    checkAllVideosLoaded();
-  });
-
   video.addEventListener("click", (event) => {
     event.stopPropagation();
     document.querySelectorAll(".video-container").forEach(el => el.classList.remove("active"));
@@ -74,47 +69,20 @@ function addReaction(publicId, column, button) {
     .catch(error => console.error("Reakcijas pievienošanas kļūda:", error));
 }
 
-// Saglabā video sarakstu, lai zinātu, kad visi ir ielādēti
-let totalVideos = 0;
-let loadedVideos = 0;
-
-// Pārbauda, vai visi video ir ielādēti, lai paslēptu `loadingScreen`
-function checkAllVideosLoaded() {
-  loadedVideos++;
-  console.log(`🔄 Ielādēti video: ${loadedVideos} / ${totalVideos}`);
-  if (loadedVideos === totalVideos) {
-    console.log("✅ Visi video ielādēti! Slēdzam `loadingScreen`.");
-    document.getElementById("loadingScreen").style.display = "none";
-  }
-}
-
-// Funkcija, kas ielādē video no Google Sheets un pareizi slēpj ielādes ekrānu
+// Funkcija, kas ielādē video no Google Sheets
 function loadVideosFromGoogleSheets() {
-  console.log("🔄 Sākam video ielādi no Google Sheets...");
   fetch(`${GOOGLE_SHEETS_URL}?action=getVideos`)
     .then(response => response.json())
     .then(data => {
       if (data.status === "success" && data.data) {
-        totalVideos = data.data.length;
-        console.log(`📥 Atrasti video: ${totalVideos}`);
         data.data.reverse().forEach(video => {
           addVideoToGrid(video.publicId, video.reactions);
         });
-
-        // Ja nav video, paslēpjam ielādes ekrānu uzreiz
-        if (totalVideos === 0) {
-          console.log("⚠️ Nav neviena video. Slēdzam `loadingScreen`.");
-          document.getElementById("loadingScreen").style.display = "none";
-        }
       } else {
         console.error("Kļūda, ielādējot video:", data.message);
-        document.getElementById("loadingScreen").style.display = "none";
       }
     })
-    .catch(error => {
-      console.error("Kļūda ar Google Sheets:", error);
-      document.getElementById("loadingScreen").style.display = "none";
-    });
+    .catch(error => console.error("Kļūda ar Google Sheets:", error));
 }
 
 // Kad lapa ielādējas, ielādē video no Google Sheets
