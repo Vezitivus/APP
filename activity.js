@@ -54,7 +54,19 @@ function addVideoToGrid(publicId) {
 
   const video = document.createElement("video");
   video.setAttribute("controls", true);
+  video.setAttribute(
+    "poster",
+    `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${publicId}.jpg`
+  );
   video.src = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${publicId}.mp4`;
+
+  // Video klikšķis aktivizē palielināšanu
+  video.addEventListener("click", () => {
+    document.querySelectorAll(".video-container").forEach(el => {
+      el.classList.remove("active");
+    });
+    container.classList.toggle("active");
+  });
 
   container.appendChild(video);
   videoGrid.appendChild(container);
