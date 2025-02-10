@@ -100,8 +100,8 @@
       background: rgba(0, 0, 0, 0.5);
       z-index: 5;
     }
-    /* iOS stila ielādes ekrāns */
-    #loadingScreen, #uploadLoadingScreen {
+    /* Tikai augšupielādes ekrāns */
+    #uploadLoadingScreen {
       position: fixed;
       top: 0;
       left: 0;
@@ -115,6 +115,7 @@
       z-index: 1000;
       font-size: 20px;
       color: white;
+      display: none;
     }
     .loader {
       width: 50px;
@@ -137,11 +138,7 @@
 
   <div id="overlay"></div>
 
-  <div id="loadingScreen">
-    <div class="loader"></div>
-  </div>
-
-  <div id="uploadLoadingScreen" style="display: none;">
+  <div id="uploadLoadingScreen">
     <div class="loader"></div>
     <p>Tavs video tiek augšupielādēts...</p>
   </div>
