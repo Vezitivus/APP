@@ -3,7 +3,7 @@ const CLOUDINARY_UPLOAD_PRESET = "Vezitivus";
 const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbyDO5hMMHgqgbCfZ_AHyQRRe6_9S_7hTx420k2busDFeWIoKCI-9wEeApXiry7vv6MxWQ/exec";
 
 const reactions = ["❤️", "😂", "😢", "🔥"];
-const reactionColumns = ["C", "D", "E", "F"]; // Atbilst Sheets kolonnām
+const reactionColumns = ["C", "D", "E", "F"];
 
 const urlParams = new URLSearchParams(window.location.search);
 const uid = urlParams.get("uid");
@@ -13,8 +13,8 @@ if (uid) {
 
 // Funkcija video augšupielādei uz Cloudinary un Public ID + UID saglabāšanai Google Sheets
 function uploadVideo(file) {
-  document.getElementById("uploadLoadingScreen").style.display = "flex"; // Parāda augšupielādes ekrānu
-  document.getElementById("uploadVideoBtn").disabled = true; // Deaktivizē pogu
+  document.getElementById("uploadLoadingScreen").style.display = "flex"; 
+  document.getElementById("uploadVideoBtn").disabled = true;
 
   const formData = new FormData();
   formData.append("file", file);
@@ -60,31 +60,37 @@ function addVideoToGrid(publicId, isNew = false, reactionsData = {}) {
   video.setAttribute("poster", `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${publicId}.jpg`);
   video.src = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${publicId}.mp4`;
 
-  video.addEventListener("click", () => {
+  video.addEventListener("click", (event) => {
+    event.stopPropagation();
     document.querySelectorAll(".video-container").forEach(el => el.classList.remove("active"));
-    container.classList.toggle("active");
+    container.classList.add("active");
+    document.getElementById("overlay").style.display = "block";
   });
 
-  // Izveido reakciju pogas
   const reactionContainer = document.createElement("div");
   reactionContainer.classList.add("reaction-container");
 
   reactions.forEach((emoji, index) => {
     const reactionBtn = document.createElement("button");
+    reactionBtn.classList.add("reaction-btn");
     reactionBtn.innerHTML = `${emoji} ${reactionsData[reactionColumns[index]] || 0}`;
-    reactionBtn.addEventListener("click", () => addReaction(publicId, reactionColumns[index], reactionBtn));
+    reactionBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      addReaction(publicId, reactionColumns[index], reactionBtn);
+    });
     reactionContainer.appendChild(reactionBtn);
   });
 
   container.appendChild(video);
   container.appendChild(reactionContainer);
-
-  if (isNew) {
-    videoGrid.prepend(container);
-  } else {
-    videoGrid.appendChild(container);
-  }
+  videoGrid.appendChild(container);
 }
+
+// Kad klikšķina uz overlay, noņem aktivizāciju
+document.getElementById("overlay").addEventListener("click", () => {
+  document.querySelectorAll(".video-container").forEach(el => el.classList.remove("active"));
+  document.getElementById("overlay").style.display = "none";
+});
 
 // Funkcija, kas pievieno reakciju Google Sheets
 function addReaction(publicId, column, button) {
@@ -103,7 +109,6 @@ function addReaction(publicId, column, button) {
 
 // Funkcija, kas ielādē video no Google Sheets un pievieno galerijai
 function loadVideosFromGoogleSheets() {
-  const loadingScreen = document.getElementById("loadingScreen");
   fetch(`${GOOGLE_SHEETS_URL}?action=getVideos`)
     .then(response => response.json())
     .then(data => {
@@ -115,10 +120,7 @@ function loadVideosFromGoogleSheets() {
         console.error("Kļūda, ielādējot video:", data.message);
       }
     })
-    .catch(error => console.error("Kļūda ar Google Sheets:", error))
-    .finally(() => {
-      loadingScreen.style.display = "none";
-    });
+    .catch(error => console.error("Kļūda ar Google Sheets:", error));
 }
 
 // Kad lapa ielādējas, ielādē video no Google Sheets
