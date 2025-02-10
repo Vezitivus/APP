@@ -11,6 +11,9 @@ if (uid) {
 
 // Funkcija video augšupielādei uz Cloudinary un Public ID + UID saglabāšanai Google Sheets
 function uploadVideo(file) {
+  document.getElementById("uploadLoadingScreen").style.display = "flex"; // Parāda augšupielādes ekrānu
+  document.getElementById("uploadVideoBtn").disabled = true; // Deaktivizē pogu
+
   const formData = new FormData();
   formData.append("file", file);
   formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
@@ -28,20 +31,18 @@ function uploadVideo(file) {
         alert("Augšupielāde neizdevās.");
       }
     })
-    .catch(error => console.error("Augšupielādes kļūda:", error));
+    .catch(error => console.error("Augšupielādes kļūda:", error))
+    .finally(() => {
+      document.getElementById("uploadLoadingScreen").style.display = "none"; // Paslēpj augšupielādes ekrānu
+      document.getElementById("uploadVideoBtn").disabled = false; // Atkal aktivizē pogu
+    });
 }
 
 // Funkcija, kas saglabā Public ID un UID Google Sheets
 function saveVideoToGoogleSheets(publicId, uid) {
   fetch(`${GOOGLE_SHEETS_URL}?action=saveVideo&publicId=${encodeURIComponent(publicId)}&uid=${encodeURIComponent(uid)}`)
     .then(response => response.json())
-    .then(data => {
-      if (data.status === "success") {
-        console.log("Public ID saglabāts Google Sheets:", publicId);
-      } else {
-        console.error("Kļūda, saglabājot Google Sheets:", data.message);
-      }
-    })
+    .then(data => console.log("Saglabāts:", data))
     .catch(error => console.error("Kļūda ar Google Sheets:", error));
 }
 
@@ -57,11 +58,8 @@ function addVideoToGrid(publicId, isNew = false) {
   video.setAttribute("poster", `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${publicId}.jpg`);
   video.src = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${publicId}.mp4`;
 
-  // Video klikšķis aktivizē palielināšanu
   video.addEventListener("click", () => {
-    document.querySelectorAll(".video-container").forEach(el => {
-      el.classList.remove("active");
-    });
+    document.querySelectorAll(".video-container").forEach(el => el.classList.remove("active"));
     container.classList.toggle("active");
   });
 
@@ -89,8 +87,7 @@ function loadVideosFromGoogleSheets() {
     })
     .catch(error => console.error("Kļūda ar Google Sheets:", error))
     .finally(() => {
-      // Paslēpj ielādes ekrānu
-      loadingScreen.style.display = "none";
+      loadingScreen.style.display = "none"; // Paslēpj ielādes ekrānu
     });
 }
 
