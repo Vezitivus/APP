@@ -47,6 +47,7 @@
       overflow: hidden;
       background: black;
       transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
     }
     .video-container video {
       width: 100%;
@@ -63,6 +64,26 @@
     }
     .video-container video:hover {
       cursor: pointer;
+    }
+    /* Reakciju pogas */
+    .reaction-container {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 5px;
+    }
+    .reaction-btn {
+      border: none;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 6px 10px;
+      font-size: 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.3s;
+      color: white;
+    }
+    .reaction-btn:hover {
+      background: rgba(255, 255, 255, 0.4);
     }
     /* iOS-stila loading aplītis */
     #loadingScreen, #uploadLoadingScreen {
