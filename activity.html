@@ -18,7 +18,7 @@
       padding: 20px;
       font-size: 24px;
       font-weight: bold;
-      background: rgba(0,0,0,0.7);
+      background: rgba(0, 0, 0, 0.7);
     }
     /* Augšupielādes sadaļa parādās, ja ir uid */
     #uploadSection {
@@ -41,7 +41,7 @@
       justify-content: center;
       padding: 20px;
     }
-    /* Wrapper katram video – platums 45% */
+    /* Katrs video un reakciju lauks ir ietverts video-wrapper elementā ar platumu 45% */
     .video-wrapper {
       width: 45%;
       display: flex;
@@ -49,7 +49,7 @@
       align-items: center;
       transition: transform 0.3s ease, margin-bottom 0.3s ease;
     }
-    /* Kad video ir aktivizēts, wrapper palielinās un atstāj vietu reakcijām */
+    /* Kad video ir aktivizēts, wrapper palielinās un atstāj vietu reakciju laukam */
     .video-wrapper.active {
       transform: scale(1.2);
       z-index: 10;
@@ -71,7 +71,7 @@
       border-radius: 12px;
       transition: transform 0.3s ease;
     }
-    /* Reakciju lauks – izvietots zem video bloka */
+    /* Reakciju lauks – izvietots zem video bloka, bez fona */
     .reaction-wrapper {
       width: 100%;
       overflow: hidden;
@@ -80,7 +80,6 @@
       opacity: 0;
       transform: translateY(-10px);
     }
-    /* Kad wrapper ir aktīvs, reakciju lauks parādās */
     .video-wrapper.active .reaction-wrapper {
       max-height: 60px;
       opacity: 1;
@@ -96,7 +95,7 @@
     }
     .reaction-btn {
       border: none;
-      background: rgba(255,255,255,0.3);
+      background: rgba(255, 255, 255, 0.3);
       padding: 6px 8px;
       font-size: 14px;
       border-radius: 20px;
@@ -107,15 +106,9 @@
       width: 20%;
     }
     .reaction-btn:hover {
-      background: rgba(255,255,255,0.7);
+      background: rgba(255, 255, 255, 0.7);
     }
-    /* Kopējā reakciju summa parādās zem reakciju pogām */
-    .reaction-total {
-      font-size: 14px;
-      margin-top: 5px;
-      color: #fff;
-    }
-    /* Overlay nav nepieciešams – mēs to izņemam, lai video paliktu aktīvs */
+    /* Overlay – izmantojams, ja nepieciešams deaktivizēt video, taču šeit tas ir izslēgts */
     #overlay {
       display: none;
     }
@@ -126,7 +119,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0.8);
+      background: rgba(0, 0, 0, 0.8);
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -136,11 +129,33 @@
       color: white;
       display: none;
     }
+    /* Video ielādes loading ekrāns – tiek rādīts, kamēr pirmais video ielādējas */
+    #loadingScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      font-size: 20px;
+      color: white;
+    }
+    #loadingScreen.hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
 
   <div class="header">VEZITIVUS LENTA</div>
+
+  <div id="loadingScreen">
+    <p>Ielādē video...</p>
+  </div>
 
   <div id="uploadLoadingScreen">
     <p>Tavs video tiek augšupielādēts...</p>
