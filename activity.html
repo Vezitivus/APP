@@ -1,158 +1,123 @@
-<!DOCTYPE html>
-<html lang="lv">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VEZITIVUS LENTA</title>
+const CLOUDINARY_CLOUD_NAME = "dmkpb05ww"; 
+const CLOUDINARY_UPLOAD_PRESET = "Vezitivus";
+const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbyDO5hMMHgqgbCfZ_AHyQRRe6_9S_7hTx420k2busDFeWIoKCI-9wEeApXiry7vv6MxWQ/exec";
 
-  <style>
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: linear-gradient(to bottom, #1E3C72, #2A5298); /* Zilais fons */
-      color: white;
-      text-align: center;
-      height: 100vh;
-      overflow-x: hidden;
-    }
-    .header {
-      padding: 20px;
-      font-size: 24px;
-      font-weight: bold;
-      background: rgba(0, 0, 0, 0.7);
-    }
-    #uploadSection {
-      margin: 20px;
-      display: none;
-    }
-    #uploadVideoBtn {
-      background: #007bff;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 20px;
-      cursor: pointer;
-    }
-    .video-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 15px;
-      justify-content: center;
-      padding: 20px;
-    }
-    .video-container {
-      width: 45%;
-      height: auto;
-      border-radius: 12px;
-      overflow: hidden;
-      background: black;
-      position: relative;
-      cursor: pointer;
-      transition: transform 0.3s ease;
-    }
-    .video-container video {
-      width: 100%;
-      height: auto;
-      object-fit: cover;
-      border-radius: 12px;
-      transition: transform 0.3s ease;
-    }
-    .video-container.active {
-      transform: scale(1.2);
-      z-index: 10;
-    }
-    .reaction-container {
-      display: none;
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 10px;
-      text-align: center;
-      border-radius: 0 0 12px 12px;
-    }
-    .reaction-btn {
-      border: none;
-      background: rgba(255, 255, 255, 0.3);
-      padding: 6px 12px;
-      font-size: 18px;
-      border-radius: 20px;
-      cursor: pointer;
-      margin: 3px;
-      transition: 0.3s;
-      color: black;
-    }
-    .reaction-btn:hover {
-      background: rgba(255, 255, 255, 0.7);
-    }
-    .video-container.active .reaction-container {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-    }
-    #overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 5;
-    }
-    /* iOS stila ielādes ekrāns */
-    #loadingScreen, #uploadLoadingScreen {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.8);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-      font-size: 20px;
-      color: white;
-    }
-    .loader {
-      width: 50px;
-      height: 50px;
-      border: 4px solid rgba(255, 255, 255, 0.3);
-      border-top: 4px solid white;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-bottom: 10px;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-  </style>
-</head>
-<body>
+const reactions = ["❤️", "😂", "😢", "🔥"];
+const reactionColumns = { "❤️": "C", "😂": "D", "😢": "E", "🔥": "F" };
 
-  <div class="header">VEZITIVUS LENTA</div>
+const urlParams = new URLSearchParams(window.location.search);
+const uid = urlParams.get("uid");
+if (uid) {
+  document.getElementById("uploadSection").style.display = "block";
+}
 
-  <div id="overlay"></div>
+// Funkcija video pievienošanai galerijā
+function addVideoToGrid(publicId, reactionsData = {}) {
+  const videoGrid = document.getElementById("videoGrid");
 
-  <div id="loadingScreen">
-    <div class="loader"></div>
-  </div>
+  const container = document.createElement("div");
+  container.classList.add("video-container");
 
-  <div id="uploadLoadingScreen" style="display: none;">
-    <div class="loader"></div>
-    <p>Tavs video tiek augšupielādēts...</p>
-  </div>
+  const video = document.createElement("video");
+  video.setAttribute("controls", true);
+  video.setAttribute("playsinline", true); // Neļauj atvērt pilnekrānā uz iOS
+  video.setAttribute("poster", `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${publicId}.jpg`);
+  video.src = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${publicId}.mp4`;
 
-  <div id="uploadSection">
-    <input type="file" id="videoFileInput" accept="video/*" style="display: none;" />
-    <button id="uploadVideoBtn">📤 Augšupielādēt video</button>
-  </div>
+  video.addEventListener("loadeddata", () => {
+    console.log(`✅ Video ielādēts: ${publicId}`);
+    checkAllVideosLoaded();
+  });
 
-  <div class="video-grid" id="videoGrid"></div>
+  video.addEventListener("click", (event) => {
+    event.stopPropagation();
+    document.querySelectorAll(".video-container").forEach(el => el.classList.remove("active"));
+    container.classList.add("active");
+    document.getElementById("overlay").style.display = "block";
+  });
 
-  <script src="activity.js"></script>
-</body>
-</html>
+  const reactionContainer = document.createElement("div");
+  reactionContainer.classList.add("reaction-container");
+
+  reactions.forEach((emoji) => {
+    const column = reactionColumns[emoji];
+    const reactionBtn = document.createElement("button");
+    reactionBtn.classList.add("reaction-btn");
+    reactionBtn.innerHTML = `${emoji} ${reactionsData[column] || 0}`;
+    reactionBtn.addEventListener("click", () => addReaction(publicId, column, reactionBtn));
+    reactionContainer.appendChild(reactionBtn);
+  });
+
+  container.appendChild(video);
+  container.appendChild(reactionContainer);
+  videoGrid.appendChild(container);
+}
+
+// Kad klikšķina uz overlay, noņem aktivizāciju
+document.getElementById("overlay").addEventListener("click", () => {
+  document.querySelectorAll(".video-container").forEach(el => el.classList.remove("active"));
+  document.getElementById("overlay").style.display = "none";
+});
+
+// Funkcija, kas pievieno reakciju Google Sheets
+function addReaction(publicId, column, button) {
+  fetch(`${GOOGLE_SHEETS_URL}?action=addReaction&publicId=${encodeURIComponent(publicId)}&column=${column}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === "success") {
+        const currentCount = parseInt(button.textContent.split(" ")[1], 10) || 0;
+        button.innerHTML = `${button.textContent.split(" ")[0]} ${currentCount + 1}`;
+      } else {
+        console.error("Kļūda, pievienojot reakciju:", data.message);
+      }
+    })
+    .catch(error => console.error("Reakcijas pievienošanas kļūda:", error));
+}
+
+// Saglabā video sarakstu, lai zinātu, kad visi ir ielādēti
+let totalVideos = 0;
+let loadedVideos = 0;
+
+// Pārbauda, vai visi video ir ielādēti, lai paslēptu `loadingScreen`
+function checkAllVideosLoaded() {
+  loadedVideos++;
+  console.log(`🔄 Ielādēti video: ${loadedVideos} / ${totalVideos}`);
+  if (loadedVideos === totalVideos) {
+    console.log("✅ Visi video ielādēti! Slēdzam `loadingScreen`.");
+    document.getElementById("loadingScreen").style.display = "none";
+  }
+}
+
+// Funkcija, kas ielādē video no Google Sheets un pareizi slēpj ielādes ekrānu
+function loadVideosFromGoogleSheets() {
+  console.log("🔄 Sākam video ielādi no Google Sheets...");
+  fetch(`${GOOGLE_SHEETS_URL}?action=getVideos`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === "success" && data.data) {
+        totalVideos = data.data.length;
+        console.log(`📥 Atrasti video: ${totalVideos}`);
+        data.data.reverse().forEach(video => {
+          addVideoToGrid(video.publicId, video.reactions);
+        });
+
+        // Ja nav video, paslēpjam ielādes ekrānu uzreiz
+        if (totalVideos === 0) {
+          console.log("⚠️ Nav neviena video. Slēdzam `loadingScreen`.");
+          document.getElementById("loadingScreen").style.display = "none";
+        }
+      } else {
+        console.error("Kļūda, ielādējot video:", data.message);
+        document.getElementById("loadingScreen").style.display = "none";
+      }
+    })
+    .catch(error => {
+      console.error("Kļūda ar Google Sheets:", error);
+      document.getElementById("loadingScreen").style.display = "none";
+    });
+}
+
+// Kad lapa ielādējas, ielādē video no Google Sheets
+document.addEventListener("DOMContentLoaded", () => {
+  loadVideosFromGoogleSheets();
+});
