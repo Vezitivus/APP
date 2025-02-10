@@ -36,96 +36,71 @@
     .video-grid {
       display: flex;
       flex-wrap: wrap;
-      gap: 20px;
+      gap: 10px;
       justify-content: center;
       padding: 20px;
     }
     .video-container {
-      width: 300px;
-      height: 200px;
+      width: 45%;
+      height: auto;
       border-radius: 12px;
       overflow: hidden;
       background: black;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
       position: relative;
+      cursor: pointer;
+      transition: opacity 0.3s ease;
     }
     .video-container video {
       width: 100%;
-      height: 100%;
+      height: auto;
       object-fit: cover;
     }
-    .video-container.active {
-      width: 80%;
-      height: auto;
-      transform: scale(1.2);
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
-      z-index: 10;
-      position: relative;
-    }
-    .video-container video:hover {
-      cursor: pointer;
-    }
-    /* Reakciju pogas */
     .reaction-container {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 5px;
+      display: none;
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.5);
+      padding: 10px;
+      text-align: center;
+      border-radius: 0 0 12px 12px;
     }
     .reaction-btn {
       border: none;
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.3);
       padding: 6px 10px;
       font-size: 16px;
       border-radius: 12px;
       cursor: pointer;
+      margin: 3px;
       transition: 0.3s;
-      color: white;
+      color: black;
     }
     .reaction-btn:hover {
-      background: rgba(255, 255, 255, 0.4);
+      background: rgba(255, 255, 255, 0.7);
     }
-    /* iOS-stila loading aplītis */
-    #loadingScreen, #uploadLoadingScreen {
+    .video-container.active .reaction-container {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+    #overlay {
+      display: none;
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.8);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-      font-size: 20px;
-    }
-    .loader {
-      width: 50px;
-      height: 50px;
-      border: 4px solid rgba(255, 255, 255, 0.3);
-      border-top: 4px solid white;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-bottom: 10px;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 5;
     }
   </style>
 </head>
 <body>
+
   <div class="header">VEZITIVUS LENTA</div>
 
-  <div id="loadingScreen">
-    <div class="loader"></div>
-  </div>
-
-  <div id="uploadLoadingScreen" style="display: none;">
-    <div class="loader"></div>
-    <p>Tavs video tiek augšupielādēts...</p>
-  </div>
+  <div id="overlay"></div>
 
   <div id="uploadSection">
     <input type="file" id="videoFileInput" accept="video/*" style="display: none;" />
