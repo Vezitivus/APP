@@ -98,7 +98,7 @@
       display: none;
       color: #fff;
     }
-    /* Ja vēlies izmantot spinner GIF, vari atkomentēt sekojošo rindu un nodrošināt spinner.gif */
+    /* Ja vēlies izmantot spinner GIF, vari atkomentēt zemāko rindu un nodrošināt spinner.gif */
     /* #savingMessage img {
          vertical-align: middle;
          width: 24px;
@@ -174,8 +174,8 @@
         .then(response => response.json())
         .then(data => {
           miniGames = data;
-          // Filtrējam tikai ierakstus, kuru status NAV "1" un NAV "0"
-          let eligibleGames = miniGames.filter(game => game.status !== "1" && game.status !== "0");
+          // Filtrējam tikai ierakstus, kuru status NAV "1" (pieņemti); atstājot arī "0" (atteiktos)
+          let eligibleGames = miniGames.filter(game => game.status !== "1");
           if (eligibleGames.length === 0) {
             alert("Visi uzdevumi ir izpildīti. Nav atlikušo mini spēļu.");
             document.getElementById("spinButton").disabled = true;
@@ -355,7 +355,8 @@
               document.getElementById("gameDetails").style.display = "none";
               showPendingActions();
             } else {
-              resetWheel();
+              // Ja status ir "0", neizdzēsiet šo uzdevumu no rato – izpildiet atsvaidzināšanu ar nelielu aizturi
+              setTimeout(resetWheel, 500);
             }
           } else {
             alert("Kļūda, atjaunojot statusu.");
