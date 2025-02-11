@@ -5,28 +5,16 @@
   <title>Laimes Rats</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    /* Reset un moderns dizains */
-    * {
+    /* Fona stils – lineārs gradienta fons, kas aizpilda visu ekrānu */
+    html, body {
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
-    }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: #f0f0f5;
-      overflow: hidden;
-    }
-    /* Fona attēls ar dziļuma efektu */
-    #background {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: url('background.jpg') no-repeat center center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1F1C2C, #928DAB);
       background-size: cover;
-      z-index: 0;
-      transition: transform 0.1s linear;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overflow: hidden;
     }
     .container {
       position: relative;
@@ -39,7 +27,7 @@
     }
     h1 {
       margin-bottom: 20px;
-      color: #333;
+      color: #fff;
       position: relative;
       z-index: 2;
     }
@@ -53,16 +41,16 @@
       width: 300px;
       height: 300px;
       border-radius: 50%;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
       background-color: #fff;
       display: block;
     }
-    /* Bultiņa – norāda, kura segmenta uzdevums tiek izvēlēts */
+    /* Bultiņa – novietota labajā pusē, rotēta pa 108 grādiem */
     #arrow {
       position: absolute;
       right: -30px;
       top: 50%;
-      transform: translateY(-50%);
+      transform: translateY(-50%) rotate(108deg);
       width: 0; 
       height: 0; 
       border-top: 15px solid transparent;
@@ -94,21 +82,28 @@
       background-color: #aaa;
       cursor: not-allowed;
     }
+    /* Uzdevuma noteikumu lauks un pending sadaļa */
     #gameDetails, #pendingActions {
       margin-top: 20px;
       padding: 20px;
-      background-color: #fff;
+      background-color: rgba(255,255,255,0.9);
       border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
       position: relative;
       z-index: 2;
+      color: #333;
+    }
+    /* Papildus stils pending uzdevuma noteikumiem */
+    #pendingTaskRules {
+      font-size: 16px;
+      padding: 10px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 8px;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
-  <!-- Fona elements, kurš kustas nedaudz, lai radītu dziļuma efektu -->
-  <div id="background"></div>
-  
   <div class="container">
     <h1>Laimes Rats</h1>
     <div id="wheelWrapper">
@@ -118,20 +113,20 @@
     <div id="spinContainer">
       <button id="spinButton">Griezt Rats</button>
     </div>
-    <!-- Uzdevuma noteikumi un darbību pogas -->
+    <!-- Spēles noteikumu lauks, kad tiek izvēlēta spēle -->
     <div id="gameDetails" style="display:none;">
       <p id="gameRules"></p>
       <div id="actionButtons"></div>
     </div>
-    <!-- Pending uzdevuma lauks -->
+    <!-- Pending uzdevuma lauks ar noteikumiem -->
     <div id="pendingActions" style="display:none;">
       <p>Jums ir neizpildīts uzdevums!</p>
+      <div id="pendingTaskRules"></div>
       <button id="videoUploadedButton">Uzdevums izpildīts (video augšupieladets)</button>
       <button id="declineTaskButton">Atteikties no uzdevuma</button>
     </div>
   </div>
   
-  <!-- Skaņas efekts rato griešanās laikā -->
   <audio id="spinSound" src="spin-sound.mp3"></audio>
   
   <script>
@@ -148,20 +143,20 @@
       return decodeURIComponent(results[2].replace(/\+/g, ' '));
     }
     
-    // Iegūst spēlētāja uid no URL, piem., ?uid=vz001
+    // Iegūst spēlētāja uid no URL, piemēram: .../rats.html?uid=vz001
     var uid = getParameterByName('uid');
     if (!uid) {
       alert("Kļūda: URL beigās nav norādīts uid!");
     }
     
-    // Norādi savu Google Apps Script URL (publicētā web app adrese)
+    // Google Apps Script URL (publicētā web app adrese)
     const GS_URL = "https://script.google.com/macros/s/AKfycbzpdvdz8KsoPx8xhrpMbVykUk82rdC2OGcGivFL7PRfKX1WiEDxuIhtRdcq5ZJtAb0qiQ/exec";
     
     // Globalās mainīgās
-    let miniGames = [];    // Aptuveni 30 ieraksti no Sheets
-    let wheelGames = [];   // Izvēlēti ieraksti rātam (maks. 10 vai mazāk)
+    let miniGames = [];      // Aptuveni 30 ieraksti no Sheets
+    let wheelGames = [];     // Izvēlēti ieraksti rātam (maks. 10 vai mazāk)
     let selectedGame = null;
-    let finalSelectedIndex = null; // Izvēlētā segmenta indekss, lai to izceltu
+    let finalSelectedIndex = null; // Izvēlētais segments (indekss)
     
     /***********************
      * Datu ielāde un sagatavošana
@@ -171,7 +166,6 @@
         .then(response => response.json())
         .then(data => {
           miniGames = data;
-          // Atlasām tikai tos, kuru status nav "1"
           let eligibleGames = miniGames.filter(game => game.status !== "1");
           if (eligibleGames.length === 0) {
             alert("Visi uzdevumi ir izpildīti. Nav atlikušo mini spēļu.");
@@ -179,8 +173,11 @@
             return;
           }
           wheelGames = (eligibleGames.length <= 10) ? eligibleGames : pickRandomGames(eligibleGames, 10);
-          finalSelectedIndex = null; // Atiestata iepriekšējo izvēli
+          finalSelectedIndex = null;
           drawWheel();
+          if (window.pendingGameRow) {
+            updatePendingTaskRules();
+          }
         })
         .catch(error => {
           console.error("Kļūda, iegūstot mini spēles:", error);
@@ -201,7 +198,7 @@
     /***********************
      * Laimes rata attēlošana un animācija
      ***********************/
-    // Zīmē ratu ar doto pagrieziena leņķi (radianos). Ja finalSelectedIndex ir definēts, attiecīgais segments tiek izcelts.
+    // Zīmē ratu ar doto pagrieziena leņķi (radianos). Ja finalSelectedIndex ir definēts, izceļ attiecīgo segmentu.
     function drawWheel(rotationAngle = 0) {
       let canvas = document.getElementById("wheelCanvas");
       let ctx = canvas.getContext("2d");
@@ -220,7 +217,7 @@
         ctx.fillStyle = getSegmentColor(i);
         ctx.fill();
         
-        // Ja segments ir izvēlēts, zīmē izcelšanas apmali (zelta krāsā)
+        // Ja segments ir izvēlēts, zīmē zelta apmali
         if (finalSelectedIndex !== null && i === finalSelectedIndex) {
           ctx.lineWidth = 5;
           ctx.strokeStyle = "#FFD700";
@@ -239,13 +236,11 @@
       }
     }
     
-    // Vienkārša krāsu cikla funkcija segmentiem
     function getSegmentColor(index) {
       const colors = ["#FF5733", "#33FF57", "#3357FF", "#FF33A8", "#FFC300", "#8E44AD", "#3498DB", "#E67E22", "#2ECC71", "#E74C3C"];
       return colors[index % colors.length];
     }
     
-    // Animē rato griešanos; fona transformācija tiek atjaunota arī, lai radītu parallax efektu.
     function spinWheel() {
       document.getElementById("spinButton").disabled = true;
       let totalRotation = (Math.random() * 360) + 1440;
@@ -262,9 +257,6 @@
         let easedProgress = 1 - (1 - progress) * (1 - progress);
         currentRotation = easedProgress * totalRotation;
         drawWheel(currentRotation * Math.PI / 180);
-        // Fona kustība – fona rotācija ir daļa no rato rotācijas (parallax efekts)
-        document.getElementById("background").style.transform = "rotate(" + (currentRotation / 10) + "deg)";
-        
         if (progress < 1) {
           requestAnimationFrame(animate);
         } else {
@@ -276,24 +268,49 @@
       requestAnimationFrame(animate);
     }
     
-    // Nosaka, kurš segments ir izvēlēts, pamatojoties uz ratā griešanās beigām; saglabā finalSelectedIndex, lai to izceltu.
+    // Aprēķina, kurš segmenta centra leņķis ir vistuvākais arrow pointeram (108°)
     function onSpinComplete(rotationDegrees) {
       let numSegments = wheelGames.length;
-      let finalAngle = rotationDegrees % 360;
-      let pointerAngle = -90;  // Bultiņas pozīcija – uz ekrāna augšu, bet bultiņa ir novietota labajā pusē (fiksēts)
-      let effectiveAngle = (finalAngle + 360 + pointerAngle) % 360;
+      let finalRotationDegrees = rotationDegrees % 360;
       let segmentSize = 360 / numSegments;
-      let selectedIndex = Math.floor(effectiveAngle / segmentSize);
-      finalSelectedIndex = selectedIndex;
-      selectedGame = wheelGames[selectedIndex];
-      drawWheel();  // Pārzīmē ratu ar izcelto segmentu
+      let pointerAngle = 108; // Bultiņas spicais stūris
+      let bestIndex = 0;
+      let minDiff = 360;
+      for (let i = 0; i < numSegments; i++) {
+        // Katra segmenta centra leņķis (no sākuma)
+        let segmentCenter = (finalRotationDegrees + (i + 0.5) * segmentSize) % 360;
+        // Minimālā leņķa starpība, ņemot vērā cikliskumu
+        let diff = Math.abs(((segmentCenter - pointerAngle + 180) % 360) - 180);
+        if (diff < minDiff) {
+          minDiff = diff;
+          bestIndex = i;
+        }
+      }
+      finalSelectedIndex = bestIndex;
+      selectedGame = wheelGames[bestIndex];
+      drawWheel(); 
       showGameDetails();
+    }
+    
+    /***********************
+     * Pending uzdevuma noteikumu funkcionalitāte
+     ***********************/
+    function updatePendingTaskRules() {
+      if (window.pendingGameRow && miniGames && miniGames.length > 0) {
+        let pendingRule = "";
+        for (let i = 0; i < miniGames.length; i++) {
+          if (miniGames[i].row == window.pendingGameRow) {
+            pendingRule = miniGames[i].rules;
+            break;
+          }
+        }
+        document.getElementById("pendingTaskRules").innerText = pendingRule;
+      }
     }
     
     /***********************
      * Spēles darbības
      ***********************/
-    // Parāda spēles noteikumus un divas pogas (pieņemt vai atteikties)
     function showGameDetails() {
       document.getElementById("gameRules").innerText = selectedGame.rules;
       document.getElementById("gameDetails").style.display = "block";
@@ -316,7 +333,6 @@
       actionButtonsDiv.appendChild(declineButton);
     }
     
-    // Nosūta Google Apps Script pieprasījumu, lai atjaunotu spēles statusu
     function updateGameStatus(gameRow, uid, status) {
       fetch(GS_URL + "?action=updateStatus&gameRow=" + gameRow + "&uid=" + uid + "&status=" + status)
         .then(response => response.json())
@@ -359,6 +375,7 @@
     function showPendingActions() {
       document.getElementById("pendingActions").style.display = "block";
       document.getElementById("spinContainer").style.display = "none";
+      updatePendingTaskRules();
     }
     
     function resetWheel() {
