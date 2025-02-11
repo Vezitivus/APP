@@ -20,12 +20,15 @@
       justify-content: center;
       overflow: hidden;
     }
+    /* Kontainers, kurš tiks vilkts – sākotnēji centrēts */
     .container {
       width: 100%;
       max-width: 600px;
       padding: 20px;
       text-align: center;
       z-index: 2;
+      position: relative; /* Lai ļautu pārvietot transformāciju */
+      touch-action: none; /* Atļauj pielāgot vilkšanas notikumus touch ierīcēm */
     }
     h1 {
       margin-bottom: 20px;
@@ -108,7 +111,7 @@
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="container" id="draggableContainer">
     <h1>Laimes Rats</h1>
     <div id="wheelWrapper">
       <canvas id="wheelCanvas" width="300" height="300"></canvas>
@@ -138,6 +141,57 @@
   <audio id="spinSound" src="spin-sound.mp3"></audio>
   
   <script>
+    /***********************
+     * Draggable funkcionalitāte containeram
+     ***********************/
+    (function() {
+      const container = document.getElementById("draggableContainer");
+      let startY = 0;
+      let currentY = 0;
+      let initialTranslateY = 0;
+      let isDragging = false;
+
+      function dragStart(e) {
+        isDragging = true;
+        if (e.type === "mousedown") {
+          startY = e.clientY;
+        } else if (e.type === "touchstart") {
+          startY = e.touches[0].clientY;
+        }
+        container.style.transition = "none";
+      }
+
+      function dragMove(e) {
+        if (!isDragging) return;
+        if (e.type === "mousemove") {
+          currentY = e.clientY;
+        } else if (e.type === "touchmove") {
+          currentY = e.touches[0].clientY;
+        }
+        const deltaY = currentY - startY;
+        container.style.transform = `translateY(${initialTranslateY + deltaY}px)`;
+      }
+
+      function dragEnd(e) {
+        if (!isDragging) return;
+        isDragging = false;
+        // Saglabājam jauno pozīciju
+        const style = window.getComputedStyle(container);
+        const matrix = new WebKitCSSMatrix(style.transform);
+        initialTranslateY = matrix.m42;
+        container.style.transition = "transform 0.3s ease";
+      }
+
+      container.addEventListener("mousedown", dragStart);
+      container.addEventListener("touchstart", dragStart);
+
+      document.addEventListener("mousemove", dragMove);
+      document.addEventListener("touchmove", dragMove);
+
+      document.addEventListener("mouseup", dragEnd);
+      document.addEventListener("touchend", dragEnd);
+    })();
+
     /***********************
      * Palīglīnijas funkcijas
      ***********************/
@@ -174,7 +228,7 @@
         .then(response => response.json())
         .then(data => {
           miniGames = data;
-          // Filtrējam tikai ierakstus, kuru status NAV "1" (pieņemti); atstājot arī "0" (atteiktos)
+          // Filtrējam tikai ierakstus, kuru status NAV "1" (pieņemti); ieraksti ar "0" paliek
           let eligibleGames = miniGames.filter(game => game.status !== "1");
           if (eligibleGames.length === 0) {
             alert("Visi uzdevumi ir izpildīti. Nav atlikušo mini spēļu.");
@@ -355,7 +409,7 @@
               document.getElementById("gameDetails").style.display = "none";
               showPendingActions();
             } else {
-              // Ja status ir "0", neizdzēsiet šo uzdevumu no rato – izpildiet atsvaidzināšanu ar nelielu aizturi
+              // Ja status ir "0", nelaižam uzdevumu izdzēst – veicam atsvaidzināšanu ar nelielu aizturi
               setTimeout(resetWheel, 500);
             }
           } else {
