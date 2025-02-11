@@ -1,123 +1,206 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>VEZITIVUS - Bez CORS</title>
-    <style>
-      body {
-        margin: 0; padding: 0;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-        background: #f0f0f5;
-      }
-      header {
-        position: fixed; top: 0; left: 0; right: 0; height: 60px;
-        background: rgba(0,0,0,0.1); backdrop-filter: blur(8px);
-        display: flex; align-items: center; justify-content: center;
-        font-size: 24px; font-weight: bold;
-        z-index: 1000;
-      }
-      main {
-        margin-top: 80px; padding: 20px;
-      }
-      select, input {
-        padding: 8px; font-size: 16px; border-radius: 8px; width: 100%;
-        border: 1px solid #ccc; box-sizing: border-box;
-      }
-      button {
-        padding: 10px 20px; font-size: 16px; border: none; border-radius: 8px;
-        background: #007aff; color: #fff; cursor: pointer;
-      }
-      .players-container {
-        display: flex; flex-wrap: wrap; gap: 10px;
-      }
-      .player {
-        background: #fff; border: 1px solid #ccc; border-radius: 8px;
-        padding: 10px; width: 120px; text-align: center;
-      }
-    </style>
-  </head>
-  <body>
-    <header>VEZITIVUS GAME HOST</header>
-    <main>
-      <div>
-        <h3>Aktivitātes (no F4:AP4)</h3>
-        <div id="activitiesContainer"></div>
-      </div>
-      <hr>
-      <div>
-        <h3>Spēlētāji (no B6:B1000, C6:C1000)</h3>
-        <div class="players-container" id="playersContainer"></div>
-      </div>
-      <hr>
-      <div>
-        <h3>Saglabāšanas piemērs:</h3>
-        <div>
-          <input type="text" id="inputUID" placeholder="UID">
-          <input type="text" id="inputActivity" placeholder="Aktivitātes nosaukums">
-          <input type="number" id="inputScore" placeholder="Punkti">
-          <button onclick="saveData()">Saglabāt</button>
-        </div>
-        <div id="saveResultMsg" style="margin-top:10px;color:green;"></div>
-      </div>
-    </main>
-    
-    <!--
-      Tālāk JavaScript koda daļa.
-      Tagad varam lietot “templating”: 
-      var activities = <?= JSON.stringify(activities) ?>;
-      var players = <?= JSON.stringify(players) ?>;
-    -->
-    <script>
-      // Ieliekam datus tieši iekš mainīgajiem – BEZ fetch!
-      var activities = <?= JSON.stringify(this.activities) ?>;
-      var players = <?= JSON.stringify(this.players) ?>;
-      
-      window.addEventListener('load', () => {
-        // Parādām aktivitātes
-        const actContainer = document.getElementById('activitiesContainer');
-        if (activities.length === 0) {
-          actContainer.textContent = "Nav atrastas aktivitātes.";
-        } else {
-          let html = "<ul>";
-          activities.forEach(a => {
-            html += "<li>" + a + "</li>";
-          });
-          html += "</ul>";
-          actContainer.innerHTML = html;
-        }
-        
-        // Parādām spēlētājus
-        const plContainer = document.getElementById('playersContainer');
-        if (players.length === 0) {
-          plContainer.textContent = "Nav atrasti spēlētāji.";
-        } else {
-          players.forEach(p => {
-            const div = document.createElement('div');
-            div.className = "player";
-            div.innerHTML = "<strong>" + p.uid + "</strong><br>" + p.name;
-            plContainer.appendChild(div);
-          });
-        }
-      });
-      
-      // Piemērs, kā saglabāt datus, izmantojot google.script.run
-      function saveData() {
-        const uid = document.getElementById('inputUID').value;
-        const activity = document.getElementById('inputActivity').value;
-        const score = document.getElementById('inputScore').value;
-        
-        document.getElementById('saveResultMsg').textContent = "Saglabāju...";
-        
-        // google.script.run izsauc servera pusi (Code.gs: saveScore)
-        google.script.run
-          .withSuccessHandler(function(response) {
-            document.getElementById('saveResultMsg').textContent = "Atbilde: " + response;
-          })
-          .withFailureHandler(function(err) {
-            document.getElementById('saveResultMsg').textContent = "Kļūda: " + err.message;
-          })
-          .saveScore(uid, activity, score);
-      }
-    </script>
-  </body>
+<html lang="lv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VEZITIVUS GAME HOST</title>
+  <!-- iOS/Apple iedvesmots stils -->
+  <style>
+    /* Vispārīgs body stils */
+    body {
+      margin: 0; 
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+                   Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      background-color: #f2f2f7;
+      color: #333;
+    }
+    /* Fiksēta virsraksta josla ar daļēji caurspīdīgu fonu */
+    #header {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background-color: rgba(0,0,0,0.5);
+      color: white;
+      text-align: center;
+      font-size: 1.5rem;
+      padding: 1rem;
+      z-index: 999;
+    }
+    /* Saturs, lai būtu atstarpe no fiksētā virsraksta */
+    .content {
+      padding-top: 80px; 
+      padding-left: 1rem; 
+      padding-right: 1rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    /* Nolaižamā saraksta un ievades lauku stilizācija */
+    .input-section {
+      margin-bottom: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .input-section label {
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+    }
+    select, input[type="number"] {
+      font-size: 1rem;
+      padding: 0.5rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      outline: none;
+    }
+    button {
+      font-size: 1rem;
+      padding: 0.6rem 1rem;
+      border: none;
+      border-radius: 8px;
+      background: #007aff;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    button:hover {
+      background: #005bbf;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    /* Komandu konteineris */
+    #teamsContainer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .team-block {
+      flex: 1 1 200px;
+      background-color: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      padding: 1rem;
+      min-width: 180px;
+    }
+    .team-block h3 {
+      margin-top: 0;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      text-align: center;
+    }
+    .team-score-input {
+      display: block;
+      margin: 0 auto 0.5rem auto;
+      text-align: center;
+      font-size: 1rem;
+      padding: 0.3rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      width: 60%;
+      outline: none;
+    }
+    /* Dropzone stils, kur nomest spēlētājus */
+    .dropzone {
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      min-height: 80px;
+      padding: 0.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      align-items: center;
+    }
+    .dropzone.hover {
+      border-color: #007aff;
+    }
+    /* Spēlētāju saraksta konteineris */
+    #playersContainer {
+      background-color: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      padding: 1rem;
+      margin-bottom: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: flex-start;
+    }
+    /* Spēlētāja “kartīte”/poga */
+    .player-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-color: #007aff;
+      color: #fff;
+      padding: 0.5rem;
+      border-radius: 8px;
+      min-width: 80px;
+      text-align: center;
+      cursor: grab;
+      user-select: none;
+    }
+    .player-card:active {
+      cursor: grabbing;
+    }
+    .player-uid {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    .player-name {
+      font-size: 0.8rem;
+    }
+    /* Saglabāt pogas stils */
+    #saveResults {
+      display: none; /* sākotnēji slēpta */
+      margin-bottom: 2rem;
+    }
+    .footer-space {
+      height: 80px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Fiksēta virsraksta josla -->
+  <div id="header">VEZITIVUS GAME HOST</div>
+
+  <!-- Galvenais saturs -->
+  <div class="content">
+    <!-- Aktivitāšu saraksts -->
+    <div class="input-section">
+      <label for="activitySelect">Izvēlies aktivitāti:</label>
+      <select id="activitySelect">
+        <!-- Aizpildīsies ar JavaScript no Google Sheets datiem -->
+      </select>
+    </div>
+
+    <!-- Komandu skaita ievade -->
+    <div class="input-section">
+      <label for="teamCountInput">Cik komandas izveidot?</label>
+      <input type="number" id="teamCountInput" min="0" value="0" />
+      <button id="createTeamsBtn">Izveidot komandas</button>
+    </div>
+
+    <!-- Komandu laukumi -->
+    <div id="teamsContainer"></div>
+
+    <!-- Spēlētāju saraksts -->
+    <div id="playersContainer">
+      <!-- Tiks aizpildīts ar JavaScript – parādās visi spēlētāji -->
+    </div>
+
+    <!-- Saglabāt rezultātu poga -->
+    <button id="saveResults">Saglabāt rezultātus</button>
+
+    <div class="footer-space"></div>
+  </div>
+
+  <!-- Iekļaujam JavaScript failu -->
+  <script src="game.js"></script>
+</body>
 </html>
