@@ -28,10 +28,9 @@
     h1 {
       margin-bottom: 20px;
       color: #fff;
-      position: relative;
       z-index: 2;
     }
-    /* Wrapper priekš rato un bultiņas */
+    /* Wrapper priekš rato */
     #wheelWrapper {
       position: relative;
       display: inline-block;
@@ -44,23 +43,10 @@
       box-shadow: 0 4px 6px rgba(0,0,0,0.3);
       background-color: #fff;
       display: block;
-    }
-    /* Bultiņa – novietota labajā pusē, rotēta pa 108 grādiem */
-    #arrow {
-      position: absolute;
-      right: -30px;
-      top: 50%;
-      transform: translateY(-50%) rotate(108deg);
-      width: 0; 
-      height: 0; 
-      border-top: 15px solid transparent;
-      border-bottom: 15px solid transparent; 
-      border-left: 20px solid #007aff;
-      z-index: 3;
+      margin: 0 auto;
     }
     #spinContainer {
       margin-top: 20px;
-      position: relative;
       z-index: 2;
     }
     button {
@@ -89,7 +75,6 @@
       background-color: rgba(255,255,255,0.9);
       border-radius: 12px;
       box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-      position: relative;
       z-index: 2;
       color: #333;
     }
@@ -101,6 +86,16 @@
       border-radius: 8px;
       margin-top: 10px;
     }
+    /* Saglabāšanas ziņojuma stils */
+    #savingMessage {
+      font-size: 16px;
+      padding: 10px;
+      background: rgba(0,0,0,0.5);
+      border-radius: 8px;
+      margin-top: 10px;
+      display: none;
+      color: #fff;
+    }
   </style>
 </head>
 <body>
@@ -108,12 +103,13 @@
     <h1>Laimes Rats</h1>
     <div id="wheelWrapper">
       <canvas id="wheelCanvas" width="300" height="300"></canvas>
-      <div id="arrow"></div>
     </div>
     <div id="spinContainer">
       <button id="spinButton">Griezt Rats</button>
     </div>
-    <!-- Spēles noteikumu lauks, kad tiek izvēlēta spēle -->
+    <!-- Saglabāšanas ziņojums, parādās, kamēr gaidīti datus -->
+    <div id="savingMessage">Saglabā datus...</div>
+    <!-- Spēles noteikumu lauks -->
     <div id="gameDetails" style="display:none;">
       <p id="gameRules"></p>
       <div id="actionButtons"></div>
@@ -143,7 +139,7 @@
       return decodeURIComponent(results[2].replace(/\+/g, ' '));
     }
     
-    // Iegūst spēlētāja uid no URL, piemēram: .../rats.html?uid=vz001
+    // Iegūst spēlētāja uid no URL, piem., ?uid=vz001
     var uid = getParameterByName('uid');
     if (!uid) {
       alert("Kļūda: URL beigās nav norādīts uid!");
@@ -268,18 +264,16 @@
       requestAnimationFrame(animate);
     }
     
-    // Aprēķina, kurš segmenta centra leņķis ir vistuvākais arrow pointeram (108°)
+    // Aprēķina, kurš segmenta centra leņķis ir vistuvākais (pointerAngle 108° tiek izmantots aprēķinā, lai noteiktu segmentu)
     function onSpinComplete(rotationDegrees) {
       let numSegments = wheelGames.length;
       let finalRotationDegrees = rotationDegrees % 360;
       let segmentSize = 360 / numSegments;
-      let pointerAngle = 108; // Bultiņas spicais stūris
+      let pointerAngle = 108; 
       let bestIndex = 0;
       let minDiff = 360;
       for (let i = 0; i < numSegments; i++) {
-        // Katra segmenta centra leņķis (no sākuma)
         let segmentCenter = (finalRotationDegrees + (i + 0.5) * segmentSize) % 360;
-        // Minimālā leņķa starpība, ņemot vērā cikliskumu
         let diff = Math.abs(((segmentCenter - pointerAngle + 180) % 360) - 180);
         if (diff < minDiff) {
           minDiff = diff;
@@ -334,9 +328,14 @@
     }
     
     function updateGameStatus(gameRow, uid, status) {
+      // Parādīt ziņojumu "Saglabā datus..."
+      document.getElementById("savingMessage").style.display = "block";
+      
       fetch(GS_URL + "?action=updateStatus&gameRow=" + gameRow + "&uid=" + uid + "&status=" + status)
         .then(response => response.json())
         .then(data => {
+          // Paslēpt ziņojumu, kad atbilde ir saņemta
+          document.getElementById("savingMessage").style.display = "none";
           if (data.success) {
             alert("Status veiksmīgi atjaunots.");
             if (status === "@") {
@@ -350,6 +349,7 @@
           }
         })
         .catch(error => {
+          document.getElementById("savingMessage").style.display = "none";
           console.error("Kļūda updateStatus:", error);
         });
     }
