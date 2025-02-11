@@ -34,6 +34,33 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+
+    /* ✅ "Griezt Ratu" pogas jaunais dizains */
+    .spin-wheel-section {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .spin-button {
+      width: 80%;
+      padding: 14px 24px;
+      font-size: 18px;
+      font-weight: bold;
+      text-align: center;
+      color: white;
+      background: linear-gradient(to bottom, #333, #111); /* Tumši pelēks gradients */
+      border: none;
+      border-radius: 24px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .spin-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+    }
   </style>
 </head>
 <body>
