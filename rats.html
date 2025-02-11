@@ -20,6 +20,22 @@
       justify-content: center;
       overflow: hidden;
     }
+    /* Fiksēts neliels aplis augšā kreisajā stūrī, kurā parādās lietotāja dati no 40. rindas */
+    #userInfoCircle {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background-color: #000;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      z-index: 9999;
+    }
     /* Draggable konteiners */
     .container {
       width: 100%;
@@ -73,6 +89,18 @@
       background-color: #aaa;
       cursor: not-allowed;
     }
+    /* Melna apaļa, iegarena poga "Vezitivus Lenta" */
+    .blackButton {
+      background-color: #000;
+      border-radius: 50px;
+      padding: 10px 30px;
+      font-size: 16px;
+      font-weight: bold;
+      margin-top: 10px;
+      display: inline-block;
+      text-decoration: none;
+      color: #fff;
+    }
     /* Uzdevuma noteikumu lauki un pending sadaļa */
     #gameDetails, #pendingActions {
       margin-top: 20px;
@@ -104,6 +132,9 @@
   </style>
 </head>
 <body>
+  <!-- Fiksētais aplis augšā kreisajā stūrī, kurā tiks parādīti dati no 40. rindas -->
+  <div id="userInfoCircle">–</div>
+  
   <div class="container" id="draggableContainer">
     <h1>Laimes Rats</h1>
     <div id="wheelWrapper">
@@ -123,6 +154,9 @@
     <div id="pendingActions" style="display:none;">
       <p>Jums ir neizpildīts uzdevums!</p>
       <div id="pendingTaskRules"></div>
+      <!-- Melna apaļa poga "Vezitivus Lenta" -->
+      <a href="activity.htm?uid=" id="activityLink" class="blackButton">Vezitivus Lenta</a>
+      <br>
       <button id="videoUploadedButton">Uzdevums izpildīts (video augšupieladets)</button>
       <button id="declineTaskButton">Atteikties no uzdevuma</button>
     </div>
@@ -189,6 +223,9 @@
     if (!uid) {
       alert("Kļūda: URL beigās nav norādīts uid!");
     }
+    
+    // Pievieno uid vērtību Activity linkam
+    document.getElementById("activityLink").href = "activity.htm?uid=" + uid;
     
     // Google Apps Script URL
     const GS_URL = "https://script.google.com/macros/s/AKfycbzpdvdz8KsoPx8xhrpMbVykUk82rdC2OGcGivFL7PRfKX1WiEDxuIhtRdcq5ZJtAb0qiQ/exec";
@@ -355,20 +392,30 @@
       let actionButtonsDiv = document.getElementById("actionButtons");
       actionButtonsDiv.innerHTML = "";
       
+      // Poga "Pieņemt spēli"
       let acceptButton = document.createElement("button");
       acceptButton.innerText = "Pieņemt spēli";
       acceptButton.onclick = function() {
         updateGameStatus(selectedGame.row, uid, "@");
       };
       
+      // Poga "Atteikties"
       let declineButton = document.createElement("button");
       declineButton.innerText = "Atteikties";
       declineButton.onclick = function() {
         updateGameStatus(selectedGame.row, uid, "N");
       };
       
+      // Trešā poga "Pildī vēlāk" – atsvaidzina lapu
+      let laterButton = document.createElement("button");
+      laterButton.innerText = "Pildī vēlāk";
+      laterButton.onclick = function() {
+        window.location.reload();
+      };
+      
       actionButtonsDiv.appendChild(acceptButton);
       actionButtonsDiv.appendChild(declineButton);
+      actionButtonsDiv.appendChild(laterButton);
     }
     
     function updateGameStatus(gameRow, uid, status) {
@@ -379,7 +426,6 @@
         .then(data => {
           document.getElementById("savingMessage").style.display = "none";
           if (data.success) {
-            // Parādām popup paziņojumu un pēc tam atsvaidzinām lapu
             alert("Status veiksmīgi atjaunots. Spiediet OK, lai atsvaidzinātu lapu.");
             window.location.reload();
           } else {
@@ -425,6 +471,25 @@
     }
     
     /***********************
+     * Izgūst lietotāja datus no 40. rindas
+     ***********************/
+    function fetchUserInfo() {
+      fetch(GS_URL + "?action=getUserInfo&uid=" + uid)
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            document.getElementById("userInfoCircle").innerText = data.userData;
+          } else {
+            document.getElementById("userInfoCircle").innerText = "N/A";
+          }
+        })
+        .catch(error => {
+          console.error("Error fetching user info:", error);
+          document.getElementById("userInfoCircle").innerText = "Err";
+        });
+    }
+    
+    /***********************
      * Notikumu piesaiste
      ***********************/
     document.getElementById("spinButton").addEventListener("click", function(){
@@ -461,6 +526,7 @@
       if (uid) {
         checkPendingTask();
         fetchMiniGames();
+        fetchUserInfo();
       }
     };
     
