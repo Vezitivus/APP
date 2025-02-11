@@ -119,7 +119,7 @@
       <p id="gameRules"></p>
       <div id="actionButtons"></div>
     </div>
-    <!-- Pending uzdevuma lauks ar noteikumiem -->
+    <!-- Pending uzdevuma lauks ar uzdevuma noteikumiem -->
     <div id="pendingActions" style="display:none;">
       <p>Jums ir neizpildīts uzdevums!</p>
       <div id="pendingTaskRules"></div>
@@ -206,11 +206,10 @@
       fetch(GS_URL + "?action=getMiniGames&uid=" + uid)
         .then(response => response.json())
         .then(data => {
-          // Saglabājam pilno datu kopu
           fullGames = data;
-          // Filtrējam ierakstus – izņemam tos, kuru status ir "1" un "0"
+          // Filtrējam ierakstus – izņemam tos, kuru status ir "1" (pieņemti) un "N" (atsacīti)
           let eligibleGames = fullGames.filter(game => 
-            game.status.toString() !== "1" && game.status.toString() !== "0"
+            game.status.toString() !== "1" && game.status.toString() !== "N"
           );
           if (eligibleGames.length === 0) {
             alert("Visi uzdevumi ir izpildīti. Nav atlikušo mini spēļu.");
@@ -327,14 +326,14 @@
       }
       finalSelectedIndex = bestIndex;
       selectedGame = wheelGames[bestIndex];
-      drawWheel(); 
+      drawWheel();
       showGameDetails();
     }
     
     /***********************
      * Pending uzdevuma noteikumu funkcionalitāte
      ***********************/
-    // Izmanto pilno datu kopu (fullGames), lai atrodētu pending uzdevuma noteikumus
+    // Izmanto pilno datu kopu, lai atrastu pending uzdevuma noteikumus
     function updatePendingTaskRules() {
       if (window.pendingGameRow && fullGames && fullGames.length > 0) {
         let pendingRule = "";
@@ -365,8 +364,9 @@
       
       let declineButton = document.createElement("button");
       declineButton.innerText = "Atteikties";
+      // Ja lietotājs atsaka uzdevumu, nosūtām "N" kā statusu
       declineButton.onclick = function() {
-        updateGameStatus(selectedGame.row, uid, "0");
+        updateGameStatus(selectedGame.row, uid, "N");
       };
       
       actionButtonsDiv.appendChild(acceptButton);
@@ -386,7 +386,7 @@
               document.getElementById("gameDetails").style.display = "none";
               showPendingActions();
             } else {
-              // Ja status ir "0", veicam nelielu aizturi pirms atsvaidzināšanas
+              // Ja status ir "N", veicam nelielu aizturi pirms atsvaidzināšanas
               setTimeout(resetWheel, 500);
             }
           } else {
@@ -459,7 +459,7 @@
     
     document.getElementById("declineTaskButton").addEventListener("click", function() {
       if (window.pendingGameRow) {
-        updateGameStatus(window.pendingGameRow, uid, "0");
+        updateGameStatus(window.pendingGameRow, uid, "N");
         window.pendingGameRow = null;
         checkPendingTask();
       }
