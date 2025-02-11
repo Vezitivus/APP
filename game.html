@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VEZITIVUS GAME HOST</title>
+  <style>
+    /* Vispārējie stili ar iOS estētiku */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f0f0f5;
+    }
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: rgba(255,255,255,0.5);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    main {
+      margin-top: 80px;
+      padding: 20px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    select, input {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #007aff;
+      color: #fff;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #005bb5;
+    }
+    .teams-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .team {
+      flex: 1 1 calc(50% - 20px);
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 10px;
+      min-height: 150px;
+    }
+    .team-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .players-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .player {
+      width: 100px;
+      padding: 10px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      text-align: center;
+      cursor: grab;
+    }
+    .player.dragging {
+      opacity: 0.5;
+    }
+    .dropzone {
+      min-height: 50px;
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Fiksēts augšējais virsraksts -->
+  <header>
+    VEZITIVUS GAME HOST
+  </header>
+  <main>
+    <!-- Aktivitātes izvēles lauks -->
+    <div class="form-group">
+      <label for="activitySelect">Izvēlies aktivitāti:</label>
+      <select id="activitySelect">
+        <option value="">Ielādē aktivitātes...</option>
+      </select>
+    </div>
+    <!-- Komandu skaita ievade un ģenerēšana -->
+    <div class="form-group">
+      <label for="teamCount">Komandu skaits:</label>
+      <input type="number" id="teamCount" placeholder="Ievadi komandu skaitu" min="1">
+      <button id="generateTeamsBtn">Izveidot komandas</button>
+    </div>
+    <!-- Dinamiski ģenerēti komandu konteineri -->
+    <div id="teamsContainer" class="teams-container"></div>
+    <!-- Spēlētāju saraksts -->
+    <div class="form-group">
+      <h3>Spēlētāji</h3>
+      <div id="playersContainer" class="players-container"></div>
+    </div>
+    <!-- Saglabāšanas poga, kas parādās pēc komandu izveides -->
+    <div class="form-group" id="saveContainer" style="display:none;">
+      <button id="saveResultsBtn">Saglabāt rezultātus</button>
+    </div>
+  </main>
+  <script src="game.js"></script>
+</body>
+</html>
