@@ -1,35 +1,42 @@
 <!DOCTYPE html>
 <html lang="lv">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
   <title>VEZITIVUS GAME HOST</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- iOS stila iedvesmots dizains -->
   <style>
-    /* Vispārējie stili ar iOS estētiku */
+    * {
+      box-sizing: border-box;
+    }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       margin: 0;
       padding: 0;
-      background-color: #f0f0f5;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f1f2f6;
+      color: #333;
     }
     header {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
+      top: 0; left: 0; right: 0;
       height: 60px;
-      background: rgba(255,255,255,0.5);
+      background: rgba(0,0,0,0.1); /* nedaudz tumšs, 50% caurspīdīgs var mainīt */
       backdrop-filter: blur(10px);
-      display: flex;
-      align-items: center;
+      display: flex; 
+      align-items: center; 
       justify-content: center;
-      z-index: 1000;
       font-size: 24px;
       font-weight: bold;
+      z-index: 1000;
     }
     main {
       margin-top: 80px;
       padding: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
     }
     .form-group {
       margin-bottom: 20px;
@@ -40,7 +47,10 @@
       font-size: 16px;
       border: 1px solid #ccc;
       border-radius: 8px;
-      box-sizing: border-box;
+      outline: none;
+    }
+    select:focus, input:focus {
+      border-color: #007aff;
     }
     button {
       padding: 10px 20px;
@@ -50,6 +60,7 @@
       background-color: #007aff;
       color: #fff;
       cursor: pointer;
+      transition: background-color 0.3s;
     }
     button:hover {
       background-color: #005bb5;
@@ -67,12 +78,14 @@
       border-radius: 8px;
       padding: 10px;
       min-height: 150px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
     .team-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 10px;
+      font-weight: 600;
     }
     .players-container {
       display: flex;
@@ -87,48 +100,53 @@
       border-radius: 8px;
       text-align: center;
       cursor: grab;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .player:active {
+      cursor: grabbing;
     }
     .player.dragging {
       opacity: 0.5;
     }
     .dropzone {
-      min-height: 50px;
+      min-height: 60px;
       border: 2px dashed #ccc;
       border-radius: 8px;
       padding: 10px;
       margin-bottom: 10px;
+      transition: border-color 0.3s;
+    }
+    .dropzone.dragover {
+      border-color: #007aff; /* maina krāsu, kad hover */
     }
   </style>
 </head>
 <body>
-  <!-- Fiksēts augšējais virsraksts -->
-  <header>
-    VEZITIVUS GAME HOST
-  </header>
+  <header>VEZITIVUS GAME HOST</header>
   <main>
-    <!-- Aktivitātes izvēles lauks -->
+    <!-- Aktivitātes izvēle -->
     <div class="form-group">
       <label for="activitySelect">Izvēlies aktivitāti:</label>
       <select id="activitySelect">
         <option value="">Ielādē aktivitātes...</option>
       </select>
     </div>
-    <!-- Komandu skaita ievade un ģenerēšana -->
+    <!-- Komandu skaits -->
     <div class="form-group">
       <label for="teamCount">Komandu skaits:</label>
-      <input type="number" id="teamCount" placeholder="Ievadi komandu skaitu" min="1">
+      <input type="number" id="teamCount" min="1" placeholder="Ievadi komandu skaitu" />
       <button id="generateTeamsBtn">Izveidot komandas</button>
     </div>
-    <!-- Dinamiski ģenerēti komandu konteineri -->
+    <!-- Dinamiskie komandu laukumi -->
     <div id="teamsContainer" class="teams-container"></div>
+    <!-- Pogas konteiners (saglabāšana) -->
+    <div class="form-group" id="saveContainer" style="display:none;">
+      <button id="saveResultsBtn">Saglabāt rezultātus</button>
+    </div>
     <!-- Spēlētāju saraksts -->
     <div class="form-group">
       <h3>Spēlētāji</h3>
       <div id="playersContainer" class="players-container"></div>
-    </div>
-    <!-- Saglabāšanas poga, kas parādās pēc komandu izveides -->
-    <div class="form-group" id="saveContainer" style="display:none;">
-      <button id="saveResultsBtn">Saglabāt rezultātus</button>
     </div>
   </main>
   <script src="game.js"></script>
