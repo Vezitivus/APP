@@ -5,7 +5,7 @@
   <title>Laimes Rats</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    /* Fona stils – lineārs gradienta fons, kas aizpilda visu ekrānu */
+    /* Fona stils – lineārs gradienta fons, kas aizpilda visu ekrānu un centrē saturu */
     html, body {
       margin: 0;
       padding: 0;
@@ -14,13 +14,15 @@
       background-size: cover;
       color: #fff;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       overflow: hidden;
     }
     .container {
-      position: relative;
-      max-width: 600px;
       width: 100%;
-      margin: 0 auto;
+      max-width: 600px;
       padding: 20px;
       text-align: center;
       z-index: 2;
@@ -32,15 +34,15 @@
     }
     /* Wrapper priekš rato */
     #wheelWrapper {
-      position: relative;
-      display: inline-block;
+      margin: 0 auto;
       z-index: 2;
     }
     #wheelCanvas {
       width: 300px;
       height: 300px;
       border-radius: 50%;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      border: 4px solid #FFD700;  /* Smukāks zelta apmale */
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
       background-color: #fff;
       display: block;
       margin: 0 auto;
@@ -58,7 +60,7 @@
       background-color: #007aff;
       color: #fff;
       cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
       transition: background-color 0.2s ease;
     }
     button:hover {
@@ -68,21 +70,21 @@
       background-color: #aaa;
       cursor: not-allowed;
     }
-    /* Uzdevuma noteikumu lauks un pending sadaļa */
+    /* Uzdevuma noteikumu lauki un pending sadaļa */
     #gameDetails, #pendingActions {
       margin-top: 20px;
       padding: 20px;
-      background-color: rgba(255,255,255,0.9);
+      background-color: rgba(255, 255, 255, 0.9);
       border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
       z-index: 2;
       color: #333;
     }
-    /* Papildus stils pending uzdevuma noteikumiem */
+    /* Pending uzdevuma noteikumu stils */
     #pendingTaskRules {
       font-size: 16px;
       padding: 10px;
-      background: rgba(255,255,255,0.2);
+      background: rgba(255, 255, 255, 0.2);
       border-radius: 8px;
       margin-top: 10px;
     }
@@ -90,7 +92,7 @@
     #savingMessage {
       font-size: 16px;
       padding: 10px;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0, 0, 0, 0.5);
       border-radius: 8px;
       margin-top: 10px;
       display: none;
@@ -107,14 +109,14 @@
     <div id="spinContainer">
       <button id="spinButton">Griezt Rats</button>
     </div>
-    <!-- Saglabāšanas ziņojums, parādās, kamēr gaidīti datus -->
+    <!-- Saglabāšanas ziņojums, kas parādās kamēr tiek gaidīta servera atbilde -->
     <div id="savingMessage">Saglabā datus...</div>
     <!-- Spēles noteikumu lauks -->
     <div id="gameDetails" style="display:none;">
       <p id="gameRules"></p>
       <div id="actionButtons"></div>
     </div>
-    <!-- Pending uzdevuma lauks ar noteikumiem -->
+    <!-- Pending uzdevuma lauks ar uzdevuma noteikumiem -->
     <div id="pendingActions" style="display:none;">
       <p>Jums ir neizpildīts uzdevums!</p>
       <div id="pendingTaskRules"></div>
@@ -162,7 +164,8 @@
         .then(response => response.json())
         .then(data => {
           miniGames = data;
-          let eligibleGames = miniGames.filter(game => game.status !== "1");
+          // Filtrējam tos ierakstus, kuru status nav "1" un nav "0"
+          let eligibleGames = miniGames.filter(game => game.status !== "1" && game.status !== "0");
           if (eligibleGames.length === 0) {
             alert("Visi uzdevumi ir izpildīti. Nav atlikušo mini spēļu.");
             document.getElementById("spinButton").disabled = true;
@@ -264,7 +267,7 @@
       requestAnimationFrame(animate);
     }
     
-    // Aprēķina, kurš segmenta centra leņķis ir vistuvākais (pointerAngle 108° tiek izmantots aprēķinā, lai noteiktu segmentu)
+    // Aprēķina, kurš segmenta centra leņķis ir vistuvākais (pointerAngle 108°)
     function onSpinComplete(rotationDegrees) {
       let numSegments = wheelGames.length;
       let finalRotationDegrees = rotationDegrees % 360;
