@@ -74,9 +74,9 @@
     #gameDetails, #pendingActions {
       margin-top: 20px;
       padding: 20px;
-      background-color: rgba(255, 255, 255, 0.9);
+      background-color: rgba(255,255,255,0.9);
       border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
       z-index: 2;
       color: #333;
     }
@@ -84,20 +84,27 @@
     #pendingTaskRules {
       font-size: 16px;
       padding: 10px;
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(255,255,255,0.2);
       border-radius: 8px;
       margin-top: 10px;
     }
-    /* Saglabāšanas ziņojuma stils */
+    /* Saglabāšanas ziņojuma stils – var pievienot spinner GIF, ja vēlies */
     #savingMessage {
       font-size: 16px;
       padding: 10px;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0,0,0,0.5);
       border-radius: 8px;
       margin-top: 10px;
       display: none;
       color: #fff;
     }
+    /* Ja vēlies izmantot spinner GIF, vari atkomentēt sekojošo rindu un nodrošināt spinner.gif */
+    /* #savingMessage img {
+         vertical-align: middle;
+         width: 24px;
+         height: 24px;
+         margin-right: 10px;
+       } */
   </style>
 </head>
 <body>
@@ -110,7 +117,10 @@
       <button id="spinButton">Griezt Rats</button>
     </div>
     <!-- Saglabāšanas ziņojums, kas parādās kamēr tiek gaidīta servera atbilde -->
-    <div id="savingMessage">Saglabā datus...</div>
+    <div id="savingMessage">
+      <!-- Ja vēlies spinner, atkomentē zemāko rindu un nodrošini spinner.gif -->
+      <!-- <img src="spinner.gif" alt="Loading..."> --> Saglabā datus...
+    </div>
     <!-- Spēles noteikumu lauks -->
     <div id="gameDetails" style="display:none;">
       <p id="gameRules"></p>
@@ -164,7 +174,7 @@
         .then(response => response.json())
         .then(data => {
           miniGames = data;
-          // Filtrējam tos ierakstus, kuru status nav "1" un nav "0"
+          // Filtrējam tikai ierakstus, kuru status NAV "1" un NAV "0"
           let eligibleGames = miniGames.filter(game => game.status !== "1" && game.status !== "0");
           if (eligibleGames.length === 0) {
             alert("Visi uzdevumi ir izpildīti. Nav atlikušo mini spēļu.");
@@ -331,7 +341,7 @@
     }
     
     function updateGameStatus(gameRow, uid, status) {
-      // Parādīt ziņojumu "Saglabā datus..."
+      // Parādīt ziņojumu "Saglabā datus..." ar spinneri, kamēr gaidām atbildi
       document.getElementById("savingMessage").style.display = "block";
       
       fetch(GS_URL + "?action=updateStatus&gameRow=" + gameRow + "&uid=" + uid + "&status=" + status)
