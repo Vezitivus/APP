@@ -6,25 +6,40 @@ let allActivities = [];  // dati no F4:AP4
 let allPlayers = [];     // masīvs ar objektiem { uid, name }
 let teams = [];          // komandu objekti: { id, name, score, players: [] }
 
-// HTML elementu atsauces
-const activitySelect = document.getElementById("activitySelect");
-const teamCountInput = document.getElementById("teamCountInput");
-const createTeamsBtn = document.getElementById("createTeamsBtn");
-const teamsContainer = document.getElementById("teamsContainer");
-const playersContainer = document.getElementById("playersContainer");
-const saveResultsBtn = document.getElementById("saveResults");
+// HTML elementu atsauces (tiek ielādētas pēc DOMContentLoaded)
+let activitySelect, teamCountInput, createTeamsBtn, teamsContainer, playersContainer, saveResultsBtn;
 
-// Inicializācija, kad lapa ir ielādēta
+// Inicializācija pēc lapas ielādes
 window.addEventListener("DOMContentLoaded", init);
 
 function init() {
+  // Saglabā atsauces uz DOM elementiem
+  activitySelect   = document.getElementById("activitySelect");
+  teamCountInput   = document.getElementById("teamCountInput");
+  createTeamsBtn   = document.getElementById("createTeamsBtn");
+  teamsContainer   = document.getElementById("teamsContainer");
+  playersContainer = document.getElementById("playersContainer");
+  saveResultsBtn   = document.getElementById("saveResults");
+
+  // Piesaista notikumu klausītājus, ja elementi pastāv
+  if (createTeamsBtn) {
+    createTeamsBtn.addEventListener("click", onCreateTeamsClick);
+  } else {
+    console.error("Elementam ar id 'createTeamsBtn' nav atrasts.");
+  }
+  if (saveResultsBtn) {
+    saveResultsBtn.addEventListener("click", onSaveResultsClick);
+  } else {
+    console.error("Elementam ar id 'saveResults' nav atrasts.");
+  }
+
   // Ielādē aktivitātes
   fetchActivities()
     .then(activities => {
       allActivities = activities;
       populateActivitySelect();
     })
-    .catch(err => console.error("Kļūda ielādējot aktivitātes:", err));
+    .catch(err => console.error("Error in fetchActivities: " + err));
 
   // Ielādē spēlētājus
   fetchPlayers()
@@ -32,11 +47,7 @@ function init() {
       allPlayers = players;
       renderPlayers(players);
     })
-    .catch(err => console.error("Kļūda ielādējot spēlētājus:", err));
-
-  // Notikumu piesaiste
-  createTeamsBtn.addEventListener("click", onCreateTeamsClick);
-  saveResultsBtn.addEventListener("click", onSaveResultsClick);
+    .catch(err => console.error("Error in fetchPlayers: " + err));
 }
 
 // Iegūst aktivitātes no Google Apps Script (no F4:AP4)
@@ -48,7 +59,7 @@ function fetchActivities() {
       if (json.status === "ok") {
         return json.data; 
       } else {
-        throw new Error(json.message || "Kļūda, iegūstot aktivitātes");
+        throw new Error("fetchActivities failed: " + (json.message || "Unknown error"));
       }
     });
 }
@@ -62,7 +73,7 @@ function fetchPlayers() {
       if (json.status === "ok") {
         return json.data; 
       } else {
-        throw new Error(json.message || "Kļūda, iegūstot spēlētājus");
+        throw new Error("fetchPlayers failed: " + (json.message || "Unknown error"));
       }
     });
 }
@@ -103,7 +114,7 @@ function createPlayerCard(player) {
   div.dataset.uid = player.uid;
   div.dataset.name = player.name;
 
-  // Drag & drop notikumi
+  // Piesaista drag notikumu
   div.addEventListener("dragstart", onPlayerDragStart);
 
   const uidEl = document.createElement("div");
@@ -120,7 +131,7 @@ function createPlayerCard(player) {
   return div;
 }
 
-// Poga "Izveidot komandas" apstrāde
+// Poga "Izveidot komandas" – ģenerē komandu blokus
 function onCreateTeamsClick() {
   const count = parseInt(teamCountInput.value) || 0;
   generateTeams(count);
@@ -135,13 +146,13 @@ function generateTeams(count) {
     const teamId = "team_" + i;
     const team = {
       id: teamId,
-      name: `Komanda ${i+1}`,
+      name: `Komanda ${i + 1}`,
       score: "",
       players: []
     };
     teams.push(team);
 
-    // Veido HTML elementus komandas blokam
+    // Veido komandas HTML elementus
     const teamBlock = document.createElement("div");
     teamBlock.classList.add("team-block");
 
@@ -177,17 +188,14 @@ function onPlayerDragStart(e) {
 // Apstrādā vilkšanas notikumu pār dropzone
 function onDragOver(e) {
   e.preventDefault();
-  if (!e.currentTarget.classList.contains("hover")) {
-    e.currentTarget.classList.add("hover");
-  }
+  e.currentTarget.classList.add("hover");
 }
 
 // Apstrādā nomest notikumu dropzone
 function onDrop(e) {
   e.preventDefault();
-  const dropzone = e.currentTarget;
-  dropzone.classList.remove("hover");
-  
+  e.currentTarget.classList.remove("hover");
+
   const data = e.dataTransfer.getData("text/plain");
   if (data) {
     try {
@@ -195,14 +203,14 @@ function onDrop(e) {
       const card = createPlayerCard(player);
       removePlayerCardFromTeams(player.uid);
       removePlayerCardFromContainer(player.uid, playersContainer);
-      dropzone.appendChild(card);
+      e.currentTarget.appendChild(card);
     } catch (error) {
-      console.error("Kļūda parsējot drag datus:", error);
+      console.error("Error in onDrop while parsing drag data: " + error);
     }
   }
 }
 
-// Noņem spēlētāja kartīti no visām komandu dropzone, ja jau tajā atrodas
+// Noņem spēlētāja kartīti no visām komandu dropzone
 function removePlayerCardFromTeams(uid) {
   const dropzones = teamsContainer.querySelectorAll(".dropzone");
   dropzones.forEach(dz => {
@@ -221,7 +229,7 @@ function removePlayerCardFromContainer(uid, container) {
   }
 }
 
-// Kad tiek ievadīti punkti, pārbauda, vai jāparāda "Saglabāt rezultātus" poga
+// Kad tiek ievadīti punkti, pārbauda, vai jādodas uz "Saglabāt rezultātus" pogu
 function onScoreInput(e) {
   checkIfShowSaveButton();
 }
@@ -237,10 +245,10 @@ function checkIfShowSaveButton() {
   saveResultsBtn.style.display = anyScoreEntered ? "inline-block" : "none";
 }
 
-// Saglabā rezultātus – katram spēlētājam, kas nonācis kādā komandā
+// Saglabā rezultātus – izveido masīvu ar katra spēlētāja datiem no komandām
 function onSaveResultsClick() {
   const teamBlocks = teamsContainer.querySelectorAll(".team-block");
-  let results = []; // katram spēlētājam { uid, activity, points }
+  let results = [];
 
   teamBlocks.forEach(block => {
     const scoreInput = block.querySelector(".team-score-input");
@@ -269,10 +277,30 @@ function onSaveResultsClick() {
       alert("Rezultāti saglabāti veiksmīgi!");
     })
     .catch(err => {
-      console.error("Kļūda saglabājot rezultātus:", err);
+      console.error("Error in onSaveResultsClick while saving results: " + err);
       alert("Kļūda saglabājot rezultātus.");
     })
     .finally(() => {
       saveResultsBtn.disabled = false;
     });
+}
+
+// Sūta rezultātus uz Google Sheets
+function saveResults(results) {
+  const url = GS_URL + "?action=saveResults";
+  return fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ results: results })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.status === "ok") {
+      return data;
+    } else {
+      throw new Error("saveResults failed: " + (data.message || "Unknown error"));
+    }
+  });
 }
