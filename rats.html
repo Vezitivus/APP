@@ -20,15 +20,15 @@
       justify-content: center;
       overflow: hidden;
     }
-    /* Kontainers, kurš tiks vilkts – sākotnēji centrēts */
+    /* Draggable konteiners */
     .container {
       width: 100%;
       max-width: 600px;
       padding: 20px;
       text-align: center;
       z-index: 2;
-      position: relative; /* Lai ļautu pārvietot transformāciju */
-      touch-action: none; /* Atļauj pielāgot vilkšanas notikumus touch ierīcēm */
+      position: relative;
+      touch-action: none;
     }
     h1 {
       margin-bottom: 20px;
@@ -101,13 +101,6 @@
       display: none;
       color: #fff;
     }
-    /* Ja vēlies izmantot spinner GIF, vari atkomentēt zemāko rindu un nodrošināt spinner.gif */
-    /* #savingMessage img {
-         vertical-align: middle;
-         width: 24px;
-         height: 24px;
-         margin-right: 10px;
-       } */
   </style>
 </head>
 <body>
@@ -119,17 +112,14 @@
     <div id="spinContainer">
       <button id="spinButton">Griezt Rats</button>
     </div>
-    <!-- Saglabāšanas ziņojums, kas parādās kamēr tiek gaidīta servera atbilde -->
-    <div id="savingMessage">
-      <!-- Ja vēlies spinner, atkomentē zemāko rindu un nodrošini spinner.gif -->
-      <!-- <img src="spinner.gif" alt="Loading..."> --> Saglabā datus...
-    </div>
+    <!-- Saglabāšanas ziņojums -->
+    <div id="savingMessage">Saglabā datus...</div>
     <!-- Spēles noteikumu lauks -->
     <div id="gameDetails" style="display:none;">
       <p id="gameRules"></p>
       <div id="actionButtons"></div>
     </div>
-    <!-- Pending uzdevuma lauks ar uzdevuma noteikumiem -->
+    <!-- Pending uzdevuma lauks ar noteikumiem -->
     <div id="pendingActions" style="display:none;">
       <p>Jums ir neizpildīts uzdevums!</p>
       <div id="pendingTaskRules"></div>
@@ -153,21 +143,13 @@
 
       function dragStart(e) {
         isDragging = true;
-        if (e.type === "mousedown") {
-          startY = e.clientY;
-        } else if (e.type === "touchstart") {
-          startY = e.touches[0].clientY;
-        }
+        startY = (e.type === "mousedown") ? e.clientY : e.touches[0].clientY;
         container.style.transition = "none";
       }
 
       function dragMove(e) {
         if (!isDragging) return;
-        if (e.type === "mousemove") {
-          currentY = e.clientY;
-        } else if (e.type === "touchmove") {
-          currentY = e.touches[0].clientY;
-        }
+        currentY = (e.type === "mousemove") ? e.clientY : e.touches[0].clientY;
         const deltaY = currentY - startY;
         container.style.transform = `translateY(${initialTranslateY + deltaY}px)`;
       }
@@ -175,7 +157,6 @@
       function dragEnd(e) {
         if (!isDragging) return;
         isDragging = false;
-        // Saglabājam jauno pozīciju
         const style = window.getComputedStyle(container);
         const matrix = new WebKitCSSMatrix(style.transform);
         initialTranslateY = matrix.m42;
@@ -184,10 +165,8 @@
 
       container.addEventListener("mousedown", dragStart);
       container.addEventListener("touchstart", dragStart);
-
       document.addEventListener("mousemove", dragMove);
       document.addEventListener("touchmove", dragMove);
-
       document.addEventListener("mouseup", dragEnd);
       document.addEventListener("touchend", dragEnd);
     })();
@@ -211,14 +190,14 @@
       alert("Kļūda: URL beigās nav norādīts uid!");
     }
     
-    // Google Apps Script URL (publicētā web app adrese)
+    // Google Apps Script URL
     const GS_URL = "https://script.google.com/macros/s/AKfycbzpdvdz8KsoPx8xhrpMbVykUk82rdC2OGcGivFL7PRfKX1WiEDxuIhtRdcq5ZJtAb0qiQ/exec";
     
     // Globalās mainīgās
-    let miniGames = [];      // Aptuveni 30 ieraksti no Sheets
-    let wheelGames = [];     // Izvēlēti ieraksti rātam (maks. 10 vai mazāk)
+    let fullGames = [];    // Pilns datu saraksts (nefiltrēts)
+    let wheelGames = [];   // Ieraksti, kas tiks attēloti uz rato (filtrēti)
     let selectedGame = null;
-    let finalSelectedIndex = null; // Izvēlētais segments (indekss)
+    let finalSelectedIndex = null;
     
     /***********************
      * Datu ielāde un sagatavošana
@@ -227,9 +206,12 @@
       fetch(GS_URL + "?action=getMiniGames&uid=" + uid)
         .then(response => response.json())
         .then(data => {
-          miniGames = data;
-          // Filtrējam tikai ierakstus, kuru status NAV "1" (pieņemti); ieraksti ar "0" paliek
-          let eligibleGames = miniGames.filter(game => game.status !== "1");
+          // Saglabājam pilno datu kopu
+          fullGames = data;
+          // Filtrējam ierakstus – izņemam tos, kuru status ir "1" un "0"
+          let eligibleGames = fullGames.filter(game => 
+            game.status.toString() !== "1" && game.status.toString() !== "0"
+          );
           if (eligibleGames.length === 0) {
             alert("Visi uzdevumi ir izpildīti. Nav atlikušo mini spēļu.");
             document.getElementById("spinButton").disabled = true;
@@ -261,7 +243,6 @@
     /***********************
      * Laimes rata attēlošana un animācija
      ***********************/
-    // Zīmē ratu ar doto pagrieziena leņķi (radianos). Ja finalSelectedIndex ir definēts, izceļ attiecīgo segmentu.
     function drawWheel(rotationAngle = 0) {
       let canvas = document.getElementById("wheelCanvas");
       let ctx = canvas.getContext("2d");
@@ -280,14 +261,12 @@
         ctx.fillStyle = getSegmentColor(i);
         ctx.fill();
         
-        // Ja segments ir izvēlēts, zīmē zelta apmali
         if (finalSelectedIndex !== null && i === finalSelectedIndex) {
           ctx.lineWidth = 5;
           ctx.strokeStyle = "#FFD700";
           ctx.stroke();
         }
         
-        // Uz segmenta centrā attēlo spēles nosaukumu
         ctx.save();
         ctx.translate(radius, radius);
         ctx.rotate(startAngle + segmentAngle / 2);
@@ -331,12 +310,11 @@
       requestAnimationFrame(animate);
     }
     
-    // Aprēķina, kurš segmenta centra leņķis ir vistuvākais (pointerAngle 108°)
     function onSpinComplete(rotationDegrees) {
       let numSegments = wheelGames.length;
       let finalRotationDegrees = rotationDegrees % 360;
       let segmentSize = 360 / numSegments;
-      let pointerAngle = 108; 
+      let pointerAngle = 108;
       let bestIndex = 0;
       let minDiff = 360;
       for (let i = 0; i < numSegments; i++) {
@@ -356,12 +334,13 @@
     /***********************
      * Pending uzdevuma noteikumu funkcionalitāte
      ***********************/
+    // Izmanto pilno datu kopu (fullGames), lai atrodētu pending uzdevuma noteikumus
     function updatePendingTaskRules() {
-      if (window.pendingGameRow && miniGames && miniGames.length > 0) {
+      if (window.pendingGameRow && fullGames && fullGames.length > 0) {
         let pendingRule = "";
-        for (let i = 0; i < miniGames.length; i++) {
-          if (miniGames[i].row == window.pendingGameRow) {
-            pendingRule = miniGames[i].rules;
+        for (let i = 0; i < fullGames.length; i++) {
+          if (fullGames[i].row == window.pendingGameRow) {
+            pendingRule = fullGames[i].rules;
             break;
           }
         }
@@ -395,13 +374,11 @@
     }
     
     function updateGameStatus(gameRow, uid, status) {
-      // Parādīt ziņojumu "Saglabā datus..." ar spinneri, kamēr gaidām atbildi
       document.getElementById("savingMessage").style.display = "block";
       
       fetch(GS_URL + "?action=updateStatus&gameRow=" + gameRow + "&uid=" + uid + "&status=" + status)
         .then(response => response.json())
         .then(data => {
-          // Paslēpt ziņojumu, kad atbilde ir saņemta
           document.getElementById("savingMessage").style.display = "none";
           if (data.success) {
             alert("Status veiksmīgi atjaunots.");
@@ -409,7 +386,7 @@
               document.getElementById("gameDetails").style.display = "none";
               showPendingActions();
             } else {
-              // Ja status ir "0", nelaižam uzdevumu izdzēst – veicam atsvaidzināšanu ar nelielu aizturi
+              // Ja status ir "0", veicam nelielu aizturi pirms atsvaidzināšanas
               setTimeout(resetWheel, 500);
             }
           } else {
