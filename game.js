@@ -1,11 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // Aizstājiet ar savu Google Apps Script URL (beidzas ar .../exec)
+  // MAINIET UZ SAVU .../exec URL:
   const googleScriptUrl = 'https://script.google.com/macros/s/AKfycbwvbYSracMlNJ2dhhD74EtX2FjJ0ASsDcZBy7qGm9V-kgOWIoybclFSJN1dJ6TFmM-S/exec';
   
   let activities = [];
   let players = [];
-
-  // Atlases
+  
+  // Elementi
   const activitySelect = document.getElementById('activitySelect');
   const teamCountInput = document.getElementById('teamCount');
   const generateTeamsBtn = document.getElementById('generateTeamsBtn');
@@ -14,24 +14,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const saveContainer = document.getElementById('saveContainer');
   const saveResultsBtn = document.getElementById('saveResultsBtn');
   
-  // ==== 1) Ielādē sākotnējos datus (aktivitātes, spēlētājus) ====
+  // 1) Ielādē aktivitātes, spēlētājus
   function fetchData() {
     fetch(`${googleScriptUrl}?action=getData`)
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success') {
+          // Aizpildām mainīgos
           activities = data.activities || [];
           players = data.players || [];
-          
-          // Aizpildām aktivitāšu sarakstu
           populateActivities();
-          // Aizpildām spēlētāju sarakstu
           populatePlayers();
         } else {
-          console.error('Kļūda saņemot datus:', data.message);
+          console.error('Kļūda ielādējot datus:', data.message);
         }
       })
-      .catch(err => console.error('Kļūda fetchData:', err));
+      .catch(err => {
+        console.error('Kļūda ielādējot datus:', err);
+      });
   }
   
   function populateActivities() {
@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
   }
-
+  
   function populatePlayers() {
     playersContainer.innerHTML = '';
     players.forEach(p => {
@@ -58,32 +58,27 @@ document.addEventListener('DOMContentLoaded', () => {
       div.className = 'player';
       div.draggable = true;
       div.dataset.uid = p.uid;
-      // Parādām UID augšā, vārdu apakšā
       div.innerHTML = `<div style="font-weight:bold;">${p.uid}</div><div>${p.name}</div>`;
-      
-      // Drag events
+      // Drag event
       div.addEventListener('dragstart', handleDragStart);
       div.addEventListener('dragend', handleDragEnd);
       playersContainer.appendChild(div);
     });
   }
   
-  // ==== 2) Drag & Drop loģika ====
+  // 2) Drag & Drop
   let dragged = null;
-
   function handleDragStart(e) {
-    dragged = this; // saglabājam, kurš elements tiek vilkts
+    dragged = this;
     this.classList.add('dragging');
-    e.dataTransfer.effectAllowed = 'move';
-    // Lai Firefox/Chrome saprastu, ka vilkšana notiek
     e.dataTransfer.setData('text/plain', this.dataset.uid);
+    e.dataTransfer.effectAllowed = 'move';
   }
   function handleDragEnd() {
     this.classList.remove('dragging');
   }
   function handleDragOver(e) {
     e.preventDefault();
-    // Lai parādītos 'drop' efekts
     e.dataTransfer.dropEffect = 'move';
     this.classList.add('dragover');
   }
@@ -94,26 +89,23 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     this.classList.remove('dragover');
     if (dragged) {
-      // Pārvietojam elementu no vecā konteinerā uz jauno
       dragged.parentNode.removeChild(dragged);
       this.appendChild(dragged);
     }
   }
-
-  // ==== 3) Komandu izveide ====
+  
+  // 3) Komandu ģenerēšana
   generateTeamsBtn.addEventListener('click', () => {
     const count = parseInt(teamCountInput.value, 10);
     if (isNaN(count) || count < 1) {
-      alert('Lūdzu ievadi derīgu komandu skaitu.');
+      alert('Ievadi derīgu komandu skaitu');
       return;
     }
     teamsContainer.innerHTML = '';
-    
     for (let i = 1; i <= count; i++) {
       const teamDiv = document.createElement('div');
       teamDiv.className = 'team';
       teamDiv.dataset.teamId = i;
-      
       teamDiv.innerHTML = `
         <div class="team-header">
           <span>Komanda ${i}</span>
@@ -121,47 +113,36 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div class="dropzone" data-team-id="${i}">Nomet šeit spēlētājus</div>
       `;
-      
-      // Pievienojam dropzone eventus
       const dropzone = teamDiv.querySelector('.dropzone');
       dropzone.addEventListener('dragover', handleDragOver);
       dropzone.addEventListener('dragleave', handleDragLeave);
       dropzone.addEventListener('drop', handleDrop);
-      
       teamsContainer.appendChild(teamDiv);
     }
-    
-    // Parādām saglabāšanas pogu, ja komandas izveidotas
     saveContainer.style.display = 'block';
   });
-
-  // ==== 4) Rezultātu saglabāšana ====
+  
+  // 4) Rezultātu saglabāšana
   saveResultsBtn.addEventListener('click', () => {
     const selectedActivity = activitySelect.value;
     if (!selectedActivity) {
-      alert('Lūdzu izvēlies aktivitāti no saraksta!');
+      alert('Izvēlies aktivitāti!');
       return;
     }
-    
     const results = [];
-    // Katru komandu un tās spēlētājus
     document.querySelectorAll('.team').forEach(teamEl => {
+      const teamScore = teamEl.querySelector('.team-score').value.trim();
       const teamId = teamEl.dataset.teamId;
-      const scoreInput = teamEl.querySelector('.team-score');
-      const teamScore = scoreInput.value.trim();
-      const dropzone = teamEl.querySelector('.dropzone');
-      const teamPlayers = dropzone.querySelectorAll('.player');
-      
-      teamPlayers.forEach(playerEl => {
+      const pEls = teamEl.querySelectorAll('.player');
+      pEls.forEach(p => {
         results.push({
-          uid: playerEl.dataset.uid,
+          uid: p.dataset.uid,
           score: teamScore,
           team: teamId
         });
       });
     });
     
-    // Tagad sūtām POST pieprasījumu uz Google Script
     fetch(googleScriptUrl, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
@@ -176,15 +157,15 @@ document.addEventListener('DOMContentLoaded', () => {
       if (data.status === 'success') {
         alert('Rezultāti saglabāti!');
       } else {
-        alert('Kļūda saglabājot rezultātus: ' + (data.message || 'unknown'));
+        alert('Kļūda saglabājot: ' + data.message);
       }
     })
     .catch(err => {
-      console.error('POST error:', err);
-      alert('Neizdevās saglabāt rezultātus (skat. konsoli).');
+      console.error(err);
+      alert('Neizdevās saglabāt rezultātus!');
     });
   });
-
-  // Uzreiz mēģinām ielādēt datus
+  
+  // Sākam ar datu ielādi
   fetchData();
 });
