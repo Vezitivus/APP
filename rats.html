@@ -333,7 +333,6 @@
     /***********************
      * Pending uzdevuma noteikumu funkcionalitāte
      ***********************/
-    // Izmanto pilno datu kopu, lai atrastu pending uzdevuma noteikumus
     function updatePendingTaskRules() {
       if (window.pendingGameRow && fullGames && fullGames.length > 0) {
         let pendingRule = "";
@@ -364,7 +363,6 @@
       
       let declineButton = document.createElement("button");
       declineButton.innerText = "Atteikties";
-      // Ja lietotājs atsaka uzdevumu, nosūtām "N" kā statusu
       declineButton.onclick = function() {
         updateGameStatus(selectedGame.row, uid, "N");
       };
@@ -381,14 +379,9 @@
         .then(data => {
           document.getElementById("savingMessage").style.display = "none";
           if (data.success) {
-            alert("Status veiksmīgi atjaunots.");
-            if (status === "@") {
-              document.getElementById("gameDetails").style.display = "none";
-              showPendingActions();
-            } else {
-              // Ja status ir "N", veicam nelielu aizturi pirms atsvaidzināšanas
-              setTimeout(resetWheel, 500);
-            }
+            // Parādām popup paziņojumu un pēc tam atsvaidzinām lapu
+            alert("Status veiksmīgi atjaunots. Spiediet OK, lai atsvaidzinātu lapu.");
+            window.location.reload();
           } else {
             alert("Kļūda, atjaunojot statusu.");
           }
@@ -444,9 +437,8 @@
           .then(response => response.json())
           .then(data => {
             if (data.success) {
-              alert("Uzdevums atzīmēts kā izpildīts.");
-              window.pendingGameRow = null;
-              checkPendingTask();
+              alert("Uzdevums atzīmēts kā izpildīts. Spiediet OK, lai atsvaidzinātu lapu.");
+              window.location.reload();
             } else {
               alert("Kļūda, mēģiniet vēlreiz.");
             }
