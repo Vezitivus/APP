@@ -19,7 +19,7 @@
       align-items: center;
       z-index: 9999;
     }
-    
+
     /* Skrejošs aplis */
     .spinner {
       border: 8px solid #f3f3f3;
@@ -29,7 +29,7 @@
       height: 60px;
       animation: spin 1s linear infinite;
     }
-    
+
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
@@ -97,6 +97,13 @@
       </div>
     </section>
 
+    <!-- ✅ Jaunā poga "Griezt Ratu" zem visām pogām -->
+    <section class="spin-wheel-section">
+      <button class="spin-button" onclick="redirectToSpin()">
+        🎡 Griezt Ratu
+      </button>
+    </section>
+
     <script>
       // Noņem loading pārklājumu, kad lapa ir pilnībā ielādēta
       window.addEventListener("load", function() {
@@ -120,6 +127,17 @@
         const uid = document.getElementById("nfc-id").innerText.trim();
         const redirectUrl = `https://vezitivus.github.io/APP/simpathy.html?uid=${uid}`;
         window.location.href = redirectUrl;
+      }
+
+      // ✅ Funkcija, lai pāradresētu uz "rats.html" ar UID no URL
+      function redirectToSpin() {
+        const params = new URLSearchParams(window.location.search);
+        const uid = params.get("uid");
+        if (uid) {
+          window.location.href = `rats.html?uid=${uid}`;
+        } else {
+          alert("UID nav atrasts!");
+        }
       }
     </script>
 
