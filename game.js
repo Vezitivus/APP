@@ -221,7 +221,7 @@ function removePlayerCardFromContainer(uid, container) {
   }
 }
 
-// Kad tiek ievadīti punkti, pārbauda, vai jādodas uz "Saglabāt rezultātus" pogu
+// Kad tiek ievadīti punkti, pārbauda, vai jāparāda "Saglabāt rezultātus" poga
 function onScoreInput(e) {
   checkIfShowSaveButton();
 }
