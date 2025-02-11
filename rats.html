@@ -20,7 +20,7 @@
       justify-content: center;
       overflow: hidden;
     }
-    /* Fiksēts neliels aplis augšā kreisajā stūrī, kurā parādās lietotāja dati no 40. rindas */
+    /* Fiksēts aplis augšā kreisajā stūrī, kurā parādās lietotāja dati no 40. rindas */
     #userInfoCircle {
       position: fixed;
       top: 10px;
@@ -70,6 +70,7 @@
       margin-top: 20px;
       z-index: 2;
     }
+    /* Sākotnēji poga deaktivizēta */
     button {
       padding: 10px 20px;
       margin: 10px;
@@ -141,7 +142,8 @@
       <canvas id="wheelCanvas" width="300" height="300"></canvas>
     </div>
     <div id="spinContainer">
-      <button id="spinButton">Griezt Rats</button>
+      <!-- Sākotnēji deaktivizēta poga -->
+      <button id="spinButton" disabled>Griezt Rats</button>
     </div>
     <!-- Saglabāšanas ziņojums -->
     <div id="savingMessage">Saglabā datus...</div>
@@ -225,7 +227,7 @@
     }
     
     // Pievieno uid vērtību Activity linkam
-    document.getElementById("activityLink").href = "activity.html?uid=" + uid;
+    document.getElementById("activityLink").href = "activity.htm?uid=" + uid;
     
     // Google Apps Script URL
     const GS_URL = "https://script.google.com/macros/s/AKfycbzpdvdz8KsoPx8xhrpMbVykUk82rdC2OGcGivFL7PRfKX1WiEDxuIhtRdcq5ZJtAb0qiQ/exec";
@@ -256,6 +258,8 @@
           wheelGames = (eligibleGames.length <= 10) ? eligibleGames : pickRandomGames(eligibleGames, 10);
           finalSelectedIndex = null;
           drawWheel();
+          // Pēc veiksmīgas datu ielādes aktivizējam "Griezt Rats" pogu
+          document.getElementById("spinButton").disabled = false;
           if (window.pendingGameRow) {
             updatePendingTaskRules();
           }
