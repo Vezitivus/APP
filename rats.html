@@ -20,11 +20,27 @@
       justify-content: center;
       overflow: hidden;
     }
-    /* Fiksēts aplis augšā kreisajā stūrī, kurā parādās lietotāja dati no 40. rindas */
+    /* Fiksēts aplis augšā kreisajā stūrī – lietotāja dati no 40. rindas */
     #userInfoCircle {
       position: fixed;
       top: 10px;
       left: 10px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background-color: #000;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      z-index: 9999;
+    }
+    /* Fiksēts aplis augšā labajā stūrī – papildu dati no šūnas A42 */
+    #userExtraInfoCircle {
+      position: fixed;
+      top: 10px;
+      right: 10px;
       width: 50px;
       height: 50px;
       border-radius: 50%;
@@ -133,8 +149,10 @@
   </style>
 </head>
 <body>
-  <!-- Fiksētais aplis augšā kreisajā stūrī, kurā tiks parādīti dati no 40. rindas -->
+  <!-- Fiksētais aplis augšā kreisajā stūrī (row 40 vērtība) -->
   <div id="userInfoCircle">–</div>
+  <!-- Fiksētais aplis augšā labajā stūrī (A42 vērtība) -->
+  <div id="userExtraInfoCircle">–</div>
   
   <div class="container" id="draggableContainer">
     <h1>Laimes Rats</h1>
@@ -258,7 +276,7 @@
           wheelGames = (eligibleGames.length <= 10) ? eligibleGames : pickRandomGames(eligibleGames, 10);
           finalSelectedIndex = null;
           drawWheel();
-          // Pēc veiksmīgas datu ielādes aktivizējam "Griezt Rats" pogu
+          // Aktivizē "Griezt Rats" pogu, kad dati ir ielādēti
           document.getElementById("spinButton").disabled = false;
           if (window.pendingGameRow) {
             updatePendingTaskRules();
@@ -494,6 +512,25 @@
     }
     
     /***********************
+     * Izgūst papildu datus no A42 šūnas
+     ***********************/
+    function fetchExtraUserInfo() {
+      fetch(GS_URL + "?action=getExtraUserInfo&uid=" + uid)
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            document.getElementById("userExtraInfoCircle").innerText = data.extraValue;
+          } else {
+            document.getElementById("userExtraInfoCircle").innerText = "N/A";
+          }
+        })
+        .catch(error => {
+          console.error("Error fetching extra user info:", error);
+          document.getElementById("userExtraInfoCircle").innerText = "Err";
+        });
+    }
+    
+    /***********************
      * Notikumu piesaiste
      ***********************/
     document.getElementById("spinButton").addEventListener("click", function(){
@@ -531,6 +568,7 @@
         checkPendingTask();
         fetchMiniGames();
         fetchUserInfo();
+        fetchExtraUserInfo();
       }
     };
     
