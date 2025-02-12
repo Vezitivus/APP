@@ -67,12 +67,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       dropzone.className = 'team-dropzone';
       teamBox.appendChild(dropzone);
 
-      // Pievieno punktu ievades lauku, kas sākotnēji ir paslēpts
+      // Pievieno punktu ievades lauku, kas ir piesaists komandas laukam pie apakšas
       const pointsInput = document.createElement('input');
       pointsInput.className = 'points-input';
       pointsInput.type = 'text';
       pointsInput.placeholder = 'Punkti';
-      // Punktu lauks tiks parādīts, kad vismaz viens spēlētājs tiek nomests
+      // Punktu lauks tagad vienmēr redzams (CSS noteikumi nodrošina fiksētu pozīciju)
       teamBox.appendChild(pointsInput);
 
       teamsContainer.appendChild(teamBox);
@@ -95,8 +95,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const originalElem = document.getElementById(playerData.id);
             if (originalElem) {
               dropzone.appendChild(originalElem);
-              // Parāda punktu ievades lauku, kad ir ielikts spēlētājs
-              pointsInput.style.display = 'block';
             }
           } catch (err) {
             console.error("Kļūda parsējot drag datus:", err);
