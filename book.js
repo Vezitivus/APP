@@ -85,7 +85,7 @@ document.addEventListener("DOMContentLoaded", function() {
     updateReelDisplay(i);
   }
 
-  // Pogas "Kruķīt" notikums: noņem griezienus pēc izvēlētā reizinātāja un sāk animāciju.
+  // Pogas "Kruķīt" notikums: atskaita griezienus pēc izvēlētā reizinātāja un sāk animāciju.
   spinButton.addEventListener("click", function() {
     const multiplier = parseInt(multiplierSelect.value, 10) || 1;
     deductSpins(multiplier, function(response) {
@@ -131,23 +131,54 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("reel" + reelIndex + "-symbol2").textContent = emojiSet[bottomIndex];
   }
 
+  // Jaunā uzvaras/laužu loģika:
   function checkResult() {
+    // Iegūst rezultātu – centra simboli visos reelos.
     const results = [];
     for (let i = 0; i < numReels; i++) {
-      const symbol = document.getElementById("reel" + i + "-symbol1").textContent;
-      results.push(symbol);
+      results.push(document.getElementById("reel" + i + "-symbol1").textContent);
     }
+    // Izveido skaitītāju ar katra simbola reižu skaitu.
     const counts = {};
     results.forEach(symbol => {
       counts[symbol] = (counts[symbol] || 0) + 1;
     });
-    let win = false;
-    for (const key in counts) {
-      if (counts[key] >= 3) {
-        win = true;
-        break;
+    // Atrodam maksimālo reižu skaitu un attiecīgo simbolu.
+    let maxCount = 0;
+    let winningSymbol = null;
+    for (const sym in counts) {
+      if (counts[sym] > maxCount) {
+        maxCount = counts[sym];
+        winningSymbol = sym;
       }
     }
-    messageDiv.textContent = win ? "Uzvara!" : "Zaudēji!";
+    const multiplier = parseInt(multiplierSelect.value, 10) || 1;
+    let refund = 0;
+    let winMessage = "";
+    
+    if (maxCount === 5) {
+      refund = multiplier * 1000;
+      winMessage = "Uzvara! 5 vienādi! Griezieni atgūti: +" + refund;
+    } else if (maxCount === 4) {
+      refund = multiplier * 50;
+      winMessage = "Uzvara! 4 vienādi! Griezieni atgūti: +" + refund;
+    } else if (maxCount === 3) {
+      // Ja ir tieši 3 vienādi – pārbaudām, vai atlikušie 2 simboli ir dažādi.
+      const others = results.filter(x => x !== winningSymbol);
+      if (others.length === 2 && others[0] !== others[1]) {
+        refund = multiplier * 3;
+        winMessage = "Uzvara! 3 vienādi ar 2 dažādiem! Griezieni atgūti: +" + refund;
+      } else {
+        winMessage = "Uzvara! Bet īpašā kombinācija nav sasniegta.";
+      }
+    } else if (maxCount === 2) {
+      refund = 1;
+      winMessage = "Zaudēji, bet 2 vienādi – atgūsti 1 griezienu: +" + refund;
+    } else {
+      winMessage = "Zaudēji!";
+    }
+    
+    messageDiv.textContent = winMessage;
+    // Ja nepieciešams, var papildus automātiski atjaunot griezienu atlikumu, izmantojot fetchRemainingSpins()
   }
 });
