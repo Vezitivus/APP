@@ -163,11 +163,16 @@ document.addEventListener("DOMContentLoaded", function() {
       refund = multiplier * 50;
       winMessage = "Uzvara! 4 vienādi! Griezieni atgūti: +" + refund;
     } else if (maxCount === 3) {
-      // Ja ir tieši 3 vienādi – pārbaudām, vai atlikušie 2 simboli ir dažādi.
+      // Ja ir 3 vienādi, tad pārbaudām atlikušos 2 simbolus.
       const others = results.filter(x => x !== winningSymbol);
-      if (others.length === 2 && others[0] !== others[1]) {
-        refund = multiplier * 3;
-        winMessage = "Uzvara! 3 vienādi ar 2 dažādiem! Griezieni atgūti: +" + refund;
+      if (others.length === 2) {
+        if (others[0] === others[1]) {
+          refund = multiplier * 10;
+          winMessage = "Uzvara! 3 vienādi ar 2 vienādiem! Griezieni atgūti: +" + refund;
+        } else {
+          refund = multiplier * 3;
+          winMessage = "Uzvara! 3 vienādi ar 2 dažādiem! Griezieni atgūti: +" + refund;
+        }
       } else {
         winMessage = "Uzvara! Bet īpašā kombinācija nav sasniegta.";
       }
@@ -179,6 +184,5 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     
     messageDiv.textContent = winMessage;
-    // Ja nepieciešams, var papildus automātiski atjaunot griezienu atlikumu, izmantojot fetchRemainingSpins()
   }
 });
