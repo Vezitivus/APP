@@ -79,7 +79,7 @@ document.addEventListener("DOMContentLoaded", function() {
     spinButton.disabled = true;
     reelsStopped = 0;
     for (let i = 0; i < numReels; i++) {
-      startSpinning(i, 2000 + i * 500);
+      startSpinning(i, 2123 + i * 496);
     }
   });
 
