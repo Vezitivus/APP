@@ -33,14 +33,31 @@ document.addEventListener("DOMContentLoaded", function() {
     return uid;
   }
   const uid = getUID();
+  // Norādi savu Google Apps Script Web App URL:
   const sheetUrlBase = "https://script.google.com/macros/s/AKfycbyS8FWFUDIInu7NFBxa8BP2qGeoLdoLdIxRVs-aL8ss9umKeGU88D17QHSlPVb2z7o5qQ/exec";
 
+  // Atjauno kopsummu
   function fetchRemainingSpins() {
-    if (!uid) { remainingSpinsDiv.textContent = "🪙 N/A"; return; }
+    if (!uid) {
+      remainingSpinsDiv.textContent = "🪙 N/A";
+      return;
+    }
     const callbackName = "handleSpinResponse";
     const script = document.createElement("script");
     window[callbackName] = function(data) {
-      remainingSpinsDiv.textContent = (data && data.K !== undefined) ? "🪙 " + data.K : "🪙 N/A";
+      if (data && data.K !== undefined) {
+        // Uzstādām kopsummu
+        remainingSpinsDiv.textContent = "🪙 " + data.K;
+        // Ja kopsumma ir negatīva => sarkans fons, citādi parasts
+        if (data.K < 0) {
+          remainingSpinsDiv.style.backgroundColor = "red";
+        } else {
+          remainingSpinsDiv.style.backgroundColor = "";
+        }
+      } else {
+        remainingSpinsDiv.textContent = "🪙 N/A";
+        remainingSpinsDiv.style.backgroundColor = "";
+      }
       remainingSpinsDiv.classList.add("animateSpin");
       setTimeout(() => remainingSpinsDiv.classList.remove("animateSpin"), 500);
       script.remove();
@@ -55,6 +72,8 @@ document.addEventListener("DOMContentLoaded", function() {
     };
     document.body.appendChild(script);
   }
+
+  // Atskaitām griezienus Google Sheets pusē
   function deductSpins(amount, callback) {
     if (!uid) return callback();
     const callbackName = "handleDeductResponse";
@@ -99,6 +118,7 @@ document.addEventListener("DOMContentLoaded", function() {
     reels.push(reelObj);
   }
 
+  // Manuālā vilkšana
   function addDragListeners(reelElem, reelObj) {
     let startY = 0;
     let startOffset = 0;
@@ -124,6 +144,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     reelElem.addEventListener("mousedown", onMouseDown);
 
+    // Touch events
     function onTouchStart(e) {
       reelObj.isDragging = true;
       startY = e.touches[0].clientY;
@@ -160,11 +181,11 @@ document.addEventListener("DOMContentLoaded", function() {
   // Spin poga
   spinButton.addEventListener("click", function() {
     messageDiv.textContent = "";
-    // Atspējojam pogu
     spinButton.disabled = true;
     spinSound.loop = true;
     spinSound.play();
     const chosenMultiplier = parseInt(multiplierSelect.value, 10) || 1;
+    // Atskaitām griezienus (var radīt negatīvu skaitu)
     deductSpins(chosenMultiplier, function() {
       fetchRemainingSpins();
     });
@@ -177,7 +198,6 @@ document.addEventListener("DOMContentLoaded", function() {
             spinSound.pause();
             spinSound.currentTime = 0;
             checkResult();
-            // Tagad pogu NEiespējosim uzreiz, to darīs animācija beigās
           }
         });
       }
@@ -200,8 +220,7 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   }
 
-  // Animācija, parādās 1 sekundi, tad 2 sekundes slīd
-  // Pievienojam callback, lai kad animācija pabeidzas, ieslēgtu pogu
+  // Animācija (1 sek atrodas vietā, tad 2 sek slīd)
   function animateResultToCoin(resultText, callback) {
     const clone = messageDiv.cloneNode(true);
     clone.textContent = resultText;
@@ -228,17 +247,15 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   }
 
-  // Pārbauda rezultātu
+  // Rezultāta loģika
   function checkResult() {
-    // Pirmstam atstāj pogu atspējotu
     const chosenMultiplier = parseInt(multiplierSelect.value, 10) || 1;
     const stake = 1;
     const activeSymbols = [];
     reels.forEach(r => {
       let idx = Math.round((40 - r.offset) / symbolHeight) % totalSymbols;
       if (idx < 0) idx += totalSymbols;
-      const sym = reelSymbols[idx];
-      activeSymbols.push(sym);
+      activeSymbols.push(reelSymbols[idx]);
     });
     const counts = {};
     let maxCount = 0;
@@ -255,7 +272,6 @@ document.addEventListener("DOMContentLoaded", function() {
       const resultAmount = customWin;
       deductSpins(-resultAmount, function() {
         fetchRemainingSpins();
-        // Kad animācija beidzas, ieslēdz pogu
         animateResultToCoin("+" + resultAmount, function() {
           spinButton.disabled = false;
         });
@@ -271,7 +287,7 @@ document.addEventListener("DOMContentLoaded", function() {
         winFactor = 10;
       }
     } else {
-      // zaudējums
+      // Zaudējums
       const loseAmount = stake * chosenMultiplier;
       animateResultToCoin("-" + loseAmount, function() {
         spinButton.disabled = false;
