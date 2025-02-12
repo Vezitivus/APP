@@ -2,26 +2,20 @@ document.addEventListener("DOMContentLoaded", function() {
   // Parametri
   const symbolHeight = 40;
   const visibleCount = 3; 
-  const reelHeight = symbolHeight * visibleCount; // 120
-  const repeatCount = 10; // emojiSet atkārtojumu skaits
-  // 10 unikāli emoji × repeatCount (10) = 100 simboli
-
-  // Audio
+  const repeatCount = 10; // reizinām emojiSet 10 reizes => 100 simboli
   const spinSound = new Audio('griez.mp3');
   const winSound = new Audio('win.mp3');
   const winBigSound = new Audio('winbig.mp3');
   const loseSound = new Audio('lose.mp3');
 
-  // Emoji masīvs
+  // Emoji masīvs (10 unikāli)
   const emojiSet = ['🍒','🍋','🍊','🍉','🍇','⭐','🔔','7️⃣','🍀','💎'];
-  // Izveidojam masīvu ar 100 simboliem
   const reelSymbols = [];
   for (let i = 0; i < repeatCount; i++) {
     reelSymbols.push(...emojiSet);
   }
   const totalSymbols = reelSymbols.length; // 100
 
-  // HTML elementi
   const spinButton = document.getElementById("spinButton");
   const messageDiv = document.getElementById("message");
   const multiplierSelect = document.getElementById("multiplierSelect");
@@ -33,7 +27,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const params = new URLSearchParams(window.location.search);
     let uid = params.get("uid");
     if (!uid) {
-      const segments = window.location.pathname.split("/").filter(seg => seg.length > 0);
+      const segments = window.location.pathname.split("/").filter(s => s.length > 0);
       uid = segments[segments.length - 1];
     }
     return uid;
@@ -80,14 +74,15 @@ document.addEventListener("DOMContentLoaded", function() {
     };
     document.body.appendChild(script);
   }
+
   fetchRemainingSpins();
 
-  // Izveidojam reel objektus
+  // Reel sagatavošana
   const reels = [];
   for (let i = 0; i < 5; i++) {
     const reelElem = reelsContainer.children[i];
     const innerElem = reelElem.querySelector('.reel-inner');
-    // Aizpildām reel-inner ar simboliem (100 gab.)
+    // Piepildām ar 100 simboliem
     innerElem.innerHTML = "";
     reelSymbols.forEach(sym => {
       const div = document.createElement("div");
@@ -95,27 +90,23 @@ document.addEventListener("DOMContentLoaded", function() {
       div.textContent = sym;
       innerElem.appendChild(div);
     });
-    // Nejauša sākuma index (0..99)
+    // Nejauša sākuma index
     const randIndex = Math.floor(Math.random() * totalSymbols);
-    // Sākuma offset, lai šis randIndex būtu centrā (top=40)
     const initOffset = 40 - randIndex * symbolHeight;
     innerElem.style.transform = `translateY(${initOffset}px)`;
-
-    // Pievienojam drag eventus
     const reelObj = { innerElem, offset: initOffset, currentIndex: randIndex, isDragging: false };
-    addDragListeners(reelElem, innerElem, reelObj);
+    addDragListeners(reelElem, reelObj);
     reels.push(reelObj);
   }
 
-  // Drag eventu loģika
-  function addDragListeners(reelElem, innerElem, reelObj) {
+  function addDragListeners(reelElem, reelObj) {
     let startY = 0;
     let startOffset = 0;
     function onMouseDown(e) {
       reelObj.isDragging = true;
       startY = e.clientY;
       startOffset = reelObj.offset;
-      innerElem.style.transition = "none";
+      reelObj.innerElem.style.transition = "none";
       document.addEventListener("mousemove", onMouseMove);
       document.addEventListener("mouseup", onMouseUp);
     }
@@ -123,7 +114,7 @@ document.addEventListener("DOMContentLoaded", function() {
       if (!reelObj.isDragging) return;
       const delta = e.clientY - startY;
       reelObj.offset = startOffset + delta;
-      innerElem.style.transform = `translateY(${reelObj.offset}px)`;
+      reelObj.innerElem.style.transform = `translateY(${reelObj.offset}px)`;
     }
     function onMouseUp(e) {
       reelObj.isDragging = false;
@@ -137,7 +128,7 @@ document.addEventListener("DOMContentLoaded", function() {
       reelObj.isDragging = true;
       startY = e.touches[0].clientY;
       startOffset = reelObj.offset;
-      innerElem.style.transition = "none";
+      reelObj.innerElem.style.transition = "none";
       document.addEventListener("touchmove", onTouchMove);
       document.addEventListener("touchend", onTouchEnd);
     }
@@ -145,7 +136,7 @@ document.addEventListener("DOMContentLoaded", function() {
       if (!reelObj.isDragging) return;
       const delta = e.touches[0].clientY - startY;
       reelObj.offset = startOffset + delta;
-      innerElem.style.transform = `translateY(${reelObj.offset}px)`;
+      reelObj.innerElem.style.transform = `translateY(${reelObj.offset}px)`;
     }
     function onTouchEnd(e) {
       reelObj.isDragging = false;
@@ -157,10 +148,9 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   function snapReel(reelObj) {
-    // Rindas no (40 - offset)/symbolHeight
     let index = Math.round((40 - reelObj.offset) / symbolHeight);
-    if (index < 0) index += totalSymbols; 
-    index = index % totalSymbols; 
+    if (index < 0) index += totalSymbols;
+    index = index % totalSymbols;
     reelObj.currentIndex = index;
     reelObj.offset = 40 - index * symbolHeight;
     reelObj.innerElem.style.transition = "transform 0.3s ease-out";
@@ -170,21 +160,24 @@ document.addEventListener("DOMContentLoaded", function() {
   // Spin poga
   spinButton.addEventListener("click", function() {
     messageDiv.textContent = "";
+    // Atspējojam pogu
+    spinButton.disabled = true;
     spinSound.loop = true;
     spinSound.play();
     const chosenMultiplier = parseInt(multiplierSelect.value, 10) || 1;
-    deductSpins(chosenMultiplier, function() { fetchRemainingSpins(); });
-    spinButton.disabled = true;
-    let finishedCount = 0;
-    reels.forEach((reelObj, i) => {
+    deductSpins(chosenMultiplier, function() {
+      fetchRemainingSpins();
+    });
+    let finishCount = 0;
+    reels.forEach(reelObj => {
       if (!reelObj.isDragging) {
         spinReel(reelObj, () => {
-          finishedCount++;
-          if (finishedCount === reels.length) {
+          finishCount++;
+          if (finishCount === reels.length) {
             spinSound.pause();
             spinSound.currentTime = 0;
             checkResult();
-            spinButton.disabled = false;
+            // Tagad pogu NEiespējosim uzreiz, to darīs animācija beigās
           }
         });
       }
@@ -192,10 +185,10 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 
   function spinReel(reelObj, done) {
-    // nejaušs increments 10–20
-    const increments = Math.floor(Math.random() * 11) + 10;
+    // nejaušs increments
+    const increments = Math.floor(Math.random() * 11) + 10; // 10..20
     let newIndex = reelObj.currentIndex + increments;
-    newIndex = newIndex % totalSymbols; 
+    newIndex = newIndex % totalSymbols;
     reelObj.currentIndex = newIndex;
     reelObj.offset = 40 - newIndex * symbolHeight;
     reelObj.innerElem.style.transition = "transform 2s ease-out";
@@ -207,8 +200,9 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   }
 
-  // Rezultāta animācija
-  function animateResultToCoin(resultText) {
+  // Animācija, parādās 1 sekundi, tad 2 sekundes slīd
+  // Pievienojam callback, lai kad animācija pabeidzas, ieslēgtu pogu
+  function animateResultToCoin(resultText, callback) {
     const clone = messageDiv.cloneNode(true);
     clone.textContent = resultText;
     clone.style.position = "absolute";
@@ -219,7 +213,6 @@ document.addEventListener("DOMContentLoaded", function() {
     clone.style.margin = "0";
     clone.style.transition = "none";
     messageDiv.parentElement.appendChild(clone);
-    // 1 sekundi nekustas
     setTimeout(() => {
       clone.style.transition = "all 2s ease-out";
       const coinRect = remainingSpinsDiv.getBoundingClientRect();
@@ -228,19 +221,24 @@ document.addEventListener("DOMContentLoaded", function() {
       clone.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.5)`;
       clone.style.opacity = "0";
     }, 1000);
-    clone.addEventListener("transitionend", function() {
+    clone.addEventListener("transitionend", function onTransitionEnd() {
+      clone.removeEventListener("transitionend", onTransitionEnd);
       clone.remove();
+      if (callback) callback();
     });
   }
 
   // Pārbauda rezultātu
   function checkResult() {
-    const stake = 1;
+    // Pirmstam atstāj pogu atspējotu
     const chosenMultiplier = parseInt(multiplierSelect.value, 10) || 1;
-    // Izvelkam aktīvo simbolu no katra rēla
-    const activeSymbols = reels.map(r => {
-      const idx = Math.round((40 - r.offset) / symbolHeight) % totalSymbols;
-      return reelSymbols[(idx + totalSymbols) % totalSymbols];
+    const stake = 1;
+    const activeSymbols = [];
+    reels.forEach(r => {
+      let idx = Math.round((40 - r.offset) / symbolHeight) % totalSymbols;
+      if (idx < 0) idx += totalSymbols;
+      const sym = reelSymbols[idx];
+      activeSymbols.push(sym);
     });
     const counts = {};
     let maxCount = 0;
@@ -257,30 +255,36 @@ document.addEventListener("DOMContentLoaded", function() {
       const resultAmount = customWin;
       deductSpins(-resultAmount, function() {
         fetchRemainingSpins();
-        animateResultToCoin("+" + resultAmount);
+        // Kad animācija beidzas, ieslēdz pogu
+        animateResultToCoin("+" + resultAmount, function() {
+          spinButton.disabled = false;
+        });
         winBigSound.play();
       });
       return;
     } else if (maxCount === 4) {
       winFactor = 100;
     } else if (maxCount === 3) {
-      // Pārbaudām, vai ir 3+2
       if (Object.values(counts).includes(2)) {
         winFactor = 25;
       } else {
         winFactor = 10;
       }
     } else {
-      // maxCount < 3 => zaude
+      // zaudējums
       const loseAmount = stake * chosenMultiplier;
-      animateResultToCoin("-" + loseAmount);
+      animateResultToCoin("-" + loseAmount, function() {
+        spinButton.disabled = false;
+      });
       loseSound.play();
       return;
     }
     const resultAmount = stake * chosenMultiplier * winFactor;
     deductSpins(-resultAmount, function() {
       fetchRemainingSpins();
-      animateResultToCoin("+" + resultAmount);
+      animateResultToCoin("+" + resultAmount, function() {
+        spinButton.disabled = false;
+      });
       winSound.play();
     });
   }
