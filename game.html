@@ -124,7 +124,7 @@
     .team-dropzone.hover {
       border-color: #007aff;
     }
-    /* Punktu ievades lauks – fiksēts zem dropzone ar margin-top automātisku */
+    /* Punktu ievades lauks – fiksēts zem dropzone */
     .points-input {
       margin-top: auto;
       width: 100%;
@@ -187,7 +187,7 @@
     <button id="saveResultsButton">Saglabāt rezultātus</button>
     <div id="dataContainer"></div>
     
-    <!-- Hidden form for posting results (bypassing XHR/CORS) -->
+    <!-- Hidden form for posting results via a normal form submission to bypass CORS -->
     <form id="resultsForm" action="https://script.google.com/macros/s/AKfycbwvbYSracMlNJ2dhhD74EtX2FjJ0ASsDcZBy7qGm9V-kgOWIoybclFSJN1dJ6TFmM-S/exec?action=saveResults" method="POST" target="hidden_iframe" style="display:none;">
       <input type="hidden" name="resultsData" id="resultsData">
     </form>
