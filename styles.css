@@ -210,23 +210,40 @@ video {
 .profile-right {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  /* Samazinām “gap” no 10px uz 6px, lai elementi būtu tuvāk */
-  gap: 1px;
+  align-items: flex-start; /* Pielīdzināt kreisajā pusē */
+  justify-content: flex-start;
+  gap: 4px; /* Samazina atstarpes starp teksta blokiem */
+  width: 100%;
+  max-width: 300px; /* Ierobežo platumu, lai nepārsniegtu bildes augstumu */
 }
 
-/* .info-group satur .label un .value; samazinām vietu starp tiem */
-.info-group .label {
-  font-weight: bold;
-  font-size: 18px;
-  /* Samazinām margin-bottom no 4px uz 2px */
-  margin-bottom: 2px;
+/* Info grupu stils (Vārds, ID, Kopvērtējuma vieta, Tava komanda) */
+.info-group {
+  margin-bottom: 4px; /* Samazina vertikālo atstarpi starp blokiem */
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2); /* Plāna līnija */
+  width: 100%;
 }
 .info-group .value {
   font-size: 20px;
   color: #ccc;
 }
+/* Tava komanda stils */
+.team-group {
+  margin-top: 6px; /* Neliela atstarpe no iepriekšējā bloka */
+  font-weight: bold;
+  text-align: left; /* Kreisajā pusē */
+  width: 100%;
+}
 
+/* Tava komanda vērtība */
+.team-value {
+  font-size: 16px;
+  color: #ccc;
+  text-align: left;
+  margin-top: 2px;
+  padding-left: 2px; /* Mazliet nobīda, lai neliptu pie malas */
+}
 /* Pogu sadaļa */
 .buttons-section {
   margin-top: 20px;
