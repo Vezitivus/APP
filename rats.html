@@ -20,6 +20,27 @@
       justify-content: center;
       overflow: hidden;
     }
+    /* Fiksēta poga augšā pa vidu – ar sarkanu fonu, pulsējoša */
+    #bookButton {
+      position: fixed;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #e60000;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 50px;
+      font-size: 16px;
+      font-weight: bold;
+      text-decoration: none;
+      z-index: 10000;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: translateX(-50%) scale(1); }
+      50% { transform: translateX(-50%) scale(1.1); }
+      100% { transform: translateX(-50%) scale(1); }
+    }
     /* Fiksēts aplis augšā kreisajā stūrī – lietotāja dati no 40. rindas */
     #userInfoCircle {
       position: fixed;
@@ -86,7 +107,7 @@
       margin-top: 20px;
       z-index: 2;
     }
-    /* Sākotnēji poga deaktivizēta */
+    /* Poga "Griezt Rats" sākotnēji deaktivizēta */
     button {
       padding: 10px 20px;
       margin: 10px;
@@ -149,6 +170,8 @@
   </style>
 </head>
 <body>
+  <!-- Fiksēta poga augšā pa vidu -->
+  <a href="https://vezitivus.github.io/APP/book.html?uid=" id="bookButton" target="_blank">Īstais Rats</a>
   <!-- Fiksētais aplis augšā kreisajā stūrī (row 40 vērtība) -->
   <div id="userInfoCircle">–</div>
   <!-- Fiksētais aplis augšā labajā stūrī (A42 vērtība) -->
@@ -175,7 +198,7 @@
       <p>Jums ir neizpildīts uzdevums!</p>
       <div id="pendingTaskRules"></div>
       <!-- Melna apaļa poga "Vezitivus Lenta" -->
-      <a href="activity.htm?uid=" id="activityLink" class="blackButton">Vezitivus Lenta</a>
+      <a href="activity.htm?uid=" id="activityLink" class="blackButton" target="_blank">Vezitivus Lenta</a>
       <br>
       <button id="videoUploadedButton">Uzdevums izpildīts (video augšupieladets)</button>
       <button id="declineTaskButton">Atteikties no uzdevuma</button>
@@ -246,6 +269,8 @@
     
     // Pievieno uid vērtību Activity linkam
     document.getElementById("activityLink").href = "activity.htm?uid=" + uid;
+    // Pievieno uid vērtību Book pogai
+    document.getElementById("bookButton").href = "https://vezitivus.github.io/APP/book.html?uid=" + uid;
     
     // Google Apps Script URL
     const GS_URL = "https://script.google.com/macros/s/AKfycbzpdvdz8KsoPx8xhrpMbVykUk82rdC2OGcGivFL7PRfKX1WiEDxuIhtRdcq5ZJtAb0qiQ/exec";
