@@ -24,7 +24,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Izvada katru rindu kā spēlētāja kartīti (data-box)
     json.data.forEach((row, index) => {
-      // Izveido datu kartīti
       const box = document.createElement('div');
       box.className = 'data-box';
       box.id = `player-${index}`;
@@ -33,7 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         e.dataTransfer.setData('text/plain', JSON.stringify({ b: row.b, c: row.c, id: box.id }));
       });
 
-      // Izveido span elementus: "top" par kolonnas C un "bottom" par kolonnas B
+      // Izveido span elementus: "top" (kolonna C augšā) un "bottom" (kolonna B apakšā)
       const topSpan = document.createElement('span');
       topSpan.className = 'top';
       topSpan.textContent = row.c ? row.c : '';
@@ -68,6 +67,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       dropzone.className = 'team-dropzone';
       teamBox.appendChild(dropzone);
 
+      // Pievieno punktu ievades lauku, kas sākotnēji ir paslēpts
+      const pointsInput = document.createElement('input');
+      pointsInput.className = 'points-input';
+      pointsInput.type = 'text';
+      pointsInput.placeholder = 'Punkti';
+      // Punktu lauks tiks parādīts, kad vismaz viens spēlētājs tiek nomests
+      teamBox.appendChild(pointsInput);
+
       teamsContainer.appendChild(teamBox);
 
       // Piesaista dropzone notikumus
@@ -88,6 +95,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             const originalElem = document.getElementById(playerData.id);
             if (originalElem) {
               dropzone.appendChild(originalElem);
+              // Parāda punktu ievades lauku, kad ir ielikts spēlētājs
+              pointsInput.style.display = 'block';
             }
           } catch (err) {
             console.error("Kļūda parsējot drag datus:", err);
