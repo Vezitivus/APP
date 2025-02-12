@@ -96,6 +96,7 @@
       height: 1.5em;
       font-weight: bold;
       color: #FFD700; /* zelta krāsa */
+      position: relative;
     }
     .controls {
       text-align: left;
@@ -110,6 +111,7 @@
       font-size: 1em;
       margin-right: 8px;
     }
+    /* Tagad izvēlnē ir tikai multiplikatori 1 līdz 10 */
     #multiplierSelect {
       font-size: 1em;
       padding: 5px;
@@ -167,6 +169,7 @@
     <div class="controls">
       <div id="multiplierContainer">
         <label for="multiplierSelect">Reizinātājs:</label>
+        <!-- Tagad ir tikai opcijas 1 līdz 10 -->
         <select id="multiplierSelect">
           <option value="1">1</option>
           <option value="2">2</option>
@@ -178,9 +181,6 @@
           <option value="8">8</option>
           <option value="9">9</option>
           <option value="10">10</option>
-          <option value="25">25</option>
-          <option value="50">50</option>
-          <option value="100">100</option>
         </select>
       </div>
     </div>
