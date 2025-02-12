@@ -48,7 +48,7 @@
       justify-content: center;
       margin: 20px 0;
     }
-    /* Katrs reelis tagad satur vienu "reel-inner" konteineru ar visiem simboliem */
+    /* Katrs reelis */
     .reel {
       width: 80px;
       height: 120px;
@@ -64,7 +64,7 @@
     .reel-inner {
       position: absolute;
       width: 100%;
-      /* Transform un pāreja tiks kontrolēta JS – sākuma pozīcija tiek iestatīta dinamiski */
+      /* Transform tiks iestatīts JS */
     }
     .symbol {
       height: 40px;
@@ -72,7 +72,6 @@
       font-size: 2em;
       text-align: center;
     }
-    /* Kontroles stils */
     button {
       font-size: 1.2em;
       padding: 12px 24px;
@@ -94,7 +93,7 @@
       margin-top: 10px;
       height: 1.5em;
       font-weight: bold;
-      color: #FFD700;
+      color: #FFD700; /* zelta krāsa */
       position: relative;
     }
     .controls {
@@ -110,7 +109,7 @@
       font-size: 1em;
       margin-right: 8px;
     }
-    /* Izvēlne ar multiplikatoriem (1 līdz 10) */
+    /* Izvēlne: multiplikatori 1 līdz 10 */
     #multiplierSelect {
       font-size: 1em;
       padding: 5px;
@@ -139,21 +138,11 @@
     <h1>Book Of Vezitivus</h1>
     <div class="reels" id="reels">
       <!-- 5 reeli -->
-      <div class="reel" data-reel="0">
-        <div class="reel-inner" id="reel0-inner"></div>
-      </div>
-      <div class="reel" data-reel="1">
-        <div class="reel-inner" id="reel1-inner"></div>
-      </div>
-      <div class="reel" data-reel="2">
-        <div class="reel-inner" id="reel2-inner"></div>
-      </div>
-      <div class="reel" data-reel="3">
-        <div class="reel-inner" id="reel3-inner"></div>
-      </div>
-      <div class="reel" data-reel="4">
-        <div class="reel-inner" id="reel4-inner"></div>
-      </div>
+      <div class="reel" data-reel="0"><div class="reel-inner" id="reel0-inner"></div></div>
+      <div class="reel" data-reel="1"><div class="reel-inner" id="reel1-inner"></div></div>
+      <div class="reel" data-reel="2"><div class="reel-inner" id="reel2-inner"></div></div>
+      <div class="reel" data-reel="3"><div class="reel-inner" id="reel3-inner"></div></div>
+      <div class="reel" data-reel="4"><div class="reel-inner" id="reel4-inner"></div></div>
     </div>
     <button id="spinButton">Kruķīt</button>
     <div class="controls">
