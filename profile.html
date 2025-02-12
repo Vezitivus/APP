@@ -35,13 +35,29 @@
       100% { transform: rotate(360deg); }
     }
 
+    /* Labās puses dizains – fiksēts platums un minimālas atstarpes info blokiem */
+    .profile-right {
+      width: 300px;
+    }
+    .profile-right .info-group {
+      margin-bottom: 0;
+      padding: 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .profile-right .info-group:last-child {
+      border-bottom: none;
+    }
+    .profile-right .info-group p {
+      margin: 0;
+      padding: 2px 0;
+    }
+
     /* ✅ "Griezt Ratu" pogas jaunais dizains */
     .spin-wheel-section {
       display: flex;
       justify-content: center;
       margin-top: 20px;
     }
-
     .spin-button {
       width: 80%;
       padding: 14px 24px;
@@ -56,7 +72,6 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       transition: all 0.3s ease;
     }
-
     .spin-button:hover {
       transform: translateY(-2px);
       box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
@@ -111,7 +126,7 @@
           Vezitivus lenta
         </button>
         <div class="grid-spacer"></div>
-        <!-- 2. Poga: Simpatijas balva – tagad ar dinamiski pielāgotu pāradresācijas URL -->
+        <!-- 2. Poga: Simpatijas balva – dinamiski pielāgota pāradresācija -->
         <button class="action-button" onclick="redirectToSimpathy()">
           Simpatijas balva
         </button>
@@ -124,7 +139,7 @@
       </div>
     </section>
 
-    <!-- ✅ Jaunā poga "Griezt Ratu" zem visām pogām -->
+    <!-- Jaunā "Griezt Ratu" poga -->
     <section class="spin-wheel-section">
       <button class="spin-button" onclick="redirectToSpin()">
         🎡 Griezt Ratu
@@ -156,7 +171,7 @@
         window.location.href = redirectUrl;
       }
 
-      // ✅ Funkcija, lai pāradresētu uz "rats.html" ar UID no URL
+      // Funkcija, lai pāradresētu uz "rats.html" ar UID no URL
       function redirectToSpin() {
         const params = new URLSearchParams(window.location.search);
         const uid = params.get("uid");
