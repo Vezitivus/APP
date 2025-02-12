@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>VEZITIVUS HOST</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     /* ===== Vienkāršs “iOS style” dizains ===== */
     html, body {
@@ -12,6 +13,7 @@
                    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
       background-color: #f2f2f2;
     }
+    /* Fiksētais virsraksts */
     .header {
       position: fixed;
       top: 0;
@@ -26,10 +28,12 @@
       margin: 0;
       font-size: 24px;
     }
+    /* Galvenais saturs – ar atstarpi no fiksētā virsraksta */
     .content {
-      margin-top: 100px; /* Atstarpe, lai saturu nespiež zem virsraksta */
+      margin-top: 100px;
       padding: 20px;
     }
+    /* Nolaižamā izvēlne aktivitātēm */
     #activityDropdown {
       display: block;
       width: 100%;
@@ -38,13 +42,15 @@
       border-radius: 8px;
       border: 1px solid #ccc;
       margin-bottom: 20px;
-      -webkit-appearance: none; /* iOS stila nolaižamā izvēlne */
+      -webkit-appearance: none;
       outline: none;
     }
+    /* Konteiners, kur tiks izvietoti datu "kartītes" (spēlētāji) */
     #dataContainer {
       display: flex;
       flex-direction: column;
       gap: 10px;
+      margin-bottom: 40px;
     }
     .data-box {
       display: flex;
@@ -54,10 +60,70 @@
       border-radius: 10px;
       padding: 15px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      cursor: grab;
+      /* Pievienots vendor prefix Safari atbalstam */
+      -webkit-user-select: none;
+      user-select: none;
     }
     .data-box b {
       margin-right: 10px;
       font-weight: 600;
+    }
+    /* ===== Komandu dizains ===== */
+    .input-section {
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    #teamCountInput {
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      outline: none;
+    }
+    #createTeamsBtn {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #007aff;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    #createTeamsBtn:hover {
+      background-color: #005bb5;
+    }
+    /* Konteiners komandām */
+    #teamsContainer {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .team-box {
+      background-color: #ffffff;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .team-box h3 {
+      margin: 0 0 10px 0;
+      font-size: 18px;
+    }
+    .team-dropzone {
+      min-height: 80px;
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .team-dropzone.hover {
+      border-color: #007aff;
     }
   </style>
 </head>
@@ -67,13 +133,23 @@
     <h1>VEZITIVUS HOST</h1>
   </div>
 
-  <!-- Saturs -->
+  <!-- Galvenais saturs -->
   <div class="content">
     <!-- Nolaižamā izvēlne aktivitātēm -->
     <select id="activityDropdown"></select>
 
-    <!-- Konteiners, kur tiks izvietoti B un C kolonnu dati -->
+    <!-- Konteiners spēlētāju datiem (no Sheet) -->
     <div id="dataContainer"></div>
+
+    <!-- Komandu izveides sadaļa -->
+    <div class="input-section">
+      <label for="teamCountInput">Cik komandas izveidot?</label>
+      <input type="number" id="teamCountInput" min="1" value="2" />
+      <button id="createTeamsBtn">Izveidot komandas</button>
+    </div>
+
+    <!-- Komandu konteineris – spēlētāji var tikt nomesti šeit -->
+    <div id="teamsContainer"></div>
   </div>
 
   <!-- JavaScript fails -->
