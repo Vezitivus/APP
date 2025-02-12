@@ -73,6 +73,23 @@
     #createTeamsBtn:hover {
       background-color: #005bb5;
     }
+    /* Poga "Saglabāt rezultātus" – zem komandām, virs spēlētāju konteinera */
+    #saveResultsButton {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+      background-color: #34c759;
+      color: white;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: background-color 0.2s ease;
+    }
+    #saveResultsButton:hover {
+      background-color: #28a745;
+    }
     /* Komandu konteineris – divas kolonnas blakus */
     #teamsContainer {
       display: flex;
@@ -86,8 +103,9 @@
       border-radius: 10px;
       padding: 8px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      position: relative;
-      min-height: 120px; /* Nodrošina vietu gan dropzone, gan punktu laukumam */
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
     }
     .team-box h3 {
       margin: 0 0 10px 0;
@@ -106,31 +124,27 @@
     .team-dropzone.hover {
       border-color: #007aff;
     }
-    /* Punktu ievades lauks, piesaists katram komandas laukam apakšā */
+    /* Punktu ievades lauks – paliek statisks un atrodas zem dropzone, ar margin-top automātisku */
     .points-input {
-      position: absolute;
-      bottom: 8px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 80%;
+      margin-top: auto;
+      width: 100%;
       padding: 6px;
       font-size: 14px;
       border: 1px solid #ccc;
       border-radius: 6px;
       text-align: center;
       box-sizing: border-box;
-      display: block; /* Tagad vienmēr redzams */
     }
-    /* Spēlētāju konteiners – izvietoti zem komandām */
+    /* Spēlētāju konteiners – izvietoti zem komandām, bet virs "Saglabāt rezultātus" pogas, ja nepieciešams */
     #dataContainer {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
     }
-    /* Spēlētāju kartītes – 2x mazākas */
+    /* Spēlētāju kartītes – samazinātas par 2x (90% no sākotnējā) */
     .data-box {
-      width: 60px;
-      height: 40px;
+      width: 54px;  /* 90% no 60px */
+      height: 36px; /* 90% no 40px */
       background-color: #ffffff;
       border-radius: 8px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
@@ -176,10 +190,13 @@
       <button id="createTeamsBtn">Izveidot komandas</button>
     </div>
 
-    <!-- Komandu konteineris (divas kolonnas) -->
+    <!-- Komandu konteineris -->
     <div id="teamsContainer"></div>
 
-    <!-- Spēlētāju konteiners (zem komandām) -->
+    <!-- Poga "Saglabāt rezultātus" zem komandām, virs spēlētāju konteinera -->
+    <button id="saveResultsButton">Saglabāt rezultātus</button>
+
+    <!-- Spēlētāju konteiners -->
     <div id="dataContainer"></div>
   </div>
 
