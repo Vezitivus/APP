@@ -1,93 +1,153 @@
-/**
- * Galvenā doGet funkcija ar JSONP un CORS atbalstu.
- */
-function doGet(e) {
-  // Iegūst uid no URL: vai no query parametriem, vai no ceļa pēdējā segmenta
-  var uid = e.parameter.uid;
-  if (!uid) {
-    var pathInfo = e.pathInfo;
-    if (pathInfo) {
-      var segments = pathInfo.split('/');
-      uid = segments[segments.length - 1];
+document.addEventListener("DOMContentLoaded", function() {
+  // Iegūst uid no URL: vispirms pārbauda query parametrus, tad pēdējo ceļa segmentu.
+  function getUID() {
+    const params = new URLSearchParams(window.location.search);
+    let uid = params.get("uid");
+    if (!uid) {
+      const pathSegments = window.location.pathname.split("/").filter(seg => seg.length > 0);
+      uid = pathSegments[pathSegments.length - 1];
+    }
+    return uid;
+  }
+  const uid = getUID();
+
+  // Google Apps Script web app URL (izmanto JSONP, lai izvairītos no CORS problēmām)
+  const sheetUrlBase = "https://script.google.com/macros/s/AKfycbyS8FWFUDIInu7NFBxa8BP2qGeoLdoLdIxRVs-aL8ss9umKeGU88D17QHSlPVb2z7o5qQ/exec";
+  const remainingSpinsDiv = document.getElementById("remainingSpins");
+
+  // Iegūst atlikušos griezienus, izmantojot JSONP pieeju
+  function fetchRemainingSpins() {
+    if (!uid) {
+      remainingSpinsDiv.textContent = "🪙 N/A";
+      return;
+    }
+    const callbackName = "handleSpinResponse";
+    window[callbackName] = function(data) {
+      if (data && data.K !== undefined) {
+        remainingSpinsDiv.textContent = "🪙 " + data.K;
+      } else {
+        remainingSpinsDiv.textContent = "🪙 N/A";
+      }
+      script.remove();
+      delete window[callbackName];
+    };
+    const url = sheetUrlBase + "?uid=" + encodeURIComponent(uid) + "&callback=" + callbackName;
+    const script = document.createElement("script");
+    script.src = url;
+    script.onerror = function() {
+      remainingSpinsDiv.textContent = "🪙 Error";
+      script.remove();
+      delete window[callbackName];
+    };
+    document.body.appendChild(script);
+  }
+
+  // Atskaita griezienus (ar reizinātāju) un izsauc callback, kad atbilde ir saņemta.
+  function deductSpins(multiplier, callback) {
+    if (!uid) return callback();
+    const callbackName = "handleDeductResponse";
+    window[callbackName] = function(data) {
+      callback(data);
+      script.remove();
+      delete window[callbackName];
+    };
+    const url = sheetUrlBase + "?uid=" + encodeURIComponent(uid) + "&deduct=" + multiplier + "&callback=" + callbackName;
+    const script = document.createElement("script");
+    script.src = url;
+    script.onerror = function() {
+      console.error("Error deducting spins");
+      callback(null);
+      script.remove();
+      delete window[callbackName];
+    };
+    document.body.appendChild(script);
+  }
+
+  // Sākotnēji ielādē atlikušos griezienus.
+  fetchRemainingSpins();
+
+  // Spēles loģika
+  const emojiSet = ['🍒', '🍋', '🍊', '🍉', '🍇', '⭐', '🔔', '7️⃣'];
+  const numReels = 5;
+  const reels = [];
+  const spinIntervals = [];
+  let reelsStopped = 0;
+  const spinButton = document.getElementById("spinButton");
+  const messageDiv = document.getElementById("message");
+  const multiplierSelect = document.getElementById("multiplierSelect");
+
+  // Inicializē katru reeli ar nejaušu sākuma simbolu
+  for (let i = 0; i < numReels; i++) {
+    reels[i] = {
+      currentIndex: Math.floor(Math.random() * emojiSet.length),
+      spinning: false
+    };
+    updateReelDisplay(i);
+  }
+
+  // Pogas "Kruķīt" notikums: noņem griezienus pēc izvēlētā reizinātāja un sāk animāciju.
+  spinButton.addEventListener("click", function() {
+    const multiplier = parseInt(multiplierSelect.value, 10) || 1;
+    deductSpins(multiplier, function(response) {
+      fetchRemainingSpins();
+    });
+    spinButton.disabled = true;
+    messageDiv.textContent = "";
+    reelsStopped = 0;
+    for (let i = 0; i < numReels; i++) {
+      startSpinning(i, 2000 + i * 500);
+    }
+  });
+
+  function startSpinning(reelIndex, duration) {
+    reels[reelIndex].spinning = true;
+    spinIntervals[reelIndex] = setInterval(function() {
+      reels[reelIndex].currentIndex = (reels[reelIndex].currentIndex + 1) % emojiSet.length;
+      updateReelDisplay(reelIndex);
+    }, 100);
+    setTimeout(function() {
+      stopSpinning(reelIndex);
+    }, duration);
+  }
+
+  function stopSpinning(reelIndex) {
+    clearInterval(spinIntervals[reelIndex]);
+    reels[reelIndex].spinning = false;
+    reels[reelIndex].currentIndex = Math.floor(Math.random() * emojiSet.length);
+    updateReelDisplay(reelIndex);
+    reelsStopped++;
+    if (reelsStopped === numReels) {
+      checkResult();
+      spinButton.disabled = false;
     }
   }
-  
-  if (!uid) {
-    return jsonResponse({ error: "Nav nodrošināts uid" }, e);
+
+  function updateReelDisplay(reelIndex) {
+    const reel = reels[reelIndex];
+    const topIndex = (reel.currentIndex - 1 + emojiSet.length) % emojiSet.length;
+    const bottomIndex = (reel.currentIndex + 1) % emojiSet.length;
+    document.getElementById("reel" + reelIndex + "-symbol0").textContent = emojiSet[topIndex];
+    document.getElementById("reel" + reelIndex + "-symbol1").textContent = emojiSet[reel.currentIndex];
+    document.getElementById("reel" + reelIndex + "-symbol2").textContent = emojiSet[bottomIndex];
   }
-  
-  // Definējam Google Sheets dokumenta ID un lapas nosaukumu
-  var spreadsheetId = "1KYwqQ4gpwnXuMjNGjET1KnZVh2hmgadAl1rpmCttdnk";
-  var sheetName = "Lapa1";
-  
-  try {
-    var ss = SpreadsheetApp.openById(spreadsheetId);
-    var sheet = ss.getSheetByName(sheetName);
-    if (!sheet) {
-      return jsonResponse({ error: "Lapa 'Lapa1' nav atrasta" }, e);
+
+  function checkResult() {
+    const results = [];
+    for (let i = 0; i < numReels; i++) {
+      const symbol = document.getElementById("reel" + i + "-symbol1").textContent;
+      results.push(symbol);
     }
-    
-    // Iegūst visu datu diapazonu un meklē rindu, kur A kolonnas vērtība sakrīt ar uid
-    var dataRange = sheet.getDataRange();
-    var data = dataRange.getValues();
-    
-    var spins = null;
-    var rowIndex = -1;
-    for (var i = 0; i < data.length; i++) {
-      if (data[i][0] == uid) {
-        // Pieņemam, ka K kolonna atrodas kolonnā 11 (indeksā 10)
-        spins = data[i][10];
-        rowIndex = i + 1; // Google Sheets rindu numuri sākas ar 1
+    const counts = {};
+    results.forEach(symbol => {
+      counts[symbol] = (counts[symbol] || 0) + 1;
+    });
+    let win = false;
+    for (const key in counts) {
+      if (counts[key] >= 3) {
+        win = true;
         break;
       }
     }
-    
-    if (spins === null) {
-      return jsonResponse({ error: "UID netika atrasts" }, e);
-    }
-    
-    // Ja ir nodots "deduct" parametrs, samazinām griezienu atlikumu
-    if (e.parameter.deduct) {
-      var deductValue = parseInt(e.parameter.deduct, 10);
-      if (isNaN(deductValue)) {
-        deductValue = 0;
-      }
-      var newSpins = spins - deductValue;
-      if (newSpins < 0) {
-        newSpins = 0;
-      }
-      // Atjaunina attiecīgās rindas K kolonnas vērtību
-      sheet.getRange(rowIndex, 11).setValue(newSpins);
-      spins = newSpins;
-    }
-    
-    return jsonResponse({ K: spins }, e);
-    
-  } catch (error) {
-    return jsonResponse({ error: error.toString() }, e);
+    messageDiv.textContent = win ? "Uzvara!" : "Zaudēji!";
   }
-}
-
-/**
- * Funkcija, kas ģenerē JSON atbildi un, ja ir norādīts callback parametrs, iesaiņo rezultātu JSONP formātā.
- * Parametrs "e" tiek izmantots, lai pārbaudītu, vai ir pieprasīts JSONP.
- */
-function jsonResponse(data, e) {
-  var json = JSON.stringify(data);
-  
-  // Ja ir callback parametrs, izmanto JSONP – tas ļauj pārsniegt CORS ierobežojumus, jo atbildi iegūst caur script tag.
-  if (e && e.parameter && e.parameter.callback) {
-    var callback = e.parameter.callback;
-    return ContentService
-      .createTextOutput(callback + "(" + json + ");")
-      .setMimeType(ContentService.MimeType.JAVASCRIPT);
-  } else {
-    // Citi gadījumi – mēģina atgriezt JSON ar CORS galveniem.
-    var output = ContentService.createTextOutput(json)
-      .setMimeType(ContentService.MimeType.JSON);
-    output.setHeader("Access-Control-Allow-Origin", "*");
-    output.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    output.setHeader("Access-Control-Allow-Headers", "Content-Type");
-    return output;
-  }
-}
+});
