@@ -55,38 +55,31 @@
       padding: 2px 0;
     }
 
-    /* Jaunais lauks "TAVA KOMANDA" */
-    .team-section {
-      margin-top: 2px;
-      text-align: center;
-    }
-
-    .team-label {
-      font-weight: bold;
-      font-size: 18px;
-      color: white;
-    }
-
-    .team-value {
-      font-size: 20px;
-      font-weight: bold;
-      color: #FFD700; /* Zeltains teksts */
-    }
-
-    /* Apaļa "rata" poga */
-    .round-button {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background-color: #3498db;
-      border: none;
-      color: white;
-      font-size: 14px;
+    /* ✅ "Griezt Ratu" pogas dizains */
+    .spin-wheel-section {
       display: flex;
-      align-items: center;
       justify-content: center;
+      margin-top: 20px;
+    }
+
+    .spin-button {
+      width: 80%;
+      padding: 14px 24px;
+      font-size: 18px;
+      font-weight: bold;
+      text-align: center;
+      color: white;
+      background: linear-gradient(to bottom, #333, #111);
+      border: none;
+      border-radius: 24px;
       cursor: pointer;
-      margin: 10px auto;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .spin-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
     }
   </style>
 </head>
@@ -121,11 +114,6 @@
           <p class="label">Kopvērtējuma vieta</p>
           <p class="large-value" id="place">Ielādē...</p>
         </div>
-        <!-- Jaunais bloks "TAVA KOMANDA" -->
-        <div class="team-section">
-          <p class="team-label">TAVA KOMANDA</p>
-          <p class="team-value" id="team-name">Ielādē...</p>
-        </div>
       </div>
     </section>
 
@@ -134,22 +122,33 @@
       <button id="checkin-button" class="checkin-button">Check-In priekš aktivitātēm</button>
     </section>
 
-    <!-- Apaļa "Rata" poga -->
-    <section class="round-button-section">
-      <button class="round-button" id="round-button">Rata</button>
-    </section>
-
     <!-- Apakšējās pogas (profile.html) -->
     <section class="buttons-section">
       <div class="buttons-grid">
         <div class="grid-margin"></div>
-        <button class="action-button" onclick="redirectToActivity()">Vezitivus lenta</button>
+        <!-- 1. Poga: Vezitivus lenta -->
+        <button class="action-button" onclick="redirectToActivity()">
+          Vezitivus lenta
+        </button>
         <div class="grid-spacer"></div>
-        <button class="action-button" onclick="redirectToSimpathy()">Simpatijas balva</button>
+        <!-- 2. Poga: Simpatijas balva -->
+        <button class="action-button" onclick="redirectToSimpathy()">
+          Simpatijas balva
+        </button>
         <div class="grid-spacer"></div>
-        <button class="action-button" onclick="window.location.href='score.html'">Score Board</button>
+        <!-- 3. Poga: Score Board -->
+        <button class="action-button" onclick="window.location.href='score.html'">
+          Score Board
+        </button>
         <div class="grid-margin"></div>
       </div>
+    </section>
+
+    <!-- ✅ Griezt Ratu poga (atgriezta no tavā piemērā) -->
+    <section class="spin-wheel-section">
+      <button class="spin-button" onclick="redirectToSpin()">
+        🎡 Griezt Ratu
+      </button>
     </section>
 
     <script>
@@ -173,6 +172,17 @@
       function redirectToSimpathy() {
         const uid = document.getElementById("nfc-id").innerText.trim();
         window.location.href = `https://vezitivus.github.io/APP/simpathy.html?uid=${uid}`;
+      }
+
+      // Funkcija, lai pāradresētu uz "rats.html" ar UID no URL
+      function redirectToSpin() {
+        const params = new URLSearchParams(window.location.search);
+        const uid = params.get("uid");
+        if (uid) {
+          window.location.href = `rats.html?uid=${uid}`;
+        } else {
+          alert("UID nav atrasts!");
+        }
       }
     </script>
 
