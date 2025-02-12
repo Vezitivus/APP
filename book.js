@@ -95,7 +95,7 @@ document.addEventListener("DOMContentLoaded", function() {
     reelsStopped = 0;
     // Samazināts griešanās ātrums – tagad ik 150ms
     for (let i = 0; i < numReels; i++) {
-      startSpinning(i, 2000 + i * 500);
+      startSpinning(i, 2540 + i * 511);
     }
   });
 
@@ -104,7 +104,7 @@ document.addEventListener("DOMContentLoaded", function() {
     spinIntervals[reelIndex] = setInterval(function() {
       reels[reelIndex].currentIndex = (reels[reelIndex].currentIndex + 1) % emojiSet.length;
       updateReelDisplay(reelIndex);
-    }, 150);
+    }, 110);
     setTimeout(function() { stopSpinning(reelIndex); }, duration);
   }
 
