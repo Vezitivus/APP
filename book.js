@@ -1,11 +1,31 @@
 document.addEventListener("DOMContentLoaded", function() {
+  // Konstantes
+  const symbolHeight = 40; // katra simbola augstums (px)
+  const visibleCount = 3;  // redzamo simbolu skaits
+  const reelHeight = symbolHeight * visibleCount; // 120px
+
   // Audio objekti – pārliecinies, ka MP3 faili (griez.mp3, win.mp3, winbig.mp3, lose.mp3) ir pieejami
   const spinSound = new Audio('griez.mp3');
   const winSound = new Audio('win.mp3');
   const winBigSound = new Audio('winbig.mp3');
   const loseSound = new Audio('lose.mp3');
 
-  // Iegūst uid no URL (query parametri vai pēdējais ceļa segments)
+  // Emoji masīvs – palielināts uz 10 elementiem
+  const emojiSet = ['🍒','🍋','🍊','🍉','🍇','⭐','🔔','7️⃣','🍀','💎'];
+  // Izveidojam masīvu, kas atkārto emojiSet 3 reizes, lai reele būtu gluda
+  const reelSymbols = emojiSet.concat(emojiSet, emojiSet);
+  const totalSymbols = reelSymbols.length; // 30
+  const totalHeight = totalSymbols * symbolHeight; // 30*40 = 1200
+
+  const numReels = 5;
+  const reels = []; // katram reēlam saglabājam objektu ar rādītājiem
+
+  const spinButton = document.getElementById("spinButton");
+  const messageDiv = document.getElementById("message");
+  const multiplierSelect = document.getElementById("multiplierSelect");
+  const remainingSpinsDiv = document.getElementById("remainingSpins");
+
+  // Servera funkcijas (no iepriekšējā koda)
   function getUID() {
     const params = new URLSearchParams(window.location.search);
     let uid = params.get("uid");
@@ -16,12 +36,8 @@ document.addEventListener("DOMContentLoaded", function() {
     return uid;
   }
   const uid = getUID();
-
-  // Google Apps Script web app URL (izmanto JSONP, lai izvairītos no CORS problēmām)
   const sheetUrlBase = "https://script.google.com/macros/s/AKfycbyS8FWFUDIInu7NFBxa8BP2qGeoLdoLdIxRVs-aL8ss9umKeGU88D17QHSlPVb2z7o5qQ/exec";
-  const remainingSpinsDiv = document.getElementById("remainingSpins");
 
-  // Iegūst atlikušos griezienus ar JSONP
   function fetchRemainingSpins() {
     if (!uid) { remainingSpinsDiv.textContent = "🪙 N/A"; return; }
     const callbackName = "handleSpinResponse";
@@ -43,7 +59,6 @@ document.addEventListener("DOMContentLoaded", function() {
     document.body.appendChild(script);
   }
 
-  // Atskaita griezienus (ar noteiktu summu) ar JSONP
   function deductSpins(amount, callback) {
     if (!uid) return callback();
     const callbackName = "handleDeductResponse";
@@ -66,88 +81,135 @@ document.addEventListener("DOMContentLoaded", function() {
 
   fetchRemainingSpins();
 
-  // Spēles loģika
-  // Palielināts emojiSet uz 10 emoji
-  const emojiSet = ['🍒','🍋','🍊','🍉','🍇','⭐','🔔','7️⃣','🍀','💎'];
-  const numReels = 5;
-  const reels = [];
-  const spinIntervals = [];
-  let reelsStopped = 0;
-  const spinButton = document.getElementById("spinButton");
-  const messageDiv = document.getElementById("message");
-  const multiplierSelect = document.getElementById("multiplierSelect");
-
-  // Inicializē katra reela sākuma simbolu
+  // Izveidojam reelešu saturu un inicializējam katru reeli
+  const reelsContainer = document.getElementById("reels");
   for (let i = 0; i < numReels; i++) {
-    reels[i] = { currentIndex: Math.floor(Math.random() * emojiSet.length), spinning: false };
-    updateReelDisplay(i);
+    const reelElem = reelsContainer.children[i];
+    let innerElem = reelElem.querySelector('.reel-inner');
+    if (!innerElem) {
+      innerElem = document.createElement("div");
+      innerElem.className = "reel-inner";
+      // Izveidojam simbolus
+      reelSymbols.forEach(sym => {
+        const symDiv = document.createElement("div");
+        symDiv.className = "symbol";
+        symDiv.textContent = sym;
+        innerElem.appendChild(symDiv);
+      });
+      reelElem.appendChild(innerElem);
+    }
+    // Inicializējam nejaušu sākuma pozīciju, sakrītošu ar simbolu
+    const randIndex = Math.floor(Math.random() * totalSymbols);
+    const initOffset = 40 - randIndex * symbolHeight; // tā, lai aktivā (vidējā) simbola top būtu 40px
+    innerElem.style.transform = `translateY(${initOffset}px)`;
+    // Saglabājam reēla objektu
+    reels.push({ reelElem: reelElem, innerElem: innerElem, offset: initOffset, isDragging: false });
+    addDragListeners(reelElem, innerElem, reels[i]);
   }
 
-  // Funkcija, kas simulē aktīvā simbola slidināšanu (slide up)
-  function updateActiveSymbol(reelIndex, newEmoji) {
-    const activeElem = document.getElementById("reel" + reelIndex + "-symbol1");
-    activeElem.style.transition = "transform 0.5s ease-out";
-    activeElem.style.transform = "translateY(-40px)";
-    setTimeout(() => {
-      activeElem.textContent = newEmoji;
-      activeElem.style.transition = "";
-      activeElem.style.transform = "translateY(0)";
-    }, 500);
+  // Manuāla vilkšanas funkcionalitāte – ļauj nobraukt katru reeli
+  function addDragListeners(reelElem, innerElem, reelObj) {
+    let startY = 0;
+    let startOffset = 0;
+    function onMouseDown(e) {
+      reelObj.isDragging = true;
+      startY = e.clientY;
+      startOffset = reelObj.offset;
+      innerElem.style.transition = "none";
+      document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mouseup", onMouseUp);
+    }
+    function onMouseMove(e) {
+      if (!reelObj.isDragging) return;
+      const delta = e.clientY - startY;
+      reelObj.offset = startOffset + delta;
+      innerElem.style.transform = `translateY(${reelObj.offset}px)`;
+    }
+    function onMouseUp(e) {
+      reelObj.isDragging = false;
+      reelObj.offset = Math.round(reelObj.offset / symbolHeight) * symbolHeight;
+      innerElem.style.transition = "transform 0.3s ease-out";
+      innerElem.style.transform = `translateY(${reelObj.offset}px)`;
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    }
+    reelElem.addEventListener("mousedown", onMouseDown);
+    // Touch events
+    function onTouchStart(e) {
+      reelObj.isDragging = true;
+      startY = e.touches[0].clientY;
+      startOffset = reelObj.offset;
+      innerElem.style.transition = "none";
+      document.addEventListener("touchmove", onTouchMove);
+      document.addEventListener("touchend", onTouchEnd);
+    }
+    function onTouchMove(e) {
+      if (!reelObj.isDragging) return;
+      const delta = e.touches[0].clientY - startY;
+      reelObj.offset = startOffset + delta;
+      innerElem.style.transform = `translateY(${reelObj.offset}px)`;
+    }
+    function onTouchEnd(e) {
+      reelObj.isDragging = false;
+      reelObj.offset = Math.round(reelObj.offset / symbolHeight) * symbolHeight;
+      innerElem.style.transition = "transform 0.3s ease-out";
+      innerElem.style.transform = `translateY(${reelObj.offset}px)`;
+      document.removeEventListener("touchmove", onTouchMove);
+      document.removeEventListener("touchend", onTouchEnd);
+    }
+    reelElem.addEventListener("touchstart", onTouchStart);
   }
 
-  // Kad griešanās sākas – paslēpj rezultāta lauku un atskaņo spinSound
+  // Spin funkcija: kad spinButton tiek nospiests, ja reelis netiek vilkts manuāli, animē reele
   spinButton.addEventListener("click", function() {
     messageDiv.textContent = "";
     spinSound.loop = true;
     spinSound.play();
     const chosenMultiplier = parseInt(multiplierSelect.value, 10) || 1;
-    // Noņem likmi pirms griešanās
     deductSpins(chosenMultiplier, function() { fetchRemainingSpins(); });
     spinButton.disabled = true;
-    reelsStopped = 0;
-    // Izmanto setInterval ik 500ms, lai aktivā simbola elementam pielietotu sliding animāciju
-    for (let i = 0; i < numReels; i++) {
-      startSpinning(i, 4000 + i * 500); // ilgāka griešanās laika, lai animācija būtu redzama
-    }
+    let spinningCount = 0;
+    reels.forEach((reelObj, i) => {
+      if (!reelObj.isDragging) {
+        spinReel(reelObj);
+        spinningCount++;
+      }
+    });
   });
 
-  function startSpinning(reelIndex, duration) {
-    reels[reelIndex].spinning = true;
-    // Izmanto setInterval ik 500ms, lai simulētu slide – katru reizi mainām simbolu ar animāciju
-    spinIntervals[reelIndex] = setInterval(function() {
-      reels[reelIndex].currentIndex = (reels[reelIndex].currentIndex + 1) % emojiSet.length;
-      updateActiveSymbol(reelIndex, emojiSet[reels[reelIndex].currentIndex]);
-    }, 500);
-    setTimeout(function() { stopSpinning(reelIndex); }, duration);
+  // Spin vienam reēlam: animē reelObj.innerElem, pievienojot nejaušu skaitu simbolu (piemēram, 10–20 simbolus)
+  function spinReel(reelObj) {
+    const innerElem = reelObj.innerElem;
+    const increments = Math.floor(Math.random() * 11) + 10; // 10 līdz 20
+    const delta = increments * symbolHeight;
+    let newOffset = reelObj.offset - delta; // pārvieto uz augšu
+    // Nodrošina nepārtrauktu efektu – ja newOffset pārsniedz limitu, atgriežas
+    while (newOffset < - (totalHeight - reelHeight)) {
+      newOffset += totalHeight;
+    }
+    reelObj.offset = newOffset;
+    innerElem.style.transition = "transform 2s ease-out";
+    innerElem.style.transform = `translateY(${newOffset}px)`;
+    innerElem.addEventListener("transitionend", function handler() {
+      innerElem.style.transition = "";
+      innerElem.removeEventListener("transitionend", handler);
+      checkAllSpinsFinished();
+    });
   }
 
-  function stopSpinning(reelIndex) {
-    clearInterval(spinIntervals[reelIndex]);
-    reels[reelIndex].spinning = false;
-    // Pēdējais slide efektu – mēs varam palaist updateActiveSymbol, lai noslēgtu animāciju
-    updateActiveSymbol(reelIndex, emojiSet[reels[reelIndex].currentIndex]);
-    reelsStopped++;
-    if (reelsStopped === numReels) { 
-      spinSound.pause(); 
+  let spinsFinished = 0;
+  function checkAllSpinsFinished() {
+    spinsFinished++;
+    if (spinsFinished >= numReels) {
+      spinsFinished = 0;
+      spinSound.pause();
       spinSound.currentTime = 0;
-      checkResult(); 
-      spinButton.disabled = false; 
+      checkResult();
+      spinButton.disabled = false;
     }
   }
 
-  function updateReelDisplay(reelIndex) {
-    // Atjaunina visus trīs simbolus (top, active, bottom) bez animācijas, kad sākas griešanās
-    const activeElem = document.getElementById("reel" + reelIndex + "-symbol1");
-    activeElem.textContent = emojiSet[reels[reelIndex].currentIndex];
-    const topElem = document.getElementById("reel" + reelIndex + "-symbol0");
-    topElem.textContent = emojiSet[(reels[reelIndex].currentIndex - 1 + emojiSet.length) % emojiSet.length];
-    const bottomElem = document.getElementById("reel" + reelIndex + "-symbol2");
-    bottomElem.textContent = emojiSet[(reels[reelIndex].currentIndex + 1) % emojiSet.length];
-  }
-
-  // Funkcija, kas animē rezultāta klonu no messageDiv uz remainingSpinsDiv:
-  // Pirmā daļa: rezultāts parādās centrēti zem reizinātāja un noturās 1 sekundes.
-  // Tad, 2 sekundes laikā, tas pārvietojas uz remainingSpinsDiv pozīciju.
+  // Animē rezultāta klonu, kas parādās zem reizinātāja centrēti 1 sekundes un tad 2 sekundēs slīd uz remainingSpinsDiv
   function animateResultToCoin(resultText) {
     const clone = messageDiv.cloneNode(true);
     clone.textContent = resultText;
@@ -159,7 +221,7 @@ document.addEventListener("DOMContentLoaded", function() {
     clone.style.margin = "0";
     clone.style.transition = "none";
     messageDiv.parentElement.appendChild(clone);
-    // Notur 1 sekundes
+    // Turpina 1 sekundes
     setTimeout(() => {
       clone.style.transition = "all 2s ease-out";
       const coinRect = remainingSpinsDiv.getBoundingClientRect();
@@ -173,21 +235,20 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   }
 
-  // Uzvaras/laužu loģika:
-  // 2 vienādi → zaudējums (likme×1)
-  // 2+2 vienādi → likme×3
-  // 3 vienādi (bez pāra) → likme×10
-  // 3+2 vienādi → likme×25
-  // 4 vienādi → likme×100
-  // 5 vienādi → spēlētājs ievada vērtību
+  // Check result: aprēķina aktīvo simbolu kombināciju, izmantojot katra reēla "satriektu" vērtību
   function checkResult() {
-    const results = [];
-    for (let i = 0; i < numReels; i++) {
-      results.push(document.getElementById("reel" + i + "-symbol1").textContent);
-    }
-    // Saskaitām simbolus
+    const activeSymbols = [];
+    // Aktīvais simbols ir tas, kura virsotne atrodas 40px no reēla augšas (jo redzamais laukums ir 120px, un centrā ir 40px – 80px)
+    reels.forEach(reelObj => {
+      // Aprēķina aktīvā simbola indeksu: (40 - offset) / symbolHeight
+      const index = Math.round((40 - reelObj.offset) / symbolHeight);
+      // Izmanto modulo, lai pārvērstu indeksu par vērtību reelSymbols masīvā
+      const adjustedIndex = ((index % totalSymbols) + totalSymbols) % totalSymbols;
+      activeSymbols.push(reelSymbols[adjustedIndex]);
+    });
+    // Saskaitām kombināciju
     const counts = {};
-    results.forEach(s => { counts[s] = (counts[s] || 0) + 1; });
+    activeSymbols.forEach(s => { counts[s] = (counts[s] || 0) + 1; });
     let maxCount = 0, winSymbol = null;
     for (let s in counts) {
       if (counts[s] > maxCount) { maxCount = counts[s]; winSymbol = s; }
@@ -197,7 +258,6 @@ document.addEventListener("DOMContentLoaded", function() {
     let winFactor = 0;
     
     if (maxCount === 5) {
-      // 5 vienādi – paša ievade
       let customWin = parseInt(window.prompt("Ievadi savu laimesta vērtību:"), 10);
       if (isNaN(customWin) || customWin <= 0) { 
         customWin = chosenMultiplier * 1000;
@@ -219,7 +279,6 @@ document.addEventListener("DOMContentLoaded", function() {
         winFactor = 10;
       }
     } else {
-      // maxCount < 3 (1 vai 2 vienādi) – zaudējums
       const resultAmount = stake * chosenMultiplier;
       animateResultToCoin("-" + resultAmount);
       loseSound.play();
