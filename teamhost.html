@@ -67,13 +67,12 @@
       flex-direction: column;
       min-height: 120px;
     }
-    /* Increase team header text size 3x (previously 80%, now 240%) */
+    /* Increase team header text size 3x */
     .team-box h3 {
       margin: 0 0 10px 0;
-      font-size: 240%;
+      font-size: 240%; /* 3x larger than before */
       text-align: center;
     }
-    /* Player list inside team box */
     .player-list {
       display: flex;
       flex-direction: column;
@@ -81,13 +80,13 @@
       margin-bottom: 8px;
     }
     .player-item {
-      font-size: 70%;  /* small text */
+      font-size: 70%; /* small text */
       text-align: center;
     }
-    /* Points input: attached to the right side of the team box */
+    /* Points input: positioned absolutely to the right so it appears outside the team box */
     .points-input {
       position: absolute;
-      right: 8px;
+      right: -50px; /* adjust as needed to move it outside the team box */
       top: 50%;
       transform: translateY(-50%);
       width: 30%;
@@ -129,7 +128,7 @@
     <div id="teamsContainer"></div>
     <button id="saveResultsGlobal">Saglabāt rezultātus</button>
     
-    <!-- Hidden form to submit results without using fetch (thus bypassing CORS) -->
+    <!-- Hidden form for submitting results to bypass CORS -->
     <form id="resultsForm" action="https://script.google.com/macros/s/AKfycbyMHiivE56GC6okPj2xOYJaBGs-aF8Dxf_45Q6eprSs6_-vVrRCA1s0GMfrW_WaHhbzJA/exec?action=saveResults" method="POST" target="hidden_iframe">
       <input type="hidden" name="resultsData" id="resultsData">
     </form>
