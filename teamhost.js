@@ -3,15 +3,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   const activityDropdown = document.getElementById('activityDropdown');
   const teamsContainer = document.getElementById('teamsContainer');
   const saveResultsGlobal = document.getElementById('saveResultsGlobal');
-  
-  // Web app URL for GET requests
+
+  // Your Google Apps Script Web App URL for GET requests
   const webAppUrl = 'https://script.google.com/macros/s/AKfycbyMHiivE56GC6okPj2xOYJaBGs-aF8Dxf_45Q6eprSs6_-vVrRCA1s0GMfrW_WaHhbzJA/exec';
-  
+
   try {
+    // Fetch data from your backend
     const response = await fetch(webAppUrl);
     const json = await response.json();
-    // json is expected to have: activities, teams, and optionally players.
-    
+    // Expected JSON structure: { activities: [...], teams: [ { team: "TeamName", players: [ "Player1", "Player2", ... ] }, ... ] }
+
     // Populate activities dropdown
     json.activities.forEach(activity => {
       const option = document.createElement('option');
@@ -19,40 +20,39 @@ document.addEventListener('DOMContentLoaded', async () => {
       option.textContent = activity;
       activityDropdown.appendChild(option);
     });
-    
-    // Populate teams container using teams data from "Komandas" sheet
-    // Each team object is expected to be: { teamName: "Name", members: [ { id, name }, ... ] }
+
+    // Populate teams container with team boxes
     json.teams.forEach((teamObj, index) => {
       const teamBox = document.createElement('div');
       teamBox.className = 'team-box';
       
-      // Team name header (displayed in smaller letters)
+      // Team header (team name in small letters)
       const header = document.createElement('h3');
-      header.style.fontSize = '80%';
-      header.textContent = teamObj.teamName;
+      header.textContent = teamObj.team;
       teamBox.appendChild(header);
       
-      // Create container for team members
-      const membersContainer = document.createElement('div');
-      membersContainer.className = 'team-members';
-      teamObj.members.forEach(member => {
-        const memberDiv = document.createElement('div');
-        memberDiv.style.fontSize = '70%';
-        memberDiv.textContent = member.name;
-        // Optionally store the id in a data attribute for later use
-        memberDiv.dataset.id = member.id;
-        membersContainer.appendChild(memberDiv);
+      // Player list inside the team box
+      const playerList = document.createElement('div');
+      playerList.className = 'player-list';
+      // For each player (non-empty) from the team data
+      teamObj.players.forEach(player => {
+        if(player) { // ignore empty cells
+          const playerItem = document.createElement('div');
+          playerItem.className = 'player-item';
+          playerItem.textContent = player;
+          playerList.appendChild(playerItem);
+        }
       });
-      teamBox.appendChild(membersContainer);
+      teamBox.appendChild(playerList);
       
-      // Input for symbols
+      // Symbols input (placed to the right inside team box – here, we simply add it below the player list)
       const symbolsInput = document.createElement('input');
       symbolsInput.className = 'symbols-input';
       symbolsInput.type = 'text';
       symbolsInput.placeholder = 'Simboli';
       teamBox.appendChild(symbolsInput);
       
-      // Input for team points
+      // Points input at the bottom
       const pointsInput = document.createElement('input');
       pointsInput.className = 'points-input';
       pointsInput.type = 'text';
@@ -61,12 +61,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       
       teamsContainer.appendChild(teamBox);
     });
-    
   } catch (error) {
-    console.error('Error fetching data:', error);
+    console.error('Error fetching data from webapp:', error);
   }
   
-  // Save Results button: collect data and submit via hidden form
+  // Save results button: Collects data and submits via hidden form
   saveResultsGlobal.addEventListener('click', () => {
     let results = [];
     const activity = activityDropdown.value;
@@ -75,11 +74,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       const teamName = teamBox.querySelector('h3').textContent;
       const points = teamBox.querySelector('.points-input').value;
       const symbols = teamBox.querySelector('.symbols-input').value;
+      const playerItems = teamBox.querySelectorAll('.player-item');
       let players = [];
-      // For each member div, get the id from dataset (or fallback to text content)
-      teamBox.querySelectorAll('.team-members > div').forEach(memberDiv => {
-        let id = memberDiv.dataset.id || memberDiv.textContent;
-        players.push({ top: "", bottom: id });
+      playerItems.forEach(item => {
+        players.push(item.textContent);
       });
       results.push({ team: teamName, activity: activity, points: points, symbols: symbols, players: players });
     });
