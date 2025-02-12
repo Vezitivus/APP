@@ -35,18 +35,27 @@
       100% { transform: rotate(360deg); }
     }
 
-    /* ✅ Samazinām atstarpes kreisajā pusē, lai nepārsniedz bildes robežas */
+    /* Profila labās puses pielāgojums */
+    .profile-right {
+      width: 300px;
+    }
+
     .profile-right .info-group {
-      margin-bottom: 1px; /* Samazināta atstarpe starp elementiem */
-      padding-bottom: 1px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.2); /* Viegla līnija starp laukiem */
+      margin-bottom: 0;
+      padding: 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     .profile-right .info-group:last-child {
       border-bottom: none;
     }
 
-    /* ✅ Jaunais lauks "TAVA KOMANDA" */
+    .profile-right .info-group p {
+      margin: 0;
+      padding: 2px 0;
+    }
+
+    /* Jaunais lauks "TAVA KOMANDA" */
     .team-section {
       margin-top: 2px;
       text-align: center;
@@ -64,6 +73,21 @@
       color: #FFD700; /* Zeltains teksts */
     }
 
+    /* Apaļa "rata" poga */
+    .round-button {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: #3498db;
+      border: none;
+      color: white;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      margin: 10px auto;
+    }
   </style>
 </head>
 <body>
@@ -97,7 +121,7 @@
           <p class="label">Kopvērtējuma vieta</p>
           <p class="large-value" id="place">Ielādē...</p>
         </div>
-        <!-- ✅ Jaunais bloks "TAVA KOMANDA" -->
+        <!-- Jaunais bloks "TAVA KOMANDA" -->
         <div class="team-section">
           <p class="team-label">TAVA KOMANDA</p>
           <p class="team-value" id="team-name">Ielādē...</p>
@@ -108,6 +132,11 @@
     <!-- CHECK-IN poga -->
     <section class="checkin-section">
       <button id="checkin-button" class="checkin-button">Check-In priekš aktivitātēm</button>
+    </section>
+
+    <!-- Apaļa "Rata" poga -->
+    <section class="round-button-section">
+      <button class="round-button" id="round-button">Rata</button>
     </section>
 
     <!-- Apakšējās pogas (profile.html) -->
