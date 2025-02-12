@@ -103,7 +103,7 @@
       border-radius: 10px;
       padding: 8px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      min-height: 120px;
+      min-height: 120px; /* Nodrošina vietu gan dropzone, gan punktu laukumam */
       display: flex;
       flex-direction: column;
     }
@@ -124,7 +124,7 @@
     .team-dropzone.hover {
       border-color: #007aff;
     }
-    /* Punktu ievades lauks – paliek statisks un atrodas zem dropzone, ar margin-top automātisku */
+    /* Punktu ievades lauks – fiksēts pie komandas apakšas */
     .points-input {
       margin-top: auto;
       width: 100%;
@@ -135,16 +135,16 @@
       text-align: center;
       box-sizing: border-box;
     }
-    /* Spēlētāju konteiners – izvietoti zem komandām, bet virs "Saglabāt rezultātus" pogas, ja nepieciešams */
+    /* Spēlētāju konteiners – izvietots zem komandām */
     #dataContainer {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
     }
-    /* Spēlētāju kartītes – samazinātas par 2x (90% no sākotnējā) */
+    /* Spēlētāju kartītes – samazinātas par 10% (no 60x40px uz 54x36px) */
     .data-box {
-      width: 54px;  /* 90% no 60px */
-      height: 36px; /* 90% no 40px */
+      width: 54px;
+      height: 36px;
       background-color: #ffffff;
       border-radius: 8px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
@@ -193,7 +193,7 @@
     <!-- Komandu konteineris -->
     <div id="teamsContainer"></div>
 
-    <!-- Poga "Saglabāt rezultātus" zem komandām, virs spēlētāju konteinera -->
+    <!-- Poga "Saglabāt rezultātus" -->
     <button id="saveResultsButton">Saglabāt rezultātus</button>
 
     <!-- Spēlētāju konteiners -->
