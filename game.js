@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const teamCountInput = document.getElementById('teamCountInput');
   const createTeamsBtn = document.getElementById('createTeamsBtn');
   const teamsContainer = document.getElementById('teamsContainer');
+  const saveResultsButton = document.getElementById('saveResultsButton');
 
   // Google Apps Script Webapp URL
   const webAppUrl = 'https://script.google.com/macros/s/AKfycbwvbYSracMlNJ2dhhD74EtX2FjJ0ASsDcZBy7qGm9V-kgOWIoybclFSJN1dJ6TFmM-S/exec';
@@ -67,12 +68,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       dropzone.className = 'team-dropzone';
       teamBox.appendChild(dropzone);
 
-      // Pievieno punktu ievades lauku, kas ir piesaists komandas laukam pie apakšas
+      // Pievieno fiksētu punktu ievades lauku zem dropzone, izmantojot flex (ar margin-top: auto)
       const pointsInput = document.createElement('input');
       pointsInput.className = 'points-input';
       pointsInput.type = 'text';
       pointsInput.placeholder = 'Punkti';
-      // Punktu lauks tagad vienmēr redzams (CSS noteikumi nodrošina fiksētu pozīciju)
       teamBox.appendChild(pointsInput);
 
       teamsContainer.appendChild(teamBox);
@@ -102,5 +102,45 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       });
     }
+  });
+
+  // Pievieno iespēju spēlētājus atvilkt atpakaļ uz sākotnējo konteinera (dataContainer)
+  dataContainer.addEventListener('dragover', (e) => {
+    e.preventDefault();
+  });
+  dataContainer.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const data = e.dataTransfer.getData('text/plain');
+    if (data) {
+      try {
+        const playerData = JSON.parse(data);
+        const originalElem = document.getElementById(playerData.id);
+        if (originalElem) {
+          dataContainer.appendChild(originalElem);
+        }
+      } catch (err) {
+        console.error("Kļūda dataContainer drop:", err);
+      }
+    }
+  });
+
+  // Piesaista notikumu klausītāju "Saglabāt rezultātus" pogai
+  saveResultsButton.addEventListener('click', () => {
+    let results = [];
+    const teamBoxes = document.querySelectorAll('.team-box');
+    teamBoxes.forEach((teamBox) => {
+      const teamName = teamBox.querySelector('h3').textContent;
+      const points = teamBox.querySelector('.points-input').value;
+      const dropzone = teamBox.querySelector('.team-dropzone');
+      let players = [];
+      dropzone.querySelectorAll('.data-box').forEach((playerCard) => {
+        const top = playerCard.querySelector('.top').textContent;
+        const bottom = playerCard.querySelector('.bottom').textContent;
+        players.push({ top: top, bottom: bottom });
+      });
+      results.push({ team: teamName, points: points, players: players });
+    });
+    console.log("Saglabātie rezultāti:", results);
+    alert("Rezultāti saglabāti!");
   });
 });
