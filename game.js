@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.error('Kļūda, iegūstot datus no webapp:', error);
   }
 
-  // Komandu izveide – izveido komandu laukus ar dropzone un fiksētu punktu ievades lauku
+  // Piesaista notikumu klausītājus komandu izveidei
   createTeamsBtn.addEventListener('click', () => {
     teamsContainer.innerHTML = '';
     const count = parseInt(teamCountInput.value) || 0;
@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       dropzone.className = 'team-dropzone';
       teamBox.appendChild(dropzone);
 
-      // Fiksēts punktu ievades lauks, kas ir piesaists komandas laukam apakšā
+      // Fiksēts punktu ievades lauks, kas ir fiksēts zem dropzone (ar margin-top: auto)
       const pointsInput = document.createElement('input');
       pointsInput.className = 'points-input';
       pointsInput.type = 'text';
@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       teamsContainer.appendChild(teamBox);
 
-      // Dropzone notikumi
+      // Piesaista dropzone notikumus
       dropzone.addEventListener('dragover', (e) => {
         e.preventDefault();
         dropzone.classList.add('hover');
@@ -124,10 +124,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Poga "Saglabāt rezultātus" – apkopo rezultātus un pievieno izvēlēto aktivitāti
+  // Poga "Saglabāt rezultātus" – apkopo rezultātus un nosūta uz GAS
   saveResultsButton.addEventListener('click', () => {
     let results = [];
-    // Pievieno visiem rezultātu objektiem arī izvēlēto aktivitāti
     const activity = activityDropdown.value;
     const teamBoxes = document.querySelectorAll('.team-box');
     teamBoxes.forEach((teamBox) => {
@@ -143,7 +142,30 @@ document.addEventListener('DOMContentLoaded', async () => {
       results.push({ team: teamName, activity: activity, points: points, players: players });
     });
     console.log("Saglabātie rezultāti:", results);
-    // Šeit varētu būt fetch uz GAS, lai nosūtītu rezultātus (pēc nepieciešamības)
-    alert("Rezultāti saglabāti!");
+    // Nosūtām rezultātus uz GAS
+    postResults(results);
   });
+
+  function postResults(results) {
+    fetch(webAppUrl + '?action=saveResults', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ results: results })
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log("Servera atbilde:", data);
+      if(data.status === "ok") {
+        alert("Rezultāti saglabāti veiksmīgi!");
+      } else {
+        alert("Kļūda saglabājot rezultātus: " + data.message);
+      }
+    })
+    .catch(err => {
+      console.error("Kļūda nosūtot rezultātus:", err);
+      alert("Kļūda saglabājot rezultātus.");
+    });
+  }
 });
