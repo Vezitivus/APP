@@ -5,7 +5,7 @@
   <title>VEZITIVUS HOST</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    /* Globali samazina fonta izmērus līdz 50% (0.5x) */
+    /* Globally reduce font sizes to 50% (0.5x) */
     html, body {
       margin: 0;
       padding: 0;
@@ -14,7 +14,7 @@
       background-color: #f2f2f2;
       font-size: 50%;
     }
-    /* Fiksētais virsraksts */
+    /* Fixed header */
     .header {
       position: fixed;
       top: 0;
@@ -29,12 +29,12 @@
       margin: 0;
       font-size: 24px;
     }
-    /* Galvenais saturs */
+    /* Main content */
     .content {
       margin-top: 100px;
       padding: 20px;
     }
-    /* Nolaižamā izvēlne aktivitātēm */
+    /* Dropdown for activities */
     #activityDropdown {
       display: block;
       width: 100%;
@@ -46,7 +46,7 @@
       -webkit-appearance: none;
       outline: none;
     }
-    /* Komandu izveides sadaļa */
+    /* Team creation section */
     .input-section {
       margin-bottom: 20px;
       display: flex;
@@ -73,7 +73,7 @@
     #createTeamsBtn:hover {
       background-color: #005bb5;
     }
-    /* SPLIT button – initially hidden; will appear once teams are created */
+    /* New "SPLIT" button */
     #splitButton {
       display: none;
       padding: 10px 20px;
@@ -89,7 +89,7 @@
     #splitButton:hover {
       background-color: #e08900;
     }
-    /* Poga "Saglabāt rezultātus" – zem komandām, virs spēlētāju konteinera */
+    /* "Save Results" button */
     #saveResultsButton {
       display: block;
       width: 100%;
@@ -106,7 +106,24 @@
     #saveResultsButton:hover {
       background-color: #28a745;
     }
-    /* Komandu konteineris – divas kolonnas blakus */
+    /* New "Send Team Name" button */
+    #sendTeamNamesButton {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+      background-color: #ff3b30;
+      color: white;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: background-color 0.2s ease;
+    }
+    #sendTeamNamesButton:hover {
+      background-color: #d32f2f;
+    }
+    /* Teams container: two columns */
     #teamsContainer {
       display: flex;
       flex-wrap: wrap;
@@ -114,7 +131,7 @@
       margin-bottom: 20px;
     }
     .team-box {
-      flex: 1 1 calc(50% - 10px); /* Samazināts platums, lai divas varētu būt blakus */
+      flex: 1 1 calc(50% - 10px);
       background-color: #ffffff;
       border-radius: 10px;
       padding: 8px;
@@ -140,7 +157,7 @@
     .team-dropzone.hover {
       border-color: #007aff;
     }
-    /* Punktu ievades lauks – fiksēts zem dropzone (automātiski novietots, jo team-box ir flex column) */
+    /* Points input always visible at the bottom of a team box */
     .points-input {
       margin-top: auto;
       width: 100%;
@@ -151,13 +168,13 @@
       text-align: center;
       box-sizing: border-box;
     }
-    /* Spēlētāju konteiners – izvietoti zem komandām */
+    /* Data container for player cards */
     #dataContainer {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
     }
-    /* Spēlētāju kartītes – samazinātas par 10% (no 60x40px uz 54x36px) */
+    /* Player card: reduced to 54x36px (10% smaller than 60x40px) */
     .data-box {
       width: 54px;
       height: 36px;
@@ -199,10 +216,13 @@
       <input type="number" id="teamCountInput" min="1" value="2" />
       <button id="createTeamsBtn">Izveidot komandas</button>
     </div>
-    <!-- SPLIT button -->
+    <!-- New SPLIT button -->
     <button id="splitButton">SPLIT</button>
     <div id="teamsContainer"></div>
+    <!-- "Save Results" button -->
     <button id="saveResultsButton">Saglabāt rezultātus</button>
+    <!-- New "Send Team Name" button -->
+    <button id="sendTeamNamesButton">Sūtīt komandas nosaukumu</button>
     <div id="dataContainer"></div>
     
     <!-- Hidden form for posting results via standard form submission (bypassing CORS) -->
