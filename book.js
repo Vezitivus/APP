@@ -157,7 +157,7 @@ document.addEventListener("DOMContentLoaded", function() {
       if (pairCount === 2) {
         winFactor = 10;
       } else {
-        winFactor = 3;
+        winFactor = 1;
       }
     } else { // maxCount === 1 – zaude
       const resultAmount = stake * chosenMultiplier;
