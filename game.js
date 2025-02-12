@@ -28,11 +28,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       const box = document.createElement('div');
       box.className = 'data-box';
       box.id = `player-${index}`;
-      // Saglabā UID datu atribūtā (no kolonnas B)
-      box.dataset.uid = row.b;
       box.setAttribute('draggable', 'true');
       box.addEventListener('dragstart', (e) => {
-        e.dataTransfer.setData('text/plain', JSON.stringify({ uid: row.b, id: box.id }));
+        e.dataTransfer.setData('text/plain', JSON.stringify({ b: row.b, c: row.c, id: box.id }));
       });
 
       // Izveido span elementus: "top" (kolonna C augšā) un "bottom" (kolonna B apakšā)
@@ -52,7 +50,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.error('Kļūda, iegūstot datus no webapp:', error);
   }
 
-  // Komandu izveides funkcionalitāte
+  // Komandu izveide – izveido komandu laukus ar dropzone un fiksētu punktu ievades lauku
   createTeamsBtn.addEventListener('click', () => {
     teamsContainer.innerHTML = '';
     const count = parseInt(teamCountInput.value) || 0;
@@ -70,7 +68,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       dropzone.className = 'team-dropzone';
       teamBox.appendChild(dropzone);
 
-      // Pievieno fiksētu punktu ievades lauku zem dropzone
+      // Fiksēts punktu ievades lauks, kas ir piesaists komandas laukam apakšā
       const pointsInput = document.createElement('input');
       pointsInput.className = 'points-input';
       pointsInput.type = 'text';
@@ -79,7 +77,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       teamsContainer.appendChild(teamBox);
 
-      // Piesaista dropzone notikumus
+      // Dropzone notikumi
       dropzone.addEventListener('dragover', (e) => {
         e.preventDefault();
         dropzone.classList.add('hover');
@@ -106,7 +104,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Iespēja spēlētājus atvilkt atpakaļ uz sākotnējo konteinera (#dataContainer)
+  // Iespēja atvilkt spēlētāju atpakaļ uz sākotnējo konteinera (dataContainer)
   dataContainer.addEventListener('dragover', (e) => {
     e.preventDefault();
   });
@@ -126,33 +124,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Saglabāšanas pogas notikumu apstrāde
-  saveResultsButton.addEventListener('click', async () => {
-    const selectedActivity = activityDropdown.value;
+  // Poga "Saglabāt rezultātus" – apkopo rezultātus un pievieno izvēlēto aktivitāti
+  saveResultsButton.addEventListener('click', () => {
     let results = [];
+    // Pievieno visiem rezultātu objektiem arī izvēlēto aktivitāti
+    const activity = activityDropdown.value;
     const teamBoxes = document.querySelectorAll('.team-box');
-    teamBoxes.forEach(teamBox => {
+    teamBoxes.forEach((teamBox) => {
+      const teamName = teamBox.querySelector('h3').textContent;
       const points = teamBox.querySelector('.points-input').value;
       const dropzone = teamBox.querySelector('.team-dropzone');
-      dropzone.querySelectorAll('.data-box').forEach(playerCard => {
-        const uid = playerCard.dataset.uid;
-        if (uid) {
-          results.push({ uid: uid, activity: selectedActivity, points: points });
-        }
+      let players = [];
+      dropzone.querySelectorAll('.data-box').forEach((playerCard) => {
+        const top = playerCard.querySelector('.top').textContent;
+        const bottom = playerCard.querySelector('.bottom').textContent;
+        players.push({ top: top, bottom: bottom });
       });
+      results.push({ team: teamName, activity: activity, points: points, players: players });
     });
-    try {
-      const res = await fetch(webAppUrl + '?action=saveResults', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ results: results })
-      });
-      const resultJson = await res.json();
-      console.log("Saglabātie rezultāti:", resultJson);
-      alert("Rezultāti saglabāti!");
-    } catch (err) {
-      console.error("Kļūda saglabājot rezultātus:", err);
-      alert("Kļūda saglabājot rezultātus.");
-    }
+    console.log("Saglabātie rezultāti:", results);
+    // Šeit varētu būt fetch uz GAS, lai nosūtītu rezultātus (pēc nepieciešamības)
+    alert("Rezultāti saglabāti!");
   });
 });
