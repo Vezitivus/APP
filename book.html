@@ -6,14 +6,34 @@
   <style>
     body {
       background: #f0f0f0;
-      text-align: center;
-      font-family: Arial, sans-serif;
       margin: 0;
-      padding: 20px;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    #container {
+      width: 90%;
+      max-width: 90vw;
+      margin: 0 auto;
+      text-align: center;
+      position: relative;
     }
     h1 {
-      font-size: 2.5em;
-      margin-bottom: 20px;
+      font-size: 3em;
+      margin: 20px 0;
+    }
+    /* Augšā kreisajā stūrī parādīsies atlikušo griezienu skaits */
+    #remainingSpins {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 1.5em;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 5px 10px;
+      border-radius: 5px;
     }
     .reels {
       display: flex;
@@ -21,9 +41,9 @@
       margin: 20px 0;
     }
     .reel {
-      width: 80px;
-      height: 120px;
-      margin: 0 5px;
+      width: 100px;
+      height: 150px;
+      margin: 0 10px;
       border: 2px solid #333;
       background: #fff;
       overflow: hidden;
@@ -31,60 +51,62 @@
       box-shadow: 0 0 10px rgba(0,0,0,0.2);
     }
     .symbol {
-      font-size: 2em;
-      height: 40px;
-      line-height: 40px;
+      font-size: 3em;
+      height: 50px;
+      line-height: 50px;
     }
-    /* Atzīmējam aktīvo simbolu ar nedaudz izcelšanu */
     .active {
       font-weight: bold;
       border-top: 2px solid red;
       border-bottom: 2px solid red;
     }
     button {
-      font-size: 1.2em;
-      padding: 10px 20px;
+      font-size: 1.8em;
+      padding: 15px 30px;
       cursor: pointer;
+      margin-bottom: 20px;
     }
     .message {
-      font-size: 1.5em;
+      font-size: 1.8em;
       margin-top: 10px;
-      height: 1.5em;
+      height: 2em;
     }
   </style>
 </head>
 <body>
-  <h1>Book Of Vezitivus</h1>
-  <div class="reels" id="reels">
-    <!-- Katram no 5 reeliem izveidojam trīs simbolu elementus -->
-    <div class="reel" data-reel="0">
-      <div class="symbol" id="reel0-symbol0"></div>
-      <div class="symbol active" id="reel0-symbol1"></div>
-      <div class="symbol" id="reel0-symbol2"></div>
+  <div id="container">
+    <div id="remainingSpins">Atlikušie griezieni: Loading...</div>
+    <h1>Book Of Vezitivus</h1>
+    <div class="reels" id="reels">
+      <div class="reel" data-reel="0">
+        <div class="symbol" id="reel0-symbol0"></div>
+        <div class="symbol active" id="reel0-symbol1"></div>
+        <div class="symbol" id="reel0-symbol2"></div>
+      </div>
+      <div class="reel" data-reel="1">
+        <div class="symbol" id="reel1-symbol0"></div>
+        <div class="symbol active" id="reel1-symbol1"></div>
+        <div class="symbol" id="reel1-symbol2"></div>
+      </div>
+      <div class="reel" data-reel="2">
+        <div class="symbol" id="reel2-symbol0"></div>
+        <div class="symbol active" id="reel2-symbol1"></div>
+        <div class="symbol" id="reel2-symbol2"></div>
+      </div>
+      <div class="reel" data-reel="3">
+        <div class="symbol" id="reel3-symbol0"></div>
+        <div class="symbol active" id="reel3-symbol1"></div>
+        <div class="symbol" id="reel3-symbol2"></div>
+      </div>
+      <div class="reel" data-reel="4">
+        <div class="symbol" id="reel4-symbol0"></div>
+        <div class="symbol active" id="reel4-symbol1"></div>
+        <div class="symbol" id="reel4-symbol2"></div>
+      </div>
     </div>
-    <div class="reel" data-reel="1">
-      <div class="symbol" id="reel1-symbol0"></div>
-      <div class="symbol active" id="reel1-symbol1"></div>
-      <div class="symbol" id="reel1-symbol2"></div>
-    </div>
-    <div class="reel" data-reel="2">
-      <div class="symbol" id="reel2-symbol0"></div>
-      <div class="symbol active" id="reel2-symbol1"></div>
-      <div class="symbol" id="reel2-symbol2"></div>
-    </div>
-    <div class="reel" data-reel="3">
-      <div class="symbol" id="reel3-symbol0"></div>
-      <div class="symbol active" id="reel3-symbol1"></div>
-      <div class="symbol" id="reel3-symbol2"></div>
-    </div>
-    <div class="reel" data-reel="4">
-      <div class="symbol" id="reel4-symbol0"></div>
-      <div class="symbol active" id="reel4-symbol1"></div>
-      <div class="symbol" id="reel4-symbol2"></div>
-    </div>
+    <button id="spinButton">Kruķīt</button>
+    <div class="message" id="message"></div>
   </div>
-  <button id="spinButton">Kruķīt</button>
-  <div class="message" id="message"></div>
 
   <script src="book.js"></script>
 </body>
