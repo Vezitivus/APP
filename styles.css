@@ -213,14 +213,14 @@ video {
   align-items: flex-start; /* Pielīdzināt kreisajā pusē */
   justify-content: flex-start;
   gap: 4px; /* Samazina atstarpes starp teksta blokiem */
-  width: 100%;
+  width: flex;
   max-width: 300px; /* Ierobežo platumu, lai nepārsniegtu bildes augstumu */
 }
 
 /* Info grupu stils (Vārds, ID, Kopvērtējuma vieta, Tava komanda) */
 .info-group {
-  margin-bottom: 4px; /* Samazina vertikālo atstarpi starp blokiem */
-  padding-bottom: 4px;
+  margin-bottom: 1px; /* Samazina vertikālo atstarpi starp blokiem */
+  padding-bottom: 1px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.2); /* Plāna līnija */
   width: 100%;
 }
