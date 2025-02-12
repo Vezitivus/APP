@@ -25,7 +25,6 @@ document.addEventListener("DOMContentLoaded", function() {
   function fetchRemainingSpins() {
     if (!uid) { remainingSpinsDiv.textContent = "🪙 N/A"; return; }
     const callbackName = "handleSpinResponse";
-    // Deklarējam script pirms funkcijas, lai būtu pieejams callback funkcijā
     const script = document.createElement("script");
     window[callbackName] = function(data) {
       remainingSpinsDiv.textContent = (data && data.K !== undefined) ? "🪙 " + data.K : "🪙 N/A";
@@ -130,7 +129,7 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("reel" + reelIndex + "-symbol2").textContent = emojiSet[bottom];
   }
 
-  // Jaunā uzvaras/laužu loģika:
+  // Uzvaras/laužu loģika:
   // 2 vienādi → zaudējums (likme×1)
   // 2+2 vienādi → likme×3
   // 3 vienādi (bez pāra) → likme×10
@@ -160,7 +159,7 @@ document.addEventListener("DOMContentLoaded", function() {
         customWin = chosenMultiplier * 1000;
       }
       winFactor = null;
-      var resultAmount = customWin;
+      const resultAmount = customWin;
       deductSpins(-resultAmount, function() {
         fetchRemainingSpins();
         messageDiv.textContent = "+" + resultAmount;
@@ -172,7 +171,7 @@ document.addEventListener("DOMContentLoaded", function() {
     } else if (maxCount === 4) {
       winFactor = 100;
     } else if (maxCount === 3) {
-      if (Object.values(counts).includes(2)) {
+      if (Object.values(counts).includes(2)) { // 3+2 vienādi
         winFactor = 25;
       } else {
         winFactor = 10;
