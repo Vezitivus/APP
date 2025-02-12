@@ -29,7 +29,7 @@
       margin: 0;
       font-size: 24px;
     }
-    /* Main content */
+    /* Main content container */
     .content {
       margin-top: 100px;
       padding: 20px;
@@ -37,7 +37,7 @@
       flex-direction: column;
       gap: 20px;
     }
-    /* Dropdown (activities) */
+    /* Dropdown for activities */
     #activityDropdown {
       display: block;
       width: 100%;
@@ -49,7 +49,7 @@
       outline: none;
       margin-bottom: 20px;
     }
-    /* Teams container: teams will occupy 65% of the screen width */
+    /* Teams container occupies 65% of the width */
     #teamsContainer {
       width: 65%;
       display: flex;
@@ -57,20 +57,23 @@
       gap: 20px;
     }
     .team-box {
-      flex: 1 1 calc(50% - 10px); /* two teams per row */
+      position: relative;
+      flex: 1 1 calc(50% - 10px); /* Two team boxes per row */
       background-color: #ffffff;
       border-radius: 10px;
       padding: 8px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       display: flex;
       flex-direction: column;
-      position: relative;
+      min-height: 120px;
     }
+    /* Increase team header text size 3x (previously 80%, now 240%) */
     .team-box h3 {
       margin: 0 0 10px 0;
-      font-size: 80%; /* small letters */
+      font-size: 240%;
       text-align: center;
     }
+    /* Player list inside team box */
     .player-list {
       display: flex;
       flex-direction: column;
@@ -78,29 +81,22 @@
       margin-bottom: 8px;
     }
     .player-item {
-      font-size: 70%; /* even smaller */
+      font-size: 70%;  /* small text */
       text-align: center;
     }
-    /* Symbols input: positioned at the right side inside the team box */
-    .symbols-input {
-      width: 100%;
-      padding: 4px;
-      font-size: 14px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-sizing: border-box;
-      margin-bottom: 4px;
-    }
-    /* Points input: fixed at the bottom of the team box */
+    /* Points input: attached to the right side of the team box */
     .points-input {
-      width: 100%;
-      padding: 4px;
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 30%;
+      padding: 6px;
       font-size: 14px;
       border: 1px solid #ccc;
-      border-radius: 4px;
+      border-radius: 6px;
       text-align: center;
       box-sizing: border-box;
-      margin-top: auto;
     }
     /* Global Save Results button */
     #saveResultsGlobal {
@@ -129,16 +125,11 @@
     <h1>Vezitivus Team Host</h1>
   </div>
   <div class="content">
-    <!-- Activity dropdown remains -->
     <select id="activityDropdown"></select>
-    
-    <!-- Teams container (occupies 65% width) -->
     <div id="teamsContainer"></div>
-    
-    <!-- Global Save Results button -->
     <button id="saveResultsGlobal">Saglabāt rezultātus</button>
     
-    <!-- Hidden form to POST results -->
+    <!-- Hidden form to submit results without using fetch (thus bypassing CORS) -->
     <form id="resultsForm" action="https://script.google.com/macros/s/AKfycbyMHiivE56GC6okPj2xOYJaBGs-aF8Dxf_45Q6eprSs6_-vVrRCA1s0GMfrW_WaHhbzJA/exec?action=saveResults" method="POST" target="hidden_iframe">
       <input type="hidden" name="resultsData" id="resultsData">
     </form>
