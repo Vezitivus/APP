@@ -1,25 +1,34 @@
 document.addEventListener("DOMContentLoaded", function() {
-  // Konfigurācijas parametri
-  const symbolHeight = 40; // katra simbola augstums (px)
-  const visibleCount = 3;  // redzamo simbolu skaits
-  const reelHeight = symbolHeight * visibleCount; // 120px
+  // Parametri
+  const symbolHeight = 40;
+  const visibleCount = 3; 
+  const reelHeight = symbolHeight * visibleCount; // 120
+  const repeatCount = 10; // emojiSet atkārtojumu skaits
+  // 10 unikāli emoji × repeatCount (10) = 100 simboli
 
-  // Audio objekti – pārliecinies, ka MP3 faili ir pieejami
+  // Audio
   const spinSound = new Audio('griez.mp3');
   const winSound = new Audio('win.mp3');
   const winBigSound = new Audio('winbig.mp3');
   const loseSound = new Audio('lose.mp3');
 
-  // Unikālie emoji (10 gabali)
+  // Emoji masīvs
   const emojiSet = ['🍒','🍋','🍊','🍉','🍇','⭐','🔔','7️⃣','🍀','💎'];
-  const repeatCount = 10; // cik reizes atkārto emojiSet
+  // Izveidojam masīvu ar 100 simboliem
   const reelSymbols = [];
   for (let i = 0; i < repeatCount; i++) {
     reelSymbols.push(...emojiSet);
   }
-  const totalSymbols = reelSymbols.length; // 10*10 = 100
+  const totalSymbols = reelSymbols.length; // 100
 
-  // Servera funkcijas
+  // HTML elementi
+  const spinButton = document.getElementById("spinButton");
+  const messageDiv = document.getElementById("message");
+  const multiplierSelect = document.getElementById("multiplierSelect");
+  const reelsContainer = document.getElementById("reels");
+  const remainingSpinsDiv = document.getElementById("remainingSpins");
+
+  // Google Sheets integrācija
   function getUID() {
     const params = new URLSearchParams(window.location.search);
     let uid = params.get("uid");
@@ -31,7 +40,6 @@ document.addEventListener("DOMContentLoaded", function() {
   }
   const uid = getUID();
   const sheetUrlBase = "https://script.google.com/macros/s/AKfycbyS8FWFUDIInu7NFBxa8BP2qGeoLdoLdIxRVs-aL8ss9umKeGU88D17QHSlPVb2z7o5qQ/exec";
-  const remainingSpinsDiv = document.getElementById("remainingSpins");
 
   function fetchRemainingSpins() {
     if (!uid) { remainingSpinsDiv.textContent = "🪙 N/A"; return; }
@@ -53,7 +61,6 @@ document.addEventListener("DOMContentLoaded", function() {
     };
     document.body.appendChild(script);
   }
-
   function deductSpins(amount, callback) {
     if (!uid) return callback();
     const callbackName = "handleDeductResponse";
@@ -73,21 +80,14 @@ document.addEventListener("DOMContentLoaded", function() {
     };
     document.body.appendChild(script);
   }
-
   fetchRemainingSpins();
 
-  // Inicializējam reēlus
-  const reels = []; // objekti ar elementiem un pašreizējo indexu
-  const spinButton = document.getElementById("spinButton");
-  const messageDiv = document.getElementById("message");
-  const multiplierSelect = document.getElementById("multiplierSelect");
-
-  // Katrs reelis: ielādējam reel-inner saturu un izvēlam sākuma indexu
-  const reelsContainer = document.getElementById("reels");
-  for (let i = 0; i < reelsContainer.children.length; i++) {
+  // Izveidojam reel objektus
+  const reels = [];
+  for (let i = 0; i < 5; i++) {
     const reelElem = reelsContainer.children[i];
     const innerElem = reelElem.querySelector('.reel-inner');
-    // Aizpildām innerElem ar simboliem
+    // Aizpildām reel-inner ar simboliem (100 gab.)
     innerElem.innerHTML = "";
     reelSymbols.forEach(sym => {
       const div = document.createElement("div");
@@ -95,20 +95,19 @@ document.addEventListener("DOMContentLoaded", function() {
       div.textContent = sym;
       innerElem.appendChild(div);
     });
-    // Izvēlam sākuma indexu nejauši, bet centrinot to (vēlamies, lai aktīvā pozīcija būtu vidū)
-    // Mēs vēlamies, lai aktīvais simbols atbilstu rādītājam "1" (vidus) – tādēļ izvēlam index, kas ir vidū atkārtojumu masīvā.
-    const midRep = Math.floor(repeatCount / 2);
-    const randUnique = Math.floor(Math.random() * emojiSet.length);
-    const startIndex = midRep * emojiSet.length + randUnique;
-    // Aprēķinām sākuma offset, lai simbola top būtu 40px (aktīvā simbola top)
-    const initOffset = 40 - startIndex * symbolHeight;
+    // Nejauša sākuma index (0..99)
+    const randIndex = Math.floor(Math.random() * totalSymbols);
+    // Sākuma offset, lai šis randIndex būtu centrā (top=40)
+    const initOffset = 40 - randIndex * symbolHeight;
     innerElem.style.transform = `translateY(${initOffset}px)`;
-    // Saglabājam reēla objektu
-    reels.push({ innerElem: innerElem, currentIndex: startIndex, offset: initOffset, isDragging: false });
-    addDragListeners(reelElem, innerElem, reels[reels.length - 1]);
+
+    // Pievienojam drag eventus
+    const reelObj = { innerElem, offset: initOffset, currentIndex: randIndex, isDragging: false };
+    addDragListeners(reelElem, innerElem, reelObj);
+    reels.push(reelObj);
   }
 
-  // Manuālais vilkšanas mehānisms – ļauj vilkt reēlus un "snap" pie simbola robežām
+  // Drag eventu loģika
   function addDragListeners(reelElem, innerElem, reelObj) {
     let startY = 0;
     let startOffset = 0;
@@ -128,16 +127,12 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     function onMouseUp(e) {
       reelObj.isDragging = false;
-      // Snap to nearest symbol: aprēķina aktīvā simbola rindu
-      let r = Math.round((40 - reelObj.offset) / symbolHeight);
-      reelObj.offset = 40 - r * symbolHeight;
-      innerElem.style.transition = "transform 0.3s ease-out";
-      innerElem.style.transform = `translateY(${reelObj.offset}px)`;
-      reelObj.currentIndex = r;
+      snapReel(reelObj);
       document.removeEventListener("mousemove", onMouseMove);
       document.removeEventListener("mouseup", onMouseUp);
     }
     reelElem.addEventListener("mousedown", onMouseDown);
+
     function onTouchStart(e) {
       reelObj.isDragging = true;
       startY = e.touches[0].clientY;
@@ -154,32 +149,38 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     function onTouchEnd(e) {
       reelObj.isDragging = false;
-      let r = Math.round((40 - reelObj.offset) / symbolHeight);
-      reelObj.offset = 40 - r * symbolHeight;
-      innerElem.style.transition = "transform 0.3s ease-out";
-      innerElem.style.transform = `translateY(${reelObj.offset}px)`;
-      reelObj.currentIndex = r;
+      snapReel(reelObj);
       document.removeEventListener("touchmove", onTouchMove);
       document.removeEventListener("touchend", onTouchEnd);
     }
     reelElem.addEventListener("touchstart", onTouchStart);
   }
 
-  // Spin – automātiska animācija, ja lietotājs netiek manuāli vilkt reēlus
+  function snapReel(reelObj) {
+    // Rindas no (40 - offset)/symbolHeight
+    let index = Math.round((40 - reelObj.offset) / symbolHeight);
+    if (index < 0) index += totalSymbols; 
+    index = index % totalSymbols; 
+    reelObj.currentIndex = index;
+    reelObj.offset = 40 - index * symbolHeight;
+    reelObj.innerElem.style.transition = "transform 0.3s ease-out";
+    reelObj.innerElem.style.transform = `translateY(${reelObj.offset}px)`;
+  }
+
+  // Spin poga
   spinButton.addEventListener("click", function() {
     messageDiv.textContent = "";
-    // Ja kāds reelis tiek vilkts manuāli, to animācija netiek sākta
     spinSound.loop = true;
     spinSound.play();
     const chosenMultiplier = parseInt(multiplierSelect.value, 10) || 1;
     deductSpins(chosenMultiplier, function() { fetchRemainingSpins(); });
     spinButton.disabled = true;
-    let spinsFinished = 0;
+    let finishedCount = 0;
     reels.forEach((reelObj, i) => {
       if (!reelObj.isDragging) {
         spinReel(reelObj, () => {
-          spinsFinished++;
-          if (spinsFinished === reels.length) {
+          finishedCount++;
+          if (finishedCount === reels.length) {
             spinSound.pause();
             spinSound.currentTime = 0;
             checkResult();
@@ -190,26 +191,23 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   });
 
-  // Spin animācija katram reēlam: izvēlam jaunu mērķa indeksu un animējam pārvietošanu
-  function spinReel(reelObj, callback) {
-    // Izvēlam nejaušu skaitu simbolu, piemēram, 10 līdz 20
-    const increments = Math.floor(Math.random() * 11) + 10; // 10–20 simboli
+  function spinReel(reelObj, done) {
+    // nejaušs increments 10–20
+    const increments = Math.floor(Math.random() * 11) + 10;
     let newIndex = reelObj.currentIndex + increments;
-    // Nodrošinām, ka newIndex ir regulārs (modulo totalSymbols)
-    newIndex = newIndex % totalSymbols;
-    const newOffset = 40 - newIndex * symbolHeight;
+    newIndex = newIndex % totalSymbols; 
     reelObj.currentIndex = newIndex;
-    reelObj.offset = newOffset;
+    reelObj.offset = 40 - newIndex * symbolHeight;
     reelObj.innerElem.style.transition = "transform 2s ease-out";
-    reelObj.innerElem.style.transform = `translateY(${newOffset}px)`;
+    reelObj.innerElem.style.transform = `translateY(${reelObj.offset}px)`;
     reelObj.innerElem.addEventListener("transitionend", function handler() {
       reelObj.innerElem.style.transition = "";
       reelObj.innerElem.removeEventListener("transitionend", handler);
-      callback();
+      done();
     });
   }
 
-  // Animē rezultāta klonu, kas parādās centrēti zem reizinātāja (messageDiv) 1 sekundes, tad 2 sekundēs slīd uz remainingSpinsDiv
+  // Rezultāta animācija
   function animateResultToCoin(resultText) {
     const clone = messageDiv.cloneNode(true);
     clone.textContent = resultText;
@@ -221,6 +219,7 @@ document.addEventListener("DOMContentLoaded", function() {
     clone.style.margin = "0";
     clone.style.transition = "none";
     messageDiv.parentElement.appendChild(clone);
+    // 1 sekundi nekustas
     setTimeout(() => {
       clone.style.transition = "all 2s ease-out";
       const coinRect = remainingSpinsDiv.getBoundingClientRect();
@@ -234,37 +233,27 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   }
 
-  // Uzvaras/laužu loģika:
-  // 2 vienādi → zaudējums (likme×1)
-  // 2+2 vienādi → likme×3
-  // 3 vienādi (bez pāra) → likme×10
-  // 3+2 vienādi → likme×25
-  // 4 vienādi → likme×100
-  // 5 vienādi → spēlētājs ievada vērtību
+  // Pārbauda rezultātu
   function checkResult() {
-    const activeSymbols = [];
-    // Katram reēlam aprēķina aktīvā simbola indeksu kā: (40 - offset) / symbolHeight
-    reels.forEach(reelObj => {
-      const idx = Math.round((40 - reelObj.offset) / symbolHeight);
-      // Izmanto modulo, lai iegūtu unikālo emoji
-      const sym = reelSymbols[idx % totalSymbols];
-      activeSymbols.push(sym);
+    const stake = 1;
+    const chosenMultiplier = parseInt(multiplierSelect.value, 10) || 1;
+    // Izvelkam aktīvo simbolu no katra rēla
+    const activeSymbols = reels.map(r => {
+      const idx = Math.round((40 - r.offset) / symbolHeight) % totalSymbols;
+      return reelSymbols[(idx + totalSymbols) % totalSymbols];
     });
     const counts = {};
-    activeSymbols.forEach(s => { counts[s] = (counts[s] || 0) + 1; });
     let maxCount = 0;
-    for (let s in counts) {
-      if (counts[s] > maxCount) { maxCount = counts[s]; }
-    }
-    const chosenMultiplier = parseInt(multiplierSelect.value, 10) || 1;
-    const stake = 1;
+    activeSymbols.forEach(s => {
+      counts[s] = (counts[s] || 0) + 1;
+      if (counts[s] > maxCount) maxCount = counts[s];
+    });
     let winFactor = 0;
     if (maxCount === 5) {
       let customWin = parseInt(window.prompt("Ievadi savu laimesta vērtību:"), 10);
       if (isNaN(customWin) || customWin <= 0) {
         customWin = chosenMultiplier * 1000;
       }
-      winFactor = null;
       const resultAmount = customWin;
       deductSpins(-resultAmount, function() {
         fetchRemainingSpins();
@@ -275,14 +264,16 @@ document.addEventListener("DOMContentLoaded", function() {
     } else if (maxCount === 4) {
       winFactor = 100;
     } else if (maxCount === 3) {
+      // Pārbaudām, vai ir 3+2
       if (Object.values(counts).includes(2)) {
         winFactor = 25;
       } else {
         winFactor = 10;
       }
     } else {
-      const resultAmount = stake * chosenMultiplier;
-      animateResultToCoin("-" + resultAmount);
+      // maxCount < 3 => zaude
+      const loseAmount = stake * chosenMultiplier;
+      animateResultToCoin("-" + loseAmount);
       loseSound.play();
       return;
     }
