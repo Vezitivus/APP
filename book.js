@@ -77,10 +77,22 @@ document.addEventListener("DOMContentLoaded", function() {
   const messageDiv = document.getElementById("message");
   const multiplierSelect = document.getElementById("multiplierSelect");
 
-  // Inicializē reelu sākuma simbolus
+  // Inicializē katra reela sākuma simbolu
   for (let i = 0; i < numReels; i++) {
     reels[i] = { currentIndex: Math.floor(Math.random() * emojiSet.length), spinning: false };
     updateReelDisplay(i);
+  }
+
+  // Funkcija, kas simulē aktīvā simbola slidināšanu (slide up)
+  function updateActiveSymbol(reelIndex, newEmoji) {
+    const activeElem = document.getElementById("reel" + reelIndex + "-symbol1");
+    activeElem.style.transition = "transform 0.5s ease-out";
+    activeElem.style.transform = "translateY(-40px)";
+    setTimeout(() => {
+      activeElem.textContent = newEmoji;
+      activeElem.style.transition = "";
+      activeElem.style.transform = "translateY(0)";
+    }, 500);
   }
 
   // Kad griešanās sākas – paslēpj rezultāta lauku un atskaņo spinSound
@@ -93,26 +105,27 @@ document.addEventListener("DOMContentLoaded", function() {
     deductSpins(chosenMultiplier, function() { fetchRemainingSpins(); });
     spinButton.disabled = true;
     reelsStopped = 0;
-    // Samazināts griešanās ātrums – tagad ik 150ms
+    // Izmanto setInterval ik 500ms, lai aktivā simbola elementam pielietotu sliding animāciju
     for (let i = 0; i < numReels; i++) {
-      startSpinning(i, 2540 + i * 511);
+      startSpinning(i, 4000 + i * 500); // ilgāka griešanās laika, lai animācija būtu redzama
     }
   });
 
   function startSpinning(reelIndex, duration) {
     reels[reelIndex].spinning = true;
+    // Izmanto setInterval ik 500ms, lai simulētu slide – katru reizi mainām simbolu ar animāciju
     spinIntervals[reelIndex] = setInterval(function() {
       reels[reelIndex].currentIndex = (reels[reelIndex].currentIndex + 1) % emojiSet.length;
-      updateReelDisplay(reelIndex);
-    }, 110);
+      updateActiveSymbol(reelIndex, emojiSet[reels[reelIndex].currentIndex]);
+    }, 500);
     setTimeout(function() { stopSpinning(reelIndex); }, duration);
   }
 
   function stopSpinning(reelIndex) {
     clearInterval(spinIntervals[reelIndex]);
     reels[reelIndex].spinning = false;
-    reels[reelIndex].currentIndex = Math.floor(Math.random() * emojiSet.length);
-    updateReelDisplay(reelIndex);
+    // Pēdējais slide efektu – mēs varam palaist updateActiveSymbol, lai noslēgtu animāciju
+    updateActiveSymbol(reelIndex, emojiSet[reels[reelIndex].currentIndex]);
     reelsStopped++;
     if (reelsStopped === numReels) { 
       spinSound.pause(); 
@@ -123,12 +136,13 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   function updateReelDisplay(reelIndex) {
-    const reel = reels[reelIndex];
-    const top = (reel.currentIndex - 1 + emojiSet.length) % emojiSet.length;
-    const bottom = (reel.currentIndex + 1) % emojiSet.length;
-    document.getElementById("reel" + reelIndex + "-symbol0").textContent = emojiSet[top];
-    document.getElementById("reel" + reelIndex + "-symbol1").textContent = emojiSet[reel.currentIndex];
-    document.getElementById("reel" + reelIndex + "-symbol2").textContent = emojiSet[bottom];
+    // Atjaunina visus trīs simbolus (top, active, bottom) bez animācijas, kad sākas griešanās
+    const activeElem = document.getElementById("reel" + reelIndex + "-symbol1");
+    activeElem.textContent = emojiSet[reels[reelIndex].currentIndex];
+    const topElem = document.getElementById("reel" + reelIndex + "-symbol0");
+    topElem.textContent = emojiSet[(reels[reelIndex].currentIndex - 1 + emojiSet.length) % emojiSet.length];
+    const bottomElem = document.getElementById("reel" + reelIndex + "-symbol2");
+    bottomElem.textContent = emojiSet[(reels[reelIndex].currentIndex + 1) % emojiSet.length];
   }
 
   // Funkcija, kas animē rezultāta klonu no messageDiv uz remainingSpinsDiv:
@@ -143,11 +157,10 @@ document.addEventListener("DOMContentLoaded", function() {
     clone.style.left = (msgRect.left - containerRect.left) + "px";
     clone.style.top = (msgRect.top - containerRect.top) + "px";
     clone.style.margin = "0";
-    // Pirms animācijas, rezultāts noturās 1 sekundes bez pārvietošanās
     clone.style.transition = "none";
     messageDiv.parentElement.appendChild(clone);
+    // Notur 1 sekundes
     setTimeout(() => {
-      // Pēc 1 sekundes, pārvietošanas animācija 2 sekundes
       clone.style.transition = "all 2s ease-out";
       const coinRect = remainingSpinsDiv.getBoundingClientRect();
       const deltaX = coinRect.left - msgRect.left;
