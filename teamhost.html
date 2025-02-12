@@ -29,7 +29,7 @@
       margin: 0;
       font-size: 24px;
     }
-    /* Main content container */
+    /* Main content: left column for teams (65% width) and right column for other content */
     .content {
       margin-top: 100px;
       padding: 20px;
@@ -37,15 +37,11 @@
       flex-direction: row;
       gap: 20px;
     }
-    /* Left column (teams) uses 65% width */
+    /* Teams area occupies 65% */
     #teamsArea {
       width: 65%;
     }
-    /* Right column (players) uses remaining width */
-    #playersArea {
-      flex: 1;
-    }
-    /* Drop-down remains at top */
+    /* The activity dropdown remains at top in teamsArea */
     #activityDropdown {
       display: block;
       width: 100%;
@@ -57,41 +53,14 @@
       -webkit-appearance: none;
       outline: none;
     }
-    /* Input section for team count and button (optional if needed) */
-    .input-section {
-      margin-bottom: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    #teamCountInput {
-      padding: 10px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      outline: none;
-    }
-    #createTeamsBtn {
-      padding: 10px 20px;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
-      background-color: #007aff;
-      color: #fff;
-      cursor: pointer;
-      transition: background-color 0.2s ease;
-    }
-    #createTeamsBtn:hover {
-      background-color: #005bb5;
-    }
-    /* Teams container – arranged in two columns (each team box takes about 50% width of teamsArea) */
+    /* Teams container: team boxes arranged in two columns */
     #teamsContainer {
       display: flex;
       flex-wrap: wrap;
       gap: 20px;
     }
     .team-box {
-      flex: 1 1 calc(50% - 10px);
+      flex: 1 1 calc(50% - 10px); /* Two boxes per row */
       background-color: #ffffff;
       border-radius: 10px;
       padding: 8px;
@@ -99,28 +68,28 @@
       min-height: 120px;
       display: flex;
       flex-direction: column;
-      position: relative;
     }
     .team-box h3 {
       margin: 0 0 10px 0;
       font-size: 18px;
       text-align: center;
+      text-transform: lowercase;
     }
-    .team-dropzone {
-      min-height: 60px;
-      border: 2px dashed #ccc;
-      border-radius: 8px;
-      padding: 8px;
+    /* Team members list: display each member’s name (small font) */
+    .team-members {
       display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 4px;
     }
-    .team-dropzone.hover {
-      border-color: #007aff;
+    .team-members div {
+      font-size: 70%;
+      text-align: center;
+      white-space: nowrap;
     }
-    /* Input field for symbols (to the right of the team dropzone) */
+    /* Input for symbols (placed inside team box, for example to the right) */
     .symbols-input {
-      margin-top: 4px;
+      margin-bottom: 4px;
       width: 100%;
       padding: 6px;
       font-size: 14px;
@@ -129,7 +98,7 @@
       text-align: center;
       box-sizing: border-box;
     }
-    /* Input field for team points appears at the very bottom of team box */
+    /* Points input: fixed at the bottom of team box */
     .points-input {
       margin-top: auto;
       width: 100%;
@@ -140,13 +109,16 @@
       text-align: center;
       box-sizing: border-box;
     }
-    /* Players area container */
+    /* Right column: players area */
+    #playersArea {
+      flex: 1;
+    }
+    /* Player cards: if needed, but in this app players are not draggable */
     #dataContainer {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
     }
-    /* Player cards – 10% smaller than original (54x36 px) */
     .data-box {
       width: 54px;
       height: 36px;
@@ -159,38 +131,11 @@
       align-items: center;
       text-align: center;
       padding: 2px;
-      cursor: grab;
-      -webkit-user-select: none;
-      user-select: none;
+      font-size: 10px;
     }
     .data-box span {
       display: block;
       width: 100%;
-    }
-    .data-box .top {
-      font-size: 10px;
-      margin-bottom: 2px;
-    }
-    .data-box .bottom {
-      font-size: 10px;
-      margin-top: 2px;
-    }
-    /* Save Results button at the bottom */
-    #saveResultsGlobal {
-      display: block;
-      width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: none;
-      background-color: #34c759;
-      color: white;
-      cursor: pointer;
-      margin-top: 20px;
-      transition: background-color 0.2s ease;
-    }
-    #saveResultsGlobal:hover {
-      background-color: #28a745;
     }
   </style>
 </head>
@@ -200,19 +145,19 @@
   </div>
   <div class="content">
     <div id="teamsArea">
-      <!-- Dropdown for activities -->
+      <!-- Activity dropdown -->
       <select id="activityDropdown"></select>
-      <!-- Teams container (team boxes will be created here) -->
+      <!-- Teams container -->
       <div id="teamsContainer"></div>
       <!-- Global Save Results button -->
       <button id="saveResultsGlobal">Saglabāt rezultātus</button>
     </div>
     <div id="playersArea">
-      <!-- Players container (draggable player cards) -->
+      <!-- Optional: list of individual players (if needed) -->
       <div id="dataContainer"></div>
     </div>
     
-    <!-- Hidden form for posting results via normal form submission to bypass CORS -->
+    <!-- Hidden form for submitting results via standard form submission (bypasses CORS) -->
     <form id="resultsForm" action="https://script.google.com/macros/s/AKfycbyMHiivE56GC6okPj2xOYJaBGs-aF8Dxf_45Q6eprSs6_-vVrRCA1s0GMfrW_WaHhbzJA/exec?action=saveResults" method="POST" target="hidden_iframe" style="display:none;">
       <input type="hidden" name="resultsData" id="resultsData">
     </form>
