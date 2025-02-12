@@ -106,7 +106,7 @@
     .team-dropzone.hover {
       border-color: #007aff;
     }
-    /* Punktu ievades lauks, kas stāv pie komandas lauka apakšas */
+    /* Punktu ievades lauks, piesaists katram komandas laukam apakšā */
     .points-input {
       position: absolute;
       bottom: 8px;
@@ -119,7 +119,7 @@
       border-radius: 6px;
       text-align: center;
       box-sizing: border-box;
-      display: none; /* pēc noklusējuma paslēpts */
+      display: block; /* Tagad vienmēr redzams */
     }
     /* Spēlētāju konteiners – izvietoti zem komandām */
     #dataContainer {
@@ -127,7 +127,7 @@
       flex-wrap: wrap;
       gap: 10px;
     }
-    /* Spēlētāju kartītes – samazinātas par 2x */
+    /* Spēlētāju kartītes – 2x mazākas */
     .data-box {
       width: 60px;
       height: 40px;
@@ -176,7 +176,7 @@
       <button id="createTeamsBtn">Izveidot komandas</button>
     </div>
 
-    <!-- Komandu konteineris (izkārtojam divas kolonnas) -->
+    <!-- Komandu konteineris (divas kolonnas) -->
     <div id="teamsContainer"></div>
 
     <!-- Spēlētāju konteiners (zem komandām) -->
