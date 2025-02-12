@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", function() {
     // lai tie apstātos pa secībai
     for (let i = 0; i < numReels; i++) {
       // Katram reelim griešanās ilgums: 2000ms + (i * 500ms)
-      startSpinning(i, 2000 + i * 500);
+      startSpinning(i, 2131 + i * 531);
     }
   });
 
