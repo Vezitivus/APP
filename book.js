@@ -1,5 +1,50 @@
 document.addEventListener("DOMContentLoaded", function() {
-  // Definējam 8 emoji, kurus izmantojam reelos
+  // ===== Funkcija UID iegūšanai no URL =====
+  function getUID() {
+    // Mēģina iegūt uid no query parametriem (piemēram, ?uid=ABC123)
+    const params = new URLSearchParams(window.location.search);
+    let uid = params.get("uid");
+    if (!uid) {
+      // Ja query parametrs nav, tad mēģina iegūt pēdējo ceļa segmentu
+      const pathSegments = window.location.pathname.split("/").filter(seg => seg.length > 0);
+      uid = pathSegments[pathSegments.length - 1];
+    }
+    return uid;
+  }
+
+  const uid = getUID();
+  
+  // ===== Google Sheets integrācija =====
+  const sheetUrlBase = "https://script.google.com/macros/s/AKfycbyS8FWFUDIInu7NFBxa8BP2qGeoLdoLdIxRVs-aL8ss9umKeGU88D17QHSlPVb2z7o5qQ/exec";
+  const remainingSpinsDiv = document.getElementById("remainingSpins");
+
+  // Funkcija, lai izgūtu atlikušos griezienus no Google Sheets.
+  // Pieņemam, ka web app atgriež JSON objektu, kurā:
+  // - Lapa1 A kolonnas vērtība ir uid,
+  // - K kolonnas vērtība satur griezienu skaitu.
+  function fetchRemainingSpins() {
+    if (!uid) {
+      remainingSpinsDiv.textContent = "Atlikušie griezieni: N/A";
+      return;
+    }
+    const url = sheetUrlBase + "?uid=" + encodeURIComponent(uid);
+    fetch(url)
+      .then(response => response.json())
+      .then(data => {
+         // Pielāgo, ja nepieciešams, atkarībā no web app atbildes struktūras
+         const spins = data.K;
+         remainingSpinsDiv.textContent = "Atlikušie griezieni: " + spins;
+      })
+      .catch(error => {
+         console.error("Error fetching remaining spins:", error);
+         remainingSpinsDiv.textContent = "Atlikušie griezieni: N/A";
+      });
+  }
+
+  // Izsaucam funkciju lapas ielādē, lai parādītu griezienu atlikumu
+  fetchRemainingSpins();
+
+  // ===== Spēles loģika =====
   const emojiSet = ['🍒', '🍋', '🍊', '🍉', '🍇', '⭐', '🔔', '7️⃣'];
   const numReels = 5;
   const reels = [];
@@ -8,7 +53,7 @@ document.addEventListener("DOMContentLoaded", function() {
   const spinButton = document.getElementById("spinButton");
   const messageDiv = document.getElementById("message");
 
-  // Inicializējam katru reeli ar nejaušu sākuma indeksu
+  // Inicializējam katru reeli ar nejaušu sākuma simbolu
   for (let i = 0; i < numReels; i++) {
     reels[i] = {
       currentIndex: Math.floor(Math.random() * emojiSet.length),
@@ -17,20 +62,17 @@ document.addEventListener("DOMContentLoaded", function() {
     updateReelDisplay(i);
   }
 
-  // Pogas notikums, kas uzsāk griešanos
+  // Pogu notikums – sāk griešanās
   spinButton.addEventListener("click", function() {
     spinButton.disabled = true;
     messageDiv.textContent = "";
     reelsStopped = 0;
-    // Sākt griešanos katram reelim ar nedaudz atšķirīgu ilgumu,
-    // lai tie apstātos pa secībai
     for (let i = 0; i < numReels; i++) {
       // Katram reelim griešanās ilgums: 2000ms + (i * 500ms)
-      startSpinning(i, 2131 + i * 531);
+      startSpinning(i, 2000 + i * 500);
     }
   });
 
-  // Funkcija, kas sāk griešanos konkrētam reelim
   function startSpinning(reelIndex, duration) {
     reels[reelIndex].spinning = true;
     spinIntervals[reelIndex] = setInterval(function() {
@@ -38,17 +80,15 @@ document.addEventListener("DOMContentLoaded", function() {
       updateReelDisplay(reelIndex);
     }, 100);
 
-    // Pēc noteikta laika apstādinām griešanos
     setTimeout(function() {
       stopSpinning(reelIndex);
     }, duration);
   }
 
-  // Funkcija, kas apstādina griešanos un izvēlas galīgo simbolu
   function stopSpinning(reelIndex) {
     clearInterval(spinIntervals[reelIndex]);
     reels[reelIndex].spinning = false;
-    // Var izvēlēties arī pēdējo griešanās stāvokli, bet šeit nejauši izvēlam gala rezultātu
+    // Izvēlam pēdējo simbolu nejauši (var arī saglabāt griešanās stāvokli)
     reels[reelIndex].currentIndex = Math.floor(Math.random() * emojiSet.length);
     updateReelDisplay(reelIndex);
     reelsStopped++;
@@ -58,7 +98,6 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   }
 
-  // Atjauno reela vizuālo attēlu: tiek parādīti trīs simboli – augšā, centrā (aktīvais) un apakšā
   function updateReelDisplay(reelIndex) {
     const reel = reels[reelIndex];
     const topIndex = (reel.currentIndex - 1 + emojiSet.length) % emojiSet.length;
@@ -68,21 +107,20 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("reel" + reelIndex + "-symbol2").textContent = emojiSet[bottomIndex];
   }
 
-  // Pārbauda, vai uzvar, skatoties uz visiem "aktīvajiem" (centrālajiem) simboliem
   function checkResult() {
     const results = [];
     for (let i = 0; i < numReels; i++) {
       const symbol = document.getElementById("reel" + i + "-symbol1").textContent;
       results.push(symbol);
     }
-    // Saskaita, cik reizes katrs simbols ir parādījies
+    // Saskaitam katra simbola parādīšanās reižu skaitu
     const counts = {};
     results.forEach(symbol => {
       counts[symbol] = (counts[symbol] || 0) + 1;
     });
     let win = false;
     for (const key in counts) {
-      if (counts[key] >= 3) { // vismaz 3 vienādi – uzvara
+      if (counts[key] >= 3) { // ja vismaz 3 reizes sakrīt – uzvara
         win = true;
         break;
       }
