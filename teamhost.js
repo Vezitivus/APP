@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const webAppUrl = 'https://script.google.com/macros/s/AKfycbyMHiivE56GC6okPj2xOYJaBGs-aF8Dxf_45Q6eprSs6_-vVrRCA1s0GMfrW_WaHhbzJA/exec';
 
   try {
-    // Fetch data from the backend
+    // Fetch data from backend
     const response = await fetch(webAppUrl);
     const json = await response.json();
     
@@ -20,17 +20,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       activityDropdown.appendChild(option);
     });
     
-    // Populate teams container with team boxes (from Komandas sheet)
+    // Populate teams container with team boxes (using team names and players from Komandas sheet)
     json.teams.forEach((teamObj, index) => {
       const teamBox = document.createElement('div');
       teamBox.className = 'team-box';
       
-      // Team header (team name in large letters)
+      // Team header (team name in large text)
       const header = document.createElement('h3');
       header.textContent = teamObj.team;
       teamBox.appendChild(header);
       
-      // Player list: list all players (in small text)
+      // Player list inside the team box
       const playerList = document.createElement('div');
       playerList.className = 'player-list';
       teamObj.players.forEach(player => {
@@ -43,7 +43,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
       teamBox.appendChild(playerList);
       
-      // Points input attached to the right side of the team box
+      // Remove the symbols input field (it is not needed)
+      
+      // Points input: position it to the right side of the team box (outside)
       const pointsInput = document.createElement('input');
       pointsInput.className = 'points-input';
       pointsInput.type = 'text';
@@ -56,7 +58,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.error("Error fetching data from webapp:", error);
   }
   
-  // When Save Results button is clicked, collect data and submit via hidden form
+  // Save Results: Collect data from each team and submit via hidden form
   saveResultsGlobal.addEventListener('click', () => {
     let results = [];
     const activity = activityDropdown.value;
