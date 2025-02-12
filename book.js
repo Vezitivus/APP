@@ -67,7 +67,8 @@ document.addEventListener("DOMContentLoaded", function() {
   fetchRemainingSpins();
 
   // Spēles loģika
-  const emojiSet = ['🍒','🍋','🍊','🍉','🍇','⭐','🔔','7️⃣'];
+  // Palielināts emojiSet masīvs uz 10 emoji
+  const emojiSet = ['🍒','🍋','🍊','🍉','🍇','⭐','🔔','7️⃣','🍀','💎'];
   const numReels = 5;
   const reels = [];
   const spinIntervals = [];
