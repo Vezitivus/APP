@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const teamsContainer = document.getElementById('teamsContainer');
   const saveResultsButton = document.getElementById('saveResultsButton');
 
-  // Google Apps Script Webapp URL (for GET requests)
+  // Google Apps Script Webapp URL for GET requests
   const webAppUrl = 'https://script.google.com/macros/s/AKfycbwvbYSracMlNJ2dhhD74EtX2FjJ0ASsDcZBy7qGm9V-kgOWIoybclFSJN1dJ6TFmM-S/exec';
 
   try {
@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       dropzone.className = 'team-dropzone';
       teamBox.appendChild(dropzone);
 
-      // Fiksēts punktu ievades lauks – paliek zem dropzone
+      // Fiksēts punktu ievades lauks – paliek zem dropzone (automātiski novietots, jo teamBox ir flex column)
       const pointsInput = document.createElement('input');
       pointsInput.className = 'points-input';
       pointsInput.type = 'text';
@@ -142,15 +142,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       results.push({ team: teamName, activity: activity, points: points, players: players });
     });
     console.log("Saglabātie rezultāti:", results);
-    // Instead of using fetch POST (which would require CORS), we submit a hidden form.
     postResults(results);
   });
 
   function postResults(results) {
-    // Fill hidden form input with the JSON data
+    // Fill the hidden form input with the JSON data
     const resultsData = document.getElementById('resultsData');
     resultsData.value = JSON.stringify({ results: results });
-    // Submit the form (which posts to the GAS web app without triggering CORS issues)
+    // Submit the hidden form to post the results (bypassing CORS issues)
     document.getElementById('resultsForm').submit();
   }
 });
