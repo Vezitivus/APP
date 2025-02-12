@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", function() {
     document.body.appendChild(script);
   }
 
-  // Atskaita griezienus (ar reizinātāju) ar JSONP
+  // Atskaita griezienus (ar noteiktu summu) ar JSONP
   function deductSpins(amount, callback) {
     if (!uid) return callback();
     const callbackName = "handleDeductResponse";
@@ -68,6 +68,7 @@ document.addEventListener("DOMContentLoaded", function() {
   const messageDiv = document.getElementById("message");
   const multiplierSelect = document.getElementById("multiplierSelect");
 
+  // Inicializē reelu sākuma simbolus
   for (let i = 0; i < numReels; i++) {
     reels[i] = { currentIndex: Math.floor(Math.random() * emojiSet.length), spinning: false };
     updateReelDisplay(i);
@@ -75,7 +76,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
   spinButton.addEventListener("click", function() {
     const chosenMultiplier = parseInt(multiplierSelect.value, 10) || 1;
-    // Atņemam likmes vērtību (vienmēr reizinātājs * stake) pirms griešanās
+    // Noņem likmi pirms griešanās
     deductSpins(chosenMultiplier, function() { fetchRemainingSpins(); });
     spinButton.disabled = true;
     reelsStopped = 0;
@@ -111,12 +112,13 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("reel" + reelIndex + "-symbol2").textContent = emojiSet[bottom];
   }
 
-  // Jaunā uzvaras/laužu loģika – tikai rezultāts, zelta burtiem
+  // Jaunā uzvaras/laužu loģika
   function checkResult() {
     const results = [];
     for (let i = 0; i < numReels; i++) {
       results.push(document.getElementById("reel" + i + "-symbol1").textContent);
     }
+    // Izveidojam skaitītāju
     const counts = {};
     results.forEach(s => { counts[s] = (counts[s] || 0) + 1; });
     let maxCount = 0, winSymbol = null;
@@ -126,29 +128,50 @@ document.addEventListener("DOMContentLoaded", function() {
     const chosenMultiplier = parseInt(multiplierSelect.value, 10) || 1;
     const stake = 1; // likme
     let winFactor = 0;
+    
     if (maxCount === 5) {
-      winFactor = 1000;
-    } else if (maxCount === 4) {
-      winFactor = 50;
-    } else if (maxCount === 3) {
-      const others = results.filter(x => x !== winSymbol);
-      if (others.length === 2) {
-        winFactor = (others[0] === others[1]) ? 10 : 3;
+      // Ja 5 vienādi, parādās ievades logs, kur spēlētājs ievada savu laimesta vērtumu.
+      let customWin = parseInt(window.prompt("Ievadi savu laimesta vērtību:"), 10);
+      if (isNaN(customWin) || customWin <= 0) { 
+        // Ja nepareiza vērtība, izmanto noklusējumu (piemēram, chosenMultiplier * 1000)
+        customWin = chosenMultiplier * 1000;
       }
-    }
-    // Aprēķinām rezultātu – zaudējuma gadījumā stake * multiplier, uzvaras gadījumā ar winFactor
-    const resultAmount = stake * chosenMultiplier * (winFactor || 1);
-    let resultText = "";
-    if (winFactor > 0) {
-      resultText = "+" + resultAmount;
-      // Pievieno uzvarētos griezienus (negatīvs deduct pievieno spins)
-      deductSpins(-resultAmount, function(data) {
+      winFactor = null; // lieto customWin
+      var resultAmount = customWin;
+      // Uzvaras gadījumā rezultāts ir pozitīvs
+      deductSpins(-resultAmount, function() {
         fetchRemainingSpins();
-        messageDiv.textContent = resultText;
+        messageDiv.textContent = "+" + resultAmount;
       });
-    } else {
-      resultText = resultAmount.toString();
-      messageDiv.textContent = resultText;
+      return;
+    } else if (maxCount === 4) {
+      winFactor = 1000;
+    } else if (maxCount === 3) {
+      if (Object.values(counts).includes(2)) {
+        winFactor = 250;
+      } else {
+        winFactor = 50;
+      }
+    } else if (maxCount === 2) {
+      // Skaitām pārus
+      const pairCount = Object.values(counts).filter(x => x === 2).length;
+      if (pairCount === 2) {
+        winFactor = 10;
+      } else {
+        winFactor = 3;
+      }
+    } else { // maxCount === 1
+      // Nav uzvaras – zaude
+      const resultAmount = stake * chosenMultiplier;
+      messageDiv.textContent = "-" + resultAmount;
+      return;
     }
+    
+    // Aprēķinām rezultātu (ja winFactor ir definēts)
+    const resultAmount = stake * chosenMultiplier * winFactor;
+    deductSpins(-resultAmount, function() {
+      fetchRemainingSpins();
+      messageDiv.textContent = "+" + resultAmount;
+    });
   }
 });
