@@ -7,11 +7,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   const teamsContainer = document.getElementById('teamsContainer');
   const saveResultsButton = document.getElementById('saveResultsButton');
 
-  // Google Apps Script Webapp URL
+  // Google Apps Script Webapp URL (for GET requests)
   const webAppUrl = 'https://script.google.com/macros/s/AKfycbwvbYSracMlNJ2dhhD74EtX2FjJ0ASsDcZBy7qGm9V-kgOWIoybclFSJN1dJ6TFmM-S/exec';
 
   try {
-    // Iegūst datus no GAS
+    // Iegūst datus no GAS (GET)
     const response = await fetch(webAppUrl);
     const json = await response.json();
 
@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       dropzone.className = 'team-dropzone';
       teamBox.appendChild(dropzone);
 
-      // Fiksēts punktu ievades lauks (vienmēr redzams, pozicionēts zem dropzone)
+      // Fiksēts punktu ievades lauks – paliek zem dropzone
       const pointsInput = document.createElement('input');
       pointsInput.className = 'points-input';
       pointsInput.type = 'text';
@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Poga "Saglabāt rezultātus" – apkopo rezultātus un nosūta uz GAS
+  // Poga "Saglabāt rezultātus" – apkopo rezultātus un nosūta uz GAS, izmantojot formu
   saveResultsButton.addEventListener('click', () => {
     let results = [];
     const activity = activityDropdown.value;
@@ -142,29 +142,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       results.push({ team: teamName, activity: activity, points: points, players: players });
     });
     console.log("Saglabātie rezultāti:", results);
+    // Instead of using fetch POST (which would require CORS), we submit a hidden form.
     postResults(results);
   });
 
   function postResults(results) {
-    fetch(webAppUrl + '?action=saveResults', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ results: results })
-    })
-    .then(response => response.json())
-    .then(data => {
-      console.log("Servera atbilde:", data);
-      if (data.status === "ok") {
-        alert("Rezultāti saglabāti veiksmīgi!");
-      } else {
-        alert("Kļūda saglabājot rezultātus: " + data.message);
-      }
-    })
-    .catch(err => {
-      console.error("Kļūda nosūtot rezultātus:", err);
-      alert("Kļūda saglabājot rezultātus.");
-    });
+    // Fill hidden form input with the JSON data
+    const resultsData = document.getElementById('resultsData');
+    resultsData.value = JSON.stringify({ results: results });
+    // Submit the form (which posts to the GAS web app without triggering CORS issues)
+    document.getElementById('resultsForm').submit();
   }
 });
