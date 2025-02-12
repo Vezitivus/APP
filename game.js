@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const teamsContainer = document.getElementById('teamsContainer');
   const saveResultsButton = document.getElementById('saveResultsButton');
   const splitButton = document.getElementById('splitButton');
+  const sendTeamNamesButton = document.getElementById('sendTeamNamesButton');
 
   // Google Apps Script Webapp URL (for GET requests)
   const webAppUrl = 'https://script.google.com/macros/s/AKfycbwvbYSracMlNJ2dhhD74EtX2FjJ0ASsDcZBy7qGm9V-kgOWIoybclFSJN1dJ6TFmM-S/exec';
@@ -78,20 +79,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       teamsContainer.appendChild(teamBox);
     }
-    // Atjaunina SPLIT pogas redzamību, kad komandas ir izveidotas
+    // Parādām SPLIT pogu, kad komandas ir izveidotas
     splitButton.style.display = 'block';
   });
 
-  // SPLIT pogas funkcionalitāte – sadala visus spēlētājus (visus .data-box elementus) randomizēti starp komandu dropzones
+  // SPLIT pogas funkcionalitāte – sadala visus spēlētājus randomizēti starp komandu dropzones
   splitButton.addEventListener('click', () => {
-    // Apkopojam visus spēlētāju kartītes no visas lapas (neatkarīgi no tā, vai tās atrodas #dataContainer vai komandās)
     let allPlayers = Array.from(document.querySelectorAll('.data-box'));
-    // Shuffle using Fisher-Yates
+    // Shuffle (Fisher-Yates)
     for (let i = allPlayers.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [allPlayers[i], allPlayers[j]] = [allPlayers[j], allPlayers[i]];
     }
-    // Iegūst visas komandas (team-box elementus)
     const teamBoxes = Array.from(document.querySelectorAll('.team-box'));
     const numTeams = teamBoxes.length;
     const totalPlayers = allPlayers.length;
@@ -100,7 +99,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     let currentIndex = 0;
     teamBoxes.forEach((teamBox, index) => {
       const dropzone = teamBox.querySelector('.team-dropzone');
-      // Clear existing players from dropzone (if any)
       dropzone.innerHTML = '';
       let countForThisTeam = baseCount + (index < remainder ? 1 : 0);
       for (let i = 0; i < countForThisTeam; i++) {
@@ -153,9 +151,40 @@ document.addEventListener('DOMContentLoaded', async () => {
     postResults(results);
   });
 
+  // New button "Sūtīt komandas nosaukumu" – sends each team’s name to the sheet "Lapa1"
+  sendTeamNamesButton.addEventListener('click', () => {
+    let results = [];
+    const teamBoxes = document.querySelectorAll('.team-box');
+    teamBoxes.forEach((teamBox) => {
+      const teamName = teamBox.querySelector('h3').textContent;
+      const dropzone = teamBox.querySelector('.team-dropzone');
+      let players = [];
+      dropzone.querySelectorAll('.data-box').forEach((playerCard) => {
+        const top = playerCard.querySelector('.top').textContent;
+        const bottom = playerCard.querySelector('.bottom').textContent;
+        players.push({ top: top, bottom: bottom });
+      });
+      results.push({ team: teamName, players: players });
+    });
+    console.log("Nosūtām komandas nosaukumu:", results);
+    postTeamNames(results);
+  });
+
   function postResults(results) {
     const resultsData = document.getElementById('resultsData');
     resultsData.value = JSON.stringify({ results: results });
-    document.getElementById('resultsForm').submit();
+    // Ensure form action is set to saveResults
+    const resultsForm = document.getElementById('resultsForm');
+    resultsForm.action = webAppUrl + '?action=saveResults';
+    resultsForm.submit();
+  }
+  
+  function postTeamNames(results) {
+    const resultsData = document.getElementById('resultsData');
+    resultsData.value = JSON.stringify({ results: results });
+    // Set form action to new action "sendTeamNames"
+    const resultsForm = document.getElementById('resultsForm');
+    resultsForm.action = "https://script.google.com/macros/s/AKfycbwvbYSracMlNJ2dhhD74EtX2FjJ0ASsDcZBy7qGm9V-kgOWIoybclFSJN1dJ6TFmM-S/exec?action=sendTeamNames";
+    resultsForm.submit();
   }
 });
