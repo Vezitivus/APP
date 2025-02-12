@@ -1,47 +1,56 @@
 document.addEventListener("DOMContentLoaded", function() {
-  // ===== Funkcija UID iegūšanai no URL =====
+  // ===== UID iegūšana no URL =====
   function getUID() {
-    // Mēģina iegūt uid no query parametriem (piemēram, ?uid=ABC123)
     const params = new URLSearchParams(window.location.search);
     let uid = params.get("uid");
     if (!uid) {
-      // Ja query parametrs nav, tad mēģina iegūt pēdējo ceļa segmentu
       const pathSegments = window.location.pathname.split("/").filter(seg => seg.length > 0);
       uid = pathSegments[pathSegments.length - 1];
     }
     return uid;
   }
-
   const uid = getUID();
-  
+
   // ===== Google Sheets integrācija =====
+  // Pārliecinies, ka tavs Google Apps Script web app URL apstrādā arī "deduct" parametru!
   const sheetUrlBase = "https://script.google.com/macros/s/AKfycbyS8FWFUDIInu7NFBxa8BP2qGeoLdoLdIxRVs-aL8ss9umKeGU88D17QHSlPVb2z7o5qQ/exec";
   const remainingSpinsDiv = document.getElementById("remainingSpins");
 
-  // Funkcija, lai izgūtu atlikušos griezienus no Google Sheets.
-  // Pieņemam, ka web app atgriež JSON objektu, kurā:
-  // - Lapa1 A kolonnas vērtība ir uid,
-  // - K kolonnas vērtība satur griezienu skaitu.
+  // Iegūst atlikušos griezienus no Google Sheets
   function fetchRemainingSpins() {
     if (!uid) {
-      remainingSpinsDiv.textContent = "Atlikušie griezieni: N/A";
+      remainingSpinsDiv.textContent = "🪙 N/A";
       return;
     }
     const url = sheetUrlBase + "?uid=" + encodeURIComponent(uid);
     fetch(url)
       .then(response => response.json())
       .then(data => {
-         // Pielāgo, ja nepieciešams, atkarībā no web app atbildes struktūras
+         // Pieņemam, ka atbildē ir lauks "K" ar atlikušajiem griezieniem
          const spins = data.K;
-         remainingSpinsDiv.textContent = "Atlikušie griezieni: " + spins;
+         remainingSpinsDiv.textContent = "🪙 " + spins;
       })
       .catch(error => {
          console.error("Error fetching remaining spins:", error);
-         remainingSpinsDiv.textContent = "Atlikušie griezieni: N/A";
+         remainingSpinsDiv.textContent = "🪙 N/A";
       });
   }
 
-  // Izsaucam funkciju lapas ielādē, lai parādītu griezienu atlikumu
+  // Funkcija, kas atskaita griezienus, izmantojot izvēlēto reizinātāju
+  function deductSpins(multiplier) {
+    if (!uid) return Promise.resolve();
+    const url = sheetUrlBase + "?uid=" + encodeURIComponent(uid) + "&deduct=" + multiplier;
+    return fetch(url)
+      .then(response => response.json())
+      .then(data => {
+         return data;
+      })
+      .catch(error => {
+         console.error("Error deducting spins:", error);
+      });
+  }
+
+  // Izsaucam, lai sākumā ielādē atlikušos griezienus
   fetchRemainingSpins();
 
   // ===== Spēles loģika =====
@@ -52,8 +61,9 @@ document.addEventListener("DOMContentLoaded", function() {
   let reelsStopped = 0;
   const spinButton = document.getElementById("spinButton");
   const messageDiv = document.getElementById("message");
+  const multiplierSelect = document.getElementById("multiplierSelect");
 
-  // Inicializējam katru reeli ar nejaušu sākuma simbolu
+  // Inicializējam reelu sākuma simbolus
   for (let i = 0; i < numReels; i++) {
     reels[i] = {
       currentIndex: Math.floor(Math.random() * emojiSet.length),
@@ -62,13 +72,18 @@ document.addEventListener("DOMContentLoaded", function() {
     updateReelDisplay(i);
   }
 
-  // Pogu notikums – sāk griešanās
+  // Pogu notikums – sāk griešanās un atskaita griezienus
   spinButton.addEventListener("click", function() {
+    const multiplier = parseInt(multiplierSelect.value, 10) || 1;
+    // Veicam atskaitīšanu Google Sheets (ja tas izdevās, atjaunojam atlikumu)
+    deductSpins(multiplier).then(() => {
+      fetchRemainingSpins();
+    });
     spinButton.disabled = true;
     messageDiv.textContent = "";
     reelsStopped = 0;
     for (let i = 0; i < numReels; i++) {
-      // Katram reelim griešanās ilgums: 2000ms + (i * 500ms)
+      // Katram reēlam griešanās ilgums: 2000ms + (i * 500ms)
       startSpinning(i, 2000 + i * 500);
     }
   });
@@ -79,7 +94,6 @@ document.addEventListener("DOMContentLoaded", function() {
       reels[reelIndex].currentIndex = (reels[reelIndex].currentIndex + 1) % emojiSet.length;
       updateReelDisplay(reelIndex);
     }, 100);
-
     setTimeout(function() {
       stopSpinning(reelIndex);
     }, duration);
@@ -88,7 +102,7 @@ document.addEventListener("DOMContentLoaded", function() {
   function stopSpinning(reelIndex) {
     clearInterval(spinIntervals[reelIndex]);
     reels[reelIndex].spinning = false;
-    // Izvēlam pēdējo simbolu nejauši (var arī saglabāt griešanās stāvokli)
+    // Izvēlam pēdējo simbolu nejauši
     reels[reelIndex].currentIndex = Math.floor(Math.random() * emojiSet.length);
     updateReelDisplay(reelIndex);
     reelsStopped++;
@@ -113,14 +127,13 @@ document.addEventListener("DOMContentLoaded", function() {
       const symbol = document.getElementById("reel" + i + "-symbol1").textContent;
       results.push(symbol);
     }
-    // Saskaitam katra simbola parādīšanās reižu skaitu
     const counts = {};
     results.forEach(symbol => {
       counts[symbol] = (counts[symbol] || 0) + 1;
     });
     let win = false;
     for (const key in counts) {
-      if (counts[key] >= 3) { // ja vismaz 3 reizes sakrīt – uzvara
+      if (counts[key] >= 3) {
         win = true;
         break;
       }
