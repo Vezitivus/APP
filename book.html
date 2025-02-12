@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Book Of Vezitivus</title>
   <style>
-    /* Moderns, responsīvs un iOS-stila dizains */
+    /* Bāzes stils – iOS stila, responsīvs dizains */
     body {
       background: #f8f8f8;
       margin: 0;
@@ -47,33 +47,32 @@
       display: flex;
       justify-content: center;
       margin: 20px 0;
-      overflow: hidden;
     }
+    /* Katrs reelis tagad satur vienu "reel-inner" konteineru ar visiem simboliem */
     .reel {
-      flex: 1;
-      max-width: 80px;
+      width: 80px;
       height: 120px;
       margin: 0 5px;
       border: 2px solid #ddd;
       background: #fafafa;
-      overflow: hidden;
       border-radius: 15px;
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
+      overflow: hidden;
+      position: relative;
+      touch-action: none;
+    }
+    .reel-inner {
+      position: absolute;
+      width: 100%;
+      /* Transform un pāreja tiks kontrolēta JS – sākuma pozīcija tiek iestatīta dinamiski */
     }
     .symbol {
-      font-size: 2em;
       height: 40px;
       line-height: 40px;
-      transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
+      font-size: 2em;
+      text-align: center;
     }
-    .active {
-      font-weight: bold;
-      border-top: 2px solid #007AFF;
-      border-bottom: 2px solid #007AFF;
-    }
+    /* Kontroles stils */
     button {
       font-size: 1.2em;
       padding: 12px 24px;
@@ -95,7 +94,7 @@
       margin-top: 10px;
       height: 1.5em;
       font-weight: bold;
-      color: #FFD700; /* zelta krāsa */
+      color: #FFD700;
       position: relative;
     }
     .controls {
@@ -111,7 +110,7 @@
       font-size: 1em;
       margin-right: 8px;
     }
-    /* Tagad izvēlnē ir tikai multiplikatori 1 līdz 10 */
+    /* Izvēlne ar multiplikatoriem (1 līdz 10) */
     #multiplierSelect {
       font-size: 1em;
       padding: 5px;
@@ -139,37 +138,27 @@
     <div id="remainingSpins">🪙 Loading...</div>
     <h1>Book Of Vezitivus</h1>
     <div class="reels" id="reels">
+      <!-- 5 reeli -->
       <div class="reel" data-reel="0">
-        <div class="symbol" id="reel0-symbol0"></div>
-        <div class="symbol active" id="reel0-symbol1"></div>
-        <div class="symbol" id="reel0-symbol2"></div>
+        <div class="reel-inner" id="reel0-inner"></div>
       </div>
       <div class="reel" data-reel="1">
-        <div class="symbol" id="reel1-symbol0"></div>
-        <div class="symbol active" id="reel1-symbol1"></div>
-        <div class="symbol" id="reel1-symbol2"></div>
+        <div class="reel-inner" id="reel1-inner"></div>
       </div>
       <div class="reel" data-reel="2">
-        <div class="symbol" id="reel2-symbol0"></div>
-        <div class="symbol active" id="reel2-symbol1"></div>
-        <div class="symbol" id="reel2-symbol2"></div>
+        <div class="reel-inner" id="reel2-inner"></div>
       </div>
       <div class="reel" data-reel="3">
-        <div class="symbol" id="reel3-symbol0"></div>
-        <div class="symbol active" id="reel3-symbol1"></div>
-        <div class="symbol" id="reel3-symbol2"></div>
+        <div class="reel-inner" id="reel3-inner"></div>
       </div>
       <div class="reel" data-reel="4">
-        <div class="symbol" id="reel4-symbol0"></div>
-        <div class="symbol active" id="reel4-symbol1"></div>
-        <div class="symbol" id="reel4-symbol2"></div>
+        <div class="reel-inner" id="reel4-inner"></div>
       </div>
     </div>
     <button id="spinButton">Kruķīt</button>
     <div class="controls">
       <div id="multiplierContainer">
         <label for="multiplierSelect">Reizinātājs:</label>
-        <!-- Tagad ir tikai opcijas 1 līdz 10 -->
         <select id="multiplierSelect">
           <option value="1">1</option>
           <option value="2">2</option>
