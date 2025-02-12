@@ -19,13 +19,15 @@ document.addEventListener("DOMContentLoaded", function() {
   function fetchRemainingSpins() {
     if (!uid) { remainingSpinsDiv.textContent = "🪙 N/A"; return; }
     const callbackName = "handleSpinResponse";
-    let script = document.createElement("script");
     window[callbackName] = function(data) {
       remainingSpinsDiv.textContent = (data && data.K !== undefined) ? "🪙 " + data.K : "🪙 N/A";
+      remainingSpinsDiv.classList.add("animateSpin");
+      setTimeout(() => remainingSpinsDiv.classList.remove("animateSpin"), 500);
       script.remove();
       delete window[callbackName];
     };
     const url = sheetUrlBase + "?uid=" + encodeURIComponent(uid) + "&callback=" + callbackName;
+    const script = document.createElement("script");
     script.src = url;
     script.onerror = function() {
       remainingSpinsDiv.textContent = "🪙 Error";
@@ -39,13 +41,13 @@ document.addEventListener("DOMContentLoaded", function() {
   function deductSpins(amount, callback) {
     if (!uid) return callback();
     const callbackName = "handleDeductResponse";
-    let script = document.createElement("script");
     window[callbackName] = function(data) {
       callback(data);
       script.remove();
       delete window[callbackName];
     };
     const url = sheetUrlBase + "?uid=" + encodeURIComponent(uid) + "&deduct=" + amount + "&callback=" + callbackName;
+    const script = document.createElement("script");
     script.src = url;
     script.onerror = function() {
       console.error("Error deducting spins");
@@ -118,7 +120,7 @@ document.addEventListener("DOMContentLoaded", function() {
     for (let i = 0; i < numReels; i++) {
       results.push(document.getElementById("reel" + i + "-symbol1").textContent);
     }
-    // Izveidojam skaitītāju
+    // Sastādām skaitītāju
     const counts = {};
     results.forEach(s => { counts[s] = (counts[s] || 0) + 1; });
     let maxCount = 0, winSymbol = null;
@@ -130,46 +132,51 @@ document.addEventListener("DOMContentLoaded", function() {
     let winFactor = 0;
     
     if (maxCount === 5) {
-      // Parādās ievades logs – spēlētājs ievada savu laimesta vērtību
+      // 5 vienādi – paša ievade
       let customWin = parseInt(window.prompt("Ievadi savu laimesta vērtību:"), 10);
       if (isNaN(customWin) || customWin <= 0) { 
-        // Ja ievade nav derīga, izmanto noklusējumu
         customWin = chosenMultiplier * 1000;
       }
-      const resultAmount = customWin;
+      winFactor = null;
+      var resultAmount = customWin;
       deductSpins(-resultAmount, function() {
         fetchRemainingSpins();
         messageDiv.textContent = "+" + resultAmount;
+        messageDiv.classList.add("animateResult");
+        setTimeout(() => messageDiv.classList.remove("animateResult"), 500);
       });
       return;
     } else if (maxCount === 4) {
-      winFactor = 1000;
+      winFactor = 100;
     } else if (maxCount === 3) {
-      // Ja trīs vienādi, pārbaudām, vai ir arī pāris (pilna māja)
+      // Ja ir 3 vienādi – pārbaudām, vai ir pilna māja (3+2)
       if (Object.values(counts).includes(2)) {
-        winFactor = 250;
+        winFactor = 25;
       } else {
-        winFactor = 50;
+        winFactor = 10;
       }
     } else if (maxCount === 2) {
       // Ja ir 2 vienādi – skaitām pārus
       const pairCount = Object.values(counts).filter(x => x === 2).length;
       if (pairCount === 2) {
-        winFactor = 10;
+        winFactor = 3;
       } else {
         winFactor = 1;
       }
-    } else { // maxCount === 1 – zaude
+    } else { // maxCount === 1, zaude
       const resultAmount = stake * chosenMultiplier;
       messageDiv.textContent = "-" + resultAmount;
+      messageDiv.classList.add("animateResult");
+      setTimeout(() => messageDiv.classList.remove("animateResult"), 500);
       return;
     }
     
-    // Aprēķinām rezultātu (ja winFactor ir definēts)
     const resultAmount = stake * chosenMultiplier * winFactor;
     deductSpins(-resultAmount, function() {
       fetchRemainingSpins();
       messageDiv.textContent = "+" + resultAmount;
+      messageDiv.classList.add("animateResult");
+      setTimeout(() => messageDiv.classList.remove("animateResult"), 500);
     });
   }
 });
