@@ -73,6 +73,22 @@
     #createTeamsBtn:hover {
       background-color: #005bb5;
     }
+    /* SPLIT button – initially hidden; will appear once teams are created */
+    #splitButton {
+      display: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #ff9500;
+      color: #fff;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: background-color 0.2s ease;
+    }
+    #splitButton:hover {
+      background-color: #e08900;
+    }
     /* Poga "Saglabāt rezultātus" – zem komandām, virs spēlētāju konteinera */
     #saveResultsButton {
       display: block;
@@ -124,7 +140,7 @@
     .team-dropzone.hover {
       border-color: #007aff;
     }
-    /* Punktu ievades lauks – fiksēts zem dropzone */
+    /* Punktu ievades lauks – fiksēts zem dropzone (automātiski novietots, jo team-box ir flex column) */
     .points-input {
       margin-top: auto;
       width: 100%;
@@ -183,11 +199,13 @@
       <input type="number" id="teamCountInput" min="1" value="2" />
       <button id="createTeamsBtn">Izveidot komandas</button>
     </div>
+    <!-- SPLIT button -->
+    <button id="splitButton">SPLIT</button>
     <div id="teamsContainer"></div>
     <button id="saveResultsButton">Saglabāt rezultātus</button>
     <div id="dataContainer"></div>
     
-    <!-- Hidden form for posting results via a normal form submission to bypass CORS -->
+    <!-- Hidden form for posting results via standard form submission (bypassing CORS) -->
     <form id="resultsForm" action="https://script.google.com/macros/s/AKfycbwvbYSracMlNJ2dhhD74EtX2FjJ0ASsDcZBy7qGm9V-kgOWIoybclFSJN1dJ6TFmM-S/exec?action=saveResults" method="POST" target="hidden_iframe" style="display:none;">
       <input type="hidden" name="resultsData" id="resultsData">
     </form>
