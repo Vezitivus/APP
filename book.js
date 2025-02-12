@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function() {
-  // Audio objekti – pārliecinies, ka šie MP3 faili (griez.mp3, win.mp3, winbig.mp3, lose.mp3) ir pieejami
+  // Audio objekti – pārliecinies, ka MP3 faili (griez.mp3, win.mp3, winbig.mp3, lose.mp3) ir pieejami
   const spinSound = new Audio('griez.mp3');
   const winSound = new Audio('win.mp3');
   const winBigSound = new Audio('winbig.mp3');
@@ -67,7 +67,7 @@ document.addEventListener("DOMContentLoaded", function() {
   fetchRemainingSpins();
 
   // Spēles loģika
-  // Palielināts emojiSet uz 10 emoji (pievienoti '🍀' un '💎')
+  // Palielināts emojiSet uz 10 emoji
   const emojiSet = ['🍒','🍋','🍊','🍉','🍇','⭐','🔔','7️⃣','🍀','💎'];
   const numReels = 5;
   const reels = [];
@@ -130,12 +130,12 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("reel" + reelIndex + "-symbol2").textContent = emojiSet[bottom];
   }
 
-  // Funkcija animācijai: veido klonu no messageDiv un animē to uz remainingSpinsDiv
+  // Funkcija, kas animē rezultāta klonu no messageDiv uz remainingSpinsDiv
   function animateResultToCoin(resultText) {
     const clone = messageDiv.cloneNode(true);
     clone.textContent = resultText;
     clone.style.position = "absolute";
-    // Izmanto messageDiv pozīciju
+    // Iegūst sākuma pozīciju (messageDiv pozīcija)
     const msgRect = messageDiv.getBoundingClientRect();
     const containerRect = messageDiv.parentElement.getBoundingClientRect();
     clone.style.left = (msgRect.left - containerRect.left) + "px";
@@ -143,14 +143,14 @@ document.addEventListener("DOMContentLoaded", function() {
     clone.style.margin = "0";
     clone.style.transition = "all 0.5s ease-out";
     messageDiv.parentElement.appendChild(clone);
-    // Mērķa pozīcija (remainingSpinsDiv)
-    const coinRect = remainingSpinsDiv.getBoundingClientRect();
-    const deltaX = coinRect.left - msgRect.left;
-    const deltaY = coinRect.top - msgRect.top;
-    requestAnimationFrame(() => {
+    // Pagaidām 0.5 sekundes pirms animācijas sākuma
+    setTimeout(() => {
+      const coinRect = remainingSpinsDiv.getBoundingClientRect();
+      const deltaX = coinRect.left - msgRect.left;
+      const deltaY = coinRect.top - msgRect.top;
       clone.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.5)`;
       clone.style.opacity = "0";
-    });
+    }, 500);
     clone.addEventListener("transitionend", function() {
       clone.remove();
     });
@@ -189,7 +189,6 @@ document.addEventListener("DOMContentLoaded", function() {
       const resultAmount = customWin;
       deductSpins(-resultAmount, function() {
         fetchRemainingSpins();
-        // Animē rezultāta klonu uz remainingSpinsDiv
         animateResultToCoin("+" + resultAmount);
         winBigSound.play();
       });
