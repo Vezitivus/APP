@@ -134,8 +134,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     teamBoxes.forEach(teamBox => {
       const points = teamBox.querySelector('.points-input').value;
       const dropzone = teamBox.querySelector('.team-dropzone');
-      const playerCards = dropzone.querySelectorAll('.data-box');
-      playerCards.forEach(playerCard => {
+      dropzone.querySelectorAll('.data-box').forEach(playerCard => {
         const uid = playerCard.dataset.uid;
         if (uid) {
           results.push({ uid: uid, activity: selectedActivity, points: points });
