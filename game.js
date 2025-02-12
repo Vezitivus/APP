@@ -22,39 +22,36 @@ document.addEventListener('DOMContentLoaded', async () => {
       activityDropdown.appendChild(option);
     });
 
-    // Izvada katru rindas B un C vērtību jaunā "data-box" elementā
+    // Izvada katru rindu kā spēlētāja kartīti (data-box)
     json.data.forEach((row, index) => {
       // Izveido datu kartīti
       const box = document.createElement('div');
       box.className = 'data-box';
-      // Pievieno unikālu id, lai pēc tam to varētu noņemt
       box.id = `player-${index}`;
-      // Padara elementu draggable
       box.setAttribute('draggable', 'true');
-      // Piesaista drag start notikumu
       box.addEventListener('dragstart', (e) => {
-        // Saglabā datus JSON formātā (var izmantot gan b un c vērtības)
         e.dataTransfer.setData('text/plain', JSON.stringify({ b: row.b, c: row.c, id: box.id }));
       });
 
-      // B kolonna – uzrāda b vērtību treknrakstā
-      const bText = document.createElement('span');
-      bText.innerHTML = `<b>${row.b}</b>`;
-      // C kolonna – uzrāda c vērtību (ja nav tukša)
-      const cText = document.createElement('span');
-      cText.textContent = row.c ? row.c : '';
+      // Izveido span elementus: "top" par kolonnas C un "bottom" par kolonnas B
+      const topSpan = document.createElement('span');
+      topSpan.className = 'top';
+      topSpan.textContent = row.c ? row.c : '';
 
-      box.appendChild(bText);
-      box.appendChild(cText);
+      const bottomSpan = document.createElement('span');
+      bottomSpan.className = 'bottom';
+      bottomSpan.innerHTML = row.b ? `<b>${row.b}</b>` : '';
+
+      box.appendChild(topSpan);
+      box.appendChild(bottomSpan);
       dataContainer.appendChild(box);
     });
   } catch (error) {
     console.error('Kļūda, iegūstot datus no webapp:', error);
   }
 
-  // Piesaista notikumu klausītājus izveidojot komandu laukus
+  // Piesaista notikumu klausītājus komandu izveidei
   createTeamsBtn.addEventListener('click', () => {
-    // Notīra komandu konteineru pirms jaunu izveides
     teamsContainer.innerHTML = '';
     const count = parseInt(teamCountInput.value) || 0;
     for (let i = 0; i < count; i++) {
@@ -88,10 +85,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (data) {
           try {
             const playerData = JSON.parse(data);
-            // Meklē oriģinālo datu kartīti pēc unikālā id
             const originalElem = document.getElementById(playerData.id);
             if (originalElem) {
-              // Pārvieto kartīti uz dropzone
               dropzone.appendChild(originalElem);
             }
           } catch (err) {
