@@ -35,32 +35,35 @@
       100% { transform: rotate(360deg); }
     }
 
-    /* ✅ "Griezt Ratu" pogas jaunais dizains */
-    .spin-wheel-section {
-      display: flex;
-      justify-content: center;
-      margin-top: 10px;
+    /* ✅ Samazinām atstarpes kreisajā pusē, lai nepārsniedz bildes robežas */
+    .profile-right .info-group {
+      margin-bottom: 6px; /* Samazināta atstarpe starp elementiem */
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2); /* Viegla līnija starp laukiem */
     }
 
-    .spin-button {
-      width: 100%;
-      padding: 14px 24px;
-      font-size: 10px;
-      font-weight: bold;
+    .profile-right .info-group:last-child {
+      border-bottom: none;
+    }
+
+    /* ✅ Jaunais lauks "TAVA KOMANDA" */
+    .team-section {
+      margin-top: 12px;
       text-align: center;
-      color: white;
-      background: linear-gradient(to bottom, #333, #111); /* Tumši pelēks gradients */
-      border: none;
-      border-radius: 24px;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      transition: all 0.3s ease;
     }
 
-    .spin-button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+    .team-label {
+      font-weight: bold;
+      font-size: 18px;
+      color: white;
     }
+
+    .team-value {
+      font-size: 20px;
+      font-weight: bold;
+      color: #FFD700; /* Zeltains teksts */
+    }
+
   </style>
 </head>
 <body>
@@ -94,6 +97,11 @@
           <p class="label">Kopvērtējuma vieta</p>
           <p class="large-value" id="place">Ielādē...</p>
         </div>
+        <!-- ✅ Jaunais bloks "TAVA KOMANDA" -->
+        <div class="team-section">
+          <p class="team-label">TAVA KOMANDA</p>
+          <p class="team-value" id="team-name">Ielādē...</p>
+        </div>
       </div>
     </section>
 
@@ -106,36 +114,19 @@
     <section class="buttons-section">
       <div class="buttons-grid">
         <div class="grid-margin"></div>
-        <!-- 1. Poga: Piedalīties aktivitātēs -->
-        <button class="action-button" onclick="redirectToActivity()">
-          Vezitivus lenta
-        </button>
+        <button class="action-button" onclick="redirectToActivity()">Vezitivus lenta</button>
         <div class="grid-spacer"></div>
-        <!-- 2. Poga: Simpatijas balva – tagad ar dinamiski pielāgotu pāradresācijas URL -->
-        <button class="action-button" onclick="redirectToSimpathy()">
-          Simpatijas balva
-        </button>
+        <button class="action-button" onclick="redirectToSimpathy()">Simpatijas balva</button>
         <div class="grid-spacer"></div>
-        <!-- 3. Poga: Score Board -->
-        <button class="action-button" onclick="window.location.href='score.html'">
-          Score Board
-        </button>
+        <button class="action-button" onclick="window.location.href='score.html'">Score Board</button>
         <div class="grid-margin"></div>
       </div>
-    </section>
-
-    <!-- ✅ Jaunā poga "Griezt Ratu" zem visām pogām -->
-    <section class="spin-wheel-section">
-      <button class="spin-button" onclick="redirectToSpin()">
-        🎡 Griezt Ratu
-      </button>
     </section>
 
     <script>
       // Noņem loading pārklājumu, kad lapa ir pilnībā ielādēta
       window.addEventListener("load", function() {
-        var loadingOverlay = document.getElementById("loading-overlay");
-        loadingOverlay.style.display = "none";
+        document.getElementById("loading-overlay").style.display = "none";
       });
 
       // Funkcija, lai pāradresētu uz "Vezitivus lenta" ar UID no URL
@@ -152,19 +143,7 @@
       // Funkcija, lai pāradresētu uz "Simpatijas balva" ar UID no lapas
       function redirectToSimpathy() {
         const uid = document.getElementById("nfc-id").innerText.trim();
-        const redirectUrl = `https://vezitivus.github.io/APP/simpathy.html?uid=${uid}`;
-        window.location.href = redirectUrl;
-      }
-
-      // ✅ Funkcija, lai pāradresētu uz "rats.html" ar UID no URL
-      function redirectToSpin() {
-        const params = new URLSearchParams(window.location.search);
-        const uid = params.get("uid");
-        if (uid) {
-          window.location.href = `rats.html?uid=${uid}`;
-        } else {
-          alert("UID nav atrasts!");
-        }
+        window.location.href = `https://vezitivus.github.io/APP/simpathy.html?uid=${uid}`;
       }
     </script>
 
