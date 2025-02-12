@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   // Atskaita griezienus (ar reizinātāju) ar JSONP
-  function deductSpins(multiplier, callback) {
+  function deductSpins(amount, callback) {
     if (!uid) return callback();
     const callbackName = "handleDeductResponse";
     window[callbackName] = function(data) {
@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", function() {
       script.remove();
       delete window[callbackName];
     };
-    const url = sheetUrlBase + "?uid=" + encodeURIComponent(uid) + "&deduct=" + multiplier + "&callback=" + callbackName;
+    const url = sheetUrlBase + "?uid=" + encodeURIComponent(uid) + "&deduct=" + amount + "&callback=" + callbackName;
     const script = document.createElement("script");
     script.src = url;
     script.onerror = function() {
@@ -74,12 +74,13 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   spinButton.addEventListener("click", function() {
-    const multiplier = parseInt(multiplierSelect.value, 10) || 1;
-    deductSpins(multiplier, function() { fetchRemainingSpins(); });
+    const chosenMultiplier = parseInt(multiplierSelect.value, 10) || 1;
+    // Atņemam likmes vērtību (vienmēr reizinātājs * stake) pirms griešanās
+    deductSpins(chosenMultiplier, function() { fetchRemainingSpins(); });
     spinButton.disabled = true;
     reelsStopped = 0;
     for (let i = 0; i < numReels; i++) {
-      startSpinning(i, 2123 + i * 496);
+      startSpinning(i, 2000 + i * 500);
     }
   });
 
@@ -123,7 +124,7 @@ document.addEventListener("DOMContentLoaded", function() {
       if (counts[s] > maxCount) { maxCount = counts[s]; winSymbol = s; }
     }
     const chosenMultiplier = parseInt(multiplierSelect.value, 10) || 1;
-    const stake = 1; // pieņemamā likme
+    const stake = 1; // likme
     let winFactor = 0;
     if (maxCount === 5) {
       winFactor = 1000;
@@ -135,13 +136,19 @@ document.addEventListener("DOMContentLoaded", function() {
         winFactor = (others[0] === others[1]) ? 10 : 3;
       }
     }
+    // Aprēķinām rezultātu – zaudējuma gadījumā stake * multiplier, uzvaras gadījumā ar winFactor
+    const resultAmount = stake * chosenMultiplier * (winFactor || 1);
     let resultText = "";
-    // Ja uzvaras gadījums (winFactor > 0) – parāda ar pluszīmi, citādi zaudējums.
     if (winFactor > 0) {
-      resultText = "+" + (stake * chosenMultiplier * winFactor);
+      resultText = "+" + resultAmount;
+      // Pievieno uzvarētos griezienus (negatīvs deduct pievieno spins)
+      deductSpins(-resultAmount, function(data) {
+        fetchRemainingSpins();
+        messageDiv.textContent = resultText;
+      });
     } else {
-      resultText = "-" + (stake * chosenMultiplier).toString();
+      resultText = resultAmount.toString();
+      messageDiv.textContent = resultText;
     }
-    messageDiv.textContent = resultText;
   }
 });
