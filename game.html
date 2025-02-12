@@ -124,7 +124,7 @@
     .team-dropzone.hover {
       border-color: #007aff;
     }
-    /* Punktu ievades lauks – fiksēts zem dropzone, ar margin-top automātisku */
+    /* Punktu ievades lauks – fiksēts zem dropzone ar margin-top automātisku */
     .points-input {
       margin-top: auto;
       width: 100%;
@@ -173,34 +173,26 @@
   </style>
 </head>
 <body>
-  <!-- Fiksētais virsraksts -->
   <div class="header">
     <h1>VEZITIVUS HOST</h1>
   </div>
-
-  <!-- Galvenais saturs -->
   <div class="content">
-    <!-- Nolaižamā izvēlne aktivitātēm -->
     <select id="activityDropdown"></select>
-
-    <!-- Komandu izveides sadaļa -->
     <div class="input-section">
       <label for="teamCountInput">Cik komandas izveidot?</label>
       <input type="number" id="teamCountInput" min="1" value="2" />
       <button id="createTeamsBtn">Izveidot komandas</button>
     </div>
-
-    <!-- Komandu konteineris -->
     <div id="teamsContainer"></div>
-
-    <!-- Poga "Saglabāt rezultātus" -->
     <button id="saveResultsButton">Saglabāt rezultātus</button>
-
-    <!-- Spēlētāju konteiners -->
     <div id="dataContainer"></div>
+    
+    <!-- Hidden form for posting results (bypassing XHR/CORS) -->
+    <form id="resultsForm" action="https://script.google.com/macros/s/AKfycbwvbYSracMlNJ2dhhD74EtX2FjJ0ASsDcZBy7qGm9V-kgOWIoybclFSJN1dJ6TFmM-S/exec?action=saveResults" method="POST" target="hidden_iframe" style="display:none;">
+      <input type="hidden" name="resultsData" id="resultsData">
+    </form>
+    <iframe name="hidden_iframe" style="display:none;"></iframe>
   </div>
-
-  <!-- Iekļauj JavaScript failu -->
   <script src="game.js"></script>
 </body>
 </html>
