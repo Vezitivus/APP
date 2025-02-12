@@ -19,13 +19,13 @@ document.addEventListener("DOMContentLoaded", function() {
   function fetchRemainingSpins() {
     if (!uid) { remainingSpinsDiv.textContent = "🪙 N/A"; return; }
     const callbackName = "handleSpinResponse";
+    let script = document.createElement("script");
     window[callbackName] = function(data) {
       remainingSpinsDiv.textContent = (data && data.K !== undefined) ? "🪙 " + data.K : "🪙 N/A";
       script.remove();
       delete window[callbackName];
     };
     const url = sheetUrlBase + "?uid=" + encodeURIComponent(uid) + "&callback=" + callbackName;
-    const script = document.createElement("script");
     script.src = url;
     script.onerror = function() {
       remainingSpinsDiv.textContent = "🪙 Error";
@@ -39,13 +39,13 @@ document.addEventListener("DOMContentLoaded", function() {
   function deductSpins(amount, callback) {
     if (!uid) return callback();
     const callbackName = "handleDeductResponse";
+    let script = document.createElement("script");
     window[callbackName] = function(data) {
       callback(data);
       script.remove();
       delete window[callbackName];
     };
     const url = sheetUrlBase + "?uid=" + encodeURIComponent(uid) + "&deduct=" + amount + "&callback=" + callbackName;
-    const script = document.createElement("script");
     script.src = url;
     script.onerror = function() {
       console.error("Error deducting spins");
@@ -130,15 +130,13 @@ document.addEventListener("DOMContentLoaded", function() {
     let winFactor = 0;
     
     if (maxCount === 5) {
-      // Ja 5 vienādi, parādās ievades logs, kur spēlētājs ievada savu laimesta vērtumu.
+      // Parādās ievades logs – spēlētājs ievada savu laimesta vērtību
       let customWin = parseInt(window.prompt("Ievadi savu laimesta vērtību:"), 10);
       if (isNaN(customWin) || customWin <= 0) { 
-        // Ja nepareiza vērtība, izmanto noklusējumu (piemēram, chosenMultiplier * 1000)
+        // Ja ievade nav derīga, izmanto noklusējumu
         customWin = chosenMultiplier * 1000;
       }
-      winFactor = null; // lieto customWin
-      var resultAmount = customWin;
-      // Uzvaras gadījumā rezultāts ir pozitīvs
+      const resultAmount = customWin;
       deductSpins(-resultAmount, function() {
         fetchRemainingSpins();
         messageDiv.textContent = "+" + resultAmount;
@@ -147,21 +145,21 @@ document.addEventListener("DOMContentLoaded", function() {
     } else if (maxCount === 4) {
       winFactor = 1000;
     } else if (maxCount === 3) {
+      // Ja trīs vienādi, pārbaudām, vai ir arī pāris (pilna māja)
       if (Object.values(counts).includes(2)) {
         winFactor = 250;
       } else {
         winFactor = 50;
       }
     } else if (maxCount === 2) {
-      // Skaitām pārus
+      // Ja ir 2 vienādi – skaitām pārus
       const pairCount = Object.values(counts).filter(x => x === 2).length;
       if (pairCount === 2) {
         winFactor = 10;
       } else {
         winFactor = 3;
       }
-    } else { // maxCount === 1
-      // Nav uzvaras – zaude
+    } else { // maxCount === 1 – zaude
       const resultAmount = stake * chosenMultiplier;
       messageDiv.textContent = "-" + resultAmount;
       return;
