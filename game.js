@@ -6,8 +6,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const createTeamsBtn = document.getElementById('createTeamsBtn');
   const teamsContainer = document.getElementById('teamsContainer');
   const saveResultsButton = document.getElementById('saveResultsButton');
+  const splitButton = document.getElementById('splitButton');
 
-  // Google Apps Script Webapp URL for GET requests
+  // Google Apps Script Webapp URL (for GET requests)
   const webAppUrl = 'https://script.google.com/macros/s/AKfycbwvbYSracMlNJ2dhhD74EtX2FjJ0ASsDcZBy7qGm9V-kgOWIoybclFSJN1dJ6TFmM-S/exec';
 
   try {
@@ -68,7 +69,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       dropzone.className = 'team-dropzone';
       teamBox.appendChild(dropzone);
 
-      // Fiksēts punktu ievades lauks – paliek zem dropzone (automātiski novietots, jo teamBox ir flex column)
+      // Fiksēts punktu ievades lauks – paliek zem dropzone
       const pointsInput = document.createElement('input');
       pointsInput.className = 'points-input';
       pointsInput.type = 'text';
@@ -76,32 +77,39 @@ document.addEventListener('DOMContentLoaded', async () => {
       teamBox.appendChild(pointsInput);
 
       teamsContainer.appendChild(teamBox);
-
-      // Dropzone notikumi
-      dropzone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropzone.classList.add('hover');
-      });
-      dropzone.addEventListener('dragleave', () => {
-        dropzone.classList.remove('hover');
-      });
-      dropzone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropzone.classList.remove('hover');
-        const data = e.dataTransfer.getData('text/plain');
-        if (data) {
-          try {
-            const playerData = JSON.parse(data);
-            const originalElem = document.getElementById(playerData.id);
-            if (originalElem) {
-              dropzone.appendChild(originalElem);
-            }
-          } catch (err) {
-            console.error("Kļūda parsējot drag datus:", err);
-          }
-        }
-      });
     }
+    // Atjaunina SPLIT pogas redzamību, kad komandas ir izveidotas
+    splitButton.style.display = 'block';
+  });
+
+  // SPLIT pogas funkcionalitāte – sadala visus spēlētājus (visus .data-box elementus) randomizēti starp komandu dropzones
+  splitButton.addEventListener('click', () => {
+    // Apkopojam visus spēlētāju kartītes no visas lapas (neatkarīgi no tā, vai tās atrodas #dataContainer vai komandās)
+    let allPlayers = Array.from(document.querySelectorAll('.data-box'));
+    // Shuffle using Fisher-Yates
+    for (let i = allPlayers.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [allPlayers[i], allPlayers[j]] = [allPlayers[j], allPlayers[i]];
+    }
+    // Iegūst visas komandas (team-box elementus)
+    const teamBoxes = Array.from(document.querySelectorAll('.team-box'));
+    const numTeams = teamBoxes.length;
+    const totalPlayers = allPlayers.length;
+    const baseCount = Math.floor(totalPlayers / numTeams);
+    const remainder = totalPlayers % numTeams;
+    let currentIndex = 0;
+    teamBoxes.forEach((teamBox, index) => {
+      const dropzone = teamBox.querySelector('.team-dropzone');
+      // Clear existing players from dropzone (if any)
+      dropzone.innerHTML = '';
+      let countForThisTeam = baseCount + (index < remainder ? 1 : 0);
+      for (let i = 0; i < countForThisTeam; i++) {
+        if (currentIndex < allPlayers.length) {
+          dropzone.appendChild(allPlayers[currentIndex]);
+          currentIndex++;
+        }
+      }
+    });
   });
 
   // Iespēja atvilkt spēlētājus atpakaļ uz sākotnējo konteinera (dataContainer)
@@ -146,10 +154,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   function postResults(results) {
-    // Fill the hidden form input with the JSON data
     const resultsData = document.getElementById('resultsData');
     resultsData.value = JSON.stringify({ results: results });
-    // Submit the hidden form to post the results (bypassing CORS issues)
     document.getElementById('resultsForm').submit();
   }
 });
