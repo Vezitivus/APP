@@ -1,4 +1,10 @@
 document.addEventListener("DOMContentLoaded", function() {
+  // Audio objekti – pārliecinies, ka šie MP3 faili (griez.mp3, win.mp3, winbig.mp3, lose.mp3) ir pieejami
+  const spinSound = new Audio('griez.mp3');
+  const winSound = new Audio('win.mp3');
+  const winBigSound = new Audio('winbig.mp3');
+  const loseSound = new Audio('lose.mp3');
+
   // Iegūst uid no URL (query parametri vai pēdējais ceļa segments)
   function getUID() {
     const params = new URLSearchParams(window.location.search);
@@ -19,6 +25,8 @@ document.addEventListener("DOMContentLoaded", function() {
   function fetchRemainingSpins() {
     if (!uid) { remainingSpinsDiv.textContent = "🪙 N/A"; return; }
     const callbackName = "handleSpinResponse";
+    // Deklarējam script pirms funkcijas, lai būtu pieejams callback funkcijā
+    const script = document.createElement("script");
     window[callbackName] = function(data) {
       remainingSpinsDiv.textContent = (data && data.K !== undefined) ? "🪙 " + data.K : "🪙 N/A";
       remainingSpinsDiv.classList.add("animateSpin");
@@ -27,7 +35,6 @@ document.addEventListener("DOMContentLoaded", function() {
       delete window[callbackName];
     };
     const url = sheetUrlBase + "?uid=" + encodeURIComponent(uid) + "&callback=" + callbackName;
-    const script = document.createElement("script");
     script.src = url;
     script.onerror = function() {
       remainingSpinsDiv.textContent = "🪙 Error";
@@ -41,13 +48,13 @@ document.addEventListener("DOMContentLoaded", function() {
   function deductSpins(amount, callback) {
     if (!uid) return callback();
     const callbackName = "handleDeductResponse";
+    const script = document.createElement("script");
     window[callbackName] = function(data) {
       callback(data);
       script.remove();
       delete window[callbackName];
     };
     const url = sheetUrlBase + "?uid=" + encodeURIComponent(uid) + "&deduct=" + amount + "&callback=" + callbackName;
-    const script = document.createElement("script");
     script.src = url;
     script.onerror = function() {
       console.error("Error deducting spins");
@@ -76,7 +83,11 @@ document.addEventListener("DOMContentLoaded", function() {
     updateReelDisplay(i);
   }
 
+  // Kad griešanās sākas – paslēpj rezultāta lauku un atskaņo spinSound
   spinButton.addEventListener("click", function() {
+    messageDiv.textContent = "";
+    spinSound.loop = true;
+    spinSound.play();
     const chosenMultiplier = parseInt(multiplierSelect.value, 10) || 1;
     // Noņem likmi pirms griešanās
     deductSpins(chosenMultiplier, function() { fetchRemainingSpins(); });
@@ -102,7 +113,12 @@ document.addEventListener("DOMContentLoaded", function() {
     reels[reelIndex].currentIndex = Math.floor(Math.random() * emojiSet.length);
     updateReelDisplay(reelIndex);
     reelsStopped++;
-    if (reelsStopped === numReels) { checkResult(); spinButton.disabled = false; }
+    if (reelsStopped === numReels) { 
+      spinSound.pause(); 
+      spinSound.currentTime = 0;
+      checkResult(); 
+      spinButton.disabled = false; 
+    }
   }
 
   function updateReelDisplay(reelIndex) {
@@ -114,13 +130,19 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("reel" + reelIndex + "-symbol2").textContent = emojiSet[bottom];
   }
 
-  // Jaunā uzvaras/laužu loģika
+  // Jaunā uzvaras/laužu loģika:
+  // 2 vienādi → zaudējums (likme×1)
+  // 2+2 vienādi → likme×3
+  // 3 vienādi (bez pāra) → likme×10
+  // 3+2 vienādi → likme×25
+  // 4 vienādi → likme×100
+  // 5 vienādi → spēlētājs ievada vērtību
   function checkResult() {
     const results = [];
     for (let i = 0; i < numReels; i++) {
       results.push(document.getElementById("reel" + i + "-symbol1").textContent);
     }
-    // Sastādām skaitītāju
+    // Saskaitām simbolus
     const counts = {};
     results.forEach(s => { counts[s] = (counts[s] || 0) + 1; });
     let maxCount = 0, winSymbol = null;
@@ -144,30 +166,24 @@ document.addEventListener("DOMContentLoaded", function() {
         messageDiv.textContent = "+" + resultAmount;
         messageDiv.classList.add("animateResult");
         setTimeout(() => messageDiv.classList.remove("animateResult"), 500);
+        winBigSound.play();
       });
       return;
     } else if (maxCount === 4) {
       winFactor = 100;
     } else if (maxCount === 3) {
-      // Ja ir 3 vienādi – pārbaudām, vai ir pilna māja (3+2)
       if (Object.values(counts).includes(2)) {
         winFactor = 25;
       } else {
         winFactor = 10;
       }
-    } else if (maxCount === 2) {
-      // Ja ir 2 vienādi – skaitām pārus
-      const pairCount = Object.values(counts).filter(x => x === 2).length;
-      if (pairCount === 2) {
-        winFactor = 3;
-      } else {
-        winFactor = 1;
-      }
-    } else { // maxCount === 1, zaude
+    } else {
+      // maxCount < 3 (1 vai 2 vienādi) – zaudējums
       const resultAmount = stake * chosenMultiplier;
       messageDiv.textContent = "-" + resultAmount;
       messageDiv.classList.add("animateResult");
       setTimeout(() => messageDiv.classList.remove("animateResult"), 500);
+      loseSound.play();
       return;
     }
     
@@ -177,6 +193,7 @@ document.addEventListener("DOMContentLoaded", function() {
       messageDiv.textContent = "+" + resultAmount;
       messageDiv.classList.add("animateResult");
       setTimeout(() => messageDiv.classList.remove("animateResult"), 500);
+      winSound.play();
     });
   }
 });
