@@ -28,6 +28,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       document.getElementById("username").innerText = data.username || "";
       document.getElementById("nfc-id").innerText = data.uid || "";
       document.getElementById("place").innerText = data.place || "";
+      document.getElementById("team-name").innerText = data.team || "Nav komandas";
 
       // Ja attēls jau ir
       if (data.imageUrl) {
