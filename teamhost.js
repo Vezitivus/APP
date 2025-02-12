@@ -4,39 +4,37 @@ document.addEventListener('DOMContentLoaded', async () => {
   const teamsContainer = document.getElementById('teamsContainer');
   const saveResultsGlobal = document.getElementById('saveResultsGlobal');
 
-  // Your Google Apps Script Web App URL for GET requests
+  // Web app URL for GET requests
   const webAppUrl = 'https://script.google.com/macros/s/AKfycbyMHiivE56GC6okPj2xOYJaBGs-aF8Dxf_45Q6eprSs6_-vVrRCA1s0GMfrW_WaHhbzJA/exec';
 
   try {
-    // Fetch data from your backend
+    // Fetch data from the backend
     const response = await fetch(webAppUrl);
     const json = await response.json();
-    // Expected JSON structure: { activities: [...], teams: [ { team: "TeamName", players: [ "Player1", "Player2", ... ] }, ... ] }
-
-    // Populate activities dropdown
+    
+    // Populate activity dropdown
     json.activities.forEach(activity => {
       const option = document.createElement('option');
       option.value = activity;
       option.textContent = activity;
       activityDropdown.appendChild(option);
     });
-
-    // Populate teams container with team boxes
+    
+    // Populate teams container with team boxes (from Komandas sheet)
     json.teams.forEach((teamObj, index) => {
       const teamBox = document.createElement('div');
       teamBox.className = 'team-box';
       
-      // Team header (team name in small letters)
+      // Team header (team name in large letters)
       const header = document.createElement('h3');
       header.textContent = teamObj.team;
       teamBox.appendChild(header);
       
-      // Player list inside the team box
+      // Player list: list all players (in small text)
       const playerList = document.createElement('div');
       playerList.className = 'player-list';
-      // For each player (non-empty) from the team data
       teamObj.players.forEach(player => {
-        if(player) { // ignore empty cells
+        if (player && player.toString().trim() !== "") {
           const playerItem = document.createElement('div');
           playerItem.className = 'player-item';
           playerItem.textContent = player;
@@ -45,14 +43,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
       teamBox.appendChild(playerList);
       
-      // Symbols input (placed to the right inside team box – here, we simply add it below the player list)
-      const symbolsInput = document.createElement('input');
-      symbolsInput.className = 'symbols-input';
-      symbolsInput.type = 'text';
-      symbolsInput.placeholder = 'Simboli';
-      teamBox.appendChild(symbolsInput);
-      
-      // Points input at the bottom
+      // Points input attached to the right side of the team box
       const pointsInput = document.createElement('input');
       pointsInput.className = 'points-input';
       pointsInput.type = 'text';
@@ -62,10 +53,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       teamsContainer.appendChild(teamBox);
     });
   } catch (error) {
-    console.error('Error fetching data from webapp:', error);
+    console.error("Error fetching data from webapp:", error);
   }
   
-  // Save results button: Collects data and submits via hidden form
+  // When Save Results button is clicked, collect data and submit via hidden form
   saveResultsGlobal.addEventListener('click', () => {
     let results = [];
     const activity = activityDropdown.value;
@@ -73,13 +64,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     teamBoxes.forEach(teamBox => {
       const teamName = teamBox.querySelector('h3').textContent;
       const points = teamBox.querySelector('.points-input').value;
-      const symbols = teamBox.querySelector('.symbols-input').value;
-      const playerItems = teamBox.querySelectorAll('.player-item');
       let players = [];
+      const playerItems = teamBox.querySelectorAll('.player-item');
       playerItems.forEach(item => {
         players.push(item.textContent);
       });
-      results.push({ team: teamName, activity: activity, points: points, symbols: symbols, players: players });
+      results.push({ team: teamName, activity: activity, points: points, players: players });
     });
     console.log("Collected results:", results);
     postResults(results);
