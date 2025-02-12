@@ -35,7 +35,7 @@
       100% { transform: rotate(360deg); }
     }
 
-    /* Profila labās puses pielāgojums */
+    /* Info grupu un labās puses pielāgojums */
     .profile-right {
       width: 300px;
     }
@@ -55,7 +55,18 @@
       padding: 2px 0;
     }
 
-    /* ✅ "Griezt Ratu" pogas dizains */
+    /* Stils team pogai (TAVA KOMANDA) info-group */
+    .team-button {
+      font-size: 20px;
+      font-weight: bold;
+      color: #FFD700;
+      background: transparent;
+      border: none;
+      padding: 2px 0;
+      cursor: pointer;
+    }
+
+    /* "Griezt Ratu" pogas dizains */
     .spin-wheel-section {
       display: flex;
       justify-content: center;
@@ -114,6 +125,11 @@
           <p class="label">Kopvērtējuma vieta</p>
           <p class="large-value" id="place">Ielādē...</p>
         </div>
+        <!-- Pievienota "TAVA KOMANDA" pogas info-group -->
+        <div class="info-group">
+          <p class="label">TAVA KOMANDA</p>
+          <button id="team-button" class="team-button" onclick="redirectToTeam()">TAVA KOMANDA</button>
+        </div>
       </div>
     </section>
 
@@ -144,7 +160,7 @@
       </div>
     </section>
 
-    <!-- ✅ Griezt Ratu poga (atgriezta no tavā piemērā) -->
+    <!-- Griezt Ratu poga -->
     <section class="spin-wheel-section">
       <button class="spin-button" onclick="redirectToSpin()">
         🎡 Griezt Ratu
@@ -180,6 +196,17 @@
         const uid = params.get("uid");
         if (uid) {
           window.location.href = `rats.html?uid=${uid}`;
+        } else {
+          alert("UID nav atrasts!");
+        }
+      }
+
+      // Funkcija, lai pāradresētu uz "team.html" ar UID no URL (TAVA KOMANDA pogai)
+      function redirectToTeam() {
+        const params = new URLSearchParams(window.location.search);
+        const uid = params.get("uid");
+        if (uid) {
+          window.location.href = `team.html?uid=${uid}`;
         } else {
           alert("UID nav atrasts!");
         }
