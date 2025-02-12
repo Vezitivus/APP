@@ -35,7 +35,7 @@
       100% { transform: rotate(360deg); }
     }
 
-    /* Labās puses dizains – fiksēts platums un minimālas atstarpes info blokiem */
+    /* Labās puses dizains – fiksēts platums un minimālas atstarpes info grupām */
     .profile-right {
       width: 300px;
     }
@@ -52,7 +52,7 @@
       padding: 2px 0;
     }
 
-    /* ✅ "Griezt Ratu" pogas jaunais dizains */
+    /* "Griezt Ratu" pogas dizains */
     .spin-wheel-section {
       display: flex;
       justify-content: center;
@@ -65,7 +65,7 @@
       font-weight: bold;
       text-align: center;
       color: white;
-      background: linear-gradient(to bottom, #333, #111); /* Tumši pelēks gradients */
+      background: linear-gradient(to bottom, #333, #111);
       border: none;
       border-radius: 24px;
       cursor: pointer;
@@ -109,6 +109,11 @@
           <p class="label">Kopvērtējuma vieta</p>
           <p class="large-value" id="place">Ielādē...</p>
         </div>
+        <!-- Pievienots info-group bloks "TAVA KOMANDA" -->
+        <div class="info-group">
+          <p class="label">TAVA KOMANDA</p>
+          <p class="value" id="team-name">Ielādē...</p>
+        </div>
       </div>
     </section>
 
@@ -117,29 +122,20 @@
       <button id="checkin-button" class="checkin-button">Check-In priekš aktivitātēm</button>
     </section>
 
-    <!-- Apakšējās pogas (profile.html) -->
+    <!-- Apakšējās pogas -->
     <section class="buttons-section">
       <div class="buttons-grid">
         <div class="grid-margin"></div>
-        <!-- 1. Poga: Piedalīties aktivitātēs -->
-        <button class="action-button" onclick="redirectToActivity()">
-          Vezitivus lenta
-        </button>
+        <button class="action-button" onclick="redirectToActivity()">Vezitivus lenta</button>
         <div class="grid-spacer"></div>
-        <!-- 2. Poga: Simpatijas balva – dinamiski pielāgota pāradresācija -->
-        <button class="action-button" onclick="redirectToSimpathy()">
-          Simpatijas balva
-        </button>
+        <button class="action-button" onclick="redirectToSimpathy()">Simpatijas balva</button>
         <div class="grid-spacer"></div>
-        <!-- 3. Poga: Score Board -->
-        <button class="action-button" onclick="window.location.href='score.html'">
-          Score Board
-        </button>
+        <button class="action-button" onclick="window.location.href='score.html'">Score Board</button>
         <div class="grid-margin"></div>
       </div>
     </section>
 
-    <!-- Jaunā "Griezt Ratu" poga -->
+    <!-- Griezt Ratu poga -->
     <section class="spin-wheel-section">
       <button class="spin-button" onclick="redirectToSpin()">
         🎡 Griezt Ratu
@@ -149,8 +145,7 @@
     <script>
       // Noņem loading pārklājumu, kad lapa ir pilnībā ielādēta
       window.addEventListener("load", function() {
-        var loadingOverlay = document.getElementById("loading-overlay");
-        loadingOverlay.style.display = "none";
+        document.getElementById("loading-overlay").style.display = "none";
       });
 
       // Funkcija, lai pāradresētu uz "Vezitivus lenta" ar UID no URL
@@ -167,8 +162,7 @@
       // Funkcija, lai pāradresētu uz "Simpatijas balva" ar UID no lapas
       function redirectToSimpathy() {
         const uid = document.getElementById("nfc-id").innerText.trim();
-        const redirectUrl = `https://vezitivus.github.io/APP/simpathy.html?uid=${uid}`;
-        window.location.href = redirectUrl;
+        window.location.href = `https://vezitivus.github.io/APP/simpathy.html?uid=${uid}`;
       }
 
       // Funkcija, lai pāradresētu uz "rats.html" ar UID no URL
