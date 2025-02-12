@@ -67,7 +67,7 @@ document.addEventListener("DOMContentLoaded", function() {
   fetchRemainingSpins();
 
   // Spēles loģika
-  // Palielināts emojiSet masīvs uz 10 emoji
+  // Palielināts emojiSet uz 10 emoji (pievienoti '🍀' un '💎')
   const emojiSet = ['🍒','🍋','🍊','🍉','🍇','⭐','🔔','7️⃣','🍀','💎'];
   const numReels = 5;
   const reels = [];
@@ -130,6 +130,32 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("reel" + reelIndex + "-symbol2").textContent = emojiSet[bottom];
   }
 
+  // Funkcija animācijai: veido klonu no messageDiv un animē to uz remainingSpinsDiv
+  function animateResultToCoin(resultText) {
+    const clone = messageDiv.cloneNode(true);
+    clone.textContent = resultText;
+    clone.style.position = "absolute";
+    // Izmanto messageDiv pozīciju
+    const msgRect = messageDiv.getBoundingClientRect();
+    const containerRect = messageDiv.parentElement.getBoundingClientRect();
+    clone.style.left = (msgRect.left - containerRect.left) + "px";
+    clone.style.top = (msgRect.top - containerRect.top) + "px";
+    clone.style.margin = "0";
+    clone.style.transition = "all 0.5s ease-out";
+    messageDiv.parentElement.appendChild(clone);
+    // Mērķa pozīcija (remainingSpinsDiv)
+    const coinRect = remainingSpinsDiv.getBoundingClientRect();
+    const deltaX = coinRect.left - msgRect.left;
+    const deltaY = coinRect.top - msgRect.top;
+    requestAnimationFrame(() => {
+      clone.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.5)`;
+      clone.style.opacity = "0";
+    });
+    clone.addEventListener("transitionend", function() {
+      clone.remove();
+    });
+  }
+
   // Uzvaras/laužu loģika:
   // 2 vienādi → zaudējums (likme×1)
   // 2+2 vienādi → likme×3
@@ -163,9 +189,8 @@ document.addEventListener("DOMContentLoaded", function() {
       const resultAmount = customWin;
       deductSpins(-resultAmount, function() {
         fetchRemainingSpins();
-        messageDiv.textContent = "+" + resultAmount;
-        messageDiv.classList.add("animateResult");
-        setTimeout(() => messageDiv.classList.remove("animateResult"), 500);
+        // Animē rezultāta klonu uz remainingSpinsDiv
+        animateResultToCoin("+" + resultAmount);
         winBigSound.play();
       });
       return;
@@ -180,9 +205,7 @@ document.addEventListener("DOMContentLoaded", function() {
     } else {
       // maxCount < 3 (1 vai 2 vienādi) – zaudējums
       const resultAmount = stake * chosenMultiplier;
-      messageDiv.textContent = "-" + resultAmount;
-      messageDiv.classList.add("animateResult");
-      setTimeout(() => messageDiv.classList.remove("animateResult"), 500);
+      animateResultToCoin("-" + resultAmount);
       loseSound.play();
       return;
     }
@@ -190,9 +213,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const resultAmount = stake * chosenMultiplier * winFactor;
     deductSpins(-resultAmount, function() {
       fetchRemainingSpins();
-      messageDiv.textContent = "+" + resultAmount;
-      messageDiv.classList.add("animateResult");
-      setTimeout(() => messageDiv.classList.remove("animateResult"), 500);
+      animateResultToCoin("+" + resultAmount);
       winSound.play();
     });
   }
