@@ -93,6 +93,7 @@ document.addEventListener("DOMContentLoaded", function() {
     deductSpins(chosenMultiplier, function() { fetchRemainingSpins(); });
     spinButton.disabled = true;
     reelsStopped = 0;
+    // Samazināts griešanās ātrums – tagad ik 150ms
     for (let i = 0; i < numReels; i++) {
       startSpinning(i, 2000 + i * 500);
     }
@@ -103,7 +104,7 @@ document.addEventListener("DOMContentLoaded", function() {
     spinIntervals[reelIndex] = setInterval(function() {
       reels[reelIndex].currentIndex = (reels[reelIndex].currentIndex + 1) % emojiSet.length;
       updateReelDisplay(reelIndex);
-    }, 100);
+    }, 150);
     setTimeout(function() { stopSpinning(reelIndex); }, duration);
   }
 
@@ -130,27 +131,30 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("reel" + reelIndex + "-symbol2").textContent = emojiSet[bottom];
   }
 
-  // Funkcija, kas animē rezultāta klonu no messageDiv uz remainingSpinsDiv
+  // Funkcija, kas animē rezultāta klonu no messageDiv uz remainingSpinsDiv:
+  // Pirmā daļa: rezultāts parādās centrēti zem reizinātāja un noturās 1 sekundes.
+  // Tad, 2 sekundes laikā, tas pārvietojas uz remainingSpinsDiv pozīciju.
   function animateResultToCoin(resultText) {
     const clone = messageDiv.cloneNode(true);
     clone.textContent = resultText;
     clone.style.position = "absolute";
-    // Iegūst sākuma pozīciju (messageDiv pozīcija)
     const msgRect = messageDiv.getBoundingClientRect();
     const containerRect = messageDiv.parentElement.getBoundingClientRect();
     clone.style.left = (msgRect.left - containerRect.left) + "px";
     clone.style.top = (msgRect.top - containerRect.top) + "px";
     clone.style.margin = "0";
-    clone.style.transition = "all 0.5s ease-out";
+    // Pirms animācijas, rezultāts noturās 1 sekundes bez pārvietošanās
+    clone.style.transition = "none";
     messageDiv.parentElement.appendChild(clone);
-    // Pagaidām 0.5 sekundes pirms animācijas sākuma
     setTimeout(() => {
+      // Pēc 1 sekundes, pārvietošanas animācija 2 sekundes
+      clone.style.transition = "all 2s ease-out";
       const coinRect = remainingSpinsDiv.getBoundingClientRect();
       const deltaX = coinRect.left - msgRect.left;
       const deltaY = coinRect.top - msgRect.top;
       clone.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.5)`;
       clone.style.opacity = "0";
-    }, 500);
+    }, 1000);
     clone.addEventListener("transitionend", function() {
       clone.remove();
     });
