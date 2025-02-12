@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+  <meta charset="UTF-8">
+  <title>Vezitivus Team Host</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    /* Global: reduce font size to 50% (0.5x) */
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+                   Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      background-color: #f2f2f2;
+      font-size: 50%;
+    }
+    /* Header */
+    .header {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background-color: rgba(0,0,0,0.7);
+      color: white;
+      text-align: center;
+      padding: 20px;
+      z-index: 999;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+    /* Main content container */
+    .content {
+      margin-top: 100px;
+      padding: 20px;
+      display: flex;
+      flex-direction: row;
+      gap: 20px;
+    }
+    /* Left column (teams) uses 65% width */
+    #teamsArea {
+      width: 65%;
+    }
+    /* Right column (players) uses remaining width */
+    #playersArea {
+      flex: 1;
+    }
+    /* Drop-down remains at top */
+    #activityDropdown {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-bottom: 20px;
+      -webkit-appearance: none;
+      outline: none;
+    }
+    /* Input section for team count and button (optional if needed) */
+    .input-section {
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    #teamCountInput {
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      outline: none;
+    }
+    #createTeamsBtn {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #007aff;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    #createTeamsBtn:hover {
+      background-color: #005bb5;
+    }
+    /* Teams container – arranged in two columns (each team box takes about 50% width of teamsArea) */
+    #teamsContainer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .team-box {
+      flex: 1 1 calc(50% - 10px);
+      background-color: #ffffff;
+      border-radius: 10px;
+      padding: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .team-box h3 {
+      margin: 0 0 10px 0;
+      font-size: 18px;
+      text-align: center;
+    }
+    .team-dropzone {
+      min-height: 60px;
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      padding: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .team-dropzone.hover {
+      border-color: #007aff;
+    }
+    /* Input field for symbols (to the right of the team dropzone) */
+    .symbols-input {
+      margin-top: 4px;
+      width: 100%;
+      padding: 6px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      text-align: center;
+      box-sizing: border-box;
+    }
+    /* Input field for team points appears at the very bottom of team box */
+    .points-input {
+      margin-top: auto;
+      width: 100%;
+      padding: 6px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      text-align: center;
+      box-sizing: border-box;
+    }
+    /* Players area container */
+    #dataContainer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    /* Player cards – 10% smaller than original (54x36 px) */
+    .data-box {
+      width: 54px;
+      height: 36px;
+      background-color: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 2px;
+      cursor: grab;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    .data-box span {
+      display: block;
+      width: 100%;
+    }
+    .data-box .top {
+      font-size: 10px;
+      margin-bottom: 2px;
+    }
+    .data-box .bottom {
+      font-size: 10px;
+      margin-top: 2px;
+    }
+    /* Save Results button at the bottom */
+    #saveResultsGlobal {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+      background-color: #34c759;
+      color: white;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background-color 0.2s ease;
+    }
+    #saveResultsGlobal:hover {
+      background-color: #28a745;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Vezitivus Team Host</h1>
+  </div>
+  <div class="content">
+    <div id="teamsArea">
+      <!-- Dropdown for activities -->
+      <select id="activityDropdown"></select>
+      <!-- Teams container (team boxes will be created here) -->
+      <div id="teamsContainer"></div>
+      <!-- Global Save Results button -->
+      <button id="saveResultsGlobal">Saglabāt rezultātus</button>
+    </div>
+    <div id="playersArea">
+      <!-- Players container (draggable player cards) -->
+      <div id="dataContainer"></div>
+    </div>
+    
+    <!-- Hidden form for posting results via normal form submission to bypass CORS -->
+    <form id="resultsForm" action="https://script.google.com/macros/s/AKfycbyMHiivE56GC6okPj2xOYJaBGs-aF8Dxf_45Q6eprSs6_-vVrRCA1s0GMfrW_WaHhbzJA/exec?action=saveResults" method="POST" target="hidden_iframe" style="display:none;">
+      <input type="hidden" name="resultsData" id="resultsData">
+    </form>
+    <iframe name="hidden_iframe" style="display:none;"></iframe>
+  </div>
+  <script src="teamhost.js"></script>
+</body>
+</html>
