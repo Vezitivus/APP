@@ -35,38 +35,7 @@
       100% { transform: rotate(360deg); }
     }
 
-    /* Info grupu un labās puses pielāgojums */
-    .profile-right {
-      width: 300px;
-    }
-
-    .profile-right .info-group {
-      margin-bottom: 0;
-      padding: 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    .profile-right .info-group:last-child {
-      border-bottom: none;
-    }
-
-    .profile-right .info-group p {
-      margin: 0;
-      padding: 2px 0;
-    }
-
-    /* Stils team pogai (TAVA KOMANDA) info-group */
-    .team-button {
-      font-size: 20px;
-      font-weight: bold;
-      color: #FFD700;
-      background: transparent;
-      border: none;
-      padding: 2px 0;
-      cursor: pointer;
-    }
-
-    /* "Griezt Ratu" pogas dizains */
+    /* ✅ "Griezt Ratu" pogas jaunais dizains */
     .spin-wheel-section {
       display: flex;
       justify-content: center;
@@ -80,7 +49,7 @@
       font-weight: bold;
       text-align: center;
       color: white;
-      background: linear-gradient(to bottom, #333, #111);
+      background: linear-gradient(to bottom, #333, #111); /* Tumši pelēks gradients */
       border: none;
       border-radius: 24px;
       cursor: pointer;
@@ -125,11 +94,6 @@
           <p class="label">Kopvērtējuma vieta</p>
           <p class="large-value" id="place">Ielādē...</p>
         </div>
-        <!-- Pievienota "TAVA KOMANDA" pogas info-group -->
-        <div class="info-group">
-          <p class="label">TAVA KOMANDA</p>
-          <button id="team-button" class="team-button" onclick="redirectToTeam()">TAVA KOMANDA</button>
-        </div>
       </div>
     </section>
 
@@ -142,12 +106,12 @@
     <section class="buttons-section">
       <div class="buttons-grid">
         <div class="grid-margin"></div>
-        <!-- 1. Poga: Vezitivus lenta -->
+        <!-- 1. Poga: Piedalīties aktivitātēs -->
         <button class="action-button" onclick="redirectToActivity()">
           Vezitivus lenta
         </button>
         <div class="grid-spacer"></div>
-        <!-- 2. Poga: Simpatijas balva -->
+        <!-- 2. Poga: Simpatijas balva – tagad ar dinamiski pielāgotu pāradresācijas URL -->
         <button class="action-button" onclick="redirectToSimpathy()">
           Simpatijas balva
         </button>
@@ -160,7 +124,7 @@
       </div>
     </section>
 
-    <!-- Griezt Ratu poga -->
+    <!-- ✅ Jaunā poga "Griezt Ratu" zem visām pogām -->
     <section class="spin-wheel-section">
       <button class="spin-button" onclick="redirectToSpin()">
         🎡 Griezt Ratu
@@ -170,7 +134,8 @@
     <script>
       // Noņem loading pārklājumu, kad lapa ir pilnībā ielādēta
       window.addEventListener("load", function() {
-        document.getElementById("loading-overlay").style.display = "none";
+        var loadingOverlay = document.getElementById("loading-overlay");
+        loadingOverlay.style.display = "none";
       });
 
       // Funkcija, lai pāradresētu uz "Vezitivus lenta" ar UID no URL
@@ -187,26 +152,16 @@
       // Funkcija, lai pāradresētu uz "Simpatijas balva" ar UID no lapas
       function redirectToSimpathy() {
         const uid = document.getElementById("nfc-id").innerText.trim();
-        window.location.href = `https://vezitivus.github.io/APP/simpathy.html?uid=${uid}`;
+        const redirectUrl = `https://vezitivus.github.io/APP/simpathy.html?uid=${uid}`;
+        window.location.href = redirectUrl;
       }
 
-      // Funkcija, lai pāradresētu uz "rats.html" ar UID no URL
+      // ✅ Funkcija, lai pāradresētu uz "rats.html" ar UID no URL
       function redirectToSpin() {
         const params = new URLSearchParams(window.location.search);
         const uid = params.get("uid");
         if (uid) {
           window.location.href = `rats.html?uid=${uid}`;
-        } else {
-          alert("UID nav atrasts!");
-        }
-      }
-
-      // Funkcija, lai pāradresētu uz "team.html" ar UID no URL (TAVA KOMANDA pogai)
-      function redirectToTeam() {
-        const params = new URLSearchParams(window.location.search);
-        const uid = params.get("uid");
-        if (uid) {
-          window.location.href = `team.html?uid=${uid}`;
         } else {
           alert("UID nav atrasts!");
         }
