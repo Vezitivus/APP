@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.error('Kļūda, iegūstot datus no webapp:', error);
   }
 
-  // Piesaista notikumu klausītājus komandu izveidei
+  // Komandu izveide – izveido komandu laukus ar dropzone un fiksētu punktu ievades lauku
   createTeamsBtn.addEventListener('click', () => {
     teamsContainer.innerHTML = '';
     const count = parseInt(teamCountInput.value) || 0;
@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       dropzone.className = 'team-dropzone';
       teamBox.appendChild(dropzone);
 
-      // Fiksēts punktu ievades lauks, kas ir fiksēts zem dropzone (ar margin-top: auto)
+      // Fiksēts punktu ievades lauks (vienmēr redzams, pozicionēts zem dropzone)
       const pointsInput = document.createElement('input');
       pointsInput.className = 'points-input';
       pointsInput.type = 'text';
@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       teamsContainer.appendChild(teamBox);
 
-      // Piesaista dropzone notikumus
+      // Dropzone notikumi
       dropzone.addEventListener('dragover', (e) => {
         e.preventDefault();
         dropzone.classList.add('hover');
@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Iespēja atvilkt spēlētāju atpakaļ uz sākotnējo konteinera (dataContainer)
+  // Iespēja atvilkt spēlētājus atpakaļ uz sākotnējo konteinera (dataContainer)
   dataContainer.addEventListener('dragover', (e) => {
     e.preventDefault();
   });
@@ -142,7 +142,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       results.push({ team: teamName, activity: activity, points: points, players: players });
     });
     console.log("Saglabātie rezultāti:", results);
-    // Nosūtām rezultātus uz GAS
     postResults(results);
   });
 
@@ -157,7 +156,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     .then(response => response.json())
     .then(data => {
       console.log("Servera atbilde:", data);
-      if(data.status === "ok") {
+      if (data.status === "ok") {
         alert("Rezultāti saglabāti veiksmīgi!");
       } else {
         alert("Kļūda saglabājot rezultātus: " + data.message);
