@@ -10,7 +10,7 @@ function showPopup(message) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Piesaista HTML elementus
+  // Get references to HTML elements
   const activityDropdown = document.getElementById('activityDropdown');
   const dataContainer = document.getElementById('dataContainer');
   const teamCountInput = document.getElementById('teamCountInput');
@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const splitButton = document.getElementById('splitButton');
   const sendTeamNamesButton = document.getElementById('sendTeamNamesButton');
 
-  // Google Apps Script Webapp URL (for GET requests)
+  // Google Apps Script Webapp URL for GET requests
   const webAppUrl = 'https://script.google.com/macros/s/AKfycbwvbYSracMlNJ2dhhD74EtX2FjJ0ASsDcZBy7qGm9V-kgOWIoybclFSJN1dJ6TFmM-S/exec';
 
   try {
@@ -52,20 +52,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       bottomSpan.className = 'bottom';
       bottomSpan.innerHTML = row.b ? `<b>${row.b}</b>` : '';
 
-      // Create a small red X button for returning the card to dataContainer
+      // Create the close (X) button
       const closeBtn = document.createElement('span');
       closeBtn.className = 'close-btn';
       closeBtn.textContent = 'X';
       closeBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        // Move the card back to dataContainer
         const card = closeBtn.parentElement;
         card.setAttribute("draggable", "true");
         dataContainer.appendChild(card);
         showPopup("Spēlētājs atgriezts sākotnējā sarakstā");
       });
 
-      // Append elements to the card
       box.appendChild(closeBtn);
       box.appendChild(topSpan);
       box.appendChild(bottomSpan);
@@ -97,6 +95,33 @@ document.addEventListener('DOMContentLoaded', async () => {
       teamBox.appendChild(pointsInput);
 
       teamsContainer.appendChild(teamBox);
+
+      // Dropzone events
+      dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        dropzone.classList.add('hover');
+      });
+      dropzone.addEventListener('dragleave', () => {
+        dropzone.classList.remove('hover');
+      });
+      dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('hover');
+        const data = e.dataTransfer.getData('text/plain');
+        if (data) {
+          try {
+            const playerData = JSON.parse(data);
+            const originalElem = document.getElementById(playerData.id);
+            if (originalElem) {
+              originalElem.setAttribute("draggable", "true");
+              dropzone.appendChild(originalElem);
+            }
+          } catch (err) {
+            console.error("Kļūda parsējot drag datus:", err);
+          }
+        }
+      });
     }
     splitButton.style.display = 'block';
     showPopup("Komandu lauki izveidoti!");
