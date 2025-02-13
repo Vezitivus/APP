@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const splitButton = document.getElementById('splitButton');
   const sendTeamNamesButton = document.getElementById('sendTeamNamesButton');
 
-  // Google Apps Script Webapp URL (for GET requests)
+  // Google Apps Script Webapp URL for GET requests
   const webAppUrl = 'https://script.google.com/macros/s/AKfycbwvbYSracMlNJ2dhhD74EtX2FjJ0ASsDcZBy7qGm9V-kgOWIoybclFSJN1dJ6TFmM-S/exec';
 
   try {
@@ -43,6 +43,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       box.id = `player-${index}`;
       box.setAttribute('draggable', 'true');
       box.addEventListener('dragstart', (e) => {
+        e.dataTransfer.effectAllowed = "move";
         e.dataTransfer.setData('text/plain', JSON.stringify({ b: row.b, c: row.c, id: box.id }));
       });
 
@@ -85,7 +86,36 @@ document.addEventListener('DOMContentLoaded', async () => {
       teamBox.appendChild(pointsInput);
 
       teamsContainer.appendChild(teamBox);
+
+      // Attach dropzone events
+      dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        dropzone.classList.add('hover');
+      });
+      dropzone.addEventListener('dragleave', () => {
+        dropzone.classList.remove('hover');
+      });
+      dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('hover');
+        const data = e.dataTransfer.getData('text/plain');
+        if (data) {
+          try {
+            const playerData = JSON.parse(data);
+            const originalElem = document.getElementById(playerData.id);
+            if (originalElem) {
+              // Ensure the element remains draggable
+              originalElem.setAttribute("draggable", "true");
+              dropzone.appendChild(originalElem);
+            }
+          } catch (err) {
+            console.error("Kļūda parsējot drag datus:", err);
+          }
+        }
+      });
     }
+    // Show the SPLIT button once teams are created
     splitButton.style.display = 'block';
     showPopup("Komandu lauki izveidoti!");
   });
@@ -93,7 +123,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // SPLIT pogas funkcionalitāte – sadala visus spēlētājus randomizēti starp komandām
   splitButton.addEventListener('click', () => {
     let allPlayers = Array.from(document.querySelectorAll('.data-box'));
-    // Shuffle (Fisher-Yates algorithm)
+    // Shuffle using Fisher-Yates
     for (let i = allPlayers.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [allPlayers[i], allPlayers[j]] = [allPlayers[j], allPlayers[i]];
@@ -111,7 +141,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       for (let i = 0; i < countForThisTeam; i++) {
         if (currentIndex < allPlayers.length) {
           dropzone.appendChild(allPlayers[currentIndex]);
-          // Reapply draggable attribute just in case
           allPlayers[currentIndex].setAttribute("draggable", "true");
           currentIndex++;
         }
@@ -120,9 +149,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     showPopup("Spēlētāji sadalīti pa komandām!");
   });
 
-  // Atvilkt spēlētājus atpakaļ uz sākotnējo konteinera (dataContainer)
+  // Enable dragging back to the data container
   dataContainer.addEventListener('dragover', (e) => {
     e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
   });
   dataContainer.addEventListener('drop', (e) => {
     e.preventDefault();
@@ -141,7 +171,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // "Saglabāt rezultātus" pogas funkcionalitāte – apkopo rezultātus un nosūta uz GAS, izmantojot formu
+  // "Saglabāt rezultātus" pogas funkcionalitāte – apkopo un nosūta rezultātus uz GAS
   saveResultsButton.addEventListener('click', () => {
     let results = [];
     const activity = activityDropdown.value;
@@ -162,7 +192,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     postResults(results);
   });
 
-  // "Sūtīt komandas nosaukumu" pogas funkcionalitāte – apkopo komandu nosaukumus un nosūta uz GAS
+  // "Sūtīt komandas nosaukumu" pogas funkcionalitāte – apkopo un nosūta katras komandas nosaukumu uz GAS
   sendTeamNamesButton.addEventListener('click', () => {
     let results = [];
     const teamBoxes = document.querySelectorAll('.team-box');
