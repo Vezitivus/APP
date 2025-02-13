@@ -20,15 +20,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   const splitButton = document.getElementById('splitButton');
   const sendTeamNamesButton = document.getElementById('sendTeamNamesButton');
 
-  // Google Apps Script Webapp URL for GET requests
+  // Google Apps Script Webapp URL (for GET requests)
   const webAppUrl = 'https://script.google.com/macros/s/AKfycbwvbYSracMlNJ2dhhD74EtX2FjJ0ASsDcZBy7qGm9V-kgOWIoybclFSJN1dJ6TFmM-S/exec';
 
   try {
-    // Iegūst datus no GAS (GET)
     const response = await fetch(webAppUrl);
     const json = await response.json();
 
-    // Aizpilda nolaižamo izvēlni ar aktivitātēm
     json.activities.forEach(activity => {
       const option = document.createElement('option');
       option.value = activity;
@@ -36,7 +34,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       activityDropdown.appendChild(option);
     });
 
-    // Izvada katru rindu kā spēlētāja kartīti (data-box)
     json.data.forEach((row, index) => {
       const box = document.createElement('div');
       box.className = 'data-box';
@@ -55,6 +52,21 @@ document.addEventListener('DOMContentLoaded', async () => {
       bottomSpan.className = 'bottom';
       bottomSpan.innerHTML = row.b ? `<b>${row.b}</b>` : '';
 
+      // Create a small red X button for returning the card to dataContainer
+      const closeBtn = document.createElement('span');
+      closeBtn.className = 'close-btn';
+      closeBtn.textContent = 'X';
+      closeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Move the card back to dataContainer
+        const card = closeBtn.parentElement;
+        card.setAttribute("draggable", "true");
+        dataContainer.appendChild(card);
+        showPopup("Spēlētājs atgriezts sākotnējā sarakstā");
+      });
+
+      // Append elements to the card
+      box.appendChild(closeBtn);
       box.appendChild(topSpan);
       box.appendChild(bottomSpan);
       dataContainer.appendChild(box);
@@ -63,7 +75,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.error('Kļūda, iegūstot datus no webapp:', error);
   }
 
-  // Komandu izveide – izveido komandu laukus ar dropzone un punktu ievades lauku
   createTeamsBtn.addEventListener('click', () => {
     teamsContainer.innerHTML = '';
     const count = parseInt(teamCountInput.value) || 0;
@@ -86,44 +97,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       teamBox.appendChild(pointsInput);
 
       teamsContainer.appendChild(teamBox);
-
-      // Attach dropzone events
-      dropzone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
-        dropzone.classList.add('hover');
-      });
-      dropzone.addEventListener('dragleave', () => {
-        dropzone.classList.remove('hover');
-      });
-      dropzone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropzone.classList.remove('hover');
-        const data = e.dataTransfer.getData('text/plain');
-        if (data) {
-          try {
-            const playerData = JSON.parse(data);
-            const originalElem = document.getElementById(playerData.id);
-            if (originalElem) {
-              // Ensure the element remains draggable
-              originalElem.setAttribute("draggable", "true");
-              dropzone.appendChild(originalElem);
-            }
-          } catch (err) {
-            console.error("Kļūda parsējot drag datus:", err);
-          }
-        }
-      });
     }
-    // Show the SPLIT button once teams are created
     splitButton.style.display = 'block';
     showPopup("Komandu lauki izveidoti!");
   });
 
-  // SPLIT pogas funkcionalitāte – sadala visus spēlētājus randomizēti starp komandām
   splitButton.addEventListener('click', () => {
     let allPlayers = Array.from(document.querySelectorAll('.data-box'));
-    // Shuffle using Fisher-Yates
     for (let i = allPlayers.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [allPlayers[i], allPlayers[j]] = [allPlayers[j], allPlayers[i]];
@@ -149,7 +129,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     showPopup("Spēlētāji sadalīti pa komandām!");
   });
 
-  // Enable dragging back to the data container
   dataContainer.addEventListener('dragover', (e) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
@@ -164,6 +143,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (originalElem) {
           originalElem.setAttribute("draggable", "true");
           dataContainer.appendChild(originalElem);
+          showPopup("Spēlētājs atgriezts sākotnējā sarakstā");
         }
       } catch (err) {
         console.error("Kļūda dataContainer drop:", err);
@@ -171,7 +151,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // "Saglabāt rezultātus" pogas funkcionalitāte – apkopo un nosūta rezultātus uz GAS
   saveResultsButton.addEventListener('click', () => {
     let results = [];
     const activity = activityDropdown.value;
@@ -192,7 +171,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     postResults(results);
   });
 
-  // "Sūtīt komandas nosaukumu" pogas funkcionalitāte – apkopo un nosūta katras komandas nosaukumu uz GAS
   sendTeamNamesButton.addEventListener('click', () => {
     let results = [];
     const teamBoxes = document.querySelectorAll('.team-box');
