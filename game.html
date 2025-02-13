@@ -73,7 +73,7 @@
     #createTeamsBtn:hover {
       background-color: #005bb5;
     }
-    /* SPLIT button – appears after teams are created */
+    /* SPLIT button */
     #splitButton {
       display: none;
       padding: 10px 20px;
@@ -89,7 +89,7 @@
     #splitButton:hover {
       background-color: #e08900;
     }
-    /* "Save Results" button */
+    /* Save Results button */
     #saveResultsButton {
       display: block;
       width: 100%;
@@ -106,7 +106,7 @@
     #saveResultsButton:hover {
       background-color: #28a745;
     }
-    /* "Sūtīt komandas nosaukumu" button */
+    /* Send Team Names button */
     #sendTeamNamesButton {
       display: block;
       width: 100%;
@@ -123,7 +123,7 @@
     #sendTeamNamesButton:hover {
       background-color: #d32f2f;
     }
-    /* Teams container – two columns */
+    /* Teams container – divas kolonnas blakus */
     #teamsContainer {
       display: flex;
       flex-wrap: wrap;
@@ -157,7 +157,7 @@
     .team-dropzone.hover {
       border-color: #007aff;
     }
-    /* Points input always visible at the bottom of the team box */
+    /* Points input always visible at the bottom */
     .points-input {
       margin-top: auto;
       width: 100%;
@@ -174,7 +174,7 @@
       flex-wrap: wrap;
       gap: 10px;
     }
-    /* Player card: reduced to 54x36px (from 60x40px) */
+    /* Player card: reduced size (54x36px) and relative for positioning close button */
     .data-box {
       width: 54px;
       height: 36px;
@@ -190,6 +190,7 @@
       cursor: grab;
       -webkit-user-select: none;
       user-select: none;
+      position: relative;
     }
     .data-box span {
       display: block;
@@ -202,6 +203,23 @@
     .data-box .bottom {
       font-size: 10px;
       margin-top: 2px;
+    }
+    /* Close button style for each player card */
+    .close-btn {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      color: red;
+      font-weight: bold;
+      font-size: 10px;
+      cursor: pointer;
+      background: #fff;
+      border-radius: 50%;
+      width: 14px;
+      height: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     /* Popup notification style */
     .popup {
