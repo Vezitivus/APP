@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const splitButton = document.getElementById('splitButton');
   const sendTeamNamesButton = document.getElementById('sendTeamNamesButton');
 
-  // Google Apps Script Webapp URL for GET requests
+  // Google Apps Script Webapp URL (for GET requests)
   const webAppUrl = 'https://script.google.com/macros/s/AKfycbwvbYSracMlNJ2dhhD74EtX2FjJ0ASsDcZBy7qGm9V-kgOWIoybclFSJN1dJ6TFmM-S/exec';
 
   try {
@@ -93,6 +93,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // SPLIT pogas funkcionalitāte – sadala visus spēlētājus randomizēti starp komandām
   splitButton.addEventListener('click', () => {
     let allPlayers = Array.from(document.querySelectorAll('.data-box'));
+    // Shuffle (Fisher-Yates algorithm)
     for (let i = allPlayers.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [allPlayers[i], allPlayers[j]] = [allPlayers[j], allPlayers[i]];
@@ -110,6 +111,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       for (let i = 0; i < countForThisTeam; i++) {
         if (currentIndex < allPlayers.length) {
           dropzone.appendChild(allPlayers[currentIndex]);
+          // Reapply draggable attribute just in case
+          allPlayers[currentIndex].setAttribute("draggable", "true");
           currentIndex++;
         }
       }
@@ -117,7 +120,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     showPopup("Spēlētāji sadalīti pa komandām!");
   });
 
-  // Atvilkt spēlētājus atpakaļ uz sākotnējo konteinera
+  // Atvilkt spēlētājus atpakaļ uz sākotnējo konteinera (dataContainer)
   dataContainer.addEventListener('dragover', (e) => {
     e.preventDefault();
   });
@@ -129,6 +132,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const playerData = JSON.parse(data);
         const originalElem = document.getElementById(playerData.id);
         if (originalElem) {
+          originalElem.setAttribute("draggable", "true");
           dataContainer.appendChild(originalElem);
         }
       } catch (err) {
@@ -137,7 +141,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // "Saglabāt rezultātus" pogas funkcionalitāte – apkopo rezultātus un nosūta uz GAS
+  // "Saglabāt rezultātus" pogas funkcionalitāte – apkopo rezultātus un nosūta uz GAS, izmantojot formu
   saveResultsButton.addEventListener('click', () => {
     let results = [];
     const activity = activityDropdown.value;
