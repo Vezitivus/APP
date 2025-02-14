@@ -19,7 +19,6 @@
       align-items: center;
       z-index: 9999;
     }
-
     /* Skrejošs aplis */
     .spinner {
       border: 8px solid #f3f3f3;
@@ -29,12 +28,10 @@
       height: 60px;
       animation: spin 1s linear infinite;
     }
-
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-
     /* Labās puses dizains – fiksēts platums un minimālas atstarpes info grupām */
     .profile-right {
       width: 300px;
@@ -51,7 +48,6 @@
       margin: 0;
       padding: 2px 0;
     }
-
     /* "Griezt Ratu" pogas dizains */
     .spin-wheel-section {
       display: flex;
@@ -86,7 +82,7 @@
   
   <div class="profile-page">
     <h1 class="main-title">VEZITIVUS WeekEnd</h1>
-
+    
     <!-- Profila sadaļa -->
     <section class="profile-section">
       <div class="profile-left">
@@ -116,12 +112,12 @@
         </div>
       </div>
     </section>
-
-    <!-- CHECK-IN poga -->
+    
+    <!-- CHECK‑IN poga (pēc noklusējuma paslēpta) -->
     <section class="checkin-section">
-      <button id="checkin-button" class="checkin-button">Check-In priekš aktivitātēm</button>
+      <button id="checkin-button" class="checkin-button">Check‑In priekš aktivitātēm</button>
     </section>
-
+    
     <!-- Apakšējās pogas -->
     <section class="buttons-section">
       <div class="buttons-grid">
@@ -134,48 +130,13 @@
         <div class="grid-margin"></div>
       </div>
     </section>
-
+    
     <!-- Griezt Ratu poga -->
     <section class="spin-wheel-section">
       <button class="spin-button" onclick="redirectToSpin()">🎡 Griezt Ratu</button>
     </section>
-
-    <script>
-      // Noņem loading pārklājumu, kad lapa ir pilnībā ielādēta
-      window.addEventListener("load", function() {
-        document.getElementById("loading-overlay").style.display = "none";
-      });
-
-      // Funkcija, lai pāradresētu uz "Vezitivus lenta" ar UID no URL
-      function redirectToActivity() {
-        const params = new URLSearchParams(window.location.search);
-        const uid = params.get("uid");
-        if (uid) {
-          window.location.href = `activity.html?uid=${uid}`;
-        } else {
-          alert("UID nav atrasts!");
-        }
-      }
-
-      // Funkcija, lai pāradresētu uz "Simpatijas balva" ar UID no lapas
-      function redirectToSimpathy() {
-        const uid = document.getElementById("nfc-id").innerText.trim();
-        window.location.href = `https://vezitivus.github.io/APP/simpathy.html?uid=${uid}`;
-      }
-
-      // Funkcija, lai pāradresētu uz "rats.html" ar UID no URL
-      function redirectToSpin() {
-        const params = new URLSearchParams(window.location.search);
-        const uid = params.get("uid");
-        if (uid) {
-          window.location.href = `rats.html?uid=${uid}`;
-        } else {
-          alert("UID nav atrasts!");
-        }
-      }
-    </script>
-
+    
+    <script src="profile.js"></script>
   </div>
-  <script src="profile.js"></script>
 </body>
 </html>
