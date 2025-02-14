@@ -95,7 +95,7 @@ document.addEventListener("DOMContentLoaded", function() {
   }
   fetchRemainingSpins();
 
-  // Periodiski atjaunojam balansu ik pa 2 s
+  // Periodiski atjaunojam balansu ik pēc 2 sekundēm
   setInterval(() => {
     fetchRemainingSpins();
   }, 2000);
@@ -120,7 +120,7 @@ document.addEventListener("DOMContentLoaded", function() {
     reels.push(reelObj);
   }
 
-  // Manuālā vilkšana
+  // Manuālā vilkšana ar pasīvajiem event listeneriem
   function addDragListeners(reelElem, reelObj) {
     let startY = 0, startOffset = 0;
     function onMouseDown(e) {
@@ -177,7 +177,7 @@ document.addEventListener("DOMContentLoaded", function() {
     r.innerElem.style.transform = `translateY(${r.offset}px)`;
   }
 
-  // Spin poga – rulli griežas ilgāk, turpina no iepriekšējās pozīcijas
+  // Spin poga – rulli griežas ilgāk (3 s pāreja, inkrementi 20–30) un turpina no vecās pozīcijas
   spinButton.addEventListener("click", function() {
     messageDiv.textContent = "";
     spinButton.disabled = true;
@@ -216,7 +216,7 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   }
   // Rezultāta animācija: 1 s statiska, tad 1 s animācija uz remainingSpins.
-  // Callback izsaukts pēc transitionend, tā rezultāts atjaunojas uzreiz.
+  // Callback izsaukts pēc pilnīgas pārejas, tā rezultāts atjaunojas uzreiz.
   function animateResultToCoin(resultText, callback) {
     const clone = messageDiv.cloneNode(true);
     clone.textContent = resultText;
@@ -312,6 +312,7 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   // Mini-spēles funkcija – Lucky Puzzle Challenge
+  // Izveidojam 9 šūnas: 4 pāri (8 aizpildītas) un 1 tukša šūna
   function triggerMiniGame() {
     const overlay = document.createElement("div");
     overlay.id = "miniGameOverlay";
@@ -327,23 +328,24 @@ document.addEventListener("DOMContentLoaded", function() {
     overlay.style.alignItems = "center";
     overlay.style.zIndex = "3000";
 
-    // Izveidojam 3x3 režģi
+    // Izveidojam 3x3 režģi (9 šūnas)
     const grid = document.createElement("div");
     grid.style.display = "grid";
     grid.style.gridTemplateColumns = "repeat(3, 80px)";
     grid.style.gridTemplateRows = "repeat(3, 80px)";
     grid.style.gap = "10px";
 
-    // Sagatavojam mini-spēles simbolus – divas pāres (piemēram, 💎 un ⭐)
-    const miniSymbols = ["💎", "💎", "⭐", "⭐"];
-    miniSymbols.sort(() => Math.random() - 0.5);
-    
-    // Izvēlam nejaušas 4 pozīcijas no 9
-    const positions = Array.from({length:9}, (_, i) => i);
-    positions.sort(() => Math.random() - 0.5);
-    const selectedPositions = positions.slice(0,4);
+    // Sagatavojam mini-spēles saturu: 4 pāri un 1 tukša šūna (kopā 9)
+    const pairEmojis = ["💎", "⭐", "🍒", "🍋"]; // 4 izvēlēti simboli
+    let miniValues = [];
+    pairEmojis.forEach(e => {
+      miniValues.push(e, e);
+    });
+    miniValues.push(""); // vienu tukšu šūnu
+    // Sajaucam nejauši
+    miniValues.sort(() => Math.random() - 0.5);
 
-    const cells = [];
+    // Izveidojam 9 šūnas
     for (let i = 0; i < 9; i++) {
       const cell = document.createElement("div");
       cell.className = "miniCell";
@@ -354,39 +356,53 @@ document.addEventListener("DOMContentLoaded", function() {
       cell.style.display = "flex";
       cell.style.justifyContent = "center";
       cell.style.alignItems = "center";
-      cell.style.cursor = "pointer";
+      cell.style.cursor = miniValues[i] ? "pointer" : "default";
       cell.style.transition = "border-color 0.3s";
       cell.dataset.flipped = "false";
-      if (selectedPositions.includes(i)) {
-        const sym = miniSymbols.pop();
-        cell.dataset.symbol = sym;
+      cell.dataset.value = miniValues[i];
+      // Tukšā šūna: rādām neko
+      if (!miniValues[i]) {
+        cell.style.backgroundColor = "#333";
+        cell.textContent = "";
+      } else {
+        cell.textContent = "";
+        cell.addEventListener("click", function() {
+          if (cell.dataset.flipped === "true") return;
+          cell.dataset.flipped = "true";
+          cell.textContent = cell.dataset.value;
+          cell.style.borderColor = "#FFD700";
+          checkMiniGame();
+        });
       }
-      cell.addEventListener("click", function() {
-        if (cell.dataset.flipped === "true") return;
-        cell.dataset.flipped = "true";
-        cell.textContent = cell.dataset.symbol || "";
-        cell.style.borderColor = "#FFD700";
-        checkMiniGame();
-      });
-      cells.push(cell);
       grid.appendChild(cell);
     }
     overlay.appendChild(grid);
     document.body.appendChild(overlay);
 
+    let firstSelection = null;
+    let secondSelection = null;
+    let firstCell = null;
+    let secondCell = null;
+
     function checkMiniGame() {
-      const flipped = cells.filter(cell => cell.dataset.flipped === "true");
-      if (flipped.length === 2) {
-        const first = flipped[0].dataset.symbol;
-        const second = flipped[1].dataset.symbol;
-        if (first === second) {
+      const flipped = Array.from(grid.querySelectorAll(".miniCell")).filter(cell => cell.dataset.flipped === "true" && cell.dataset.value);
+      if (flipped.length === 1) {
+        firstCell = flipped[0];
+        firstSelection = firstCell.dataset.value;
+      } else if (flipped.length === 2) {
+        secondCell = flipped[1];
+        secondSelection = secondCell.dataset.value;
+        if (firstSelection === secondSelection) {
           alert("Apsveicam! Tu ieguvi bonus: 10 papildu griezienus!");
           bonusSpins(10);
         } else {
           alert("Mini-spēle neveiksmīga. Mēģini vēlreiz!");
         }
-        cells.forEach(cell => {
-          cell.textContent = cell.dataset.symbol || "";
+        // Atiestatam šūnu stāvokli, lai spēlētājs var mēģināt vēlreiz
+        grid.querySelectorAll(".miniCell").forEach(cell => {
+          cell.dataset.flipped = "false";
+          cell.style.borderColor = "#0af";
+          cell.textContent = "";
         });
         setTimeout(() => overlay.remove(), 1000);
       }
@@ -394,7 +410,7 @@ document.addEventListener("DOMContentLoaded", function() {
     
     function bonusSpins(count) {
       console.log("Bonus spins: ", count);
-      // Šeit vari nosūtīt pieprasījumu uz serveri vai pievienot bonus loģiku.
+      // Šeit vari pievienot bonus loģiku (piemēram, nosūtīt pieprasījumu uz serveri)
     }
   }
 
