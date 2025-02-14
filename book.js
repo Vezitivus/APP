@@ -7,13 +7,16 @@ document.addEventListener("DOMContentLoaded", function() {
   const winBigSound = new Audio('winbig.mp3');
   const loseSound = new Audio('lose.mp3');
 
-  // Izmanto 14 unikālos emoji
-  const emojiSet = ['🍒','🍋','🍊','🍉','🍇','⭐','🔔','7️⃣','🍀','💎','🍏','🍐','🥝','🥭'];
+  // Izmanto 20 unikālos emoji
+  const emojiSet = [
+    '🍒','🍋','🍊','🍉','🍇','⭐','🔔','7️⃣','🍀','💎',
+    '🍏','🍐','🥝','🥭','🍍','🍓','🥑','🍌','🍈','🍄'
+  ];
   const reelSymbols = [];
   for (let i = 0; i < repeatCount; i++) {
     reelSymbols.push(...emojiSet);
   }
-  const totalSymbols = reelSymbols.length; // 14*10 = 140
+  const totalSymbols = reelSymbols.length; // 20 * 10 = 200
 
   const spinButton = document.getElementById("spinButton");
   const messageDiv = document.getElementById("message");
@@ -114,8 +117,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
   // Manuālā vilkšana
   function addDragListeners(reelElem, reelObj) {
-    let startY = 0;
-    let startOffset = 0;
+    let startY = 0, startOffset = 0;
     function onMouseDown(e) {
       reelObj.isDragging = true;
       startY = e.clientY;
@@ -170,7 +172,7 @@ document.addEventListener("DOMContentLoaded", function() {
     r.innerElem.style.transform = `translateY(${r.offset}px)`;
   }
 
-  // Spin poga – reāli griežas ilgāk; turpina no vecās pozīcijas
+  // Spin poga – reāli griežas ilgāk; turpina no iepriekšējās pozīcijas
   spinButton.addEventListener("click", function() {
     messageDiv.textContent = "";
     spinButton.disabled = true;
@@ -194,7 +196,7 @@ document.addEventListener("DOMContentLoaded", function() {
       }
     });
   });
-  // Pagarinam griešanās laiku: jauni increments 20..30, pāreja 3s
+  // Pagarinam griešanās laiku: inkrementi 20..30, pāreja 3 s
   function spinReel(r, done) {
     const increments = Math.floor(Math.random() * 11) + 20; // 20..30
     let newIndex = (r.currentIndex + increments) % totalSymbols;
@@ -208,8 +210,8 @@ document.addEventListener("DOMContentLoaded", function() {
       done();
     });
   }
-  // Rezultāta animācija: 1 sekunda statiska, tad 1 sekunde animācija uz remainingSpins
-  // Nav reēlu reset – turpina no vecās pozīcijas
+  // Rezultāta animācija: 1 s statiska, tad 1 s animācija uz remainingSpins
+  // Nav reēlu resetēšanas – nākamais grieziens turpina no vecās pozīcijas
   function animateResultToCoin(resultText, callback) {
     const clone = messageDiv.cloneNode(true);
     clone.textContent = resultText;
@@ -222,7 +224,7 @@ document.addEventListener("DOMContentLoaded", function() {
     clone.style.margin = "0";
     clone.style.transition = "none";
     messageDiv.parentElement.appendChild(clone);
-    // Statiskā fāze 1 sekunde, tad animācija 1s uz remainingSpins
+    // Statiskā fāze 1 s, tad animācija 1 s uz remainingSpins – rezultāts atjaunojas uzreiz pēc animācijas
     setTimeout(() => {
       clone.style.transition = "all 1s ease-out";
       const coinRect = remainingSpinsDiv.getBoundingClientRect();
@@ -230,7 +232,7 @@ document.addEventListener("DOMContentLoaded", function() {
       const deltaY = coinRect.top - msgRect.top;
       clone.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.5)`;
       clone.style.opacity = "0";
-      if (callback) callback(); // Atjaunojam pogu uzreiz
+      if (callback) callback();
     }, 1000);
     clone.addEventListener("transitionend", function onTransitionEnd() {
       clone.removeEventListener("transitionend", onTransitionEnd);
@@ -252,7 +254,7 @@ document.addEventListener("DOMContentLoaded", function() {
       counts[s] = (counts[s] || 0) + 1;
       if (counts[s] > maxCount) maxCount = counts[s];
     });
-    // Ja vismaz 3 "7️⃣" parādās, aktivizējam mini-spēli
+    // Ja vismaz 3 "7️⃣" parādās, aktivizē mini-spēli
     if (counts["7️⃣"] >= 3) {
       triggerMiniGame();
       return;
@@ -309,7 +311,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
   // Mini-spēles funkcija – Lucky Puzzle Challenge
   function triggerMiniGame() {
-    // Izveidojam modālo pārklājumu
     const overlay = document.createElement("div");
     overlay.id = "miniGameOverlay";
     overlay.style.position = "fixed";
@@ -391,82 +392,16 @@ document.addEventListener("DOMContentLoaded", function() {
     
     function bonusSpins(count) {
       console.log("Bonus spins: ", count);
-      // Šeit vari nosūtīt pieprasījumu uz serveri vai pievienot bonus loģiku.
+      // Šeit vari pievienot bonus loģiku – piemēram, nosūtīt pieprasījumu uz serveri.
     }
   }
 
-  // Ja mini-spēle tiek aktivizēta, tā tiks palaista, ja uzkrīt vismaz 3 "7️⃣"
-  // Tiek pieņemts, ka "7️⃣" ir viens no simboliem.
-  // Pēc to skaita noteikšanas checkResult() funkcijā mini-spēle tiks izsaukta.
-  
-  // CheckResult funkcija – aprēķina rezultātu
-  function checkResult() {
-    const chosenMultiplier = parseInt(multiplierSelect.value, 10) || 1;
-    const stake = 1;
-    const activeSymbols = [];
-    reels.forEach(r => {
-      let idx = Math.round((40 - r.offset) / symbolHeight) % totalSymbols;
-      if (idx < 0) idx += totalSymbols;
-      activeSymbols.push(reelSymbols[idx]);
-    });
-    const counts = {};
-    let maxCount = 0;
-    activeSymbols.forEach(s => {
-      counts[s] = (counts[s] || 0) + 1;
-      if (counts[s] > maxCount) maxCount = counts[s];
-    });
-    // Ja vismaz 3 "7️⃣" parādās, aktivizē mini-spēli
-    if (counts["7️⃣"] >= 3) {
-      triggerMiniGame();
-      return;
-    }
-    let winFactor = 0;
-    if (maxCount === 5) {
-      let customWin = parseInt(window.prompt("Ievadi savu laimesta vērtību:"), 10);
-      if (isNaN(customWin) || customWin <= 0) {
-        customWin = chosenMultiplier * 1000;
-      }
-      const resultAmount = customWin;
-      deductSpins(-resultAmount, function() {
-        fetchRemainingSpins();
-        container.classList.remove("spinning");
-        container.classList.add("win");
-        animateResultToCoin("+" + resultAmount, function() {
-          spinButton.disabled = false;
-          setTimeout(() => container.classList.remove("win"), 1500);
-        });
-        winBigSound.play();
-      });
-      return;
-    } else if (maxCount === 4) {
-      winFactor = 100;
-    } else if (maxCount === 3) {
-      if (Object.values(counts).includes(2)) {
-        winFactor = 25;
-      } else {
-        winFactor = 10;
-      }
-    } else {
-      const loseAmount = stake * chosenMultiplier;
-      container.classList.remove("spinning");
-      container.classList.add("loss");
-      animateResultToCoin("-" + loseAmount, function() {
-        spinButton.disabled = false;
-        setTimeout(() => container.classList.remove("loss"), 1500);
-      });
-      loseSound.play();
-      return;
-    }
-    const resultAmount = stake * chosenMultiplier * winFactor;
-    deductSpins(-resultAmount, function() {
-      fetchRemainingSpins();
-      container.classList.remove("spinning");
-      container.classList.add("win");
-      animateResultToCoin("+" + resultAmount, function() {
-        spinButton.disabled = false;
-        setTimeout(() => container.classList.remove("win"), 1500);
-      });
-      winSound.play();
-    });
+  // Ja atlikums sasniedz ≤ -10000, parādām debt paziņojumu un bloķējam spēli.
+  function showDebtPopup() {
+    const popup = document.createElement("div");
+    popup.className = "debtPopup";
+    popup.textContent = "Tu esi sasniedzis ārkārtīgi lielu parādu! Apsver iespēju atbalstīt Vezitivus, lai samazinātu savu parādu un turpinātu spēlēt.";
+    document.body.appendChild(popup);
+    spinButton.disabled = true;
   }
 });
