@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Book Of Vezitivus</title>
   <style>
-    /* Retro slot machine + iOS stils */
+    /* Retro slot machine un iOS stils */
     body {
       background: linear-gradient(135deg, #111, #333);
       margin: 0;
@@ -17,6 +17,7 @@
       min-height: 100vh;
       color: #eee;
     }
+    /* Galvenais konteiners – sākotnēji ar zilu perimetru */
     #container {
       width: 95%;
       max-width: 400px;
@@ -35,7 +36,6 @@
       color: #0af;
       text-shadow: 0 0 8px #0af;
     }
-    /* Kopsummas rādītājs */
     #remainingSpins {
       position: absolute;
       top: 15px;
@@ -118,7 +118,6 @@
       font-size: 1em;
       margin-right: 8px;
     }
-    /* Multiplikatoru izvēlne */
     #multiplierSelect {
       font-size: 1em;
       padding: 5px;
@@ -127,7 +126,32 @@
       background: #eee;
       color: #333;
     }
-    /* Paziņojuma stils, kad sasniegts liels parāds */
+    /* Dinamiskās perimetra animācijas */
+    #container.spinning {
+      animation: pulseBlue 1s infinite;
+    }
+    @keyframes pulseBlue {
+      0% { border-color: #007aff; }
+      50% { border-color: #66b3ff; }
+      100% { border-color: #007aff; }
+    }
+    #container.win {
+      animation: pulseGold 1s infinite;
+    }
+    @keyframes pulseGold {
+      0% { border-color: gold; }
+      50% { border-color: #ffd700; }
+      100% { border-color: gold; }
+    }
+    #container.loss {
+      animation: pulseRed 1s infinite;
+    }
+    @keyframes pulseRed {
+      0% { border-color: red; }
+      50% { border-color: #ff6666; }
+      100% { border-color: red; }
+    }
+    /* Popup debt paziņojumam */
     .debtPopup {
       position: fixed;
       top: 50%;
@@ -136,7 +160,7 @@
       background-color: #444;
       color: #fff;
       padding: 20px;
-      border: 3px solid red;
+      border: 3px solid #ff0000;
       border-radius: 10px;
       text-align: center;
       z-index: 2000;
@@ -144,8 +168,8 @@
       font-size: 1.5em;
     }
     @keyframes flash {
-      from { border-color: red; }
-      to { border-color: yellow; }
+      from { border-color: #ff0000; }
+      to { border-color: #ff6666; }
     }
     @keyframes bounce {
       0% { transform: scale(1); }
