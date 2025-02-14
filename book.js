@@ -95,6 +95,11 @@ document.addEventListener("DOMContentLoaded", function() {
   }
   fetchRemainingSpins();
 
+  // Periodiski atjaunojam balansu ik pa 2 s
+  setInterval(() => {
+    fetchRemainingSpins();
+  }, 2000);
+
   // Sagatavojam reēlus
   const reels = [];
   for (let i = 0; i < 5; i++) {
@@ -123,8 +128,8 @@ document.addEventListener("DOMContentLoaded", function() {
       startY = e.clientY;
       startOffset = reelObj.offset;
       reelObj.innerElem.style.transition = "none";
-      document.addEventListener("mousemove", onMouseMove);
-      document.addEventListener("mouseup", onMouseUp);
+      document.addEventListener("mousemove", onMouseMove, { passive: true });
+      document.addEventListener("mouseup", onMouseUp, { passive: true });
     }
     function onMouseMove(e) {
       if (!reelObj.isDragging) return;
@@ -145,8 +150,8 @@ document.addEventListener("DOMContentLoaded", function() {
       startY = e.touches[0].clientY;
       startOffset = reelObj.offset;
       reelObj.innerElem.style.transition = "none";
-      document.addEventListener("touchmove", onTouchMove);
-      document.addEventListener("touchend", onTouchEnd);
+      document.addEventListener("touchmove", onTouchMove, { passive: true });
+      document.addEventListener("touchend", onTouchEnd, { passive: true });
     }
     function onTouchMove(e) {
       if (!reelObj.isDragging) return;
@@ -172,7 +177,7 @@ document.addEventListener("DOMContentLoaded", function() {
     r.innerElem.style.transform = `translateY(${r.offset}px)`;
   }
 
-  // Spin poga – rulli griežas ilgāk; turpina no iepriekšējās pozīcijas
+  // Spin poga – rulli griežas ilgāk, turpina no iepriekšējās pozīcijas
   spinButton.addEventListener("click", function() {
     messageDiv.textContent = "";
     spinButton.disabled = true;
@@ -211,7 +216,7 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   }
   // Rezultāta animācija: 1 s statiska, tad 1 s animācija uz remainingSpins.
-  // Callback izsaukts pēc pilnīgas pārejas (transitionend).
+  // Callback izsaukts pēc transitionend, tā rezultāts atjaunojas uzreiz.
   function animateResultToCoin(resultText, callback) {
     const clone = messageDiv.cloneNode(true);
     clone.textContent = resultText;
@@ -222,17 +227,14 @@ document.addEventListener("DOMContentLoaded", function() {
     clone.style.left = (msgRect.left - containerRect.left) + "px";
     clone.style.top = (msgRect.top - containerRect.top) + "px";
     clone.style.margin = "0";
-    clone.style.transition = "none";
+    // Sāksim animāciju uzreiz
+    clone.style.transition = "all 1s ease-out";
     messageDiv.parentElement.appendChild(clone);
-    // Statiskā fāze 1 s, tad animācija 1 s uz remainingSpins:
-    setTimeout(() => {
-      clone.style.transition = "all 1s ease-out";
-      const coinRect = remainingSpinsDiv.getBoundingClientRect();
-      const deltaX = coinRect.left - msgRect.left;
-      const deltaY = coinRect.top - msgRect.top;
-      clone.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.5)`;
-      clone.style.opacity = "0";
-    }, 1000);
+    const coinRect = remainingSpinsDiv.getBoundingClientRect();
+    const deltaX = coinRect.left - msgRect.left;
+    const deltaY = coinRect.top - msgRect.top;
+    clone.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.5)`;
+    clone.style.opacity = "0";
     clone.addEventListener("transitionend", function onTransitionEnd() {
       clone.removeEventListener("transitionend", onTransitionEnd);
       clone.remove();
@@ -404,9 +406,4 @@ document.addEventListener("DOMContentLoaded", function() {
     document.body.appendChild(popup);
     spinButton.disabled = true;
   }
-
-  // Jaunas: Periodiska rezultāta atjaunošana ik pēc 2 sekundēm
-  setInterval(() => {
-    fetchRemainingSpins();
-  }, 20);
 });
