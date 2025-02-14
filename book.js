@@ -172,7 +172,7 @@ document.addEventListener("DOMContentLoaded", function() {
     r.innerElem.style.transform = `translateY(${r.offset}px)`;
   }
 
-  // Spin poga – rulli griežas ilgāk; turpina no vecās pozīcijas
+  // Spin poga – rulli griežas ilgāk; turpina no iepriekšējās pozīcijas
   spinButton.addEventListener("click", function() {
     messageDiv.textContent = "";
     spinButton.disabled = true;
@@ -211,7 +211,7 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   }
   // Rezultāta animācija: 1 s statiska, tad 1 s animācija uz remainingSpins.
-  // Callback tiek izsaukts, kad animācija pilnībā beidzas.
+  // Callback izsaukts pēc pilnīgas pārejas (transitionend).
   function animateResultToCoin(resultText, callback) {
     const clone = messageDiv.cloneNode(true);
     clone.textContent = resultText;
@@ -236,7 +236,7 @@ document.addEventListener("DOMContentLoaded", function() {
     clone.addEventListener("transitionend", function onTransitionEnd() {
       clone.removeEventListener("transitionend", onTransitionEnd);
       clone.remove();
-      if (callback) callback(); // Callback izsaukts pēc animācijas beigām
+      if (callback) callback();
     });
   }
   function checkResult() {
@@ -404,4 +404,9 @@ document.addEventListener("DOMContentLoaded", function() {
     document.body.appendChild(popup);
     spinButton.disabled = true;
   }
+
+  // Jaunas: Periodiska rezultāta atjaunošana ik pēc 2 sekundēm
+  setInterval(() => {
+    fetchRemainingSpins();
+  }, 2000);
 });
