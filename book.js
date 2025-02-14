@@ -172,7 +172,7 @@ document.addEventListener("DOMContentLoaded", function() {
     r.innerElem.style.transform = `translateY(${r.offset}px)`;
   }
 
-  // Spin poga – reāli griežas ilgāk; turpina no iepriekšējās pozīcijas
+  // Spin poga – rulli griežas ilgāk; turpina no vecās pozīcijas
   spinButton.addEventListener("click", function() {
     messageDiv.textContent = "";
     spinButton.disabled = true;
@@ -210,8 +210,8 @@ document.addEventListener("DOMContentLoaded", function() {
       done();
     });
   }
-  // Rezultāta animācija: 1 s statiska, tad 1 s animācija uz remainingSpins
-  // Nav reēlu resetēšanas – nākamais grieziens turpina no vecās pozīcijas
+  // Rezultāta animācija: 1 s statiska, tad 1 s animācija uz remainingSpins.
+  // Callback tiek izsaukts, kad animācija pilnībā beidzas.
   function animateResultToCoin(resultText, callback) {
     const clone = messageDiv.cloneNode(true);
     clone.textContent = resultText;
@@ -224,7 +224,7 @@ document.addEventListener("DOMContentLoaded", function() {
     clone.style.margin = "0";
     clone.style.transition = "none";
     messageDiv.parentElement.appendChild(clone);
-    // Statiskā fāze 1 s, tad animācija 1 s uz remainingSpins – rezultāts atjaunojas uzreiz pēc animācijas
+    // Statiskā fāze 1 s, tad animācija 1 s uz remainingSpins:
     setTimeout(() => {
       clone.style.transition = "all 1s ease-out";
       const coinRect = remainingSpinsDiv.getBoundingClientRect();
@@ -232,11 +232,11 @@ document.addEventListener("DOMContentLoaded", function() {
       const deltaY = coinRect.top - msgRect.top;
       clone.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.5)`;
       clone.style.opacity = "0";
-      if (callback) callback();
     }, 1000);
     clone.addEventListener("transitionend", function onTransitionEnd() {
       clone.removeEventListener("transitionend", onTransitionEnd);
       clone.remove();
+      if (callback) callback(); // Callback izsaukts pēc animācijas beigām
     });
   }
   function checkResult() {
@@ -392,7 +392,7 @@ document.addEventListener("DOMContentLoaded", function() {
     
     function bonusSpins(count) {
       console.log("Bonus spins: ", count);
-      // Šeit vari pievienot bonus loģiku – piemēram, nosūtīt pieprasījumu uz serveri.
+      // Šeit vari nosūtīt pieprasījumu uz serveri vai pievienot bonus loģiku.
     }
   }
 
