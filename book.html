@@ -17,7 +17,7 @@
       min-height: 100vh;
       color: #eee;
     }
-    /* Galvenais konteiners – sākotnēji ar zilu perimetru */
+    /* Konteiners ar dinamisku perimetru */
     #container {
       width: 95%;
       max-width: 400px;
@@ -26,9 +26,29 @@
       position: relative;
       background: #000;
       border-radius: 20px;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.8);
       padding: 20px;
+      /* Noklusējuma perimetra krāsa – zila */
       border: 3px solid #007aff;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.8);
+    }
+    /* Spinning: pulsējoša zila, win: zelta, loss: sarkana */
+    #container.spinning { animation: pulseBlue 1s infinite; }
+    @keyframes pulseBlue {
+      0% { border-color: #007aff; }
+      50% { border-color: #66b3ff; }
+      100% { border-color: #007aff; }
+    }
+    #container.win { animation: pulseGold 1s infinite; }
+    @keyframes pulseGold {
+      0% { border-color: gold; }
+      50% { border-color: #ffd700; }
+      100% { border-color: gold; }
+    }
+    #container.loss { animation: pulseRed 1s infinite; }
+    @keyframes pulseRed {
+      0% { border-color: red; }
+      50% { border-color: #ff6666; }
+      100% { border-color: red; }
     }
     h1 {
       font-size: 2.5em;
@@ -69,7 +89,7 @@
       top: 0;
       left: 0;
       width: 100%;
-      height: 4000px;
+      height: 4000px; /* 100 simboli * 40px */
       transition: transform 2s ease-out;
     }
     .symbol {
@@ -118,6 +138,7 @@
       font-size: 1em;
       margin-right: 8px;
     }
+    /* Multiplikatoru izvēlne */
     #multiplierSelect {
       font-size: 1em;
       padding: 5px;
@@ -126,32 +147,7 @@
       background: #eee;
       color: #333;
     }
-    /* Dinamiskās perimetra animācijas */
-    #container.spinning {
-      animation: pulseBlue 1s infinite;
-    }
-    @keyframes pulseBlue {
-      0% { border-color: #007aff; }
-      50% { border-color: #66b3ff; }
-      100% { border-color: #007aff; }
-    }
-    #container.win {
-      animation: pulseGold 1s infinite;
-    }
-    @keyframes pulseGold {
-      0% { border-color: gold; }
-      50% { border-color: #ffd700; }
-      100% { border-color: gold; }
-    }
-    #container.loss {
-      animation: pulseRed 1s infinite;
-    }
-    @keyframes pulseRed {
-      0% { border-color: red; }
-      50% { border-color: #ff6666; }
-      100% { border-color: red; }
-    }
-    /* Popup debt paziņojumam */
+    /* Debt popup stils */
     .debtPopup {
       position: fixed;
       top: 50%;
