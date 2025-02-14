@@ -35,6 +35,7 @@
       color: #0af;
       text-shadow: 0 0 8px #0af;
     }
+    /* Kopsummas rādītājs */
     #remainingSpins {
       position: absolute;
       top: 15px;
@@ -44,6 +45,7 @@
       padding: 6px 10px;
       border-radius: 10px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.8);
+      z-index: 1000;
     }
     .reels {
       display: flex;
@@ -116,7 +118,7 @@
       font-size: 1em;
       margin-right: 8px;
     }
-    /* Izvēlne ar multiplikatoriem – tagad ir opcijas: 1,2,3,4,5,6,7,8,9,10,25,50,100,1000 */
+    /* Multiplikatoru izvēlne */
     #multiplierSelect {
       font-size: 1em;
       padding: 5px;
@@ -124,6 +126,26 @@
       border: 1px solid #ccc;
       background: #eee;
       color: #333;
+    }
+    /* Paziņojuma stils, kad sasniegts liels parāds */
+    .debtPopup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #444;
+      color: #fff;
+      padding: 20px;
+      border: 3px solid red;
+      border-radius: 10px;
+      text-align: center;
+      z-index: 2000;
+      animation: flash 1s infinite alternate;
+      font-size: 1.5em;
+    }
+    @keyframes flash {
+      from { border-color: red; }
+      to { border-color: yellow; }
     }
     @keyframes bounce {
       0% { transform: scale(1); }
@@ -140,11 +162,21 @@
     <div id="remainingSpins">🪙 Loading...</div>
     <h1>Book Of Vezitivus</h1>
     <div class="reels" id="reels">
-      <div class="reel" data-reel="0"><div class="reel-inner" id="reel0-inner"></div></div>
-      <div class="reel" data-reel="1"><div class="reel-inner" id="reel1-inner"></div></div>
-      <div class="reel" data-reel="2"><div class="reel-inner" id="reel2-inner"></div></div>
-      <div class="reel" data-reel="3"><div class="reel-inner" id="reel3-inner"></div></div>
-      <div class="reel" data-reel="4"><div class="reel-inner" id="reel4-inner"></div></div>
+      <div class="reel" data-reel="0">
+        <div class="reel-inner" id="reel0-inner"></div>
+      </div>
+      <div class="reel" data-reel="1">
+        <div class="reel-inner" id="reel1-inner"></div>
+      </div>
+      <div class="reel" data-reel="2">
+        <div class="reel-inner" id="reel2-inner"></div>
+      </div>
+      <div class="reel" data-reel="3">
+        <div class="reel-inner" id="reel3-inner"></div>
+      </div>
+      <div class="reel" data-reel="4">
+        <div class="reel-inner" id="reel4-inner"></div>
+      </div>
     </div>
     <button id="spinButton">Kruķīt</button>
     <div class="controls">
