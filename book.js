@@ -408,5 +408,5 @@ document.addEventListener("DOMContentLoaded", function() {
   // Jaunas: Periodiska rezultāta atjaunošana ik pēc 2 sekundēm
   setInterval(() => {
     fetchRemainingSpins();
-  }, 2000);
+  }, 200);
 });
