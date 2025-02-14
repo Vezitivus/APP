@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   const imageInput = document.getElementById("image-input");
   const checkinButton = document.getElementById("checkin-button");
 
-  // Paslēpjam Check-In pogu uzreiz pēc ielādes
+  // Paslēpjam Check‑In pogu uzreiz pēc ielādes
   checkinButton.style.display = "none";
 
   // 1) Ielādējam profila datus
@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     const res = await fetch(`${scriptUrl}?action=getProfile&uid=${uid}`);
     const data = await res.json();
     if (data.status === "success") {
-      // Parādam Vārdu, ID, Kopvērtējuma vietu
+      // Parādam Vārdu, ID, Kopvērtējuma vietu un Tava Komanda
       document.getElementById("username").innerText = data.username || "";
       document.getElementById("nfc-id").innerText = data.uid || "";
       document.getElementById("place").innerText = data.place || "";
@@ -39,10 +39,9 @@ document.addEventListener("DOMContentLoaded", async function () {
         changeButton.innerText = "Izvēlēties attēlu";
       }
 
-      // Check-In pogas loģika
-      const checkinStatus = data.checkinStatus; // C kolonna
-      const globalCheckinEnabled = data.globalCheckinEnabled; // C4 vērtība
-
+      // Check‑In pogas loģika
+      const checkinStatus = data.checkinStatus; // Lietotāja check‑in statuss (C kolonna)
+      const globalCheckinEnabled = data.globalCheckinEnabled; // Globāla opcija (Lapa1!C4)
       if (globalCheckinEnabled === "TRUE" && checkinStatus === "FALSE") {
         checkinButton.style.display = "block"; // Parādām pogu
       }
@@ -90,7 +89,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         profileImage.style.display = "block";
         changeButton.innerText = "Nomainīt attēlu";
 
-        // 2) Sūtām uz Apps Script => vispirms dzēs veco, tad saglabā jauno
+        // 2) Sūtām uz Apps Script – vispirms dzēs veco, tad saglabā jauno
         const saveUrl =
           `${scriptUrl}?action=saveImage&uid=${uid}` +
           `&imageUrl=${encodeURIComponent(result.secure_url)}` +
@@ -112,7 +111,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
   });
 
-  // 3) Check-In pogas darbība
+  // 3) Check‑In pogas darbība
   checkinButton.addEventListener("click", async function () {
     try {
       const checkinRes = await fetch(`${scriptUrl}?action=checkIn&uid=${uid}`);
@@ -122,12 +121,12 @@ document.addEventListener("DOMContentLoaded", async function () {
 
       if (checkinData.status === "success") {
         checkinButton.style.display = "none"; // Paslēpjam pogu
-        alert("Check-In veiksmīgi reģistrēts!");
+        alert("Check‑In veiksmīgi reģistrēts!");
       } else {
-        alert("Kļūda Check-In procesā: " + checkinData.message);
+        alert("Kļūda Check‑In procesā: " + checkinData.message);
       }
     } catch (err) {
-      console.error("Kļūda Check-In procesā:", err);
+      console.error("Kļūda Check‑In procesā:", err);
       alert("Savienojuma problēma, lūdzu mēģiniet vēlreiz.");
     }
   });
