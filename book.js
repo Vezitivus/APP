@@ -1,20 +1,20 @@
 document.addEventListener("DOMContentLoaded", function() {
   // Parametri
   const symbolHeight = 40;
-  const visibleCount = 3; 
-  const repeatCount = 10; // reizinām emojiSet 10 reizes => 100 simboli
+  const repeatCount = 10; // 10× emojiSet
   const spinSound = new Audio('griez.mp3');
   const winSound = new Audio('win.mp3');
   const winBigSound = new Audio('winbig.mp3');
   const loseSound = new Audio('lose.mp3');
 
-  // Emoji masīvs (10 unikāli)
-  const emojiSet = ['🍒','🍋','🍊','🍉','🍇','⭐','🔔','7️⃣','🍀','💎'];
+  // Izmanto 14 unikālos emoji – vari aizvietot esošo masīvu ar 14 elementiem
+  const emojiSet = ['🍒','🍋','🍊','🍉','🍇','⭐','🔔','7️⃣','🍀','💎','🍏','🍐','🥝','🥭'];
+  // Ja vēlies izmantot 14, nomaini repeatCount vai pielāgo loģiku – šeit pielietojam repeatCount = 10, tātad kopā būs 140 simboli.
   const reelSymbols = [];
   for (let i = 0; i < repeatCount; i++) {
     reelSymbols.push(...emojiSet);
   }
-  const totalSymbols = reelSymbols.length; // 100
+  const totalSymbols = reelSymbols.length; // 140, ja emojiSet ir 14 un repeatCount = 10
 
   const spinButton = document.getElementById("spinButton");
   const messageDiv = document.getElementById("message");
@@ -33,23 +33,17 @@ document.addEventListener("DOMContentLoaded", function() {
     return uid;
   }
   const uid = getUID();
-  // Norādi savu Google Apps Script Web App URL:
   const sheetUrlBase = "https://script.google.com/macros/s/AKfycbyS8FWFUDIInu7NFBxa8BP2qGeoLdoLdIxRVs-aL8ss9umKeGU88D17QHSlPVb2z7o5qQ/exec";
 
-  // Atjauno kopsummu
   function fetchRemainingSpins() {
-    if (!uid) {
-      remainingSpinsDiv.textContent = "🪙 N/A";
-      return;
-    }
+    if (!uid) { remainingSpinsDiv.textContent = "🪙 N/A"; return; }
     const callbackName = "handleSpinResponse";
     const script = document.createElement("script");
     window[callbackName] = function(data) {
       if (data && data.K !== undefined) {
-        // Uzstādām kopsummu
-        remainingSpinsDiv.textContent = "🪙 " + data.K;
-        // Ja kopsumma ir negatīva => sarkans fons, citādi parasts
-        if (data.K < 0) {
+        const spinsVal = data.K;
+        remainingSpinsDiv.textContent = "🪙 " + spinsVal;
+        if (spinsVal < 0) {
           remainingSpinsDiv.style.backgroundColor = "red";
         } else {
           remainingSpinsDiv.style.backgroundColor = "";
@@ -72,8 +66,6 @@ document.addEventListener("DOMContentLoaded", function() {
     };
     document.body.appendChild(script);
   }
-
-  // Atskaitām griezienus Google Sheets pusē
   function deductSpins(amount, callback) {
     if (!uid) return callback();
     const callbackName = "handleDeductResponse";
@@ -93,15 +85,13 @@ document.addEventListener("DOMContentLoaded", function() {
     };
     document.body.appendChild(script);
   }
-
   fetchRemainingSpins();
 
-  // Reel sagatavošana
+  // Sagatavojam reēlus
   const reels = [];
   for (let i = 0; i < 5; i++) {
     const reelElem = reelsContainer.children[i];
     const innerElem = reelElem.querySelector('.reel-inner');
-    // Piepildām ar 100 simboliem
     innerElem.innerHTML = "";
     reelSymbols.forEach(sym => {
       const div = document.createElement("div");
@@ -109,7 +99,7 @@ document.addEventListener("DOMContentLoaded", function() {
       div.textContent = sym;
       innerElem.appendChild(div);
     });
-    // Nejauša sākuma index
+    // Nejaušs sākuma index
     const randIndex = Math.floor(Math.random() * totalSymbols);
     const initOffset = 40 - randIndex * symbolHeight;
     innerElem.style.transform = `translateY(${initOffset}px)`;
@@ -118,7 +108,6 @@ document.addEventListener("DOMContentLoaded", function() {
     reels.push(reelObj);
   }
 
-  // Manuālā vilkšana
   function addDragListeners(reelElem, reelObj) {
     let startY = 0;
     let startOffset = 0;
@@ -143,8 +132,6 @@ document.addEventListener("DOMContentLoaded", function() {
       document.removeEventListener("mouseup", onMouseUp);
     }
     reelElem.addEventListener("mousedown", onMouseDown);
-
-    // Touch events
     function onTouchStart(e) {
       reelObj.isDragging = true;
       startY = e.touches[0].clientY;
@@ -167,32 +154,27 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     reelElem.addEventListener("touchstart", onTouchStart);
   }
-
-  function snapReel(reelObj) {
-    let index = Math.round((40 - reelObj.offset) / symbolHeight);
+  function snapReel(r) {
+    let index = Math.round((40 - r.offset) / symbolHeight);
     if (index < 0) index += totalSymbols;
     index = index % totalSymbols;
-    reelObj.currentIndex = index;
-    reelObj.offset = 40 - index * symbolHeight;
-    reelObj.innerElem.style.transition = "transform 0.3s ease-out";
-    reelObj.innerElem.style.transform = `translateY(${reelObj.offset}px)`;
+    r.currentIndex = index;
+    r.offset = 40 - index * symbolHeight;
+    r.innerElem.style.transition = "transform 0.3s ease-out";
+    r.innerElem.style.transform = `translateY(${r.offset}px)`;
   }
 
-  // Spin poga
   spinButton.addEventListener("click", function() {
     messageDiv.textContent = "";
     spinButton.disabled = true;
     spinSound.loop = true;
     spinSound.play();
     const chosenMultiplier = parseInt(multiplierSelect.value, 10) || 1;
-    // Atskaitām griezienus (var radīt negatīvu skaitu)
-    deductSpins(chosenMultiplier, function() {
-      fetchRemainingSpins();
-    });
+    deductSpins(chosenMultiplier, function() { fetchRemainingSpins(); });
     let finishCount = 0;
-    reels.forEach(reelObj => {
-      if (!reelObj.isDragging) {
-        spinReel(reelObj, () => {
+    reels.forEach(r => {
+      if (!r.isDragging) {
+        spinReel(r, () => {
           finishCount++;
           if (finishCount === reels.length) {
             spinSound.pause();
@@ -203,24 +185,20 @@ document.addEventListener("DOMContentLoaded", function() {
       }
     });
   });
-
-  function spinReel(reelObj, done) {
-    // nejaušs increments
+  function spinReel(r, done) {
     const increments = Math.floor(Math.random() * 11) + 10; // 10..20
-    let newIndex = reelObj.currentIndex + increments;
-    newIndex = newIndex % totalSymbols;
-    reelObj.currentIndex = newIndex;
-    reelObj.offset = 40 - newIndex * symbolHeight;
-    reelObj.innerElem.style.transition = "transform 2s ease-out";
-    reelObj.innerElem.style.transform = `translateY(${reelObj.offset}px)`;
-    reelObj.innerElem.addEventListener("transitionend", function handler() {
-      reelObj.innerElem.style.transition = "";
-      reelObj.innerElem.removeEventListener("transitionend", handler);
+    let newIndex = (r.currentIndex + increments) % totalSymbols;
+    r.currentIndex = newIndex;
+    r.offset = 40 - newIndex * symbolHeight;
+    r.innerElem.style.transition = "transform 2s ease-out";
+    r.innerElem.style.transform = `translateY(${r.offset}px)`;
+    r.innerElem.addEventListener("transitionend", function handler() {
+      r.innerElem.style.transition = "";
+      r.innerElem.removeEventListener("transitionend", handler);
       done();
     });
   }
-
-  // Animācija (1 sek atrodas vietā, tad 2 sek slīd)
+  // Rezultāta animācija: klons parādās, noturās 1 sekundes, tad 1 sekundes laikā animējas uz remainingSpinsDiv
   function animateResultToCoin(resultText, callback) {
     const clone = messageDiv.cloneNode(true);
     clone.textContent = resultText;
@@ -232,8 +210,9 @@ document.addEventListener("DOMContentLoaded", function() {
     clone.style.margin = "0";
     clone.style.transition = "none";
     messageDiv.parentElement.appendChild(clone);
+    // Turpina 1 sekundes nekustoties
     setTimeout(() => {
-      clone.style.transition = "all 2s ease-out";
+      clone.style.transition = "all 1s ease-out";
       const coinRect = remainingSpinsDiv.getBoundingClientRect();
       const deltaX = coinRect.left - msgRect.left;
       const deltaY = coinRect.top - msgRect.top;
@@ -246,8 +225,6 @@ document.addEventListener("DOMContentLoaded", function() {
       if (callback) callback();
     });
   }
-
-  // Rezultāta loģika
   function checkResult() {
     const chosenMultiplier = parseInt(multiplierSelect.value, 10) || 1;
     const stake = 1;
@@ -287,7 +264,6 @@ document.addEventListener("DOMContentLoaded", function() {
         winFactor = 10;
       }
     } else {
-      // Zaudējums
       const loseAmount = stake * chosenMultiplier;
       animateResultToCoin("-" + loseAmount, function() {
         spinButton.disabled = false;
