@@ -17,7 +17,7 @@
       min-height: 100vh;
       color: #eee;
     }
-    /* Konteiners ar dinamisku perimetru */
+    /* Konteiners ar dinamisku perimetru – sākotnēji zils */
     #container {
       width: 95%;
       max-width: 400px;
@@ -27,7 +27,7 @@
       background: #000;
       border-radius: 20px;
       padding: 20px;
-      border: 3px solid #007aff; /* Noklusējuma – zils */
+      border: 3px solid #007aff;
       box-shadow: 0 10px 20px rgba(0,0,0,0.8);
     }
     /* Spinning: pulsējoša zila, win: zelta, loss: sarkana */
@@ -88,7 +88,9 @@
       top: 0;
       left: 0;
       width: 100%;
-      height: 4000px; /* Piemēram, 100 simboli * 40px; tagad būs 200px, ja repeatCount mainīts, bet to aprēķina automātiski */
+      /* Ja tagad ir 20 emoji atkārtoti 10 reizes, kopā 200 simboli:
+         augstums = 200 * symbolHeight = 200 * 40 = 8000px */
+      height: 8000px;
       transition: transform 2s ease-out;
     }
     .symbol {
