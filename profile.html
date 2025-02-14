@@ -1,142 +1,133 @@
-<!DOCTYPE html>
-<html lang="lv">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VEZITIVUS WeekEnd</title>
-  <link rel="stylesheet" href="styles.css">
-  <style>
-    /* Pilnekrāna loading pārklājums */
-    #loading-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(255, 255, 255, 0.8);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
+document.addEventListener("DOMContentLoaded", async function () {
+  const params = new URLSearchParams(window.location.search);
+  const uid = params.get("uid");
+  if (!uid) {
+    document.body.innerHTML = "<h1 class='error'>Kļūda: NFC ID nav atrasts!</h1>";
+    return;
+  }
+
+  // Google Apps Script WebApp URL
+  const scriptUrl =
+    "https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCw8RaXwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec";
+
+  // HTML elementi
+  const profileImage = document.getElementById("profile-image");
+  const changeButton = document.getElementById("change-button");
+  const imageInput = document.getElementById("image-input");
+  const checkinButton = document.getElementById("checkin-button");
+
+  // Paslēpjam Check‑In pogu uzreiz pēc ielādes
+  checkinButton.style.display = "none";
+
+  // 1) Ielādējam profila datus
+  try {
+    const res = await fetch(`${scriptUrl}?action=getProfile&uid=${uid}`);
+    const data = await res.json();
+    if (data.status === "success") {
+      // Parādam Vārdu, ID, Kopvērtējuma vietu un komandas nosaukumu
+      document.getElementById("username").innerText = data.username || "";
+      document.getElementById("nfc-id").innerText = data.uid || "";
+      document.getElementById("place").innerText = data.place || "";
+      document.getElementById("team-name").innerText = data.team || "Nav komandas";
+
+      // Ja attēls jau ir
+      if (data.imageUrl) {
+        profileImage.src = data.imageUrl;
+        profileImage.style.display = "block";
+        changeButton.innerText = "Nomainīt attēlu";
+      } else {
+        changeButton.innerText = "Izvēlēties attēlu";
+      }
+
+      // Check‑In pogas loģika: parādām pogu tikai, ja globalCheckinEnabled ir "TRUE" un checkinStatus ir "FALSE"
+      const checkinStatus = data.checkinStatus; // kolonna C
+      const globalCheckinEnabled = data.globalCheckinEnabled; // vērtība no Lapa1!C4
+      if (globalCheckinEnabled === "TRUE" && checkinStatus === "FALSE") {
+        checkinButton.style.display = "block"; // Parādām pogu
+      }
+    } else {
+      document.body.innerHTML = `<h1 class='error'>Kļūda: ${data.message}</h1>`;
+      return;
     }
-    /* Skrejošs aplis */
-    .spinner {
-      border: 8px solid #f3f3f3;
-      border-top: 8px solid #3498db;
-      border-radius: 50%;
-      width: 60px;
-      height: 60px;
-      animation: spin 1s linear infinite;
+  } catch (err) {
+    console.error("Kļūda ielādējot profilu:", err);
+    document.body.innerHTML = "<h1 class='error'>Kļūda: Savienojuma problēma.</h1>";
+    return;
+  }
+
+  // 2) Cloudinary iestatījumi
+  const cloudName = "dmkpb05ww";
+  const uploadPreset = "Vezitivus";
+
+  // Kad nospiež pogu, atver failu dialogu
+  changeButton.addEventListener("click", () => {
+    imageInput.click();
+  });
+
+  // Kad fails izvēlēts
+  imageInput.addEventListener("change", async function () {
+    const file = this.files[0];
+    if (!file) return;
+
+    // Augšupielādējam uz Cloudinary
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", uploadPreset);
+    formData.append("folder", "Vezitivus"); // Lai būtu mapē Vezitivus
+
+    try {
+      const resp = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+        method: "POST",
+        body: formData,
+      });
+      const result = await resp.json();
+      console.log("Cloudinary atbilde:", result);
+
+      if (result.secure_url && result.public_id) {
+        // 1) Parādām jauno bildi (front-end)
+        profileImage.src = result.secure_url;
+        profileImage.style.display = "block";
+        changeButton.innerText = "Nomainīt attēlu";
+
+        // 2) Sūtām uz Apps Script – vispirms dzēšot veco, tad saglabājot jauno
+        const saveUrl =
+          `${scriptUrl}?action=saveImage&uid=${uid}` +
+          `&imageUrl=${encodeURIComponent(result.secure_url)}` +
+          `&publicId=${encodeURIComponent(result.public_id)}`;
+
+        const saveResp = await fetch(saveUrl);
+        const saveData = await saveResp.json();
+        console.log("saveImage atbilde:", saveData);
+        if (saveData.status === "success") {
+          console.log("Vecais attēls izdzēsts un jaunais saglabāts.");
+        } else {
+          console.error("Kļūda saglabājot attēlu:", saveData.message);
+        }
+      } else {
+        console.error("Cloudinary neatgrieza secure_url vai public_id:", result);
+      }
+    } catch (uploadErr) {
+      console.error("Kļūda augšupielādējot attēlu Cloudinary:", uploadErr);
     }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+  });
+
+  // 3) Check‑In pogas darbība
+  checkinButton.addEventListener("click", async function () {
+    try {
+      const checkinRes = await fetch(`${scriptUrl}?action=checkIn&uid=${uid}`);
+      if (!checkinRes.ok) throw new Error("Savienojuma kļūda ar serveri.");
+
+      const checkinData = await checkinRes.json();
+
+      if (checkinData.status === "success") {
+        checkinButton.style.display = "none"; // Paslēpjam pogu
+        alert("Check‑In veiksmīgi reģistrēts!");
+      } else {
+        alert("Kļūda Check‑In procesā: " + checkinData.message);
+      }
+    } catch (err) {
+      console.error("Kļūda Check‑In procesā:", err);
+      alert("Savienojuma problēma, lūdzu mēģiniet vēlreiz.");
     }
-    /* Labās puses dizains – fiksēts platums un minimālas atstarpes info grupām */
-    .profile-right {
-      width: 300px;
-    }
-    .profile-right .info-group {
-      margin-bottom: 0;
-      padding: 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    }
-    .profile-right .info-group:last-child {
-      border-bottom: none;
-    }
-    .profile-right .info-group p {
-      margin: 0;
-      padding: 2px 0;
-    }
-    /* "Griezt Ratu" pogas dizains */
-    .spin-wheel-section {
-      display: flex;
-      justify-content: center;
-      margin-top: 20px;
-    }
-    .spin-button {
-      width: 80%;
-      padding: 14px 24px;
-      font-size: 18px;
-      font-weight: bold;
-      text-align: center;
-      color: white;
-      background: linear-gradient(to bottom, #333, #111);
-      border: none;
-      border-radius: 24px;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      transition: all 0.3s ease;
-    }
-    .spin-button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
-    }
-  </style>
-</head>
-<body>
-  <!-- Loading pārklājums -->
-  <div id="loading-overlay">
-    <div class="spinner"></div>
-  </div>
-  
-  <div class="profile-page">
-    <h1 class="main-title">VEZITIVUS WeekEnd</h1>
-    
-    <!-- Profila sadaļa -->
-    <section class="profile-section">
-      <div class="profile-left">
-        <div class="image-container">
-          <input type="file" id="image-input" accept="image/*" style="display:none;">
-          <img id="profile-image" src="" alt="Profilattēls" style="display:none;">
-        </div>
-        <button id="change-button" style="margin-top: 10px;">Nomainīt attēlu</button>
-      </div>
-      <div class="profile-right">
-        <div class="info-group">
-          <p class="label">Vārds</p>
-          <p class="value" id="username">Ielādē...</p>
-        </div>
-        <div class="info-group">
-          <p class="label">ID</p>
-          <p class="value" id="nfc-id">Ielādē...</p>
-        </div>
-        <div class="info-group">
-          <p class="label">Kopvērtējuma vieta</p>
-          <p class="large-value" id="place">Ielādē...</p>
-        </div>
-        <!-- Jauna sadaļa "TAVA KOMANDA" -->
-        <div class="info-group">
-          <p class="label">TAVA KOMANDA</p>
-          <p class="value" id="team-name">Ielādē...</p>
-        </div>
-      </div>
-    </section>
-    
-    <!-- CHECK‑IN poga (pēc noklusējuma paslēpta) -->
-    <section class="checkin-section">
-      <button id="checkin-button" class="checkin-button">Check‑In priekš aktivitātēm</button>
-    </section>
-    
-    <!-- Apakšējās pogas -->
-    <section class="buttons-section">
-      <div class="buttons-grid">
-        <div class="grid-margin"></div>
-        <button class="action-button" onclick="redirectToActivity()">Vezitivus lenta</button>
-        <div class="grid-spacer"></div>
-        <button class="action-button" onclick="redirectToSimpathy()">Simpatijas balva</button>
-        <div class="grid-spacer"></div>
-        <button class="action-button" onclick="window.location.href='score.html'">Score Board</button>
-        <div class="grid-margin"></div>
-      </div>
-    </section>
-    
-    <!-- Griezt Ratu poga -->
-    <section class="spin-wheel-section">
-      <button class="spin-button" onclick="redirectToSpin()">🎡 Griezt Ratu</button>
-    </section>
-    
-    <script src="profile.js"></script>
-  </div>
-</body>
-</html>
+  });
+});
