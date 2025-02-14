@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     const res = await fetch(`${scriptUrl}?action=getProfile&uid=${uid}`);
     const data = await res.json();
     if (data.status === "success") {
-      // Parādam Vārdu, ID, Kopvērtējuma vietu un Tava Komanda
+      // Parādam Vārdu, ID, Kopvērtējuma vietu un komandas nosaukumu
       document.getElementById("username").innerText = data.username || "";
       document.getElementById("nfc-id").innerText = data.uid || "";
       document.getElementById("place").innerText = data.place || "";
@@ -39,9 +39,9 @@ document.addEventListener("DOMContentLoaded", async function () {
         changeButton.innerText = "Izvēlēties attēlu";
       }
 
-      // Check‑In pogas loģika
-      const checkinStatus = data.checkinStatus; // Lietotāja check‑in statuss (C kolonna)
-      const globalCheckinEnabled = data.globalCheckinEnabled; // Globāla opcija (Lapa1!C4)
+      // Check‑In pogas loģika: parādām pogu tikai, ja globalCheckinEnabled ir "TRUE" un checkinStatus ir "FALSE"
+      const checkinStatus = data.checkinStatus; // kolonna C
+      const globalCheckinEnabled = data.globalCheckinEnabled; // vērtība no Lapa1!C4
       if (globalCheckinEnabled === "TRUE" && checkinStatus === "FALSE") {
         checkinButton.style.display = "block"; // Parādām pogu
       }
@@ -89,7 +89,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         profileImage.style.display = "block";
         changeButton.innerText = "Nomainīt attēlu";
 
-        // 2) Sūtām uz Apps Script – vispirms dzēs veco, tad saglabā jauno
+        // 2) Sūtām uz Apps Script – vispirms dzēšot veco, tad saglabājot jauno
         const saveUrl =
           `${scriptUrl}?action=saveImage&uid=${uid}` +
           `&imageUrl=${encodeURIComponent(result.secure_url)}` +
