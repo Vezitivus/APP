@@ -175,6 +175,18 @@
     .animateResult, .animateSpin {
       animation: bounce 0.5s;
     }
+    /* Jaunais stils lielam win tekstam */
+    .big-win-text {
+      font-size: 5em;
+      color: gold;
+      text-shadow: 0 0 20px gold;
+      animation: flyUp 3s forwards;
+    }
+    @keyframes flyUp {
+      0% { transform: translateY(100%); opacity: 0; }
+      20% { opacity: 1; }
+      100% { transform: translateY(-150%); opacity: 0; }
+    }
   </style>
 </head>
 <body>
