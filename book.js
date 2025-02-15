@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function() { 
   // Parametri
   const symbolHeight = 40;
   const repeatCount = 10; // atkārtojam emojiSet 10 reizes
@@ -24,6 +24,34 @@ document.addEventListener("DOMContentLoaded", function() {
   const reelsContainer = document.getElementById("reels");
   const remainingSpinsDiv = document.getElementById("remainingSpins");
   const container = document.getElementById("container");
+
+  // ---- Jauna funkcija: Liela WIN pārklājums un vibrācija ----
+  function showBigWinOverlay(winText) {
+    // Ja jau ir esošs pārklājums, izdzēšam to
+    const existing = document.getElementById("bigWinOverlay");
+    if (existing) existing.remove();
+    
+    const overlay = document.createElement("div");
+    overlay.id = "bigWinOverlay";
+    overlay.style.position = "fixed";
+    overlay.style.top = "0";
+    overlay.style.left = "0";
+    overlay.style.width = "100%";
+    overlay.style.height = "100%";
+    overlay.style.display = "flex";
+    overlay.style.justifyContent = "center";
+    overlay.style.alignItems = "center";
+    overlay.style.pointerEvents = "none";
+    overlay.style.zIndex = "5000";
+    overlay.innerHTML = `<div class="big-win-text">${winText}</div>`;
+    document.body.appendChild(overlay);
+    
+    // Aktivizē vibrāciju, ja atbalstīta
+    if (navigator.vibrate) {
+      navigator.vibrate([300, 100, 300]);
+    }
+  }
+  // ---- Beidzam jauno funkciju ----
 
   // Google Sheets integrācija
   function getUID() {
@@ -95,7 +123,7 @@ document.addEventListener("DOMContentLoaded", function() {
   }
   fetchRemainingSpins();
 
-  // Periodiski atjaunojam balansu ik pēc 2 sekundēm
+  // Periodiski atjaunojam balansu ik pēc 0.5 sekundēm
   setInterval(() => {
     fetchRemainingSpins();
   }, 500);
@@ -177,8 +205,13 @@ document.addEventListener("DOMContentLoaded", function() {
     r.innerElem.style.transform = `translateY(${r.offset}px)`;
   }
 
-  // Spin poga – rulli griežas ilgāk (3 s pāreja, inkrementi 20–30) un turpina no vecās pozīcijas
+  // Spin poga – pirms griešanās noņem visus esošos lielos win pārklājumus
   spinButton.addEventListener("click", function() {
+    // Noņem lielo win pārklājumu, ja tas ir redzams
+    const bigWinOverlay = document.getElementById("bigWinOverlay");
+    if (bigWinOverlay) {
+      bigWinOverlay.remove();
+    }
     messageDiv.textContent = "";
     spinButton.disabled = true;
     container.classList.add("spinning");
@@ -215,34 +248,34 @@ document.addEventListener("DOMContentLoaded", function() {
       done();
     });
   }
-function animateResultToCoin(resultText, callback) {
-  const clone = messageDiv.cloneNode(true);
-  clone.textContent = resultText;
-  clone.style.position = "absolute";
-  clone.style.zIndex = "1";
-  const msgRect = messageDiv.getBoundingClientRect();
-  const containerRect = messageDiv.parentElement.getBoundingClientRect();
-  clone.style.left = (msgRect.left - containerRect.left) + "px";
-  clone.style.top = (msgRect.top - containerRect.top) + "px";
-  clone.style.margin = "0";
-  // Iestatām pārejas parametrus: 1 s animācija ar 2 s aizturi
-  clone.style.transition = "all 1s ease-out 2s";
-  messageDiv.parentElement.appendChild(clone);
+  function animateResultToCoin(resultText, callback) {
+    const clone = messageDiv.cloneNode(true);
+    clone.textContent = resultText;
+    clone.style.position = "absolute";
+    clone.style.zIndex = "1";
+    const msgRect = messageDiv.getBoundingClientRect();
+    const containerRect = messageDiv.parentElement.getBoundingClientRect();
+    clone.style.left = (msgRect.left - containerRect.left) + "px";
+    clone.style.top = (msgRect.top - containerRect.top) + "px";
+    clone.style.margin = "0";
+    // Iestatām pārejas parametrus: 1 s animācija ar 2 s aizturi
+    clone.style.transition = "all 1s ease-out 2s";
+    messageDiv.parentElement.appendChild(clone);
 
-  const coinRect = remainingSpinsDiv.getBoundingClientRect();
-  const deltaX = coinRect.left - msgRect.left;
-  const deltaY = coinRect.top - msgRect.top;
-  
-  // Pēc 2 sekundēm sāksies animācija uz remainingSpins
-  clone.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.5)`;
-  clone.style.opacity = "0";
+    const coinRect = remainingSpinsDiv.getBoundingClientRect();
+    const deltaX = coinRect.left - msgRect.left;
+    const deltaY = coinRect.top - msgRect.top;
+    
+    // Pēc 2 sekundēm sāksies animācija uz remainingSpins
+    clone.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.5)`;
+    clone.style.opacity = "0";
 
-  clone.addEventListener("transitionend", function onTransitionEnd() {
-    clone.removeEventListener("transitionend", onTransitionEnd);
-    clone.remove();
-    if (callback) callback();
-  });
-}
+    clone.addEventListener("transitionend", function onTransitionEnd() {
+      clone.removeEventListener("transitionend", onTransitionEnd);
+      clone.remove();
+      if (callback) callback();
+    });
+  }
 
   function checkResult() {
     const chosenMultiplier = parseInt(multiplierSelect.value, 10) || 1;
@@ -271,6 +304,8 @@ function animateResultToCoin(resultText, callback) {
         customWin = chosenMultiplier * 1000;
       }
       const resultAmount = customWin;
+      // Rāda lielo win pārklājumu un vibrāciju
+      showBigWinOverlay("WIN + " + resultAmount);
       deductSpins(-resultAmount, function() {
         fetchRemainingSpins();
         container.classList.remove("spinning");
@@ -301,17 +336,21 @@ function animateResultToCoin(resultText, callback) {
       loseSound.play();
       return;
     }
-    const resultAmount = stake * chosenMultiplier * winFactor;
-    deductSpins(-resultAmount, function() {
-      fetchRemainingSpins();
-      container.classList.remove("spinning");
-      container.classList.add("win");
-      animateResultToCoin("+" + resultAmount, function() {
-        spinButton.disabled = false;
-        setTimeout(() => container.classList.remove("win"), 1500);
+    if (winFactor > 0) {
+      const resultAmount = stake * chosenMultiplier * winFactor;
+      // Rāda lielo win pārklājumu un vibrāciju
+      showBigWinOverlay("WIN + " + resultAmount);
+      deductSpins(-resultAmount, function() {
+        fetchRemainingSpins();
+        container.classList.remove("spinning");
+        container.classList.add("win");
+        animateResultToCoin("+" + resultAmount, function() {
+          spinButton.disabled = false;
+          setTimeout(() => container.classList.remove("win"), 1500);
+        });
+        winSound.play();
       });
-      winSound.play();
-    });
+    }
   }
 
   // Mini-spēles funkcija – Lucky Puzzle Challenge
@@ -421,7 +460,7 @@ function animateResultToCoin(resultText, callback) {
   function showDebtPopup() {
     const popup = document.createElement("div");
     popup.className = "debtPopup";
-    popup.textContent = "Tu esi sasniedzis ārkārtīgi lielu parādu! Apsver iespēju atbalstīt Vezitivus, lai samazinātu savu parādu un turpinātu spēlēt.";
+    popup.textContent = "Tu esi aizspēlējies! Apsver iespēju atbalstīt Vezitivus, lai samazinātu savu parādu un turpinātu spēlēt.";
     document.body.appendChild(popup);
     spinButton.disabled = true;
   }
