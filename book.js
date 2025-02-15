@@ -98,7 +98,7 @@ document.addEventListener("DOMContentLoaded", function() {
   // Periodiski atjaunojam balansu ik pēc 2 sekundēm
   setInterval(() => {
     fetchRemainingSpins();
-  }, 2000);
+  }, 500);
 
   // Sagatavojam reēlus
   const reels = [];
@@ -215,32 +215,35 @@ document.addEventListener("DOMContentLoaded", function() {
       done();
     });
   }
-  // Rezultāta animācija: 1 s statiska, tad 1 s animācija uz remainingSpins.
-  // Callback izsaukts pēc pilnīgas pārejas, tā rezultāts atjaunojas uzreiz.
-  function animateResultToCoin(resultText, callback) {
-    const clone = messageDiv.cloneNode(true);
-    clone.textContent = resultText;
-    clone.style.position = "absolute";
-    clone.style.zIndex = "1";
-    const msgRect = messageDiv.getBoundingClientRect();
-    const containerRect = messageDiv.parentElement.getBoundingClientRect();
-    clone.style.left = (msgRect.left - containerRect.left) + "px";
-    clone.style.top = (msgRect.top - containerRect.top) + "px";
-    clone.style.margin = "0";
-    // Sāksim animāciju uzreiz
-    clone.style.transition = "all 1s ease-out";
-    messageDiv.parentElement.appendChild(clone);
-    const coinRect = remainingSpinsDiv.getBoundingClientRect();
-    const deltaX = coinRect.left - msgRect.left;
-    const deltaY = coinRect.top - msgRect.top;
-    clone.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.5)`;
-    clone.style.opacity = "0";
-    clone.addEventListener("transitionend", function onTransitionEnd() {
-      clone.removeEventListener("transitionend", onTransitionEnd);
-      clone.remove();
-      if (callback) callback();
-    });
-  }
+function animateResultToCoin(resultText, callback) {
+  const clone = messageDiv.cloneNode(true);
+  clone.textContent = resultText;
+  clone.style.position = "absolute";
+  clone.style.zIndex = "1";
+  const msgRect = messageDiv.getBoundingClientRect();
+  const containerRect = messageDiv.parentElement.getBoundingClientRect();
+  clone.style.left = (msgRect.left - containerRect.left) + "px";
+  clone.style.top = (msgRect.top - containerRect.top) + "px";
+  clone.style.margin = "0";
+  // Iestatām pārejas parametrus: 1 s animācija ar 2 s aizturi
+  clone.style.transition = "all 1s ease-out 2s";
+  messageDiv.parentElement.appendChild(clone);
+
+  const coinRect = remainingSpinsDiv.getBoundingClientRect();
+  const deltaX = coinRect.left - msgRect.left;
+  const deltaY = coinRect.top - msgRect.top;
+  
+  // Pēc 2 sekundēm sāksies animācija uz remainingSpins
+  clone.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.5)`;
+  clone.style.opacity = "0";
+
+  clone.addEventListener("transitionend", function onTransitionEnd() {
+    clone.removeEventListener("transitionend", onTransitionEnd);
+    clone.remove();
+    if (callback) callback();
+  });
+}
+
   function checkResult() {
     const chosenMultiplier = parseInt(multiplierSelect.value, 10) || 1;
     const stake = 1;
