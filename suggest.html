@@ -21,7 +21,7 @@
       align-items: center;
       padding-top: 100px;
     }
-    /* Header ar fiksētu pozīciju */
+    /* Fiksēta galvene */
     header {
       position: fixed;
       top: 0;
@@ -37,9 +37,9 @@
       font-size: 2.5rem;
       margin-bottom: 10px;
     }
-    /* Poga komentāra pievienošanai – tagad atrodas virs komentāru lauciņiem */
+    /* Poga komentāra pievienošanai – novietota virs komentāru lauciņiem */
     #addCommentContainer {
-      margin-top: 120px; /* atstāj vietu zem header */
+      margin-top: 120px;
       margin-bottom: 20px;
       text-align: center;
       width: 100%;
@@ -95,18 +95,18 @@
       border-radius: 8px;
       cursor: pointer;
     }
-    /* Komentāru konteineris */
+    /* Komentāru konteineris – lielākas atstarpes virs un zem */
     #comments {
       display: flex;
       flex-wrap: wrap;
-      gap: 2%;
+      gap: 4%;
       padding: 0 4%;
       justify-content: center;
       width: 100%;
-      margin-top: 20px;
-      margin-bottom: 40px; /* lielākas atstarpes augšā un apakšā */
+      margin-top: 40px;
+      margin-bottom: 60px;
     }
-    /* Neaktīvi komentāru logi – kvadrātveida, 45% platumā, ar kreiso izlīdzinājumu */
+    /* Neaktīvi komentāru logi – kvadrātveida, 45% platumā, kreisā izlīdzinājuma teksts, ar tekstu ierobežotu līdz 4 rindām (multi-line ellipsis) */
     .comment {
       background: #fff;
       border-radius: 12px;
@@ -120,7 +120,6 @@
       cursor: pointer;
       position: relative;
       text-align: left;
-      /* Multi-line ellipsis – ierobežo līdz 4 rindām un pievieno daudzpunktus */
       display: -webkit-box;
       -webkit-line-clamp: 4;
       -webkit-box-orient: vertical;
@@ -129,7 +128,7 @@
       transform: translateY(-2px);
       box-shadow: 0 6px 16px rgba(0,0,0,0.15);
     }
-    /* Aktīvais komentārs paplašinās un atklāj visu tekstu */
+    /* Aktīvs komentārs – paplašinās līdz 92% platumam, atbrīvojot visu tekstu */
     .comment.active {
       width: 92%;
       margin-left: 4%;
@@ -137,11 +136,13 @@
       white-space: normal;
       overflow: visible;
     }
-    /* Like sekcijas stils zem aktīvā komentāra */
+    /* Like sekcija – ar palielinātām atstarpēm, lai like poga nekonfliktētu ar tekstu */
     .like-section {
-      margin-top: 10px;
+      margin-top: 20px;
       text-align: left;
       width: 100%;
+      display: flex;
+      align-items: center;
     }
     .like-section button {
       font-size: 16px;
@@ -157,6 +158,17 @@
       background-color: #ccc;
       font-size: 16px;
       padding: 8px 12px;
+    }
+    /* Like skaita rāde – kvadrātveida elements ar noapaļotiem stūriem */
+    .like-count {
+      display: inline-block;
+      padding: 8px;
+      background: #eee;
+      border-radius: 8px;
+      margin-left: 10px;
+      min-width: 40px;
+      text-align: center;
+      font-size: 16px;
     }
   </style>
 </head>
@@ -191,7 +203,7 @@
     }
 
     // Nosūta "like" pieprasījumu – izmanto pēdējos 5 simbolus kā UID
-    function sendLike(row, likeButton) {
+    function sendLike(row, likeButton, likeCountElem) {
       const uid = getPageUid();
       fetch(scriptUrl, {
         method: 'POST',
@@ -203,6 +215,9 @@
         if(result.result === "success") {
           likeButton.textContent = "👍 Liked";
           likeButton.disabled = true;
+          // Palielina lokāli like skaitu
+          let count = parseInt(likeCountElem.textContent, 10) || 0;
+          likeCountElem.textContent = count + 1;
         } else {
           alert("Kļūda: " + result.message);
         }
@@ -221,7 +236,7 @@
       }
     }
 
-    // Ielādē komentārus no servera (doGet)
+    // Ielādē komentārus no servera (doGet) – tagad arī ar like skaitu (C kolonna)
     function loadComments() {
       fetch(scriptUrl)
         .then(response => response.json())
@@ -232,6 +247,7 @@
             const commentDiv = document.createElement('div');
             commentDiv.className = 'comment';
             commentDiv.dataset.row = item.row; // saglabā rindas numuru
+            commentDiv.dataset.likes = item.likes || "0"; // saglabā sākotnējo like skaitu
             commentDiv.textContent = item.text;
             
             commentDiv.addEventListener('click', function() {
@@ -242,11 +258,17 @@
               const likeSection = document.createElement('div');
               likeSection.className = 'like-section';
               likeSection.innerHTML = `<button class="like-btn">👍 Like</button><button class="close-btn">X</button>`;
+              // Izveido like skaita rādes elementu
+              const likeCountElem = document.createElement('div');
+              likeCountElem.className = 'like-count';
+              likeCountElem.textContent = commentDiv.dataset.likes;
+              likeSection.appendChild(likeCountElem);
+              
               commentDiv.appendChild(likeSection);
               
               likeSection.querySelector('.like-btn').addEventListener('click', function(e) {
                 e.stopPropagation();
-                sendLike(commentDiv.dataset.row, e.target);
+                sendLike(commentDiv.dataset.row, e.target, likeCountElem);
               });
               
               likeSection.querySelector('.close-btn').addEventListener('click', function(e) {
@@ -280,13 +302,17 @@
       }
     });
 
-    // Saglabā komentāru – nosūta komentāra tekstu un arī UID (iegūtu no URL) uz serveri
+    // Saglabā komentāru – kad poga tiek nospiesta, tā tiek deaktivizēta un teksts mainās uz "Tavas domas tiek publicētas"
     saveCommentBtn.addEventListener('click', function() {
       const commentText = commentInput.value.trim();
       if(!commentText) {
         alert("Lūdzu ievadi komentāru!");
         return;
       }
+      // Deaktivizē pogu, lai novērstu atkārtotu nospiešanu
+      saveCommentBtn.disabled = true;
+      saveCommentBtn.textContent = "Tavas domas tiek publicētas";
+      
       const uid = getPageUid();
       fetch(scriptUrl, {
         method: 'POST',
@@ -307,6 +333,11 @@
       .catch(error => {
         console.error("Kļūda saglabāt komentāru:", error);
         alert("Kļūda saglabāt komentāru");
+      })
+      .finally(() => {
+        // Atjauno pogas stāvokli, lai lietotājs var pievienot vēl komentārus
+        saveCommentBtn.disabled = false;
+        saveCommentBtn.textContent = "Saglabāt";
       });
     });
 
