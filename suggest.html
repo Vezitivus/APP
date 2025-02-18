@@ -8,7 +8,7 @@
     body { font-family: sans-serif; margin: 20px; background: #f4f4f4; }
     header { background: #333; color: #fff; padding: 10px; text-align: center; }
     #submitForm { margin: 20px 0; }
-    #submitForm input, #submitForm textarea { width: 100%; margin: 5px 0; padding: 8px; }
+    #submitForm textarea { width: 100%; margin: 5px 0; padding: 8px; }
     #submitForm button { padding: 8px 16px; background: #008CBA; color: #fff; border: none; border-radius: 3px; cursor: pointer; }
     .suggestion { background: #fff; margin: 10px 0; padding: 10px; border-radius: 5px; }
     .suggestion p { margin: 5px 0; }
@@ -19,8 +19,8 @@
 <body>
   <header>Ieteikumi VEZITIVUS</header>
   
+  <!-- Forma bez UID ievades; UID tiek ņemts no URL parametra -->
   <div id="submitForm">
-    <input type="text" id="uidInput" placeholder="Ievadi savu UID (vai paliek tukšs, tiks ģenerēts)" />
     <textarea id="suggestionInput" placeholder="Ievadiet ieteikumu"></textarea>
     <button id="submitBtn">Pievienot ieteikumu</button>
   </div>
@@ -33,11 +33,12 @@
     // Nomainiet webappUrl, ja nepieciešams!
     const webappUrl = 'https://script.google.com/macros/s/AKfycbxX5l-iQNITlUQAEXV62euxLwPCVlJP7eLaUkya9KQksMC3NgY6L8iMpJXQ4lEfztdT4A/exec';
     
+    // Iegūst uid no URL parametra, piemēram: ?uid=lietotajs123
     function getUid() {
-      let uid = document.getElementById('uidInput').value.trim();
+      const params = new URLSearchParams(window.location.search);
+      let uid = params.get('uid');
       if (!uid) {
         uid = 'anon_' + Math.floor(Math.random() * 1000000);
-        document.getElementById('uidInput').value = uid;
       }
       return uid;
     }
@@ -58,7 +59,7 @@
       const uid = getUid();
       const url = webappUrl + '?action=getRecommendations&uid=' + encodeURIComponent(uid);
       jsonpRequest(url, function(data) {
-        if(data.status === 'success'){
+        if (data.status === 'success') {
           renderSuggestions(data.recommendations);
         } else {
           console.error(data.message);
@@ -75,7 +76,7 @@
         div.innerHTML = '<p><strong>Autors:</strong> ' + s.submitter + '</p>' +
                         '<p>' + s.text.replace(/\n/g, '<br>') + '</p>' +
                         '<p><strong>Likes:</strong> ' + s.likes + '</p>';
-        if(!s.alreadyLiked) {
+        if (!s.alreadyLiked) {
           const btn = document.createElement('button');
           btn.className = 'like-button';
           btn.textContent = 'Like';
@@ -96,7 +97,7 @@
       const uid = getUid();
       const url = webappUrl + '?action=like&recId=' + encodeURIComponent(recId) + '&uid=' + encodeURIComponent(uid);
       jsonpRequest(url, function(data) {
-        if(data.status === 'success'){
+        if (data.status === 'success') {
           loadSuggestions();
         } else {
           alert(data.message);
@@ -107,13 +108,13 @@
     document.getElementById('submitBtn').addEventListener('click', function() {
       const uid = getUid();
       const text = document.getElementById('suggestionInput').value.trim();
-      if(!text){
+      if (!text) {
         alert('Lūdzu, ievadiet ieteikumu');
         return;
       }
       const url = webappUrl + '?action=submitRecommendation&uid=' + encodeURIComponent(uid) + '&text=' + encodeURIComponent(text);
       jsonpRequest(url, function(data) {
-        if(data.status === 'success'){
+        if (data.status === 'success') {
           document.getElementById('suggestionInput').value = '';
           loadSuggestions();
         } else {
