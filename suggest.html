@@ -95,26 +95,24 @@
       border-radius: 8px;
       cursor: pointer;
     }
-    /* Komentāru konteineris – izmantota flexbox, lai nodrošinātu vienmērīgas atstarpes */
+    /* Komentāru konteineris – CSS grid ar divām kolonnām */
     #comments {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      row-gap: 3em;
-      column-gap: 2em;
-      padding: 0 4%;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2em;
       width: 100%;
+      padding: 0 4%;
       margin-top: 60px;
       margin-bottom: 80px;
     }
-    /* Neaktīvie komentāru logi – kvadrātveida, 45% platumā */
+    /* Neaktīvie komentāru logi – kvadrātveida, 45% platumā (attiecīgi kartes izkārtojums pielāgojas grid kolonnām) */
     .comment {
       background: #fff;
       border-radius: 12px;
       padding: 20px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       transition: width 0.3s ease, margin 0.3s ease;
-      width: 45%;
+      /* Pēc grid izkārtojuma, sākotnēji logi aizņem pilnu grid šūnu */
       aspect-ratio: 1/1;
       overflow: hidden;
       font-size: 18px;
@@ -129,15 +127,15 @@
       transform: translateY(-2px);
       box-shadow: 0 6px 16px rgba(0,0,0,0.15);
     }
-    /* Aktivizētajam komentāram – paplašinās, un tas pilnībā ieņem platu, radot vietu zemējiem elementiem */
+    /* Aktivizētajam komentāram – paplašinās, un tas spanos visas kolonnas */
     .comment.active {
-      width: 92%;
-      margin-left: 4%;
-      aspect-ratio: auto;
+      grid-column: 1 / -1;
+      padding-bottom: 50px; /* papildu vieta like sekcijai */
       white-space: normal;
       overflow: visible;
+      -webkit-line-clamp: unset;
     }
-    /* Like sekcija – iekļauta aktīvā komentārā kā parasts bloks ar pietiekamu atstarpi, lai tā neuzklātos */
+    /* Like sekcija – iekļauta aktīvā komentārā kā parasts bloks ar pietiekamu atstarpi */
     .like-section {
       margin-top: 20px;
       display: flex;
@@ -214,7 +212,6 @@
         if(result.result === "success") {
           likeButton.textContent = "👍 Liked";
           likeButton.disabled = true;
-          // Palielina lokāli like skaitu
           let count = parseInt(likeCountElem.textContent, 10) || 0;
           likeCountElem.textContent = count + 1;
         } else {
@@ -240,7 +237,7 @@
       fetch(scriptUrl)
         .then(response => response.json())
         .then(data => {
-          // Jaunākos komentārus parādām augšā (apgriežot masīvu)
+          // Apgriež masīvu, lai jaunākie komentāri parādās augšā
           data = data.reverse();
           const container = document.getElementById('comments');
           container.innerHTML = '';
