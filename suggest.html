@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Veitivus ieteikumi</title>
   <style>
-    /* Vispārējs resets un fontu palielināšana */
+    /* Vispārējs resets un palielināts fontu izmērs */
     * {
       margin: 0;
       padding: 0;
@@ -18,13 +18,13 @@
       color: #333;
       padding-top: 80px; /* nodrošina vietu fiksētajai galvenei */
     }
-    /* Fiksēts galvenes stils */
+    /* Fiksēta galvene ar 50% caurspīdīgu melnu fonu */
     header {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
-      background: rgba(0, 0, 0, 0.5); /* melns ar 50% caurspīdīgumu */
+      background: rgba(0, 0, 0, 0.5);
       color: #fff;
       padding: 20px;
       text-align: center;
@@ -34,23 +34,22 @@
       font-size: 2.5rem;
       margin: 0;
     }
-    /* Komentāru konteineris izkārtojums divās kolonnās */
+    /* Komentāru konteineris ar malas 4% */
     #comments {
       display: flex;
       flex-wrap: wrap;
-      justify-content: center;
-      gap: 10px;
-      padding: 20px;
+      gap: 2%; /* starp logiem 2% */
+      padding: 0 4%; /* kreisā un labā mala 4% */
     }
-    /* Atsevišķa komentāra bloks */
+    /* Atsevišķa komentāra logs ar platumu 45% */
     .comment {
       background: #fff;
       border-radius: 12px;
       padding: 20px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       transition: transform 0.2s ease, box-shadow 0.2s ease;
-      width: 40%; /* katrs komentārs ir 40% platumā */
-      min-width: 200px; /* nodrošina minimuma izmēru mazākiem ekrāniem */
+      width: 45%;
+      margin-bottom: 20px; /* neliela vertikāla atstarpe starp rindām */
     }
     .comment:hover {
       transform: translateY(-2px);
