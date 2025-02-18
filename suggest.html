@@ -36,10 +36,10 @@
       width: 100%;
       z-index: 1000;
     }
-    /* Poga zem virsraksta, lai netiktu pārklāta ar fiksēto header */
+    /* Poga zem virsraksta */
     #addBtn {
       display: block;
-      margin: 90px auto 20px auto;
+      margin: 90px auto 20px auto; /* nodrošina, ka nepārklājas ar fiksēto header */
       padding: 12px 24px;
       font-size: 1em;
       font-weight: 500;
@@ -90,6 +90,7 @@
       line-height: 1.5;
       transition: all 0.3s ease;
       white-space: pre-wrap;
+      color: var(--primary-color);
     }
     .likeBtn {
       display: none;
@@ -184,7 +185,7 @@
   <button id="addBtn">Pievienot ieteikumu/atsauksmi</button>
   <div id="contentWrapper">
     <div id="recommendationsContainer">
-      <!-- Ieteikumu bloki dinamiski ģenerēti šeit -->
+      <!-- Ieteikumu bloki tiks ģenerēti šeit -->
     </div>
   </div>
   <div id="loadingOverlay">Tava atsauksme tiek iesniegta...</div>
@@ -201,16 +202,18 @@
     let uid = new URLSearchParams(window.location.search).get('uid') || 'anon_' + Math.floor(Math.random() * 1000000);
     let recommendations = [];
     
-    // JSONP pieprasījumu funkcija – dinamiski ievieto script tagu ar callback
+    // JSONP pieprasījumu funkcija ar timestamp, lai izvairītos no kešēšanas
     function jsonpRequest(url, callback) {
       const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
       const script = document.createElement('script');
       window[callbackName] = function(data) {
+        console.log("Saņemta atbilde:", data);
         delete window[callbackName];
         document.body.removeChild(script);
         callback(data);
       };
-      script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
+      // Pievieno arī timestamp (_ parameter), lai nodrošinātu svaigus pieprasījumus
+      script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName + '&_=' + new Date().getTime();
       document.body.appendChild(script);
     }
     
@@ -219,6 +222,8 @@
         if (data.status === 'success') {
           recommendations = data.recommendations;
           renderRecommendations();
+        } else {
+          console.error("Kļūda ielādējot datus:", data.message);
         }
       });
     }
@@ -230,7 +235,7 @@
         const box = document.createElement('div');
         box.className = 'recBox';
         box.dataset.id = rec.id;
-        // Izmanto visu tekstu no B kolonnas, aizstājot jaunu līniju ar <br>
+        // Parāda visu tekstu no B kolonnas, aizstājot jaunu līniju ar <br>
         box.innerHTML = `<div class="recText">${rec.text.replace(/\n/g, '<br>')}</div>
                          <button class="likeBtn">Like (${rec.likes})</button>`;
         box.addEventListener('click', function(e) {
@@ -286,7 +291,6 @@
         alert('Lūdzu, ievadiet ieteikumu!');
         return;
       }
-      // Parāda "loading" overlay un deaktivē pogas
       loadingOverlay.style.display = 'block';
       document.getElementById('addBtn').disabled = true;
       document.getElementById('submitRecommendation').disabled = true;
