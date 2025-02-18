@@ -14,23 +14,43 @@
     .suggestion p { margin: 5px 0; }
     .like-button { background: #008CBA; color: #fff; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; }
     .like-button[disabled] { background: #aaa; cursor: default; }
+    /* Apakšējā sadaļa, lai parādītu visu B kolonnas informāciju */
+    #columnBContainer {
+      background: #fff;
+      padding: 15px;
+      margin-top: 30px;
+      border-radius: 5px;
+    }
+    #columnBContainer h3 {
+      margin-top: 0;
+    }
+    #columnBContainer p {
+      margin: 8px 0;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 5px;
+    }
   </style>
 </head>
 <body>
   <header>Ieteikumi VEZITIVUS</header>
   
-  <!-- Forma bez UID ievades; UID tiek ņemts no URL parametra -->
+  <!-- Forma: tikai ieteikuma teksts, jo UID tiek ņemts no URL -->
   <div id="submitForm">
     <textarea id="suggestionInput" placeholder="Ievadiet ieteikumu"></textarea>
     <button id="submitBtn">Pievienot ieteikumu</button>
   </div>
   
-  <div id="suggestionsContainer">
-    <!-- Ieraksti tiks ģenerēti šeit -->
+  <!-- Ieraksti tiks parādīti šeit -->
+  <div id="suggestionsContainer"></div>
+  
+  <!-- Apakšējā sadaļa ar visu B kolonnas informāciju -->
+  <div id="columnBContainer">
+    <h3>Visi ieteikumi (B kolonna):</h3>
+    <div id="columnBContent"></div>
   </div>
   
   <script>
-    // Nomainiet webappUrl, ja nepieciešams!
+    // Nomainiet, ja nepieciešams, ar savu Web App URL
     const webappUrl = 'https://script.google.com/macros/s/AKfycbxX5l-iQNITlUQAEXV62euxLwPCVlJP7eLaUkya9KQksMC3NgY6L8iMpJXQ4lEfztdT4A/exec';
     
     // Iegūst uid no URL parametra, piemēram: ?uid=lietotajs123
@@ -61,6 +81,7 @@
       jsonpRequest(url, function(data) {
         if (data.status === 'success') {
           renderSuggestions(data.recommendations);
+          renderColumnB(data.recommendations);
         } else {
           console.error(data.message);
         }
@@ -90,6 +111,18 @@
           div.appendChild(span);
         }
         container.appendChild(div);
+      });
+    }
+    
+    // Jaunā papildu funkcija: atsevišķi parāda visu B kolonnas tekstu
+    function renderColumnB(suggestions) {
+      const container = document.getElementById('columnBContent');
+      container.innerHTML = '';
+      suggestions.forEach(s => {
+        // Parādīt tikai tekstu (B kolonna)
+        const p = document.createElement('p');
+        p.innerHTML = s.text.replace(/\n/g, '<br>');
+        container.appendChild(p);
       });
     }
     
