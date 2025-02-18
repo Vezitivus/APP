@@ -2,360 +2,129 @@
 <html lang="lv">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ieteikumi VEZITIVUS</title>
   <style>
-    :root {
-      --primary-bg: #fff;
-      --secondary-bg: rgba(0, 0, 0, 0.5);
-      --primary-color: #000;
-      --button-bg: #008CBA;
-      --button-color: #fff;
-    }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f4f4f4;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-    /* Fiksēts augšējais virsraksts */
-    header {
-      background: var(--secondary-bg);
-      color: var(--button-color);
-      text-align: center;
-      padding: 20px;
-      font-size: 1.5em;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      z-index: 1000;
-    }
-    /* Poga zem virsraksta */
-    #addBtn {
-      display: block;
-      margin: 90px auto 20px auto;
-      padding: 12px 24px;
-      font-size: 1em;
-      font-weight: 500;
-      color: var(--button-color);
-      background-color: var(--button-bg);
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: background-color 0.3s ease, transform 0.2s ease;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    #addBtn:hover {
-      background-color: #0075a7;
-      transform: translateY(-2px);
-    }
-    /* Scrollable satura zona */
-    #contentWrapper {
-      max-height: calc(100vh - 150px);
-      overflow-y: auto;
-      padding: 10px;
-    }
-    /* Katru ieteikumu rāda atsevišķi */
-    #recommendationsContainer {
-      display: block;
-    }
-    .recBox {
-      background: var(--primary-bg);
-      width: 90%;
-      margin: 10px auto;
-      padding: 20px;
-      border-radius: 15px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      cursor: pointer;
-      transition: width 0.4s ease, max-height 0.4s ease, transform 0.4s ease, box-shadow 0.4s ease;
-      position: relative;
-      overflow: hidden;
-      max-height: 120px;
-    }
-    .recBox:hover {
-      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-    }
-    .recBox.expanded {
-      width: 95%;
-      max-height: none;
-      transform: scale(1.02);
-    }
-    .recText {
-      line-height: 1.5;
-      white-space: pre-wrap; /* lai tiktu respektētas jaunas rindas */
-      color: var(--primary-color);
-    }
-    .likeBtn {
-      display: none;
-      margin-top: 15px;
-      padding: 8px 16px;
-      font-size: 0.9em;
-      font-weight: 500;
-      color: var(--button-color);
-      background-color: var(--button-bg);
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background-color 0.3s ease, transform 0.2s ease;
-      box-shadow: 0 3px 5px rgba(0,0,0,0.1);
-    }
-    .likeBtn:hover {
-      background-color: #0075a7;
-      transform: translateY(-1px);
-    }
-    .recBox.expanded .likeBtn {
-      display: inline-block;
-    }
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1100;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      backdrop-filter: blur(5px);
-      background-color: rgba(0, 0, 0, 0.4);
-    }
-    .modal-content {
-      background-color: var(--primary-bg);
-      margin: 10% auto;
-      padding: 20px;
-      border-radius: 15px;
-      width: 80%;
-      max-width: 500px;
-      position: relative;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    }
-    .close {
-      position: absolute;
-      right: 15px;
-      top: 15px;
-      font-size: 1.5em;
-      cursor: pointer;
-      color: var(--primary-color);
-    }
-    textarea {
-      width: 100%;
-      height: 120px;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      font-family: inherit;
-      font-size: 1em;
-      resize: vertical;
-    }
-    /* Loading overlay */
-    #loadingOverlay {
-      display: none;
-      position: fixed;
-      z-index: 1200;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(255, 255, 255, 0.8);
-      text-align: center;
-      padding-top: 40vh;
-      font-size: 1.5em;
-      color: #333;
-    }
+    body { font-family: sans-serif; margin: 20px; background: #f4f4f4; }
+    header { background: #333; color: #fff; padding: 10px; text-align: center; }
+    #submitForm { margin: 20px 0; }
+    #submitForm input, #submitForm textarea { width: 100%; margin: 5px 0; padding: 8px; }
+    #submitForm button { padding: 8px 16px; background: #008CBA; color: #fff; border: none; border-radius: 3px; cursor: pointer; }
+    .suggestion { background: #fff; margin: 10px 0; padding: 10px; border-radius: 5px; }
+    .suggestion p { margin: 5px 0; }
+    .like-button { background: #008CBA; color: #fff; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; }
+    .like-button[disabled] { background: #aaa; cursor: default; }
   </style>
 </head>
 <body>
   <header>Ieteikumi VEZITIVUS</header>
   
-  <button id="addBtn">Pievienot ieteikumu/atsauksmi</button>
+  <div id="submitForm">
+    <input type="text" id="uidInput" placeholder="Ievadi savu UID (vai paliek tukšs, tiks ģenerēts)" />
+    <textarea id="suggestionInput" placeholder="Ievadiet ieteikumu"></textarea>
+    <button id="submitBtn">Pievienot ieteikumu</button>
+  </div>
   
-  <div id="contentWrapper">
-    <div id="recommendationsContainer">
-      <!-- Šeit ģenerējas ieteikumu bloki -->
-    </div>
+  <div id="suggestionsContainer">
+    <!-- Ieraksti tiks ģenerēti šeit -->
   </div>
-
-  <div id="loadingOverlay">Tava atsauksme tiek iesniegta...</div>
-
-  <!-- Modal logs -->
-  <div id="formModal" class="modal">
-    <div class="modal-content">
-      <span id="closeModal" class="close">&times;</span>
-      <h2>Pievienot ieteikumu/atsauksmi</h2>
-      <textarea id="recommendationText" placeholder="Ierakstiet savu ieteikumu/atsauksmi šeit..."></textarea>
-      <button id="submitRecommendation">Iesniegt</button>
-    </div>
-  </div>
-
+  
   <script>
-    // *** NOTE: Nomainiet šeit, ja jūsu Web App URL atšķiras! ***
+    // Nomainiet webappUrl, ja nepieciešams!
     const webappUrl = 'https://script.google.com/macros/s/AKfycbxX5l-iQNITlUQAEXV62euxLwPCVlJP7eLaUkya9KQksMC3NgY6L8iMpJXQ4lEfztdT4A/exec';
     
-    let uid = new URLSearchParams(window.location.search).get('uid') || 'anon_' + Math.floor(Math.random() * 1000000);
-    let recommendations = [];
+    function getUid() {
+      let uid = document.getElementById('uidInput').value.trim();
+      if (!uid) {
+        uid = 'anon_' + Math.floor(Math.random() * 1000000);
+        document.getElementById('uidInput').value = uid;
+      }
+      return uid;
+    }
     
-    /**
-     * JSONP pieprasījums ar timestamp, lai novērstu kešēšanu
-     */
     function jsonpRequest(url, callback) {
       const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
       const script = document.createElement('script');
       window[callbackName] = function(data) {
-        console.log("Saņemta atbilde no servera:", data);
         delete window[callbackName];
         document.body.removeChild(script);
         callback(data);
       };
-      script.src = url 
-          + (url.indexOf('?') >= 0 ? '&' : '?') 
-          + 'callback=' + callbackName 
-          + '&_=' + new Date().getTime(); // timestamp
+      script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName + '&_=' + new Date().getTime();
       document.body.appendChild(script);
     }
     
-    /**
-     * Ielādē ieteikumus no Google Sheets (kolonna B) un attēlo lapā
-     */
-    function loadRecommendations() {
-      const reqUrl = webappUrl + '?action=getRecommendations&uid=' + encodeURIComponent(uid);
-      jsonpRequest(reqUrl, function(data) {
-        if (data.status === 'success') {
-          recommendations = data.recommendations;
-          console.log("Iegūtie ieteikumi:", recommendations);
-          renderRecommendations();
-        } else {
-          console.error("Kļūda ielādējot ieteikumus:", data.message);
-        }
-      });
-    }
-    
-    /**
-     * Izveido HTML elementus katram ieteikumam
-     */
-    function renderRecommendations() {
-      const container = document.getElementById('recommendationsContainer');
-      container.innerHTML = '';
-      
-      recommendations.forEach(rec => {
-        const box = document.createElement('div');
-        box.className = 'recBox';
-        box.dataset.id = rec.id;
-        
-        // rec.text – pilnais teksts no B kolonnas
-        //   Aizstājam \n ar <br>, ja Google Sheets rindkopas
-        box.innerHTML = `
-          <div class="recText">${(rec.text || "").toString().replace(/\n/g, '<br>')}</div>
-          <button class="likeBtn">Like (${rec.likes})</button>
-        `;
-        
-        // Klikšķinot uz paša box, paplašinām/kolapsējam
-        box.addEventListener('click', function(e) {
-          if (!box.classList.contains('expanded')) {
-            collapseAll();
-            box.classList.add('expanded');
-          }
-          e.stopPropagation();
-        });
-        
-        // Like poga
-        const likeBtn = box.querySelector('.likeBtn');
-        likeBtn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          likeRecommendation(rec.id, uid);
-        });
-        
-        container.appendChild(box);
-      });
-    }
-    
-    /**
-     * Nosūta "Like" pieprasījumu
-     */
-    function likeRecommendation(recId, uid) {
-      const url = webappUrl
-        + '?action=like'
-        + '&recId=' + encodeURIComponent(recId)
-        + '&uid='   + encodeURIComponent(uid);
-      
+    function loadSuggestions() {
+      const uid = getUid();
+      const url = webappUrl + '?action=getRecommendations&uid=' + encodeURIComponent(uid);
       jsonpRequest(url, function(data) {
-        if (data.status === 'success') {
-          loadRecommendations();
+        if(data.status === 'success'){
+          renderSuggestions(data.recommendations);
         } else {
-          alert("Kļūda: " + data.message);
+          console.error(data.message);
         }
       });
     }
     
-    /**
-     * Kolapsē (aizver) visus paplašinātos blokus
-     */
-    function collapseAll() {
-      document.querySelectorAll('.recBox.expanded').forEach(box => {
-        box.classList.remove('expanded');
+    function renderSuggestions(suggestions) {
+      const container = document.getElementById('suggestionsContainer');
+      container.innerHTML = '';
+      suggestions.forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'suggestion';
+        div.innerHTML = '<p><strong>Autors:</strong> ' + s.submitter + '</p>' +
+                        '<p>' + s.text.replace(/\n/g, '<br>') + '</p>' +
+                        '<p><strong>Likes:</strong> ' + s.likes + '</p>';
+        const currentUid = getUid();
+        if(!s.alreadyLiked) {
+          const btn = document.createElement('button');
+          btn.className = 'like-button';
+          btn.textContent = 'Like';
+          btn.addEventListener('click', function() {
+            likeSuggestion(s.id);
+          });
+          div.appendChild(btn);
+        } else {
+          const span = document.createElement('span');
+          span.textContent = 'Jūs jau devis like';
+          div.appendChild(span);
+        }
+        container.appendChild(div);
       });
     }
     
-    /**
-     * Noklikšķinot uz fona, kolapsējam
-     */
-    document.addEventListener('click', function() {
-      collapseAll();
-    });
+    function likeSuggestion(recId) {
+      const uid = getUid();
+      const url = webappUrl + '?action=like&recId=' + encodeURIComponent(recId) + '&uid=' + encodeURIComponent(uid);
+      jsonpRequest(url, function(data) {
+        if(data.status === 'success'){
+          loadSuggestions();
+        } else {
+          alert(data.message);
+        }
+      });
+    }
     
-    // Modal un "loading" references
-    const modal = document.getElementById('formModal');
-    const loadingOverlay = document.getElementById('loadingOverlay');
-    const addBtn = document.getElementById('addBtn');
-    const submitRecommendationBtn = document.getElementById('submitRecommendation');
-    
-    // Parāda modal
-    addBtn.addEventListener('click', function(e) {
-      modal.style.display = 'block';
-      e.stopPropagation();
-    });
-    
-    // Aizver modal
-    document.getElementById('closeModal').addEventListener('click', function() {
-      modal.style.display = 'none';
-    });
-    
-    // Pievienot jaunu ieteikumu
-    submitRecommendationBtn.addEventListener('click', function() {
-      const text = (document.getElementById('recommendationText').value || "").trim();
-      if (!text) {
-        alert('Lūdzu, ievadiet ieteikumu!');
+    document.getElementById('submitBtn').addEventListener('click', function() {
+      const uid = getUid();
+      const text = document.getElementById('suggestionInput').value.trim();
+      if(!text){
+        alert('Lūdzu, ievadiet ieteikumu');
         return;
       }
-      // Parāda "Tava atsauksme tiek iesniegta..."
-      loadingOverlay.style.display = 'block';
-      addBtn.disabled = true;
-      submitRecommendationBtn.disabled = true;
-      
-      const url = webappUrl
-        + '?action=submitRecommendation'
-        + '&text=' + encodeURIComponent(text);
-      
+      const url = webappUrl + '?action=submitRecommendation&uid=' + encodeURIComponent(uid) + '&text=' + encodeURIComponent(text);
       jsonpRequest(url, function(data) {
-        loadingOverlay.style.display = 'none';
-        addBtn.disabled = false;
-        submitRecommendationBtn.disabled = false;
-        
-        if (data.status === 'success') {
-          modal.style.display = 'none';
-          document.getElementById('recommendationText').value = '';
-          loadRecommendations();
+        if(data.status === 'success'){
+          document.getElementById('suggestionInput').value = '';
+          loadSuggestions();
         } else {
-          alert("Kļūda: " + data.message);
+          alert(data.message);
         }
       });
     });
     
-    // Sākotnēji ielādējam ieteikumus
-    loadRecommendations();
+    // Sākotnēji ielādējam ierakstus
+    loadSuggestions();
   </script>
 </body>
 </html>
