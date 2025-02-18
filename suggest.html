@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ieteikumi VEZITIVUS</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+    /* Augšējā josla ar caurspīdīgu fonu */
+    header {
+      background: rgba(0, 0, 0, 0.5);
+      color: #fff;
+      text-align: center;
+      padding: 20px 0;
+      font-size: 1.5em;
+    }
+    /* Poga, lai pievienotu ieteikumu */
+    #addBtn {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      font-size: 1em;
+      cursor: pointer;
+    }
+    /* Konteineris ieteikumu blokiem */
+    #recommendationsContainer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      padding: 10px;
+    }
+    /* Ieteikuma bloks sākotnēji 45% platumā */
+    .recBox {
+      background: #fff;
+      width: 45%;
+      margin: 10px;
+      padding: 15px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      max-height: 100px;
+    }
+    /* Paplašināts stils, kad uzklikšķina */
+    .recBox.expanded {
+      width: 90%;
+      max-height: none;
+    }
+    /* Like poga slēpts pēc noklusējuma */
+    .likeBtn {
+      display: none;
+      margin-top: 10px;
+      padding: 5px 10px;
+      cursor: pointer;
+      background: #008CBA;
+      color: #fff;
+      border: none;
+    }
+    .recBox.expanded .likeBtn {
+      display: inline-block;
+    }
+    /* Modal loga stils */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 100;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+      background-color: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 500px;
+      position: relative;
+    }
+    .close {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      font-size: 1.5em;
+      cursor: pointer;
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <header>Ieteikumi VEZITIVUS</header>
+  <button id="addBtn">Pievienot ieteikumu/atsauksmi</button>
+  <div id="recommendationsContainer">
+    <!-- Ieteikumu bloki tiks ģenerēti šeit dinamiski -->
+  </div>
+
+  <!-- Modal logs ieteikuma pievienošanai -->
+  <div id="formModal" class="modal">
+    <div class="modal-content">
+      <span id="closeModal" class="close">&times;</span>
+      <h2>Pievienot ieteikumu/atsauksmi</h2>
+      <textarea id="recommendationText" placeholder="Ierakstiet savu ieteikumu/atsauksmi šeit..."></textarea>
+      <button id="submitRecommendation">Iesniegt</button>
+    </div>
+  </div>
+
+  <script>
+    const webappUrl = 'https://script.google.com/macros/s/AKfycbxX5l-iQNITlUQAEXV62euxLwPCVlJP7eLaUkya9KQksMC3NgY6L8iMpJXQ4lEfztdT4A/exec';
+    let uid = getParameterByName('uid') || 'anon_' + Math.floor(Math.random()*1000000);
+    let recommendations = [];
+
+    // Funkcija, lai iegūtu URL parametrus
+    function getParameterByName(name, url = window.location.href) {
+      name = name.replace(/[\[\]]/g, '\\$&');
+      let regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+          results = regex.exec(url);
+      if (!results) return null;
+      if (!results[2]) return '';
+      return decodeURIComponent(results[2].replace(/\+/g, ' '));
+    }
+
+    // Ielādē ieteikumus no backend
+    function loadRecommendations() {
+      fetch(webappUrl + '?action=getRecommendations&uid=' + uid)
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            recommendations = data.recommendations;
+            renderRecommendations();
+          }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    // Renderē ieteikumu blokus
+    function renderRecommendations() {
+      const container = document.getElementById('recommendationsContainer');
+      container.innerHTML = '';
+      recommendations.forEach(rec => {
+        const box = document.createElement('div');
+        box.className = 'recBox';
+        box.dataset.id = rec.id;
+        // Sākotnēji parādām tikai daļu no teksta (piemēram, pirmās 100 rakstzīmes)
+        box.innerHTML = `<div class="recText">${rec.text.substring(0, 100)}${rec.text.length > 100 ? '...' : ''}</div>
+                         <button class="likeBtn">Like (${rec.likes})</button>`;
+        // Klikšķa notikums bloka paplašināšanai
+        box.addEventListener('click', function(e) {
+          // Ja jau ir paplašināts, neattiecinām vēlreiz (lai nepieļautu atkārtotu klikšķi iekšā uz like pogu)
+          if (!box.classList.contains('expanded')) {
+            collapseAll();
+            box.classList.add('expanded');
+          }
+          // Neļauj klikšķiem iekļūt tajā pašā elementā, kas varētu izraisīt divus notikumus.
+          e.stopPropagation();
+        });
+        // Like pogas notikums
+        box.querySelector('.likeBtn').addEventListener('click', function(e) {
+          e.stopPropagation();
+          likeRecommendation(rec.id, uid, box);
+        });
+        container.appendChild(box);
+      });
+    }
+
+    // Funkcija, lai sūta like darbību backendam
+    function likeRecommendation(recId, uid, boxElement) {
+      fetch(webappUrl + '?action=like&recId=' + recId + '&uid=' + uid)
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            // Atjauno like skaitu UI (vienkāršota pieeja – atkārtoti ielādējam datus)
+            loadRecommendations();
+          } else {
+            alert(data.message);
+          }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    // Kolapsē visus paplašinātos blokus
+    function collapseAll() {
+      document.querySelectorAll('.recBox.expanded').forEach(box => {
+        box.classList.remove('expanded');
+      });
+    }
+
+    // Paslēpj paplašināto bloku, ja klikšķina ārpus tā
+    document.addEventListener('click', function() {
+      collapseAll();
+    });
+
+    // Modal loga atvēršana un aizvēršana
+    const modal = document.getElementById('formModal');
+    document.getElementById('addBtn').addEventListener('click', function(e) {
+      modal.style.display = 'block';
+      e.stopPropagation();
+    });
+    document.getElementById('closeModal').addEventListener('click', function() {
+      modal.style.display = 'none';
+    });
+    // Nosūta jaunu ieteikumu
+    document.getElementById('submitRecommendation').addEventListener('click', function() {
+      const text = document.getElementById('recommendationText').value.trim();
+      if (text === '') {
+        alert('Lūdzu, ievadiet ieteikumu!');
+        return;
+      }
+      // Sūta POST pieprasījumu backendam
+      fetch(webappUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `action=submitRecommendation&text=${encodeURIComponent(text)}`
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          modal.style.display = 'none';
+          document.getElementById('recommendationText').value = '';
+          loadRecommendations();
+        } else {
+          alert(data.message);
+        }
+      })
+      .catch(error => console.error('Error:', error));
+    });
+
+    // Ielādē ieteikumus lapas ielādes brīdī
+    loadRecommendations();
+  </script>
+</body>
+</html>
