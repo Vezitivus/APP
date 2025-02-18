@@ -39,7 +39,7 @@
     /* Poga zem virsraksta */
     #addBtn {
       display: block;
-      margin: 90px auto 20px auto; /* nodrošina, ka nepārklājas ar fiksēto header */
+      margin: 90px auto 20px auto;
       padding: 12px 24px;
       font-size: 1em;
       font-weight: 500;
@@ -55,13 +55,13 @@
       background-color: #0075a7;
       transform: translateY(-2px);
     }
-    /* Scrollable satura zona zem pogas */
+    /* Scrollable satura zona */
     #contentWrapper {
       max-height: calc(100vh - 150px);
       overflow-y: auto;
       padding: 10px;
     }
-    /* Ieteikumu konteineris – katru bloku parāda pilnā rindā */
+    /* Katru ieteikumu rāda atsevišķi */
     #recommendationsContainer {
       display: block;
     }
@@ -88,8 +88,7 @@
     }
     .recText {
       line-height: 1.5;
-      transition: all 0.3s ease;
-      white-space: pre-wrap;
+      white-space: pre-wrap; /* lai tiktu respektētas jaunas rindas */
       color: var(--primary-color);
     }
     .likeBtn {
@@ -113,7 +112,6 @@
     .recBox.expanded .likeBtn {
       display: inline-block;
     }
-    /* Modal logs ar iOS stila dizainu */
     .modal {
       display: none;
       position: fixed;
@@ -124,7 +122,6 @@
       height: 100%;
       backdrop-filter: blur(5px);
       background-color: rgba(0, 0, 0, 0.4);
-      animation: fadeIn 0.3s ease;
     }
     .modal-content {
       background-color: var(--primary-bg);
@@ -135,7 +132,6 @@
       max-width: 500px;
       position: relative;
       box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-      animation: slideDown 0.4s ease;
     }
     .close {
       position: absolute;
@@ -155,7 +151,7 @@
       font-size: 1em;
       resize: vertical;
     }
-    /* Loading overlay – parāda ziņojumu, kamēr atsauksme tiek iesniegta */
+    /* Loading overlay */
     #loadingOverlay {
       display: none;
       position: fixed;
@@ -170,25 +166,22 @@
       font-size: 1.5em;
       color: #333;
     }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    @keyframes slideDown {
-      from { transform: translateY(-30px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
   </style>
 </head>
 <body>
   <header>Ieteikumi VEZITIVUS</header>
+  
   <button id="addBtn">Pievienot ieteikumu/atsauksmi</button>
+  
   <div id="contentWrapper">
     <div id="recommendationsContainer">
-      <!-- Ieteikumu bloki tiks ģenerēti šeit -->
+      <!-- Šeit ģenerējas ieteikumu bloki -->
     </div>
   </div>
+
   <div id="loadingOverlay">Tava atsauksme tiek iesniegta...</div>
+
+  <!-- Modal logs -->
   <div id="formModal" class="modal">
     <div class="modal-content">
       <span id="closeModal" class="close">&times;</span>
@@ -197,47 +190,69 @@
       <button id="submitRecommendation">Iesniegt</button>
     </div>
   </div>
+
   <script>
+    // *** NOTE: Nomainiet šeit, ja jūsu Web App URL atšķiras! ***
     const webappUrl = 'https://script.google.com/macros/s/AKfycbxX5l-iQNITlUQAEXV62euxLwPCVlJP7eLaUkya9KQksMC3NgY6L8iMpJXQ4lEfztdT4A/exec';
+    
     let uid = new URLSearchParams(window.location.search).get('uid') || 'anon_' + Math.floor(Math.random() * 1000000);
     let recommendations = [];
     
-    // JSONP pieprasījumu funkcija ar timestamp, lai izvairītos no kešēšanas
+    /**
+     * JSONP pieprasījums ar timestamp, lai novērstu kešēšanu
+     */
     function jsonpRequest(url, callback) {
       const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
       const script = document.createElement('script');
       window[callbackName] = function(data) {
-        console.log("Saņemta atbilde:", data);
+        console.log("Saņemta atbilde no servera:", data);
         delete window[callbackName];
         document.body.removeChild(script);
         callback(data);
       };
-      // Pievieno arī timestamp (_ parameter), lai nodrošinātu svaigus pieprasījumus
-      script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName + '&_=' + new Date().getTime();
+      script.src = url 
+          + (url.indexOf('?') >= 0 ? '&' : '?') 
+          + 'callback=' + callbackName 
+          + '&_=' + new Date().getTime(); // timestamp
       document.body.appendChild(script);
     }
     
+    /**
+     * Ielādē ieteikumus no Google Sheets (kolonna B) un attēlo lapā
+     */
     function loadRecommendations() {
-      jsonpRequest(webappUrl + '?action=getRecommendations&uid=' + uid, function(data) {
+      const reqUrl = webappUrl + '?action=getRecommendations&uid=' + encodeURIComponent(uid);
+      jsonpRequest(reqUrl, function(data) {
         if (data.status === 'success') {
           recommendations = data.recommendations;
+          console.log("Iegūtie ieteikumi:", recommendations);
           renderRecommendations();
         } else {
-          console.error("Kļūda ielādējot datus:", data.message);
+          console.error("Kļūda ielādējot ieteikumus:", data.message);
         }
       });
     }
     
+    /**
+     * Izveido HTML elementus katram ieteikumam
+     */
     function renderRecommendations() {
       const container = document.getElementById('recommendationsContainer');
       container.innerHTML = '';
+      
       recommendations.forEach(rec => {
         const box = document.createElement('div');
         box.className = 'recBox';
         box.dataset.id = rec.id;
-        // Parāda visu tekstu no B kolonnas, aizstājot jaunu līniju ar <br>
-        box.innerHTML = `<div class="recText">${rec.text.replace(/\n/g, '<br>')}</div>
-                         <button class="likeBtn">Like (${rec.likes})</button>`;
+        
+        // rec.text – pilnais teksts no B kolonnas
+        //   Aizstājam \n ar <br>, ja Google Sheets rindkopas
+        box.innerHTML = `
+          <div class="recText">${(rec.text || "").toString().replace(/\n/g, '<br>')}</div>
+          <button class="likeBtn">Like (${rec.likes})</button>
+        `;
+        
+        // Klikšķinot uz paša box, paplašinām/kolapsējam
         box.addEventListener('click', function(e) {
           if (!box.classList.contains('expanded')) {
             collapseAll();
@@ -245,70 +260,101 @@
           }
           e.stopPropagation();
         });
-        box.querySelector('.likeBtn').addEventListener('click', function(e) {
+        
+        // Like poga
+        const likeBtn = box.querySelector('.likeBtn');
+        likeBtn.addEventListener('click', function(e) {
           e.stopPropagation();
           likeRecommendation(rec.id, uid);
         });
+        
         container.appendChild(box);
       });
     }
     
+    /**
+     * Nosūta "Like" pieprasījumu
+     */
     function likeRecommendation(recId, uid) {
-      jsonpRequest(webappUrl + '?action=like&recId=' + recId + '&uid=' + uid, function(data) {
+      const url = webappUrl
+        + '?action=like'
+        + '&recId=' + encodeURIComponent(recId)
+        + '&uid='   + encodeURIComponent(uid);
+      
+      jsonpRequest(url, function(data) {
         if (data.status === 'success') {
           loadRecommendations();
         } else {
-          alert(data.message);
+          alert("Kļūda: " + data.message);
         }
       });
     }
     
+    /**
+     * Kolapsē (aizver) visus paplašinātos blokus
+     */
     function collapseAll() {
       document.querySelectorAll('.recBox.expanded').forEach(box => {
         box.classList.remove('expanded');
       });
     }
     
+    /**
+     * Noklikšķinot uz fona, kolapsējam
+     */
     document.addEventListener('click', function() {
       collapseAll();
     });
     
+    // Modal un "loading" references
     const modal = document.getElementById('formModal');
     const loadingOverlay = document.getElementById('loadingOverlay');
+    const addBtn = document.getElementById('addBtn');
+    const submitRecommendationBtn = document.getElementById('submitRecommendation');
     
-    document.getElementById('addBtn').addEventListener('click', function(e) {
+    // Parāda modal
+    addBtn.addEventListener('click', function(e) {
       modal.style.display = 'block';
       e.stopPropagation();
     });
     
+    // Aizver modal
     document.getElementById('closeModal').addEventListener('click', function() {
       modal.style.display = 'none';
     });
     
-    document.getElementById('submitRecommendation').addEventListener('click', function() {
-      const text = document.getElementById('recommendationText').value.trim();
-      if (text === '') {
+    // Pievienot jaunu ieteikumu
+    submitRecommendationBtn.addEventListener('click', function() {
+      const text = (document.getElementById('recommendationText').value || "").trim();
+      if (!text) {
         alert('Lūdzu, ievadiet ieteikumu!');
         return;
       }
+      // Parāda "Tava atsauksme tiek iesniegta..."
       loadingOverlay.style.display = 'block';
-      document.getElementById('addBtn').disabled = true;
-      document.getElementById('submitRecommendation').disabled = true;
+      addBtn.disabled = true;
+      submitRecommendationBtn.disabled = true;
       
-      jsonpRequest(webappUrl + '?action=submitRecommendation&text=' + encodeURIComponent(text), function(data) {
+      const url = webappUrl
+        + '?action=submitRecommendation'
+        + '&text=' + encodeURIComponent(text);
+      
+      jsonpRequest(url, function(data) {
         loadingOverlay.style.display = 'none';
-        document.getElementById('addBtn').disabled = false;
-        document.getElementById('submitRecommendation').disabled = false;
+        addBtn.disabled = false;
+        submitRecommendationBtn.disabled = false;
+        
         if (data.status === 'success') {
           modal.style.display = 'none';
           document.getElementById('recommendationText').value = '';
           loadRecommendations();
         } else {
-          alert(data.message);
+          alert("Kļūda: " + data.message);
         }
       });
     });
     
+    // Sākotnēji ielādējam ieteikumus
     loadRecommendations();
   </script>
 </body>
