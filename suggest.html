@@ -37,7 +37,7 @@
       font-size: 2.5rem;
       margin-bottom: 10px;
     }
-    /* Poga komentāra pievienošanai – novietota virs komentāru lauciņiem */
+    /* Poga komentāra pievienošanai – novietota virs komentāru logiem */
     #addCommentContainer {
       margin-top: 120px;
       margin-bottom: 20px;
@@ -95,18 +95,18 @@
       border-radius: 8px;
       cursor: pointer;
     }
-    /* Komentāru konteineris – lielākas atstarpes virs un zem */
+    /* Komentāru konteineris – palielinātas atstarpes virs un zem */
     #comments {
       display: flex;
       flex-wrap: wrap;
-      gap: 4%;
+      gap: 6%;
       padding: 0 4%;
       justify-content: center;
       width: 100%;
-      margin-top: 40px;
-      margin-bottom: 60px;
+      margin-top: 60px;
+      margin-bottom: 80px;
     }
-    /* Neaktīvi komentāru logi – kvadrātveida, 45% platumā, kreisā izlīdzinājuma teksts, ar tekstu ierobežotu līdz 4 rindām (multi-line ellipsis) */
+    /* Neaktīvi komentāru logi – kvadrātveida, 45% platumā, kreisā izlīdzinājuma teksts, ar multi-line ellipsis (4 rindām) */
     .comment {
       background: #fff;
       border-radius: 12px;
@@ -128,7 +128,7 @@
       transform: translateY(-2px);
       box-shadow: 0 6px 16px rgba(0,0,0,0.15);
     }
-    /* Aktīvs komentārs – paplašinās līdz 92% platumam, atbrīvojot visu tekstu */
+    /* Aktīvs komentārs – paplašinās līdz 92% platumam, izrādot visu saturu */
     .comment.active {
       width: 92%;
       margin-left: 4%;
@@ -136,7 +136,13 @@
       white-space: normal;
       overflow: visible;
     }
-    /* Like sekcija – ar palielinātām atstarpēm, lai like poga nekonfliktētu ar tekstu */
+    /* Like sekcija – nostiprināta, lai tā vienmēr būtu redzama apakšā aktīvā komentārā */
+    .comment.active .like-section {
+      position: sticky;
+      bottom: 0;
+      background: #fff;
+      padding-top: 10px;
+    }
     .like-section {
       margin-top: 20px;
       text-align: left;
@@ -236,11 +242,13 @@
       }
     }
 
-    // Ielādē komentārus no servera (doGet) – tagad arī ar like skaitu (C kolonna)
+    // Ielādē komentārus no servera (doGet) un kārto tos tā, ka jaunākie no sheets tiek rādīti augšā
     function loadComments() {
       fetch(scriptUrl)
         .then(response => response.json())
         .then(data => {
+          // Pārvērš masīvu, lai jaunākie komentāri būtu pirmie
+          data = data.reverse();
           const container = document.getElementById('comments');
           container.innerHTML = '';
           data.forEach(item => {
@@ -302,7 +310,7 @@
       }
     });
 
-    // Saglabā komentāru – kad poga tiek nospiesta, tā tiek deaktivizēta un teksts mainās uz "Tavas domas tiek publicētas"
+    // Saglabā komentāru – kad poga tiek nospiesta, tā deaktivizējas un tās teksts mainās uz "Tavas domas tiek publicētas"
     saveCommentBtn.addEventListener('click', function() {
       const commentText = commentInput.value.trim();
       if(!commentText) {
@@ -335,7 +343,7 @@
         alert("Kļūda saglabāt komentāru");
       })
       .finally(() => {
-        // Atjauno pogas stāvokli, lai lietotājs var pievienot vēl komentārus
+        // Atjauno pogas stāvokli
         saveCommentBtn.disabled = false;
         saveCommentBtn.textContent = "Saglabāt";
       });
