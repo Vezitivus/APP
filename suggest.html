@@ -5,25 +5,48 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ieteikumi VEZITIVUS</title>
   <style>
+    :root {
+      --primary-bg: #fff;
+      --secondary-bg: rgba(0, 0, 0, 0.5);
+      --primary-color: #000;
+      --button-bg: #008CBA;
+      --button-color: #fff;
+    }
     body {
-      font-family: Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       margin: 0;
       padding: 0;
       background-color: #f4f4f4;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
     header {
-      background: rgba(0, 0, 0, 0.5);
-      color: #fff;
+      background: var(--secondary-bg);
+      color: var(--button-color);
       text-align: center;
-      padding: 20px 0;
+      padding: 20px;
       font-size: 1.5em;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     }
     #addBtn {
       display: block;
       margin: 20px auto;
-      padding: 10px 20px;
+      padding: 12px 24px;
       font-size: 1em;
+      font-weight: 500;
+      color: var(--button-color);
+      background-color: var(--button-bg);
+      border: none;
+      border-radius: 10px;
       cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    #addBtn:hover {
+      background-color: #0075a7;
+      transform: translateY(-2px);
     }
     #recommendationsContainer {
       display: flex;
@@ -32,33 +55,52 @@
       padding: 10px;
     }
     .recBox {
-      background: #fff;
+      background: var(--primary-bg);
       width: 45%;
       margin: 10px;
-      padding: 15px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: width 0.4s ease, max-height 0.4s ease, transform 0.4s ease, box-shadow 0.4s ease;
       position: relative;
       overflow: hidden;
-      max-height: 100px;
+      max-height: 120px;
+    }
+    .recBox:hover {
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
     }
     .recBox.expanded {
       width: 90%;
-      max-height: none;
+      max-height: 1000px; /* Liels skaitlis, lai nodrošinātu dinamisku pielāgošanos */
+      transform: scale(1.02);
+    }
+    .recText {
+      line-height: 1.5;
+      transition: all 0.3s ease;
     }
     .likeBtn {
       display: none;
-      margin-top: 10px;
-      padding: 5px 10px;
-      cursor: pointer;
-      background: #008CBA;
-      color: #fff;
+      margin-top: 15px;
+      padding: 8px 16px;
+      font-size: 0.9em;
+      font-weight: 500;
+      color: var(--button-color);
+      background-color: var(--button-bg);
       border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      box-shadow: 0 3px 5px rgba(0,0,0,0.1);
+    }
+    .likeBtn:hover {
+      background-color: #0075a7;
+      transform: translateY(-1px);
     }
     .recBox.expanded .likeBtn {
       display: inline-block;
     }
+    /* Modal logs ar iOS stila dizainu */
     .modal {
       display: none;
       position: fixed;
@@ -67,29 +109,46 @@
       top: 0;
       width: 100%;
       height: 100%;
-      overflow: auto;
-      background-color: rgba(0,0,0,0.5);
+      backdrop-filter: blur(5px);
+      background-color: rgba(0, 0, 0, 0.4);
+      animation: fadeIn 0.3s ease;
     }
     .modal-content {
-      background-color: #fff;
+      background-color: var(--primary-bg);
       margin: 10% auto;
       padding: 20px;
-      border: 1px solid #888;
+      border-radius: 15px;
       width: 80%;
       max-width: 500px;
       position: relative;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      animation: slideDown 0.4s ease;
     }
     .close {
       position: absolute;
-      right: 10px;
-      top: 10px;
+      right: 15px;
+      top: 15px;
       font-size: 1.5em;
       cursor: pointer;
+      color: var(--primary-color);
     }
     textarea {
       width: 100%;
-      height: 100px;
-      margin: 10px 0;
+      height: 120px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 1em;
+      resize: vertical;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes slideDown {
+      from { transform: translateY(-30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
     }
   </style>
 </head>
@@ -97,7 +156,7 @@
   <header>Ieteikumi VEZITIVUS</header>
   <button id="addBtn">Pievienot ieteikumu/atsauksmi</button>
   <div id="recommendationsContainer">
-    <!-- Ieteikumu bloki tiks ģenerēti šeit dinamiski -->
+    <!-- Ieteikumu bloki dinamiski ģenerēti šeit -->
   </div>
 
   <!-- Modal logs ieteikuma pievienošanai -->
@@ -111,13 +170,10 @@
   </div>
 
   <script>
-    // URL uz Google Script web app
     const webappUrl = 'https://script.google.com/macros/s/AKfycbxX5l-iQNITlUQAEXV62euxLwPCVlJP7eLaUkya9KQksMC3NgY6L8iMpJXQ4lEfztdT4A/exec';
-    // Iegūst uid no URL parametrā vai ģenerē nejaušu
-    let uid = (new URLSearchParams(window.location.search)).get('uid') || 'anon_' + Math.floor(Math.random()*1000000);
+    let uid = new URLSearchParams(window.location.search).get('uid') || 'anon_' + Math.floor(Math.random()*1000000);
     let recommendations = [];
 
-    // JSONP pieprasījumu funkcija
     function jsonpRequest(url, callback) {
       const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
       window[callbackName] = function(data) {
@@ -130,7 +186,6 @@
       document.body.appendChild(script);
     }
 
-    // Ielādē ieteikumus, izmantojot JSONP
     function loadRecommendations() {
       jsonpRequest(webappUrl + '?action=getRecommendations&uid=' + uid, function(data) {
         if (data.status === 'success') {
@@ -140,7 +195,6 @@
       });
     }
 
-    // Renderē ieteikumu blokus
     function renderRecommendations() {
       const container = document.getElementById('recommendationsContainer');
       container.innerHTML = '';
@@ -165,7 +219,6 @@
       });
     }
 
-    // Sūta "like" darbību backendam, izmantojot JSONP
     function likeRecommendation(recId, uid) {
       jsonpRequest(webappUrl + '?action=like&recId=' + recId + '&uid=' + uid, function(data) {
         if (data.status === 'success') {
@@ -186,7 +239,6 @@
       collapseAll();
     });
 
-    // Modal loga atvēršana un aizvēršana
     const modal = document.getElementById('formModal');
     document.getElementById('addBtn').addEventListener('click', function(e) {
       modal.style.display = 'block';
@@ -196,7 +248,6 @@
       modal.style.display = 'none';
     });
 
-    // Nosūta jaunu ieteikumu, izmantojot GET (JSONP)
     document.getElementById('submitRecommendation').addEventListener('click', function() {
       const text = document.getElementById('recommendationText').value.trim();
       if (text === '') {
