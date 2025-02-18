@@ -2,42 +2,69 @@
 <html lang="lv">
 <head>
   <meta charset="UTF-8">
-  <title>Lapa izstrādē</title>
+  <title>Under Konstruction</title>
   <style>
-    body {
-      background-color: #000;
-      color: #fff;
+    /* Pamatstils lapai */
+    html, body {
       margin: 0;
       padding: 0;
+      background: #000;
+      color: #fff;
       font-family: Arial, sans-serif;
-      text-align: center;
+      height: 100%;
+      overflow: hidden; /* Pēc vēlēšanās var noņemt, lai parādītos scrollbar */
     }
-    .container {
+    /* Centrē visu saturu ekrānā */
+    body {
       display: flex;
-      flex-direction: column;
-      justify-content: center;
       align-items: center;
-      height: 100vh;
+      justify-content: center;
+      flex-direction: column;
     }
-    .logo {
-      font-size: 48px;
-      font-weight: bold;
-      margin-bottom: 20px;
+    /* Lielais virsraksts */
+    h1 {
+      font-size: 4rem;
+      margin: 0;
+      letter-spacing: 0.1em;
     }
-    .footer {
-      position: fixed;
-      bottom: 20px;
-      width: 100%;
-      font-size: 16px;
+    /* Ielādes joslas konteiners */
+    .loading-bar {
+      width: 50%;
+      max-width: 600px;
+      height: 20px;
+      background: #444;
+      margin: 2rem 0;
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    /* Zaļais indikators, kas rāda 69% */
+    .loading-progress {
+      width: 69%;
+      height: 100%;
+      background: #0f0;
+      border-radius: 10px 0 0 10px;
+    }
+    /* Mirgojošais teksts */
+    .loading-text {
+      font-size: 1.5rem;
+      animation: blink 1s infinite;
+    }
+    @keyframes blink {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="logo">KONSTRUCTION</div>
+  <h1>UNDER CONSTRUCTION</h1>
+  <div class="loading-bar">
+    <div class="loading-progress"></div>
   </div>
-  <div class="footer">
-    Ja tev ir ideja, ko vēlētos šeit redzēt, ieraksti ieteikumos.
-  </div>
+  <div class="loading-text">Loading... 69%</div>
 </body>
 </html>
