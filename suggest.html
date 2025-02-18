@@ -11,7 +11,7 @@
       font-family: Arial, sans-serif;
       background-color: #f0f0f0;
     }
-    /* Fiksēta augšdaļa ar caurspīdīgu fonu */
+    /* Fiksēta augšdaļa ar 50% caurspīdīgu fonu un uzrakstu */
     .header {
       position: fixed;
       top: 0;
@@ -23,7 +23,7 @@
       padding: 20px 0;
       z-index: 100;
     }
-    /* Poga jauna ieraksta ievadei */
+    /* Poga ieteikuma/atsauksmes pievienošanai */
     .add-btn {
       display: block;
       width: 220px;
@@ -43,7 +43,7 @@
       justify-content: center;
       padding-bottom: 40px;
     }
-    /* Ieteikumu bloks (sākumā 45% platumā) */
+    /* Ieteikumu bloks – sākumā 45% platumā */
     .recommendation {
       background: #fff;
       margin: 10px;
@@ -61,14 +61,14 @@
       overflow: hidden;
       transition: max-height 0.3s ease;
     }
-    /* Paplašinātā ieraksta stils – palielina platumu un noņem teksta ierobežojumu */
+    /* Paplašinātā ieraksta stils – palielina platumu līdz 90% un parāda visu tekstu */
     .recommendation.expanded {
       width: 90%;
     }
     .recommendation.expanded .text {
       max-height: none;
     }
-    /* Like poga – sākotnēji paslēpta */
+    /* Like poga – sākotnēji paslēpta, bet parādās paplašinātā ieraksta apakšā */
     .like-button {
       display: none;
       position: absolute;
@@ -81,7 +81,6 @@
       border-radius: 3px;
       cursor: pointer;
     }
-    /* Paplašinātā ieraksta like poga parādās */
     .recommendation.expanded .like-button {
       display: block;
     }
@@ -96,16 +95,17 @@
     (function(){
       'use strict';
       
-      // Nolasām UID no URL, piemēram: ?uid=lietotajaID
+      // Nolasām UID no URL, piemēram: ?uid=VZ001
       function getUID() {
         const params = new URLSearchParams(window.location.search);
         return params.get('uid') || '';
       }
       const uid = getUID();
-      // Nomainiet uz jūsu Google Apps Script Web App URL:
-      const backendUrl = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec';
       
-      // JSONP izsaukumu funkcija – ģenerē dinamiski script tagu ar unikālu callback funkcijas nosaukumu
+      // Izmanto mūsu Google Apps Script Web App URL
+      const backendUrl = 'https://script.google.com/macros/s/AKfycbxX5l-iQNITlUQAEXV62euxLwPCVlJP7eLaUkya9KQksMC3NgY6L8iMpJXQ4lEfztdT4A/exec';
+      
+      // Funkcija JSONP pieprasījumiem – ģenerē dinamiski script tagu ar unikālu callback nosaukumu
       function jsonpRequest(url, callback) {
         var script = document.createElement('script');
         var cbName = 'jsonp_callback_' + Math.round(100000 * Math.random());
@@ -138,7 +138,7 @@
                              '<button class="like-button">Like (' + (rec.likes || 0) + ')</button>';
           container.appendChild(recDiv);
           
-          // Paplašina/saraujas ierakstu, ja noklikšķina uz tā (izņemot like pogu)
+          // Noklikšķinot uz ieraksta (izņemot like pogu), paplašinām/saraujam ierakstu
           recDiv.addEventListener('click', function(e) {
             if(e.target.classList.contains('like-button')) return;
             const expanded = document.querySelector('.recommendation.expanded');
@@ -170,7 +170,7 @@
         });
       }
       
-      // Poga, lai pievienotu jaunu ieteikumu
+      // Poga jauna ieteikuma pievienošanai
       document.getElementById('addRecommendation').addEventListener('click', function() {
         const text = prompt('Ievadiet ieteikumu/atsauksmi:');
         if(!text) return;
