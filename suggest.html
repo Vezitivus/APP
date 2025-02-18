@@ -2,162 +2,200 @@
 <html lang="lv">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ieteikumi VEZITIVUS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: sans-serif; margin: 20px; background: #f4f4f4; }
-    header { background: #333; color: #fff; padding: 10px; text-align: center; }
-    #submitForm { margin: 20px 0; }
-    #submitForm textarea { width: 100%; margin: 5px 0; padding: 8px; }
-    #submitForm button { padding: 8px 16px; background: #008CBA; color: #fff; border: none; border-radius: 3px; cursor: pointer; }
-    .suggestion { background: #fff; margin: 10px 0; padding: 10px; border-radius: 5px; }
-    .suggestion p { margin: 5px 0; }
-    .like-button { background: #008CBA; color: #fff; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; }
-    .like-button[disabled] { background: #aaa; cursor: default; }
-    /* Apakšējā sadaļa, lai parādītu visu B kolonnas informāciju */
-    #columnBContainer {
-      background: #fff;
-      padding: 15px;
-      margin-top: 30px;
+    /* Pamatstili */
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+    }
+    /* Fiksēta augšdaļa ar caurspīdīgu fonu */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      color: #fff;
+      text-align: center;
+      padding: 20px 0;
+      z-index: 100;
+    }
+    /* Poga jauna ieraksta ievadei */
+    .add-btn {
+      display: block;
+      width: 220px;
+      margin: 100px auto 20px;
+      padding: 10px;
+      text-align: center;
+      background: #007BFF;
+      color: #fff;
+      border: none;
       border-radius: 5px;
+      cursor: pointer;
     }
-    #columnBContainer h3 {
-      margin-top: 0;
+    /* Ieteikumu konteineris */
+    .content {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding-bottom: 40px;
     }
-    #columnBContainer p {
-      margin: 8px 0;
-      border-bottom: 1px solid #ddd;
-      padding-bottom: 5px;
+    /* Ieteikumu bloks (sākumā 45% platumā) */
+    .recommendation {
+      background: #fff;
+      margin: 10px;
+      width: 45%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      cursor: pointer;
+      position: relative;
+    }
+    /* Ieraksta teksts sākumā ierobežots */
+    .recommendation .text {
+      max-height: 100px;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    /* Kad ieraksts ir paplašināts, noņemam max-height un palielinām platumu līdz 90% */
+    .recommendation.expanded {
+      width: 90%;
+    }
+    .recommendation.expanded .text {
+      max-height: none;
+    }
+    /* Like poga – sākotnēji paslēpta */
+    .like-button {
+      display: none;
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: #28a745;
+      color: #fff;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    /* Paplašinātā ieraksta like poga parādās */
+    .recommendation.expanded .like-button {
+      display: block;
     }
   </style>
 </head>
 <body>
-  <header>Ieteikumi VEZITIVUS</header>
-  
-  <!-- Forma: tikai ieteikuma teksts, jo UID tiek ņemts no URL -->
-  <div id="submitForm">
-    <textarea id="suggestionInput" placeholder="Ievadiet ieteikumu"></textarea>
-    <button id="submitBtn">Pievienot ieteikumu</button>
-  </div>
-  
-  <!-- Ieraksti tiks parādīti šeit -->
-  <div id="suggestionsContainer"></div>
-  
-  <!-- Apakšējā sadaļa ar visu B kolonnas informāciju -->
-  <div id="columnBContainer">
-    <h3>Visi ieteikumi (B kolonna):</h3>
-    <div id="columnBContent"></div>
-  </div>
-  
+  <div class="header">Ieteikumi VEZITIVUS</div>
+  <button class="add-btn" id="addRecommendation">Pievienot ieteikumu/atsauksmi</button>
+  <div class="content" id="recommendationsContainer"></div>
+
   <script>
-    // Nomainiet, ja nepieciešams, ar savu Web App URL
-    const webappUrl = 'https://script.google.com/macros/s/AKfycbxX5l-iQNITlUQAEXV62euxLwPCVlJP7eLaUkya9KQksMC3NgY6L8iMpJXQ4lEfztdT4A/exec';
-    
-    // Iegūst uid no URL parametra, piemēram: ?uid=lietotajs123
-    function getUid() {
-      const params = new URLSearchParams(window.location.search);
-      let uid = params.get('uid');
-      if (!uid) {
-        uid = 'anon_' + Math.floor(Math.random() * 1000000);
+    (function(){
+      // Izolējam mainīgos, lai izvairītos no globālas piekļuves
+      'use strict';
+
+      // Nolasām UID no URL, piemēram: ?uid=lietotajaID
+      function getUID() {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('uid') || '';
       }
-      return uid;
-    }
-    
-    function jsonpRequest(url, callback) {
-      const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
-      const script = document.createElement('script');
-      window[callbackName] = function(data) {
-        delete window[callbackName];
-        document.body.removeChild(script);
-        callback(data);
-      };
-      script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName + '&_=' + new Date().getTime();
-      document.body.appendChild(script);
-    }
-    
-    function loadSuggestions() {
-      const uid = getUid();
-      const url = webappUrl + '?action=getRecommendations&uid=' + encodeURIComponent(uid);
-      jsonpRequest(url, function(data) {
-        if (data.status === 'success') {
-          renderSuggestions(data.recommendations);
-          renderColumnB(data.recommendations);
-        } else {
-          console.error(data.message);
-        }
-      });
-    }
-    
-    function renderSuggestions(suggestions) {
-      const container = document.getElementById('suggestionsContainer');
-      container.innerHTML = '';
-      suggestions.forEach(s => {
-        const div = document.createElement('div');
-        div.className = 'suggestion';
-        div.innerHTML = '<p><strong>Autors:</strong> ' + s.submitter + '</p>' +
-                        '<p>' + s.text.replace(/\n/g, '<br>') + '</p>' +
-                        '<p><strong>Likes:</strong> ' + s.likes + '</p>';
-        if (!s.alreadyLiked) {
-          const btn = document.createElement('button');
-          btn.className = 'like-button';
-          btn.textContent = 'Like';
-          btn.addEventListener('click', function() {
-            likeSuggestion(s.id);
+      const uid = getUID();
+
+      // Jūsu Google Script Webapp URL
+      const backendUrl = 'https://script.google.com/macros/s/AKfycbxX5l-iQNITlUQAEXV62euxLwPCVlJP7eLaUkya9KQksMC3NgY6L8iMpJXQ4lEfztdT4A/exec';
+
+      // Funkcija ielādē ieteikumus no backend
+      function loadRecommendations() {
+        // Nododam darbību "getRecommendations" – backendam jāatgriež JSON masīvs
+        fetch(backendUrl + '?action=getRecommendations')
+          .then(response => response.json())
+          .then(data => {
+            renderRecommendations(data);
+          })
+          .catch(err => console.error('Kļūda ielādējot ieteikumus:', err));
+      }
+
+      // Funkcija renderē ieteikumus lapā
+      function renderRecommendations(recommendations) {
+        const container = document.getElementById('recommendationsContainer');
+        container.innerHTML = ''; // notīra iepriekšējo saturu
+        recommendations.forEach((rec, index) => {
+          const recDiv = document.createElement('div');
+          recDiv.className = 'recommendation';
+          // Piešķiram unikālu id – ja backend atgriež id, izmanto to, citādi izmanto index
+          recDiv.dataset.id = rec.id || index;
+          recDiv.innerHTML = '<div class="text">' + rec.text + '</div>' +
+                             '<button class="like-button">Like (' + (rec.likes || 0) + ')</button>';
+          container.appendChild(recDiv);
+
+          // Noklikšķinot uz ieraksta, tas paplašinās/celšas
+          recDiv.addEventListener('click', function(e) {
+            // Ja klikšķis bija uz like pogas, nepārslēdzam paplašināšanu
+            if(e.target.classList.contains('like-button')) return;
+            // Ja kāds cits ieraksts ir paplašināts, to saraujam
+            const expanded = document.querySelector('.recommendation.expanded');
+            if(expanded && expanded !== recDiv) {
+              expanded.classList.remove('expanded');
+            }
+            recDiv.classList.toggle('expanded');
           });
-          div.appendChild(btn);
-        } else {
-          const span = document.createElement('span');
-          span.textContent = 'Jūs jau devis like';
-          div.appendChild(span);
-        }
-        container.appendChild(div);
-      });
-    }
-    
-    // Jaunā papildu funkcija: atsevišķi parāda visu B kolonnas tekstu
-    function renderColumnB(suggestions) {
-      const container = document.getElementById('columnBContent');
-      container.innerHTML = '';
-      suggestions.forEach(s => {
-        // Parādīt tikai tekstu (B kolonna)
-        const p = document.createElement('p');
-        p.innerHTML = s.text.replace(/\n/g, '<br>');
-        container.appendChild(p);
-      });
-    }
-    
-    function likeSuggestion(recId) {
-      const uid = getUid();
-      const url = webappUrl + '?action=like&recId=' + encodeURIComponent(recId) + '&uid=' + encodeURIComponent(uid);
-      jsonpRequest(url, function(data) {
-        if (data.status === 'success') {
-          loadSuggestions();
-        } else {
-          alert(data.message);
-        }
-      });
-    }
-    
-    document.getElementById('submitBtn').addEventListener('click', function() {
-      const uid = getUid();
-      const text = document.getElementById('suggestionInput').value.trim();
-      if (!text) {
-        alert('Lūdzu, ievadiet ieteikumu');
-        return;
+
+          // Like pogas klikšķa apstrāde
+          const likeBtn = recDiv.querySelector('.like-button');
+          likeBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const recId = recDiv.dataset.id;
+            // Pārbaudām lokāli, ja jau esat nospiedis like (var saglabāt ar localStorage)
+            if(localStorage.getItem('liked_' + recId)) {
+              alert('Jūs jau nospiedāt like šim ierakstam.');
+              return;
+            }
+            // Nosūta pieprasījumu backendam, lai palielinātu like skaitu
+            fetch(backendUrl + '?action=like&recId=' + recId + '&uid=' + uid)
+              .then(response => response.json())
+              .then(result => {
+                if(result.success) {
+                  localStorage.setItem('liked_' + recId, 'true');
+                  // Atjaunina like skaitu poga tekstā
+                  let currentLikes = parseInt(likeBtn.textContent.match(/\d+/)[0]);
+                  likeBtn.textContent = 'Like (' + (currentLikes + 1) + ')';
+                }
+              })
+              .catch(err => console.error('Kļūda nospiežot like:', err));
+          });
+        });
       }
-      const url = webappUrl + '?action=submitRecommendation&uid=' + encodeURIComponent(uid) + '&text=' + encodeURIComponent(text);
-      jsonpRequest(url, function(data) {
-        if (data.status === 'success') {
-          document.getElementById('suggestionInput').value = '';
-          loadSuggestions();
-        } else {
-          alert(data.message);
+
+      // Poga, lai pievienotu jaunu ieteikumu
+      document.getElementById('addRecommendation').addEventListener('click', function() {
+        const text = prompt('Ievadiet ieteikumu/atsauksmi:');
+        if(!text) return;
+        fetch(backendUrl + '?action=add&text=' + encodeURIComponent(text) + '&uid=' + uid)
+          .then(response => response.json())
+          .then(result => {
+            if(result.success) {
+              loadRecommendations();
+            } else {
+              alert('Kļūda saglabājot ieteikumu.');
+            }
+          })
+          .catch(err => console.error('Kļūda pievienojot ieteikumu:', err));
+      });
+
+      // Noklikšķinot ārpus aktīva ieraksta, paplašinājums pazūd
+      document.addEventListener('click', function(e) {
+        if(!e.target.closest('.recommendation')) {
+          const expanded = document.querySelector('.recommendation.expanded');
+          if(expanded) expanded.classList.remove('expanded');
         }
       });
-    });
-    
-    // Sākotnēji ielādējam ierakstus
-    loadSuggestions();
+
+      // Sākotnēji ielādē ieteikumus
+      loadRecommendations();
+    })();
   </script>
 </body>
 </html>
