@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Veitivus ieteikumi</title>
   <style>
-    /* Reset un centrēšana */
+    /* Reset */
     * {
       margin: 0;
       padding: 0;
@@ -15,13 +15,14 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       background-color: #f9f9f9;
       color: #333;
+      /* Palielināts bāzes fonta izmērs */
       font-size: 22px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding-top: 80px; /* nodrošina vietu fiksētajai galvenei */
+      padding-top: 100px; /* vieta fiksētajai galvenei */
     }
-    /* Fiksētā galvene ar 50% caurspīdīgu melnu fonu, centrēta */
+    /* Fiksētā galvene ar caurspīdīgu melnu fonu un centrētu elementu */
     header {
       position: fixed;
       top: 0;
@@ -35,9 +36,60 @@
     }
     header h1 {
       font-size: 2.5rem;
-      margin: 0;
+      margin-bottom: 10px;
     }
-    /* Komentāru konteineris – centrēts ar malas 4% un starpā 2% */
+    header button#addCommentBtn {
+      font-size: 18px;
+      padding: 10px 20px;
+      border: none;
+      background-color: #007aff;
+      color: #fff;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    /* Modal stils komentāra pievienošanai */
+    #modalOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+    #modal {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 500px;
+    }
+    #modal h2 {
+      margin-bottom: 10px;
+    }
+    #modal textarea {
+      width: 100%;
+      height: 150px;
+      font-size: 18px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      resize: vertical;
+    }
+    #modal button {
+      margin-top: 10px;
+      font-size: 18px;
+      padding: 10px 20px;
+      border: none;
+      background-color: #007aff;
+      color: #fff;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    /* Komentāru konteineris – centrēts, ar malas 4% un starpā 2% */
     #comments {
       display: flex;
       flex-wrap: wrap;
@@ -45,8 +97,9 @@
       padding: 0 4%;
       justify-content: center;
       width: 100%;
+      margin-top: 20px;
     }
-    /* Neaktīvi komentāru logi: kvadrātveida (aspect-ratio: 1/1), platums 45%, ar paslēptu overflow tekstu un samazinātu fontu */
+    /* Neaktīvi komentāru logi – kvadrātveida, 45% platumā, ar kreiso izlīdzinājumu, teksta izmērs 18px, pārpalikums paslēpts */
     .comment {
       background: #fff;
       border-radius: 12px;
@@ -54,38 +107,37 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       transition: transform 0.2s ease, box-shadow 0.2s ease, width 0.3s ease, margin 0.3s ease;
       width: 45%;
-      /* Kvadrāts – tikai tad, ja komentārs nav aktīvs */
       aspect-ratio: 1/1;
       overflow: hidden;
-      font-size: 15px; /* samazināts teksta izmērs */
+      font-size: 18px;
       cursor: pointer;
       position: relative;
-      text-align: center;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      text-align: left;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      margin-bottom: 30px;
     }
     .comment:hover {
       transform: translateY(-2px);
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
     }
-    /* Aktīvs komentārs: palielinās līdz 92% platumam, vairs nav piespiests kvadrāts */
+    /* Aktīvs komentārs – palielinās līdz 92% platumam un izkliedējas no kreisās malas */
     .comment.active {
       width: 92%;
       margin-left: 4%;
       aspect-ratio: auto;
-      align-items: flex-start;
-      justify-content: flex-start;
+      white-space: normal;
+      overflow: visible;
     }
     /* Like sekcijas stils zem aktīvā komentāra */
     .like-section {
       margin-top: 10px;
-      text-align: center;
+      text-align: left;
       width: 100%;
     }
     .like-section button {
-      font-size: 22px;
-      padding: 10px 20px;
+      font-size: 16px; /* Samazināts teksta izmērs like pogai */
+      padding: 8px 12px;
       border: none;
       background-color: #007aff;
       color: #fff;
@@ -95,28 +147,42 @@
     .like-section .close-btn {
       margin-left: 10px;
       background-color: #ccc;
+      font-size: 16px;
+      padding: 8px 12px;
     }
   </style>
 </head>
 <body>
   <header>
     <h1>Veitivus ieteikumi</h1>
+    <button id="addCommentBtn">Pievienot atsauksmi/ieteikumu/komentāru</button>
   </header>
+
   <div id="comments">Ielādē komentārus...</div>
+
+  <!-- Modal logs komentāra pievienošanai -->
+  <div id="modalOverlay">
+    <div id="modal">
+      <h2>Ievadi komentāru</h2>
+      <textarea id="commentInput" placeholder="Ievadi savu komentāru šeit..."></textarea>
+      <br>
+      <button id="saveCommentBtn">Saglabāt</button>
+    </div>
+  </div>
 
   <script>
     // Aizstāj ar savu Google Script web app URL
     const scriptUrl = 'https://script.google.com/macros/s/AKfycbxX5l-iQNITlUQAEXV62euxLwPCVlJP7eLaUkya9KQksMC3NgY6L8iMpJXQ4lEfztdT4A/exec';
 
-    // Funkcija, kas no lapas URL izvelk pēdējo daļu kā uid
+    // Funkcija, kas iegūst lapas URL un atgriež pēdējos 5 simbolus kā uid
     function getPageUid() {
-      const url = window.location.href;
-      const parts = url.replace(/\/+$/, '').split('/');
-      return parts[parts.length - 1];
+      const url = window.location.href.replace(/\/+$/, '');
+      return url.slice(-5);
     }
 
-    // Funkcija, kas nosūta like pieprasījumu (POST) uz Google Script, lai ievadītu UID
-    function sendLike(row, uid, likeButton) {
+    // Nosūta "like" pieprasījumu, izmantojot pēdējos 5 simbolus kā uid
+    function sendLike(row, likeButton) {
+      const uid = getPageUid();
       fetch(scriptUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -137,7 +203,7 @@
       });
     }
 
-    // Funkcija, kas sakļauj (collapse) aktīvo komentāru
+    // Sakļauj aktīvo komentāru
     function collapseActiveComment(commentElem) {
       commentElem.classList.remove("active");
       const likeSection = commentElem.querySelector(".like-section");
@@ -146,55 +212,101 @@
       }
     }
 
-    // Ielādē un attēlo komentārus no Google Script (doGet)
-    fetch(scriptUrl)
-      .then(response => response.json())
-      .then(data => {
-        const container = document.getElementById('comments');
-        container.innerHTML = '';
-        data.forEach(item => {
-          const commentDiv = document.createElement('div');
-          commentDiv.className = 'comment';
-          commentDiv.dataset.row = item.row; // saglabā rindas numuru datā
-          commentDiv.textContent = item.text;
-          
-          // Klikšķa notikums – aktivizē vai sakļauj komentāru
-          commentDiv.addEventListener('click', function() {
-            if (commentDiv.classList.contains("active")) return;
-            document.querySelectorAll('.comment.active').forEach(ac => collapseActiveComment(ac));
-            commentDiv.classList.add("active");
+    // Ielādē komentārus no servera (doGet)
+    function loadComments() {
+      fetch(scriptUrl)
+        .then(response => response.json())
+        .then(data => {
+          const container = document.getElementById('comments');
+          container.innerHTML = '';
+          data.forEach(item => {
+            const commentDiv = document.createElement('div');
+            commentDiv.className = 'comment';
+            commentDiv.dataset.row = item.row; // saglabā rindas numuru
+            commentDiv.textContent = item.text;
             
-            // Izveido like sekciju zem aktīvā komentāra
-            const likeSection = document.createElement('div');
-            likeSection.className = 'like-section';
-            likeSection.innerHTML = `<button class="like-btn">👍 Like</button><button class="close-btn">X</button>`;
-            commentDiv.appendChild(likeSection);
-            
-            // "Like" pogas notikums – iegūst uid no lapas URL un nosūta to uz serveri
-            likeSection.querySelector('.like-btn').addEventListener('click', function(e) {
-              e.stopPropagation();
-              const uid = getPageUid();
-              if (!uid) {
-                alert("Nav atrasts profila UID lapas URL beigās.");
-                return;
-              }
-              sendLike(commentDiv.dataset.row, uid, e.target);
+            // Klikšķa notikums – aktivizē komentāru un parāda like sekciju
+            commentDiv.addEventListener('click', function() {
+              if (commentDiv.classList.contains("active")) return;
+              document.querySelectorAll('.comment.active').forEach(ac => collapseActiveComment(ac));
+              commentDiv.classList.add("active");
+              
+              // Izveido like sekciju zem aktīvā komentāra
+              const likeSection = document.createElement('div');
+              likeSection.className = 'like-section';
+              likeSection.innerHTML = `<button class="like-btn">👍 Like</button><button class="close-btn">X</button>`;
+              commentDiv.appendChild(likeSection);
+              
+              // "Like" pogas notikums – nosūta pēdējos 5 simbolus no URL kā uid
+              likeSection.querySelector('.like-btn').addEventListener('click', function(e) {
+                e.stopPropagation();
+                sendLike(commentDiv.dataset.row, e.target);
+              });
+              
+              // "Close" pogas notikums – sakļauj aktīvo komentāru
+              likeSection.querySelector('.close-btn').addEventListener('click', function(e) {
+                e.stopPropagation();
+                collapseActiveComment(commentDiv);
+              });
             });
             
-            // "Close" pogas notikums – sakļauj aktīvo komentāru
-            likeSection.querySelector('.close-btn').addEventListener('click', function(e) {
-              e.stopPropagation();
-              collapseActiveComment(commentDiv);
-            });
+            container.appendChild(commentDiv);
           });
-          
-          container.appendChild(commentDiv);
+        })
+        .catch(error => {
+          console.error('Kļūda ielādējot komentārus:', error);
+          document.getElementById('comments').textContent = 'Kļūda ielādējot datus.';
         });
+    }
+
+    // Modal funkcionalitāte komentāra pievienošanai
+    const modalOverlay = document.getElementById('modalOverlay');
+    const addCommentBtn = document.getElementById('addCommentBtn');
+    const saveCommentBtn = document.getElementById('saveCommentBtn');
+    const commentInput = document.getElementById('commentInput');
+
+    addCommentBtn.addEventListener('click', function() {
+      modalOverlay.style.display = 'flex';
+    });
+
+    // Aizver modal, ja klikšķina ārpus tā
+    modalOverlay.addEventListener('click', function(e) {
+      if(e.target === modalOverlay) {
+        modalOverlay.style.display = 'none';
+      }
+    });
+
+    // Saglabā komentāru, nosūtot POST pieprasījumu ar parametru "comment"
+    saveCommentBtn.addEventListener('click', function() {
+      const commentText = commentInput.value.trim();
+      if (!commentText) {
+        alert("Lūdzu ievadi komentāru!");
+        return;
+      }
+      fetch(scriptUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `comment=${encodeURIComponent(commentText)}`
+      })
+      .then(response => response.json())
+      .then(result => {
+        if(result.result === "success") {
+          alert("Komentārs saglabāts!");
+          commentInput.value = "";
+          modalOverlay.style.display = 'none';
+          loadComments();
+        } else {
+          alert("Kļūda: " + result.message);
+        }
       })
       .catch(error => {
-        console.error('Kļūda ielādējot komentārus:', error);
-        document.getElementById('comments').textContent = 'Kļūda ielādējot datus.';
+        console.error("Kļūda saglabāt komentāru:", error);
+        alert("Kļūda saglabāt komentāru");
       });
+    });
+
+    // Sākotnēji ielādē komentārus
+    loadComments();
   </script>
 </body>
 </html>
