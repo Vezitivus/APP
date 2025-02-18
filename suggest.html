@@ -2,7 +2,7 @@
 <html lang="lv">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ieteikumi VEZITIVUS</title>
   <style>
     body { font-family: sans-serif; margin: 20px; background: #f4f4f4; }
@@ -75,7 +75,6 @@
         div.innerHTML = '<p><strong>Autors:</strong> ' + s.submitter + '</p>' +
                         '<p>' + s.text.replace(/\n/g, '<br>') + '</p>' +
                         '<p><strong>Likes:</strong> ' + s.likes + '</p>';
-        const currentUid = getUid();
         if(!s.alreadyLiked) {
           const btn = document.createElement('button');
           btn.className = 'like-button';
