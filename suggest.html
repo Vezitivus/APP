@@ -11,38 +11,19 @@
       padding: 0;
       box-sizing: border-box;
     }
-    /* Parallax fona tapete */
-    #parallax-bg {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-image: url('RR.jpg');
-      background-size: 100% auto; /* Platums pielāgojas, augstums auto */
-      background-repeat: no-repeat;
-      background-position: top center;
-      z-index: -1;
-      will-change: transform;
-    }
-    /* Animācijas */
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    @keyframes scaleUp {
-      from { transform: scale(0.95); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
+    /* Fona attēls kā body background – pilns platums, augstums automātisks */
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background: transparent;
+      background: url('RR.jpg') top center no-repeat;
+      background-size: 100% auto;
+      background-attachment: scroll;
       color: #fff;
       font-size: 22px;
       display: flex;
       flex-direction: column;
       align-items: center;
       padding-top: 100px;
+      min-height: 100vh;
     }
     /* Fiksēta galvene ar caurredzamību un blur efektu */
     header {
@@ -98,7 +79,7 @@
       animation: fadeIn 0.3s ease;
     }
     #modal {
-      background: rgba(0, 0, 0, 0.6); /* Tumšāks fons */
+      background: rgba(0, 0, 0, 0.6);
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255,255,255,0.3);
       color: #fff;
@@ -120,7 +101,7 @@
       border: 1px solid rgba(255,255,255,0.3);
       border-radius: 4px;
       resize: vertical;
-      background-color: rgba(0, 0, 0, 0.6); /* Tumšāks */
+      background-color: rgba(0, 0, 0, 0.6);
       backdrop-filter: blur(10px);
       color: #fff;
     }
@@ -139,7 +120,7 @@
       background-color: rgba(10,132,255,1);
       transform: scale(1.05);
     }
-    /* Komentāru konteineris – kartītes izvietojums nemainās */
+    /* Komentāru konteineris – kartītes izvietojums */
     #comments {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -151,7 +132,7 @@
     }
     /* Komentāru kartītes – tumšāki ar blur efektu */
     .comment {
-      background: rgba(0, 0, 0, 0.6); /* Tumšāks fons */
+      background: rgba(0, 0, 0, 0.6);
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255,255,255,0.3);
       border-radius: 12px;
@@ -223,12 +204,19 @@
       font-size: 16px;
       color: #fff;
     }
+    
+    /* Animācijas */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes scaleUp {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
   </style>
 </head>
 <body>
-  <!-- Parallax fona div -->
-  <div id="parallax-bg"></div>
-  
   <header>
     <h1>Veitivus ieteikumi</h1>
   </header>
@@ -249,10 +237,11 @@
   </div>
 
   <script>
-    // Parallax fona efekts – fons pārvietojas lēnāk (5x lēnāk; šeit izmantojot faktoru 0.1)
+    // Parallax efekts – maina body's background pozīciju atkarībā no scroll pozīcijas,
+    // radot iespaidu, ka attēls "turpinās" un kustas lēnāk nekā saturs.
     window.addEventListener('scroll', function(){
       var scrollPos = window.pageYOffset;
-      document.getElementById('parallax-bg').style.transform = 'translateY(' + (-scrollPos * 0.1) + 'px)';
+      document.body.style.backgroundPosition = 'center ' + (-scrollPos * 0.1) + 'px';
     });
 
     // Aizstāj ar savu Google Script web app URL
