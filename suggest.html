@@ -266,7 +266,7 @@
     // Parallax efekts: pielāgojam #parallax-bg transformāciju, lai tā kustotos lēnāk (5x lēnāk) nekā saturs
     window.addEventListener('scroll', function(){
       var scrollPos = window.pageYOffset;
-      var factor = 0.02; // pielāgojams faktors
+      var factor = -5; // pielāgojams faktors
       document.getElementById('parallax-bg').style.transform = 'translateY(' + (-scrollPos * factor) + 'px)';
     });
 
