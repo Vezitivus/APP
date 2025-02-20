@@ -6,12 +6,8 @@
   <title>Veitivus ieteikumi</title>
   <style>
     /* Reset un bāzes stils */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    /* Fona attēls kā body background – pilns platums, augstums automātisks */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    /* Fona attēls kā body background – platums pielāgojas, augstums pēc attiecībām */
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       background: url('RR.jpg') top center no-repeat;
@@ -27,193 +23,96 @@
     }
     /* Fiksēta galvene ar caurredzamību un blur efektu */
     header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
+      position: fixed; top: 0; left: 0; width: 100%;
       background: rgba(0, 0, 0, 0.1);
       backdrop-filter: blur(10px);
-      color: #fff;
-      padding: 20px;
-      text-align: center;
-      z-index: 1000;
+      color: #fff; padding: 20px; text-align: center; z-index: 1000;
       transition: background-color 0.3s ease;
     }
-    header h1 {
-      font-size: 2.5rem;
-      margin-bottom: 10px;
-    }
+    header h1 { font-size: 2.5rem; margin-bottom: 10px; }
     /* Poga komentāra pievienošanai */
-    #addCommentContainer {
-      margin-top: 80px;
-      margin-bottom: 10px;
-      text-align: center;
-      width: 100%;
-    }
+    #addCommentContainer { margin-top: 80px; margin-bottom: 10px; text-align: center; width: 100%; }
     #addCommentBtn {
-      font-size: 18px;
-      padding: 10px 20px;
-      border: none;
-      background-color: rgba(10,132,255,0.8);
-      color: #fff;
-      border-radius: 8px;
-      cursor: pointer;
+      font-size: 18px; padding: 10px 20px; border: none;
+      background-color: rgba(10,132,255,0.8); color: #fff;
+      border-radius: 8px; cursor: pointer;
       transition: background-color 0.3s ease, transform 0.3s ease;
     }
-    #addCommentBtn:hover {
-      background-color: rgba(10,132,255,1);
-      transform: scale(1.05);
-    }
+    #addCommentBtn:hover { background-color: rgba(10,132,255,1); transform: scale(1.05); }
     /* Modal logs – caurredzams un ar blur efektu */
     #modalOverlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 2000;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); display: none;
+      align-items: center; justify-content: center; z-index: 2000;
       animation: fadeIn 0.3s ease;
     }
     #modal {
       background: rgba(0, 0, 0, 0.6);
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255,255,255,0.3);
-      color: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      width: 90%;
-      max-width: 500px;
+      color: #fff; padding: 20px; border-radius: 12px;
+      width: 90%; max-width: 500px;
       animation: scaleUp 0.3s ease;
     }
-    #modal h2 {
-      margin-bottom: 10px;
-      color: #fff;
-    }
+    #modal h2 { margin-bottom: 10px; color: #fff; }
     #modal textarea {
-      width: 100%;
-      height: 150px;
-      font-size: 18px;
-      padding: 10px;
-      border: 1px solid rgba(255,255,255,0.3);
-      border-radius: 4px;
-      resize: vertical;
-      background-color: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(10px);
-      color: #fff;
+      width: 100%; height: 150px; font-size: 18px; padding: 10px;
+      border: 1px solid rgba(255,255,255,0.3); border-radius: 4px;
+      resize: vertical; background-color: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(10px); color: #fff;
     }
     #modal button {
-      margin-top: 10px;
-      font-size: 18px;
-      padding: 10px 20px;
-      border: none;
-      background-color: rgba(10,132,255,0.8);
-      color: #fff;
-      border-radius: 8px;
-      cursor: pointer;
+      margin-top: 10px; font-size: 18px; padding: 10px 20px; border: none;
+      background-color: rgba(10,132,255,0.8); color: #fff;
+      border-radius: 8px; cursor: pointer;
       transition: background-color 0.3s ease, transform 0.3s ease;
     }
-    #modal button:hover {
-      background-color: rgba(10,132,255,1);
-      transform: scale(1.05);
-    }
+    #modal button:hover { background-color: rgba(10,132,255,1); transform: scale(1.05); }
     /* Komentāru konteineris – kartītes izvietojums */
     #comments {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 2em;
-      width: 100%;
-      padding: 0 4%;
-      margin-top: 60px;
-      margin-bottom: 80px;
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 2em;
+      width: 100%; padding: 0 4%; margin-top: 60px; margin-bottom: 80px;
     }
     /* Komentāru kartītes – tumšāki ar blur efektu */
     .comment {
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.3);
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.3); border-radius: 12px;
+      padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       transition: transform 0.3s ease, box-shadow 0.3s ease;
-      overflow: hidden;
-      font-size: 18px;
-      cursor: pointer;
-      text-align: left;
-      display: -webkit-box;
-      -webkit-line-clamp: 4;
-      -webkit-box-orient: vertical;
+      overflow: hidden; font-size: 18px; cursor: pointer; text-align: left;
+      display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;
       color: #fff;
     }
-    .comment:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(0,0,0,0.5);
-    }
-    /* Aktīvā komentāra stils */
+    .comment:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.5); }
     .comment.active {
-      grid-column: 1 / -1;
-      padding-bottom: 50px;
-      white-space: normal;
-      overflow: visible;
-      -webkit-line-clamp: unset;
+      grid-column: 1 / -1; padding-bottom: 50px;
+      white-space: normal; overflow: visible; -webkit-line-clamp: unset;
     }
     /* Like sekcija */
     .like-section {
-      margin-top: 20px;
-      display: flex;
-      align-items: center;
+      margin-top: 20px; display: flex; align-items: center;
     }
     .like-section button {
-      font-size: 16px;
-      padding: 8px 12px;
-      border: none;
-      background-color: rgba(10,132,255,0.8);
-      color: #fff;
-      border-radius: 8px;
-      cursor: pointer;
+      font-size: 16px; padding: 8px 12px; border: none;
+      background-color: rgba(10,132,255,0.8); color: #fff;
+      border-radius: 8px; cursor: pointer;
       transition: background-color 0.3s ease, transform 0.3s ease;
     }
-    .like-section button:hover {
-      background-color: rgba(10,132,255,1);
-      transform: scale(1.05);
-    }
+    .like-section button:hover { background-color: rgba(10,132,255,1); transform: scale(1.05); }
     .like-section .close-btn {
-      margin-left: 10px;
-      background-color: rgba(68,68,68,0.8);
-      font-size: 16px;
-      padding: 8px 12px;
-      border-radius: 8px;
+      margin-left: 10px; background-color: rgba(68,68,68,0.8);
+      font-size: 16px; padding: 8px 12px; border-radius: 8px;
       transition: background-color 0.3s ease, transform 0.3s ease;
     }
-    .like-section .close-btn:hover {
-      background-color: rgba(51,51,51,0.8);
-      transform: scale(1.05);
-    }
-    /* Like skaita rāde */
+    .like-section .close-btn:hover { background-color: rgba(51,51,51,0.8); transform: scale(1.05); }
     .like-count {
-      display: inline-block;
-      padding: 8px;
-      background: rgba(44,44,46,0.8);
-      border-radius: 8px;
-      margin-left: 10px;
-      min-width: 40px;
-      text-align: center;
-      font-size: 16px;
-      color: #fff;
+      display: inline-block; padding: 8px;
+      background: rgba(44,44,46,0.8); border-radius: 8px;
+      margin-left: 10px; min-width: 40px; text-align: center;
+      font-size: 16px; color: #fff;
     }
-    
-    /* Animācijas */
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    @keyframes scaleUp {
-      from { transform: scale(0.95); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes scaleUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
   </style>
 </head>
 <body>
@@ -237,14 +136,13 @@
   </div>
 
   <script>
-    // Parallax efekts – maina body's background pozīciju atkarībā no scroll pozīcijas,
-    // radot iespaidu, ka attēls "turpinās" un kustas lēnāk nekā saturs.
+    // Parallax efekts – fons kustas 5 reizes lēnāk (1/5 no scrolla ātruma)
     window.addEventListener('scroll', function(){
       var scrollPos = window.pageYOffset;
-      document.body.style.backgroundPosition = 'center ' + (-scrollPos * 0.001) + 'px';
+      document.body.style.backgroundPosition = 'center ' + (-scrollPos * 0.2) + 'px';
     });
 
-    // Aizstāj ar savu Google Script web app URL
+    // Google Script URL
     const scriptUrl = 'https://script.google.com/macros/s/AKfycbxX5l-iQNITlUQAEXV62euxLwPCVlJP7eLaUkya9KQksMC3NgY6L8iMpJXQ4lEfztdT4A/exec';
 
     function getPageUid() {
@@ -270,9 +168,7 @@
           likeButton.disabled = true;
           let count = parseInt(likeCountElem.textContent, 10) || 0;
           likeCountElem.textContent = count + 1;
-        } else {
-          alert("Kļūda: " + result.message);
-        }
+        } else { alert("Kļūda: " + result.message); }
       })
       .catch(error => {
         console.error("Kļūda sūtīt like:", error);
@@ -283,9 +179,7 @@
     function collapseActiveComment(commentElem) {
       commentElem.classList.remove("active");
       const likeSection = commentElem.querySelector(".like-section");
-      if(likeSection) {
-        likeSection.remove();
-      }
+      if(likeSection) { likeSection.remove(); }
     }
 
     function loadComments() {
@@ -342,29 +236,17 @@
     const saveCommentBtn = document.getElementById('saveCommentBtn');
     const commentInput = document.getElementById('commentInput');
 
-    addCommentBtn.addEventListener('click', function() {
-      modalOverlay.style.display = 'flex';
-    });
-
-    modalOverlay.addEventListener('click', function(e) {
-      if(e.target === modalOverlay) {
-        modalOverlay.style.display = 'none';
-      }
-    });
-
+    addCommentBtn.addEventListener('click', function() { modalOverlay.style.display = 'flex'; });
+    modalOverlay.addEventListener('click', function(e) { if(e.target === modalOverlay) { modalOverlay.style.display = 'none'; } });
+    
     saveCommentBtn.addEventListener('click', function() {
       const commentText = commentInput.value.trim();
-      if(!commentText) {
-        alert("Lūdzu ievadi komentāru!");
-        return;
-      }
+      if(!commentText) { alert("Lūdzu ievadi komentāru!"); return; }
       saveCommentBtn.disabled = true;
       saveCommentBtn.textContent = "Tavas domas tiek publicētas";
       
       let uid = getPageUid();
-      if(uid === null) {
-        uid = "1";
-      }
+      if(uid === null) { uid = "1"; }
       fetch(scriptUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -377,9 +259,7 @@
           commentInput.value = "";
           modalOverlay.style.display = 'none';
           loadComments();
-        } else {
-          alert("Kļūda: " + result.message);
-        }
+        } else { alert("Kļūda: " + result.message); }
       })
       .catch(error => {
         console.error("Kļūda saglabāt komentāru:", error);
