@@ -5,25 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Veitivus ieteikumi</title>
   <style>
-    /* Reset un bāzes stils */
+    /* Reset */
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-    /* Parallax fona tapete */
+    /* Parallax fona konteiners – attēls iekļauts <img> tagā */
     #parallax-bg {
-      position: fixed;
-      top: 0;
-      left: 0;
       width: 100%;
-      height: 100%;
-      background-image: url('RR.jpg');
-      background-size: 100% auto; /* Platums pielāgojas, augstums auto */
-      background-repeat: no-repeat;
-      background-position: top center;
-      z-index: -1;
-      will-change: transform;
+      overflow: hidden;
+      position: relative;
+    }
+    #parallax-bg img {
+      width: 100%;      /* Platums pielāgojas ekrānam */
+      height: auto;     /* Augstums saglabā attiecību */
+      display: block;
+      transform: translateY(0);
+      transition: transform 0.2s ease-out;
     }
     /* Animācijas */
     @keyframes fadeIn {
@@ -42,7 +41,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding-top: 100px;
+      padding-top: 100px; /* lai neaizklātu fiksēto galveni */
     }
     /* Fiksēta galvene ar caurredzamību un blur efektu */
     header {
@@ -64,7 +63,7 @@
     }
     /* Poga komentāra pievienošanai */
     #addCommentContainer {
-      margin-top: 80px;
+      margin-top: 20px;
       margin-bottom: 10px;
       text-align: center;
       width: 100%;
@@ -98,7 +97,7 @@
       animation: fadeIn 0.3s ease;
     }
     #modal {
-      background: rgba(0, 0, 0, 0.6); /* Tumšāks fons */
+      background: rgba(0, 0, 0, 0.6);
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255,255,255,0.3);
       color: #fff;
@@ -120,7 +119,7 @@
       border: 1px solid rgba(255,255,255,0.3);
       border-radius: 4px;
       resize: vertical;
-      background-color: rgba(0, 0, 0, 0.6); /* Tumšāks */
+      background-color: rgba(0, 0, 0, 0.6);
       backdrop-filter: blur(10px);
       color: #fff;
     }
@@ -139,7 +138,7 @@
       background-color: rgba(10,132,255,1);
       transform: scale(1.05);
     }
-    /* Komentāru konteineris – kartītes izvietojums nemainās */
+    /* Komentāru konteineris */
     #comments {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -149,9 +148,8 @@
       margin-top: 60px;
       margin-bottom: 80px;
     }
-    /* Komentāru kartītes – tumšāki ar blur efektu */
     .comment {
-      background: rgba(0, 0, 0, 0.6); /* Tumšāks fons */
+      background: rgba(0, 0, 0, 0.6);
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255,255,255,0.3);
       border-radius: 12px;
@@ -171,7 +169,6 @@
       transform: translateY(-2px);
       box-shadow: 0 6px 16px rgba(0,0,0,0.5);
     }
-    /* Aktīvā komentāra stils */
     .comment.active {
       grid-column: 1 / -1;
       padding-bottom: 50px;
@@ -179,7 +176,6 @@
       overflow: visible;
       -webkit-line-clamp: unset;
     }
-    /* Like sekcija */
     .like-section {
       margin-top: 20px;
       display: flex;
@@ -211,7 +207,6 @@
       background-color: rgba(51,51,51,0.8);
       transform: scale(1.05);
     }
-    /* Like skaita rāde */
     .like-count {
       display: inline-block;
       padding: 8px;
@@ -226,8 +221,10 @@
   </style>
 </head>
 <body>
-  <!-- Parallax fona div -->
-  <div id="parallax-bg"></div>
+  <!-- Parallax fona konteiner ar pilnu attēlu -->
+  <div id="parallax-bg">
+    <img src="RR.jpg" alt="Fona attēls">
+  </div>
   
   <header>
     <h1>Veitivus ieteikumi</h1>
@@ -249,13 +246,15 @@
   </div>
 
   <script>
-    // Parallax fona efekts – fons pārvietojas lēnāk (5x lēnāk; šeit izmantojot faktoru 0.1)
+    // Parallax efekts: mainām attēla translateY, lai tas kustotos lēnāk nekā lapas saturs
     window.addEventListener('scroll', function(){
       var scrollPos = window.pageYOffset;
-      document.getElementById('parallax-bg').style.transform = 'translateY(' + (-scrollPos * 0.1) + 'px)';
+      var factor = 0.2; // pielāgojiet, ja nepieciešams
+      var parallaxImg = document.querySelector('#parallax-bg img');
+      parallaxImg.style.transform = 'translateY(' + (-scrollPos * factor) + 'px)';
     });
 
-    // Aizstāj ar savu Google Script web app URL
+    // Google Script URL
     const scriptUrl = 'https://script.google.com/macros/s/AKfycbxX5l-iQNITlUQAEXV62euxLwPCVlJP7eLaUkya9KQksMC3NgY6L8iMpJXQ4lEfztdT4A/exec';
 
     function getPageUid() {
