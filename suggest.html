@@ -49,7 +49,7 @@
       top: 0;
       left: 0;
       width: 100%;
-      background: rgba(0, 0, 0, 0.1); /* 90% caurredzamība */
+      background: rgba(0, 0, 0, 0.1);
       backdrop-filter: blur(10px);
       color: #fff;
       padding: 20px;
@@ -248,10 +248,10 @@
   </div>
 
   <script>
-    // Parallax fona efekts – fons pārvietojas 5x lēnāk
+    // Parallax fona efekts – tagad ar negatīvu transformāciju, lai fons kustotos pretējos virzienos
     window.addEventListener('scroll', function(){
       var scrollPos = window.pageYOffset;
-      document.getElementById('parallax-bg').style.transform = 'translateY(' + (scrollPos * 0.2) + 'px)';
+      document.getElementById('parallax-bg').style.transform = 'translateY(' + (-scrollPos * 0.2) + 'px)';
     });
 
     // Aizstāj ar savu Google Script web app URL
