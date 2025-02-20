@@ -6,13 +6,29 @@
   <title>Veitivus ieteikumi</title>
   <style>
     /* Reset un bāzes stils */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    /* Fona attēls kā body background – platums pielāgojas, augstums pēc attiecībām */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    /* Fona parallax elements */
+    #parallax-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: -1;
+      overflow: hidden;
+    }
+    #parallax-bg img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    /* Satura pamatstils – paliek nemainīts, fona stils atšķiras tikai ar caurredzamību un blur efektu */
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background: url('RR.jpg') top center no-repeat;
-      background-size: 100% auto;
-      background-attachment: scroll;
+      background: transparent; /* fona attēls ir atsevišķā elementā */
       color: #fff;
       font-size: 22px;
       display: flex;
@@ -35,49 +51,96 @@
       z-index: 1000;
       transition: background-color 0.3s ease;
     }
-    header h1 { font-size: 2.5rem; margin-bottom: 10px; }
+    header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
     /* Poga komentāra pievienošanai */
-    #addCommentContainer { margin-top: 80px; margin-bottom: 10px; text-align: center; width: 100%; }
+    #addCommentContainer {
+      margin-top: 80px;
+      margin-bottom: 10px;
+      text-align: center;
+      width: 100%;
+    }
     #addCommentBtn {
-      font-size: 18px; padding: 10px 20px; border: none;
-      background-color: rgba(10,132,255,0.8); color: #fff;
-      border-radius: 8px; cursor: pointer;
+      font-size: 18px;
+      padding: 10px 20px;
+      border: none;
+      background-color: rgba(10,132,255,0.8);
+      color: #fff;
+      border-radius: 8px;
+      cursor: pointer;
       transition: background-color 0.3s ease, transform 0.3s ease;
     }
-    #addCommentBtn:hover { background-color: rgba(10,132,255,1); transform: scale(1.05); }
+    #addCommentBtn:hover {
+      background-color: rgba(10,132,255,1);
+      transform: scale(1.05);
+    }
     /* Modal logs – caurredzams un ar blur efektu */
     #modalOverlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5); display: none;
-      align-items: center; justify-content: center; z-index: 2000;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
       animation: fadeIn 0.3s ease;
     }
     #modal {
       background: rgba(0, 0, 0, 0.6);
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255,255,255,0.3);
-      color: #fff; padding: 20px; border-radius: 12px;
-      width: 90%; max-width: 500px;
+      color: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 500px;
       animation: scaleUp 0.3s ease;
     }
-    #modal h2 { margin-bottom: 10px; color: #fff; }
+    #modal h2 {
+      margin-bottom: 10px;
+      color: #fff;
+    }
     #modal textarea {
-      width: 100%; height: 150px; font-size: 18px; padding: 10px;
-      border: 1px solid rgba(255,255,255,0.3); border-radius: 4px;
-      resize: vertical; background-color: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(10px); color: #fff;
+      width: 100%;
+      height: 150px;
+      font-size: 18px;
+      padding: 10px;
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 4px;
+      resize: vertical;
+      background-color: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(10px);
+      color: #fff;
     }
     #modal button {
-      margin-top: 10px; font-size: 18px; padding: 10px 20px; border: none;
-      background-color: rgba(10,132,255,0.8); color: #fff;
-      border-radius: 8px; cursor: pointer;
+      margin-top: 10px;
+      font-size: 18px;
+      padding: 10px 20px;
+      border: none;
+      background-color: rgba(10,132,255,0.8);
+      color: #fff;
+      border-radius: 8px;
+      cursor: pointer;
       transition: background-color 0.3s ease, transform 0.3s ease;
     }
-    #modal button:hover { background-color: rgba(10,132,255,1); transform: scale(1.05); }
+    #modal button:hover {
+      background-color: rgba(10,132,255,1);
+      transform: scale(1.05);
+    }
     /* Komentāru konteineris – kartītes izvietojums */
     #comments {
-      display: grid; grid-template-columns: repeat(2, 1fr); gap: 2em;
-      width: 100%; padding: 0 4%; margin-top: 60px; margin-bottom: 80px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2em;
+      width: 100%;
+      padding: 0 4%;
+      margin-top: 60px;
+      margin-bottom: 80px;
     }
     /* Komentāru kartītes – tumšāki ar blur efektu */
     .comment {
@@ -85,45 +148,88 @@
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255,255,255,0.3);
       border-radius: 12px;
-      padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       transition: transform 0.3s ease, box-shadow 0.3s ease;
-      overflow: hidden; font-size: 18px; cursor: pointer; text-align: left;
-      display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;
+      overflow: hidden;
+      font-size: 18px;
+      cursor: pointer;
+      text-align: left;
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
       color: #fff;
     }
-    .comment:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.5); }
+    .comment:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+    }
     .comment.active {
-      grid-column: 1 / -1; padding-bottom: 50px;
-      white-space: normal; overflow: visible; -webkit-line-clamp: unset;
+      grid-column: 1 / -1;
+      padding-bottom: 50px;
+      white-space: normal;
+      overflow: visible;
+      -webkit-line-clamp: unset;
     }
     /* Like sekcija */
     .like-section {
-      margin-top: 20px; display: flex; align-items: center;
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
     }
     .like-section button {
-      font-size: 16px; padding: 8px 12px; border: none;
-      background-color: rgba(10,132,255,0.8); color: #fff;
-      border-radius: 8px; cursor: pointer;
+      font-size: 16px;
+      padding: 8px 12px;
+      border: none;
+      background-color: rgba(10,132,255,0.8);
+      color: #fff;
+      border-radius: 8px;
+      cursor: pointer;
       transition: background-color 0.3s ease, transform 0.3s ease;
     }
-    .like-section button:hover { background-color: rgba(10,132,255,1); transform: scale(1.05); }
+    .like-section button:hover {
+      background-color: rgba(10,132,255,1);
+      transform: scale(1.05);
+    }
     .like-section .close-btn {
-      margin-left: 10px; background-color: rgba(68,68,68,0.8);
-      font-size: 16px; padding: 8px 12px; border-radius: 8px;
+      margin-left: 10px;
+      background-color: rgba(68,68,68,0.8);
+      font-size: 16px;
+      padding: 8px 12px;
+      border-radius: 8px;
       transition: background-color 0.3s ease, transform 0.3s ease;
     }
-    .like-section .close-btn:hover { background-color: rgba(51,51,51,0.8); transform: scale(1.05); }
-    .like-count {
-      display: inline-block; padding: 8px;
-      background: rgba(44,44,46,0.8); border-radius: 8px;
-      margin-left: 10px; min-width: 40px; text-align: center;
-      font-size: 16px; color: #fff;
+    .like-section .close-btn:hover {
+      background-color: rgba(51,51,51,0.8);
+      transform: scale(1.05);
     }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes scaleUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .like-count {
+      display: inline-block;
+      padding: 8px;
+      background: rgba(44,44,46,0.8);
+      border-radius: 8px;
+      margin-left: 10px;
+      min-width: 40px;
+      text-align: center;
+      font-size: 16px;
+      color: #fff;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes scaleUp {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
   </style>
 </head>
 <body>
+  <!-- Fona parallax elements -->
+  <div id="parallax-bg">
+    <img src="RR.jpg" alt="Fona attēls">
+  </div>
+
   <header>
     <h1>Veitivus ieteikumi</h1>
   </header>
@@ -144,11 +250,11 @@
   </div>
 
   <script>
-    // Parallax efekts – fona pozīcija tiek aprēķināta tā, ka saturs kustās 3x ātrāk nekā fons.
+    // Parallax efekts: klausāmies scroll notikumu un pārvietojam fona elementu ar koeficientu 1/3,
+    // lai saturs kustotos 3 reizes ātrāk nekā fons.
     window.addEventListener('scroll', function(){
       var scrollPos = window.pageYOffset;
-      // Ja saturs kustas normāli (1:1), tad fons kustas ar scrollPos/3, t.i., koeficients 0.3333.
-      document.body.style.backgroundPosition = 'center ' + (-scrollPos * 1/5) + 'px';
+      document.getElementById('parallax-bg').style.transform = 'translateY(' + (scrollPos/3) + 'px)';
     });
 
     // Google Script URL
@@ -190,7 +296,9 @@
     function collapseActiveComment(commentElem) {
       commentElem.classList.remove("active");
       const likeSection = commentElem.querySelector(".like-section");
-      if(likeSection) { likeSection.remove(); }
+      if(likeSection) {
+        likeSection.remove();
+      }
     }
 
     function loadComments() {
@@ -252,7 +360,9 @@
     });
 
     modalOverlay.addEventListener('click', function(e) {
-      if(e.target === modalOverlay) { modalOverlay.style.display = 'none'; }
+      if(e.target === modalOverlay) {
+        modalOverlay.style.display = 'none';
+      }
     });
 
     saveCommentBtn.addEventListener('click', function() {
@@ -265,7 +375,9 @@
       saveCommentBtn.textContent = "Tavas domas tiek publicētas";
       
       let uid = getPageUid();
-      if(uid === null) { uid = "1"; }
+      if(uid === null) {
+        uid = "1";
+      }
       fetch(scriptUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -278,7 +390,9 @@
           commentInput.value = "";
           modalOverlay.style.display = 'none';
           loadComments();
-        } else { alert("Kļūda: " + result.message); }
+        } else {
+          alert("Kļūda: " + result.message);
+        }
       })
       .catch(error => {
         console.error("Kļūda saglabāt komentāru:", error);
