@@ -148,7 +148,7 @@
     window.addEventListener('scroll', function(){
       var scrollPos = window.pageYOffset;
       // Ja saturs kustas normāli (1:1), tad fons kustas ar scrollPos/3, t.i., koeficients 0.3333.
-      document.body.style.backgroundPosition = 'center ' + (-scrollPos * 0.3333) + 'px';
+      document.body.style.backgroundPosition = 'center ' + (-scrollPos * 1/5) + 'px';
     });
 
     // Google Script URL
