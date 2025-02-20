@@ -21,7 +21,6 @@
       align-items: center;
       padding-top: 100px;
     }
-    /* Fiksēta galvene */
     header {
       position: fixed;
       top: 0;
@@ -37,7 +36,6 @@
       font-size: 2.5rem;
       margin-bottom: 10px;
     }
-    /* Poga komentāra pievienošanai – konteineris ar mazākiem vertikālajiem atstarpēm */
     #addCommentContainer {
       margin-top: 80px;
       margin-bottom: 10px;
@@ -53,7 +51,6 @@
       border-radius: 8px;
       cursor: pointer;
     }
-    /* Modal logs komentāra pievienošanai */
     #modalOverlay {
       position: fixed;
       top: 0;
@@ -95,7 +92,6 @@
       border-radius: 8px;
       cursor: pointer;
     }
-    /* Komentāru konteineris – CSS grid ar divām kolonnām */
     #comments {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -105,7 +101,6 @@
       margin-top: 60px;
       margin-bottom: 80px;
     }
-    /* Neaktīvie komentāru logi – loga augstums pielāgojas saturam; ja saturs pārsniedz 4 rindas, tiek izmantots -webkit-line-clamp */
     .comment {
       background: #fff;
       border-radius: 12px;
@@ -116,7 +111,6 @@
       font-size: 18px;
       cursor: pointer;
       text-align: left;
-      /* Izmanto -webkit-line-clamp, lai ierobežotu līdz 4 rindām, bet ja teksts ir maz, augstums ir dinamisks */
       display: -webkit-box;
       -webkit-line-clamp: 4;
       -webkit-box-orient: vertical;
@@ -125,15 +119,13 @@
       transform: translateY(-2px);
       box-shadow: 0 6px 16px rgba(0,0,0,0.15);
     }
-    /* Aktivizētajam komentāram – paplašinās pa visu platumu (spans visas kolonnas) un parādīs visu saturu */
     .comment.active {
       grid-column: 1 / -1;
-      padding-bottom: 50px; /* papildu vieta like sekcijai */
+      padding-bottom: 50px;
       white-space: normal;
       overflow: visible;
       -webkit-line-clamp: unset;
     }
-    /* Like sekcija – iekļauta aktīvā komentārā kā parasts bloks ar pietiekamu atstarpi */
     .like-section {
       margin-top: 20px;
       display: flex;
@@ -154,7 +146,6 @@
       font-size: 16px;
       padding: 8px 12px;
     }
-    /* Like skaita rāde – moderns, minimālistisks kvadrāts ar noapaļotiem stūriem */
     .like-count {
       display: inline-block;
       padding: 8px;
@@ -191,15 +182,24 @@
     // Aizstāj ar savu Google Script web app URL
     const scriptUrl = 'https://script.google.com/macros/s/AKfycbxX5l-iQNITlUQAEXV62euxLwPCVlJP7eLaUkya9KQksMC3NgY6L8iMpJXQ4lEfztdT4A/exec';
 
-    // Iegūst lapas URL un atgriež pēdējos 5 simbolus kā UID
+    // Meklē URL parametrā "uid" un, ja tāds ir, atgriež tā vērtību.
     function getPageUid() {
-      const url = window.location.href.replace(/\/+$/, '');
-      return url.slice(-5);
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('uid')) {
+        return params.get('uid');
+      } else {
+        return null;
+      }
     }
 
-    // Nosūta "like" pieprasījumu – izmanto pēdējos 5 simbolus kā UID
+    // Nosūta "like" pieprasījumu. Ja URL nav "uid", tad izmanto esošo like skaitu + 1.
     function sendLike(row, likeButton, likeCountElem) {
-      const uid = getPageUid();
+      let uid = getPageUid();
+      if (uid === null) {
+        // Aprēķina nākamo like vērtību, pievienojot esošajam like skaitam 1.
+        let currentCount = parseInt(likeCountElem.textContent, 10) || 0;
+        uid = (currentCount + 1).toString();
+      }
       fetch(scriptUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -230,12 +230,11 @@
       }
     }
 
-    // Ielādē komentārus no servera (doGet) un kārto tos tā, ka jaunākie (no Sheets) tiek rādīti augšā
     function loadComments() {
       fetch(scriptUrl)
         .then(response => response.json())
         .then(data => {
-          // Apgriež masīvu, lai jaunākie komentāri parādās augšā
+          // Jaunākie komentāri tiek parādīti augšā.
           data = data.reverse();
           const container = document.getElementById('comments');
           container.innerHTML = '';
@@ -281,7 +280,6 @@
         });
     }
 
-    // Modal funkcionalitāte komentāra pievienošanai
     const modalOverlay = document.getElementById('modalOverlay');
     const addCommentBtn = document.getElementById('addCommentBtn');
     const saveCommentBtn = document.getElementById('saveCommentBtn');
@@ -297,7 +295,6 @@
       }
     });
 
-    // Saglabā komentāru – poga tiek deaktivizēta un maina tekstu, lai novērstu atkārtotu nospiešanu
     saveCommentBtn.addEventListener('click', function() {
       const commentText = commentInput.value.trim();
       if(!commentText) {
@@ -307,7 +304,11 @@
       saveCommentBtn.disabled = true;
       saveCommentBtn.textContent = "Tavas domas tiek publicētas";
       
-      const uid = getPageUid();
+      // Ja komentāra publicēšanai URL nav "uid", tad var nosūtīt sākotnējo vērtību (piemēram, "1").
+      let uid = getPageUid();
+      if(uid === null) {
+        uid = "1";
+      }
       fetch(scriptUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
