@@ -23,10 +23,16 @@
     }
     /* Fiksēta galvene ar caurredzamību un blur efektu */
     header {
-      position: fixed; top: 0; left: 0; width: 100%;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
       background: rgba(0, 0, 0, 0.1);
       backdrop-filter: blur(10px);
-      color: #fff; padding: 20px; text-align: center; z-index: 1000;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+      z-index: 1000;
       transition: background-color 0.3s ease;
     }
     header h1 { font-size: 2.5rem; margin-bottom: 10px; }
@@ -75,8 +81,10 @@
     }
     /* Komentāru kartītes – tumšāki ar blur efektu */
     .comment {
-      background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.3); border-radius: 12px;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 12px;
       padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       transition: transform 0.3s ease, box-shadow 0.3s ease;
       overflow: hidden; font-size: 18px; cursor: pointer; text-align: left;
@@ -136,10 +144,11 @@
   </div>
 
   <script>
-    // Parallax efekts – fons kustas 5 reizes lēnāk (1/5 no scrolla ātruma)
+    // Parallax efekts – fona pozīcija tiek aprēķināta tā, ka saturs kustās 3x ātrāk nekā fons.
     window.addEventListener('scroll', function(){
       var scrollPos = window.pageYOffset;
-      document.body.style.backgroundPosition = 'center ' + (-scrollPos * 0.2) + 'px';
+      // Ja saturs kustas normāli (1:1), tad fons kustas ar scrollPos/3, t.i., koeficients 0.3333.
+      document.body.style.backgroundPosition = 'center ' + (-scrollPos * 0.3333) + 'px';
     });
 
     // Google Script URL
@@ -168,7 +177,9 @@
           likeButton.disabled = true;
           let count = parseInt(likeCountElem.textContent, 10) || 0;
           likeCountElem.textContent = count + 1;
-        } else { alert("Kļūda: " + result.message); }
+        } else {
+          alert("Kļūda: " + result.message);
+        }
       })
       .catch(error => {
         console.error("Kļūda sūtīt like:", error);
@@ -236,12 +247,20 @@
     const saveCommentBtn = document.getElementById('saveCommentBtn');
     const commentInput = document.getElementById('commentInput');
 
-    addCommentBtn.addEventListener('click', function() { modalOverlay.style.display = 'flex'; });
-    modalOverlay.addEventListener('click', function(e) { if(e.target === modalOverlay) { modalOverlay.style.display = 'none'; } });
-    
+    addCommentBtn.addEventListener('click', function() {
+      modalOverlay.style.display = 'flex';
+    });
+
+    modalOverlay.addEventListener('click', function(e) {
+      if(e.target === modalOverlay) { modalOverlay.style.display = 'none'; }
+    });
+
     saveCommentBtn.addEventListener('click', function() {
       const commentText = commentInput.value.trim();
-      if(!commentText) { alert("Lūdzu ievadi komentāru!"); return; }
+      if(!commentText) {
+        alert("Lūdzu ievadi komentāru!");
+        return;
+      }
       saveCommentBtn.disabled = true;
       saveCommentBtn.textContent = "Tavas domas tiek publicētas";
       
