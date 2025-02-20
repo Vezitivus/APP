@@ -19,7 +19,8 @@
       width: 100%;
       height: 100%;
       background-image: url('RR.jpg');
-      background-size: cover;
+      background-size: 100% auto; /* Platums pielāgojas, augstums auto */
+      background-repeat: no-repeat;
       background-position: top center;
       z-index: -1;
       will-change: transform;
@@ -97,9 +98,9 @@
       animation: fadeIn 0.3s ease;
     }
     #modal {
-      background: rgba(0, 0, 0, 0.1);
+      background: rgba(0, 0, 0, 0.6); /* Tumšāks fons */
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.3);
       color: #fff;
       padding: 20px;
       border-radius: 12px;
@@ -116,10 +117,10 @@
       height: 150px;
       font-size: 18px;
       padding: 10px;
-      border: 1px solid rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.3);
       border-radius: 4px;
       resize: vertical;
-      background-color: rgba(0, 0, 0, 0.1);
+      background-color: rgba(0, 0, 0, 0.6); /* Tumšāks */
       backdrop-filter: blur(10px);
       color: #fff;
     }
@@ -148,11 +149,11 @@
       margin-top: 60px;
       margin-bottom: 80px;
     }
-    /* Komentāru kartītes – caurredzamas ar blur efektu */
+    /* Komentāru kartītes – tumšāki ar blur efektu */
     .comment {
-      background: rgba(0, 0, 0, 0.1);
+      background: rgba(0, 0, 0, 0.6); /* Tumšāks fons */
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.3);
       border-radius: 12px;
       padding: 20px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
@@ -248,10 +249,10 @@
   </div>
 
   <script>
-    // Parallax fona efekts – tagad ar negatīvu transformāciju, lai fons kustotos pretējos virzienos
+    // Parallax fona efekts – fons pārvietojas lēnāk (5x lēnāk; šeit izmantojot faktoru 0.1)
     window.addEventListener('scroll', function(){
       var scrollPos = window.pageYOffset;
-      document.getElementById('parallax-bg').style.transform = 'translateY(' + (-scrollPos * 0.2) + 'px)';
+      document.getElementById('parallax-bg').style.transform = 'translateY(' + (-scrollPos * 0.1) + 'px)';
     });
 
     // Aizstāj ar savu Google Script web app URL
