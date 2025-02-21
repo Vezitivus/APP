@@ -3,11 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vzeitivus ieteikumi</title>
+  <title>Veitivus ieteikumi</title>
   <style>
     /* Reset un bāzes stils */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
     /* Fona parallax elements */
     #parallax-bg {
       position: fixed;
@@ -22,11 +25,10 @@
       height: auto;
       display: block;
     }
-    
     /* Satura stils */
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background: transparent; /* fona attēls ir atsevišķā elementā */
+      background: transparent;
       color: #fff;
       font-size: 22px;
       display: flex;
@@ -46,9 +48,12 @@
       padding: 20px;
       text-align: center;
       z-index: 1000;
-      transition: background-color 0.3s ease;
+      transition: background-color 0.5s cubic-bezier(0.22, 1, 0.36, 1);
     }
-    header h1 { font-size: 2.5rem; margin-bottom: 10px; }
+    header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
     #addCommentContainer {
       margin-top: 80px;
       margin-bottom: 10px;
@@ -63,9 +68,13 @@
       color: #fff;
       border-radius: 8px;
       cursor: pointer;
-      transition: background-color 0.3s ease, transform 0.3s ease;
+      transition: background-color 0.5s cubic-bezier(0.22, 1, 0.36, 1), transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
     }
-    #addCommentBtn:hover { background-color: rgba(10,132,255,1); transform: scale(1.05); }
+    #addCommentBtn:hover {
+      background-color: rgba(10,132,255,1);
+      transform: scale(1.05);
+    }
+    /* Modal logs – caurredzams un ar blur efektu */
     #modalOverlay {
       position: fixed;
       top: 0;
@@ -77,7 +86,7 @@
       align-items: center;
       justify-content: center;
       z-index: 2000;
-      animation: fadeIn 0.3s ease;
+      animation: fadeIn 0.5s cubic-bezier(0.22, 1, 0.36, 1);
     }
     #modal {
       background: rgba(0, 0, 0, 0.6);
@@ -88,9 +97,12 @@
       border-radius: 12px;
       width: 90%;
       max-width: 500px;
-      animation: scaleUp 0.3s ease;
+      animation: scaleUp 0.5s cubic-bezier(0.22, 1, 0.36, 1);
     }
-    #modal h2 { margin-bottom: 10px; color: #fff; }
+    #modal h2 {
+      margin-bottom: 10px;
+      color: #fff;
+    }
     #modal textarea {
       width: 100%;
       height: 150px;
@@ -102,6 +114,7 @@
       background-color: rgba(0, 0, 0, 0.6);
       backdrop-filter: blur(10px);
       color: #fff;
+      word-break: break-all;
     }
     #modal button {
       margin-top: 10px;
@@ -112,9 +125,13 @@
       color: #fff;
       border-radius: 8px;
       cursor: pointer;
-      transition: background-color 0.3s ease, transform 0.3s ease;
+      transition: background-color 0.5s cubic-bezier(0.22, 1, 0.36, 1), transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
     }
-    #modal button:hover { background-color: rgba(10,132,255,1); transform: scale(1.05); }
+    #modal button:hover {
+      background-color: rgba(10,132,255,1);
+      transform: scale(1.05);
+    }
+    /* Komentāru konteineris – kartītes izvietojums */
     #comments {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -124,6 +141,7 @@
       margin-top: 60px;
       margin-bottom: 80px;
     }
+    /* Komentāru kartītes – ar tumšāku fonu, blur efektu un word-break */
     .comment {
       background: rgba(0, 0, 0, 0.6);
       backdrop-filter: blur(10px);
@@ -131,7 +149,7 @@
       border-radius: 12px;
       padding: 20px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.5s cubic-bezier(0.22, 1, 0.36, 1);
       overflow: hidden;
       font-size: 18px;
       cursor: pointer;
@@ -139,10 +157,13 @@
       display: -webkit-box;
       -webkit-line-clamp: 4;
       -webkit-box-orient: vertical;
-      word-break: break-all;
       color: #fff;
+      word-break: break-all;
     }
-    .comment:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.5); }
+    .comment:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+    }
     .comment.active {
       grid-column: 1 / -1;
       padding-bottom: 50px;
@@ -150,6 +171,7 @@
       overflow: visible;
       -webkit-line-clamp: unset;
     }
+    /* Like sekcija */
     .like-section {
       margin-top: 20px;
       display: flex;
@@ -163,18 +185,24 @@
       color: #fff;
       border-radius: 8px;
       cursor: pointer;
-      transition: background-color 0.3s ease, transform 0.3s ease;
+      transition: background-color 0.5s cubic-bezier(0.22, 1, 0.36, 1), transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
     }
-    .like-section button:hover { background-color: rgba(10,132,255,1); transform: scale(1.05); }
+    .like-section button:hover {
+      background-color: rgba(10,132,255,1);
+      transform: scale(1.05);
+    }
     .like-section .close-btn {
       margin-left: 10px;
       background-color: rgba(68,68,68,0.8);
       font-size: 16px;
       padding: 8px 12px;
       border-radius: 8px;
-      transition: background-color 0.3s ease, transform 0.3s ease;
+      transition: background-color 0.5s cubic-bezier(0.22, 1, 0.36, 1), transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
     }
-    .like-section .close-btn:hover { background-color: rgba(51,51,51,0.8); transform: scale(1.05); }
+    .like-section .close-btn:hover {
+      background-color: rgba(51,51,51,0.8);
+      transform: scale(1.05);
+    }
     .like-count {
       display: inline-block;
       padding: 8px;
@@ -186,8 +214,14 @@
       font-size: 16px;
       color: #fff;
     }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes scaleUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes scaleUp {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
   </style>
 </head>
 <body>
@@ -216,11 +250,10 @@
   </div>
 
   <script>
-    // Parallax efekts: fona elements kustas lēnāk nekā saturs – izmantojot negatīvu koeficientu,
-    // lai, kad lietotājs rit uz leju, fons pārvietotos uz augšu, bet trīs reizes lēnāk.
+    // Parallax efekts: fona elements kustas 3 reizes lēnāk nekā saturs.
     window.addEventListener('scroll', function(){
       var scrollPos = window.pageYOffset;
-      document.getElementById('parallax-bg').style.transform = 'translateY(' + (-scrollPos/10) + 'px)';
+      document.getElementById('parallax-bg').style.transform = 'translateY(' + (-scrollPos/3) + 'px)';
     });
 
     // Google Script URL
