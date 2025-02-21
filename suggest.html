@@ -25,6 +25,33 @@
       height: auto;
       display: block;
     }
+    /* Mūzikas kontroles pogas stils */
+    #music-control {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1100;
+    }
+    #music-toggle {
+      background-color: rgba(10,132,255,0.8);
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      color: #fff;
+      font-size: 24px;
+      cursor: pointer;
+      animation: pulse 2s infinite;
+      transition: transform 0.3s;
+    }
+    #music-toggle:hover {
+      transform: scale(1.1);
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
     /* Satura stils */
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -141,7 +168,6 @@
       margin-top: 60px;
       margin-bottom: 80px;
     }
-    /* Komentāru kartītes – ar tumšāku fonu, blur efektu un word-break */
     .comment {
       background: rgba(0, 0, 0, 0.6);
       backdrop-filter: blur(10px);
@@ -229,6 +255,14 @@
   <div id="parallax-bg">
     <img src="RR.jpg" alt="Fona attēls">
   </div>
+  
+  <!-- Fona mūzikas elements -->
+  <audio id="bg-music" src="By.mp3" autoplay loop></audio>
+  
+  <!-- Mūzikas kontroles poga -->
+  <div id="music-control">
+    <button id="music-toggle" onclick="toggleMusic()">&#127925;</button>
+  </div>
 
   <header>
     <h1>Veitivus ieteikumi</h1>
@@ -255,6 +289,16 @@
       var scrollPos = window.pageYOffset;
       document.getElementById('parallax-bg').style.transform = 'translateY(' + (-scrollPos/3) + 'px)';
     });
+
+    // Mūzikas pārslēgšanas funkcija
+    function toggleMusic(){
+      var music = document.getElementById("bg-music");
+      if(music.paused){
+        music.play();
+      } else {
+        music.pause();
+      }
+    }
 
     // Google Script URL
     const scriptUrl = 'https://script.google.com/macros/s/AKfycbxX5l-iQNITlUQAEXV62euxLwPCVlJP7eLaUkya9KQksMC3NgY6L8iMpJXQ4lEfztdT4A/exec';
