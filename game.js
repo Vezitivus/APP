@@ -10,7 +10,7 @@ function showPopup(message) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Get references to HTML elements
+  // Elementu atsauces
   const activityDropdown = document.getElementById('activityDropdown');
   const dataContainer = document.getElementById('dataContainer');
   const teamCountInput = document.getElementById('teamCountInput');
@@ -21,8 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const sendTeamNamesButton = document.getElementById('sendTeamNamesButton');
   const deleteTeamsButton = document.getElementById('deleteTeamsButton');
 
-  // Google Apps Script Webapp URL for GET requests
-  // Pievienojam "nocache" parametru, lai vienmēr iegūtu jaunākos datus
+  // Google Apps Script Webapp URL – pievienojam "nocache" parametru, lai izmantotu jaunākos datus
   const webAppUrl = 'https://script.google.com/macros/s/AKfycbwvbYSracMlNJ2dhhD74EtX2FjJ0ASsDcZBy7qGm9V-kgOWIoybclFSJN1dJ6TFmM-S/exec';
   const fetchUrl = webAppUrl + '?nocache=' + new Date().getTime();
 
@@ -30,6 +29,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const response = await fetch(fetchUrl);
     const json = await response.json();
 
+    // Izveidojam aktivitāšu izvēlni
     json.activities.forEach(activity => {
       const option = document.createElement('option');
       option.value = activity;
@@ -37,28 +37,29 @@ document.addEventListener('DOMContentLoaded', async () => {
       activityDropdown.appendChild(option);
     });
 
+    // Izveidojam spēlētāju kartītes, izmantojot datus no "gamehost"
+    // Kolonna B satur UID (ierakstīts kā row.b), kolonna C – vārdu (row.c)
     json.data.forEach((row, index) => {
       const box = document.createElement('div');
       box.className = 'data-box';
       box.id = `player-${index}`;
-      // Iestati unikālo identifikatoru no row.a (no A kolonnas)
-      box.dataset.uid = row.a;
+      box.dataset.uid = row.b;
 
       box.setAttribute('draggable', 'true');
       box.addEventListener('dragstart', (e) => {
         e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData('text/plain', JSON.stringify({ b: row.b, a: row.a, id: box.id }));
+        e.dataTransfer.setData('text/plain', JSON.stringify({ b: row.b, c: row.c, id: box.id }));
       });
 
       const topSpan = document.createElement('span');
       topSpan.className = 'top';
-      // Parādām spēlētāja papildu informāciju (piemēram, nosaukumu)
-      topSpan.textContent = row.b ? row.b : '';
+      // Parādām spēlētāja vārdu
+      topSpan.textContent = row.c ? row.c : '';
 
       const bottomSpan = document.createElement('span');
       bottomSpan.className = 'bottom';
-      // Parādām UID (no A kolonnas)
-      bottomSpan.innerHTML = row.a ? `<b>${row.a}</b>` : '';
+      // Parādām spēlētāja UID
+      bottomSpan.innerHTML = row.b ? `<b>${row.b}</b>` : '';
 
       // Izveidojam aizvēršanas pogu (X)
       const closeBtn = document.createElement('span');
@@ -81,6 +82,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.error('Kļūda, iegūstot datus no webapp:', error);
   }
 
+  // Komandu izveide
   createTeamsBtn.addEventListener('click', () => {
     teamsContainer.innerHTML = '';
     const count = parseInt(teamCountInput.value) || 0;
@@ -135,6 +137,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     showPopup("Komandu lauki izveidoti!");
   });
 
+  // Spēlētāju sadale nejaušā kārtībā starp komandām
   splitButton.addEventListener('click', () => {
     let allPlayers = Array.from(document.querySelectorAll('.data-box'));
     for (let i = allPlayers.length - 1; i > 0; i--) {
@@ -162,6 +165,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     showPopup("Spēlētāji sadalīti pa komandām!");
   });
 
+  // Atgriež spēlētāju kartītes sākotnējā sarakstā
   dataContainer.addEventListener('dragover', (e) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
@@ -184,6 +188,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  // Saglabā rezultātus (gamehost)
   saveResultsButton.addEventListener('click', () => {
     let results = [];
     const activity = activityDropdown.value;
@@ -205,6 +210,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     postResults(results);
   });
 
+  // Nosūta komandu nosaukumus uz Lapa1 – kolonna A meklē spēlētāju UID, un kolonna J tiek ierakstīts komandas nosaukums
   sendTeamNamesButton.addEventListener('click', () => {
     let results = [];
     const teamBoxes = document.querySelectorAll('.team-box');
