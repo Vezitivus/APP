@@ -22,10 +22,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   const deleteTeamsButton = document.getElementById('deleteTeamsButton');
 
   // Google Apps Script Webapp URL for GET requests
+  // Pievienojam "nocache" parametru, lai vienmēr iegūtu jaunākos datus
   const webAppUrl = 'https://script.google.com/macros/s/AKfycbwvbYSracMlNJ2dhhD74EtX2FjJ0ASsDcZBy7qGm9V-kgOWIoybclFSJN1dJ6TFmM-S/exec';
+  const fetchUrl = webAppUrl + '?nocache=' + new Date().getTime();
 
   try {
-    const response = await fetch(webAppUrl);
+    const response = await fetch(fetchUrl);
     const json = await response.json();
 
     json.activities.forEach(activity => {
@@ -39,24 +41,26 @@ document.addEventListener('DOMContentLoaded', async () => {
       const box = document.createElement('div');
       box.className = 'data-box';
       box.id = `player-${index}`;
-      // Saglabājam unikālo identifikatoru (uid) no datiem (pieņemot, ka row.b ir uid)
-      box.dataset.uid = row.b;
+      // Iestati unikālo identifikatoru no row.a (no A kolonnas)
+      box.dataset.uid = row.a;
 
       box.setAttribute('draggable', 'true');
       box.addEventListener('dragstart', (e) => {
         e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData('text/plain', JSON.stringify({ b: row.b, c: row.c, id: box.id }));
+        e.dataTransfer.setData('text/plain', JSON.stringify({ b: row.b, a: row.a, id: box.id }));
       });
 
       const topSpan = document.createElement('span');
       topSpan.className = 'top';
-      topSpan.textContent = row.c ? row.c : '';
+      // Parādām spēlētāja papildu informāciju (piemēram, nosaukumu)
+      topSpan.textContent = row.b ? row.b : '';
 
       const bottomSpan = document.createElement('span');
       bottomSpan.className = 'bottom';
-      bottomSpan.innerHTML = row.b ? `<b>${row.b}</b>` : '';
+      // Parādām UID (no A kolonnas)
+      bottomSpan.innerHTML = row.a ? `<b>${row.a}</b>` : '';
 
-      // Create the close (X) button
+      // Izveidojam aizvēršanas pogu (X)
       const closeBtn = document.createElement('span');
       closeBtn.className = 'close-btn';
       closeBtn.textContent = 'X';
@@ -100,7 +104,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       teamsContainer.appendChild(teamBox);
 
-      // Dropzone events
+      // Dropzone notikumi
       dropzone.addEventListener('dragover', (e) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = "move";
@@ -192,7 +196,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       dropzone.querySelectorAll('.data-box').forEach((playerCard) => {
         const top = playerCard.querySelector('.top').textContent;
         const bottom = playerCard.querySelector('.bottom').textContent;
-        // Ja ir pieejams uid, to iekļaujam
         const uid = playerCard.dataset.uid;
         players.push({ top: top, bottom: bottom, uid: uid });
       });
@@ -212,7 +215,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       dropzone.querySelectorAll('.data-box').forEach((playerCard) => {
         const top = playerCard.querySelector('.top').textContent;
         const bottom = playerCard.querySelector('.bottom').textContent;
-        // Iekļaujam arī uid, lai Google Sheets varētu meklēt pēc tā
         const uid = playerCard.dataset.uid;
         players.push({ top: top, bottom: bottom, uid: uid });
       });
