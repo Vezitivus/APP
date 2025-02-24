@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const saveResultsButton = document.getElementById('saveResultsButton');
   const splitButton = document.getElementById('splitButton');
   const sendTeamNamesButton = document.getElementById('sendTeamNamesButton');
+  const deleteTeamsButton = document.getElementById('deleteTeamsButton');
 
   // Google Apps Script Webapp URL for GET requests
   const webAppUrl = 'https://script.google.com/macros/s/AKfycbwvbYSracMlNJ2dhhD74EtX2FjJ0ASsDcZBy7qGm9V-kgOWIoybclFSJN1dJ6TFmM-S/exec';
@@ -214,6 +215,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     postTeamNames(results);
   });
 
+  deleteTeamsButton.addEventListener('click', () => {
+    postDeleteTeams();
+    showPopup("Komandas izdzēstas!");
+  });
+
   function postResults(results) {
     const resultsData = document.getElementById('resultsData');
     resultsData.value = JSON.stringify({ results: results });
@@ -226,7 +232,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     const resultsData = document.getElementById('resultsData');
     resultsData.value = JSON.stringify({ results: results });
     const resultsForm = document.getElementById('resultsForm');
-    resultsForm.action = "https://script.google.com/macros/s/AKfycbwvbYSracMlNJ2dhhD74EtX2FjJ0ASsDcZBy7qGm9V-kgOWIoybclFSJN1dJ6TFmM-S/exec?action=sendTeamNames";
+    resultsForm.action = webAppUrl + '?action=sendTeamNames';
+    resultsForm.submit();
+  }
+
+  function postDeleteTeams() {
+    const resultsData = document.getElementById('resultsData');
+    // Nosūta tukšu datu bloku, kas norāda uz kolonnu dzēšanu
+    resultsData.value = JSON.stringify({ action: "deleteTeams" });
+    const resultsForm = document.getElementById('resultsForm');
+    resultsForm.action = webAppUrl + '?action=deleteTeams';
     resultsForm.submit();
   }
 });
