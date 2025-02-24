@@ -39,6 +39,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       const box = document.createElement('div');
       box.className = 'data-box';
       box.id = `player-${index}`;
+      // Saglabājam unikālo identifikatoru (uid) no datiem (pieņemot, ka row.b ir uid)
+      box.dataset.uid = row.b;
+
       box.setAttribute('draggable', 'true');
       box.addEventListener('dragstart', (e) => {
         e.dataTransfer.effectAllowed = "move";
@@ -189,7 +192,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       dropzone.querySelectorAll('.data-box').forEach((playerCard) => {
         const top = playerCard.querySelector('.top').textContent;
         const bottom = playerCard.querySelector('.bottom').textContent;
-        players.push({ top: top, bottom: bottom });
+        // Ja ir pieejams uid, to iekļaujam
+        const uid = playerCard.dataset.uid;
+        players.push({ top: top, bottom: bottom, uid: uid });
       });
       results.push({ team: teamName, activity: activity, points: points, players: players });
     });
@@ -207,7 +212,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       dropzone.querySelectorAll('.data-box').forEach((playerCard) => {
         const top = playerCard.querySelector('.top').textContent;
         const bottom = playerCard.querySelector('.bottom').textContent;
-        players.push({ top: top, bottom: bottom });
+        // Iekļaujam arī uid, lai Google Sheets varētu meklēt pēc tā
+        const uid = playerCard.dataset.uid;
+        players.push({ top: top, bottom: bottom, uid: uid });
       });
       results.push({ team: teamName, players: players });
     });
