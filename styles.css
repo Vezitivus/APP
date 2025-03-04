@@ -110,7 +110,7 @@ p+ {
   background: rgba(255, 255, 255, 0.15); /* Caurspīdīgs fons, lai iOS to redzētu */
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px); /* Safari atbalstam */
-  color: white !important; /* Teksta krāsa iOS labojumam */
+  color: black !important; /* Teksta krāsa iOS labojumam */
   box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease-in-out;
   animation: bounceTilt 2s infinite ease-in-out;
