@@ -95,7 +95,7 @@ p+ {
   box-shadow: 0 6px 14px rgba(231, 76, 60, 0.5);
 }
 
-/* Stiklotā poga */
+/* Stiklotā poga ar animāciju */
 .glass-button {
   display: inline-block;
   padding: 14px 24px;
@@ -112,14 +112,37 @@ p+ {
   color: white;
   box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease-in-out;
+  animation: bounceTilt 2s infinite ease-in-out;
 }
 
-/* Hover efekts */
+/* Animācija: palēciens un kritiens */
+@keyframes bounceTilt {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  20% {
+    transform: translateY(-10px) rotate(0deg);
+  }
+  40% {
+    transform: translateY(5px) rotate(5deg);
+  }
+  60% {
+    transform: translateY(0) rotate(-5deg);
+  }
+  80% {
+    transform: translateY(-5px) rotate(2deg);
+  }
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+}
+
+/* Hover efekts - izgaismo pogu */
 .glass-button:hover {
   background: rgba(255, 255, 255, 0.2);
   box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
 }
+
 
 /* Ievades lauks */
 input[type="text"] {
