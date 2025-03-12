@@ -1,0 +1,74 @@
+/* style.css */
+body {
+  margin: 0;
+  background-color: black;
+  color: #0F0;
+  font-family: 'Courier New', monospace;
+  overflow: hidden;
+}
+
+/* Konteiners animācijām */
+#matrix-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* Krītošā teksta stils un animācija */
+#falling-text {
+  position: absolute;
+  top: -50px;
+  width: 100%;
+  text-align: center;
+  font-size: 2em;
+  animation: fall 2s forwards;
+}
+
+@keyframes fall {
+  to { top: 40%; }
+}
+
+/* Zelta riņķa poga, kas animējas kā “Doctor Strange” portāls */
+#golden-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 3px solid gold;
+  border-radius: 50%;
+  padding: 20px 40px;
+  font-size: 1.5em;
+  cursor: pointer;
+  animation: glow 2s infinite;
+}
+
+@keyframes glow {
+  0% { box-shadow: 0 0 10px gold; }
+  50% { box-shadow: 0 0 20px gold; }
+  100% { box-shadow: 0 0 10px gold; }
+}
+
+/* Fade out efekts */
+.fade-out {
+  animation: fadeOut 1s forwards;
+}
+
+@keyframes fadeOut {
+  to { opacity: 0; }
+}
+
+/* Reģistrācijas ziņojuma stils */
+#registered-message {
+  position: absolute;
+  top: 50%;
+  width: 100%;
+  text-align: center;
+  font-size: 2em;
+  color: #fff;
+  animation: fadeIn 2s forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
