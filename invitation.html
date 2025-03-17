@@ -141,7 +141,8 @@
           <li>Telefona lādētājs</li>
           <li>Nepārprotams – pozitīvu garastāvokli!</li>
         </ul>
-        Piezīme: Ikviens pats nodrošina sev ēdienu un dzērienu. Pasākuma laikā tiks fiksēti neaizmirstami mirkļi Instagram kontā <a href="https://www.instagram.com/vezitivus/" target="_blank">@vezitivus</a>.<br><br>
+        Piezīme: Ikviens pats nodrošina sev ēdienu un dzērienu. Pasākuma laikā tiks fiksēti neaizmirstami mirkļi Instagram kontā 
+        <a href="https://www.instagram.com/vezitivus/" target="_blank">@vezitivus</a>.<br><br>
         Pievienojot pasākumu savam kalendāram, tiks iekļauti arī notikuma datumi un precīza lokācija.
       </p>
       <!-- Pulsējošs datums virs pogām -->
@@ -157,7 +158,7 @@
   
   <!-- Noraidītā saturs: tikai video -->
   <div id="declinedContainer" class="container" style="display: none;">
-    <video id="byeVideo" src="bye.mp4" playsinline loop autoplay muted></video>
+    <video id="byeVideo" src="bye.mp4" playsinline loop autoplay></video>
   </div>
   
   <script>
@@ -167,14 +168,15 @@
     function addToCalendar() {
       var ua = navigator.userAgent || navigator.vendor || window.opera;
       var eventTitle = encodeURIComponent("VEZITIVUS WEEKEND Festivāls");
-      var startDate = "20250711T000000Z"; // UTC formātā
-      var endDate = "20250713T235959Z"; // UTC formātā
+      // All-day event: 11.–13. jūlijs (DTEND ir 14. jūlijs, jo tas nav iekļauts)
+      var startDate = "20250711";
+      var endDate = "20250714";
       var details = encodeURIComponent("Svini Kapteiņa dzimšanas dienu ar stilu un enerģiju!");
       var locationText = encodeURIComponent("Pļava pie Ķekavas, aptuveni 4 km no autobusa pieturas 'Vadoņi'");
       
       if (/iPhone|iPad|iPod/.test(ua) && !window.MSStream) {
-        // iOS ierīcēm: izmanto webcal saiti uz .ics failu (pārliecinies, ka event.ics ir pieejams tavā serverī)
-        window.location.href = 'webcal://yourdomain.com/event.ics';
+        // iOS ierīcēm: izmanto webcal saiti uz .ics failu
+        window.location.href = 'webcal://vezitivus.github.io/APP/event.ics';
       } else {
         // Android, desktop un pārējām ierīcēm: atver Google Calendar ar precīzu lokāciju
         var googleUrl = "https://calendar.google.com/calendar/render?action=TEMPLATE" +
