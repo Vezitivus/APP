@@ -105,10 +105,26 @@
       text-decoration: underline;
       cursor: pointer;
       font-weight: 600;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
     }
     a {
       color: #00d1b2;
       text-decoration: underline;
+    }
+    .calendar-info {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.3);
+      text-align: center;
+    }
+    .calendar-info p {
+      margin-bottom: 15px;
+      font-size: 1.1rem;
     }
   </style>
 </head>
@@ -141,6 +157,19 @@
         Piezīme: Ikviens pats nodrošina sev ēdienu un dzērienu. Pasākuma laikā tiks fiksēti neaizmirstami mirkļi Instagram kontā <a href="https://www.instagram.com/vezitivus/" target="_blank">@vezitivus</a>.<br><br>
         Un, lai viss būtu vēl īpašāk – ar vienu klikšķi vari pievienot pasākumu savam kalendāram!
       </p>
+      
+      <!-- Precīza lokācija un atkārtota datuma poga -->
+      <div class="calendar-info">
+        <p>
+          Precīza pasākuma lokācija būs redzama, pievienojot pasākumu savam kalendāram. Izmanto šīs saites:<br>
+          <a href="https://teams.microsoft.com/l/message/48:notes/1742211446709?context=%7B%22contextType%22%3A%22chat%22%7D" target="_blank">Apple kalendārs</a> |
+          <a href="https://maps.app.goo.gl/LU9bjzJpFtrGn7Df7?g_st=com.google.maps.preview.copy" target="_blank">Google kalendārs</a>
+        </p>
+        <p>
+          <span class="highlight" onclick="addToCalendar()">11.–13. jūlijā</span>
+        </p>
+      </div>
+      
       <div class="buttons">
         <button class="button confirm" onclick="goBack()">Apstiprināt</button>
         <a href="#" class="button decline" onclick="alert('Paldies! Informācija saglabāta.')">Noraidīt</a>
@@ -159,7 +188,7 @@
       var details = encodeURIComponent("Svini Kapteiņa dzimšanas dienu ar stilu un enerģiju!");
       
       if (/iPhone|iPad|iPod/.test(ua) && !window.MSStream) {
-        // iOS ierīcēm: izmanto webcal saiti uz .ics failu (jānodrošina, ka event.ics ir pieejams jūsu serverī)
+        // iOS ierīcēm: izmanto webcal saiti uz .ics failu (pārliecinies, ka event.ics ir pieejams tavā serverī)
         window.location.href = 'webcal://yourdomain.com/event.ics';
       } else if (/android/i.test(ua)) {
         // Android: atver Google Calendar
