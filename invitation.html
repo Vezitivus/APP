@@ -145,7 +145,7 @@
         <a href="https://www.instagram.com/vezitivus/" target="_blank">@vezitivus</a>.<br><br>
         Pievienojot pasākumu savam kalendāram, tiks iekļauti arī notikuma datumi un precīza lokācija.
       </p>
-      <!-- Pulsējošs datums virs pogām -->
+      <!-- Pulsējošs datums, novietots virs pogām -->
       <p>
         <span class="highlight" onclick="addToCalendar()">11.–13. jūlijā</span>
       </p>
@@ -156,7 +156,7 @@
     </div>
   </div>
   
-  <!-- Noraidītā saturs: tikai video -->
+  <!-- Noraidītā saturs: tikai video ar skaņu -->
   <div id="declinedContainer" class="container" style="display: none;">
     <video id="byeVideo" src="bye.mp4" playsinline loop autoplay></video>
   </div>
@@ -168,19 +168,18 @@
     function addToCalendar() {
       var ua = navigator.userAgent || navigator.vendor || window.opera;
       var eventTitle = encodeURIComponent("VEZITIVUS WEEKEND Festivāls");
-      // All-day event: 11.–13. jūlijs (DTEND ir 14. jūlijs, jo tas nav iekļauts)
+      // All-day event: 11.–13. jūlijs (DTEND ir 20250714, jo tas ir ekskluzīvs)
       var startDate = "20250711";
       var endDate = "20250714";
       var details = encodeURIComponent("Svini Kapteiņa dzimšanas dienu ar stilu un enerģiju!");
       var locationText = encodeURIComponent("Pļava pie Ķekavas, aptuveni 4 km no autobusa pieturas 'Vadoņi'");
       
+      // Ja lietotājs ir iOS, izmanto HTTPS saiti uz ICS failu, kas importē notikumu kā parastu ierakstu
       if (/iPhone|iPad|iPod/.test(ua) && !window.MSStream) {
-        // iOS ierīcēm: izmanto webcal saiti uz .ics failu
-        window.location.href = 'webcal://vezitivus.github.io/APP/event.ics';
+        window.location.href = 'https://vezitivus.github.io/APP/event.ics';
       } else {
-        // Android, desktop un pārējām ierīcēm: atver Google Calendar ar precīzu lokāciju
-        var googleUrl = "https://calendar.google.com/calendar/render?action=TEMPLATE" +
-                        "&text=" + eventTitle +
+        // Atver Google Calendar Event Edit logu, kas izveido parastu notikumu ierakstu
+        var googleUrl = "https://calendar.google.com/calendar/u/0/r/eventedit?text=" + eventTitle +
                         "&dates=" + startDate + "/" + endDate +
                         "&details=" + details +
                         "&location=" + locationText;
