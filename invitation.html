@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    /* CSS Reset un pamata stili */
+    /* CSS Reset un pamatstili */
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
       width: 100%;
@@ -18,7 +18,7 @@
       font-family: 'Poppins', sans-serif;
       background-color: #121212;
     }
-    .invitation-container {
+    .container {
       display: flex;
       justify-content: center;
       align-items: center;
@@ -36,31 +36,32 @@
       color: #ffffff;
       box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
       animation: fadeIn 1s ease-in-out;
+      text-align: center;
     }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    .glass-effect h1 {
-      text-align: center;
-      margin-bottom: 20px;
+    h1 {
       font-size: 2.5rem;
+      margin-bottom: 20px;
     }
-    .glass-effect p {
+    p {
       line-height: 1.6;
       margin-bottom: 20px;
     }
-    .glass-effect ul {
+    ul {
       list-style: none;
       margin: 10px 0;
       padding-left: 20px;
+      text-align: left;
     }
-    .glass-effect li {
+    li {
       margin-bottom: 8px;
       position: relative;
       padding-left: 25px;
     }
-    .glass-effect li::before {
+    li::before {
       content: '✔️';
       position: absolute;
       left: 0;
@@ -91,37 +92,38 @@
     .decline {
       background-color: #dc3545;
       color: #fff;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      border: none;
     }
     .highlight {
       text-decoration: underline;
       cursor: pointer;
       font-weight: 600;
       animation: pulse 2s infinite;
+      display: inline-block;
+      font-size: 1.2rem;
+      margin-bottom: 20px;
     }
     @keyframes pulse {
       0% { transform: scale(1); }
       50% { transform: scale(1.1); }
       100% { transform: scale(1); }
     }
-    a {
-      color: #00d1b2;
-      text-decoration: underline;
+    video {
+      width: 100%;
+      max-width: 600px;
+      border-radius: 10px;
+      display: block;
     }
   </style>
 </head>
 <body>
-  <div class="invitation-container">
+  <!-- Ielūguma saturs -->
+  <div id="invitationContainer" class="container">
     <div class="glass-effect">
       <h1>VEZITIVUS WEEKEND Ielūgums</h1>
       <p>
         Sveiki, draugi un ballīšu zvēri!<br><br>
         Esat gatavi piedzīvot visu, par ko vien sapņojat? Mēs jūs aicinām uz visinovatīvāko un stilīgāko nedēļas nogales festivālu, kurā svinēsim Kapteiņa dzimšanas dienu ar enerģiju, deju un neapturamu jautrību!<br><br>
-        <strong>Kad?</strong><br>
-        <span class="highlight" onclick="addToCalendar()">11.–13. jūlijā</span> (piektdiena – svētdiena).<br><br>
         <strong>Kur?</strong><br>
         Pļavā pie Ķekavas, tikai 4 km no autobusa pieturas "Vadoņi".<br><br>
         <strong>Programmā:</strong>
@@ -142,13 +144,22 @@
         Piezīme: Ikviens pats nodrošina sev ēdienu un dzērienu. Pasākuma laikā tiks fiksēti neaizmirstami mirkļi Instagram kontā <a href="https://www.instagram.com/vezitivus/" target="_blank">@vezitivus</a>.<br><br>
         Pievienojot pasākumu savam kalendāram, tiks iekļauti arī notikuma datumi un precīza lokācija.
       </p>
-      
+      <!-- Pulsējošs datums virs pogām -->
+      <p>
+        <span class="highlight" onclick="addToCalendar()">11.–13. jūlijā</span>
+      </p>
       <div class="buttons">
         <button class="button confirm" onclick="goBack()">Apstiprināt</button>
-        <a href="#" class="button decline" onclick="alert('Paldies! Informācija saglabāta.')">Noraidīt</a>
+        <button class="button decline" onclick="declineInvitation()">Noraidīt</button>
       </div>
     </div>
   </div>
+  
+  <!-- Noraidītā saturs: tikai video -->
+  <div id="declinedContainer" class="container" style="display: none;">
+    <video id="byeVideo" src="bye.mp4" playsinline loop autoplay muted></video>
+  </div>
+  
   <script>
     function goBack() {
       window.history.back();
@@ -163,9 +174,9 @@
       
       if (/iPhone|iPad|iPod/.test(ua) && !window.MSStream) {
         // iOS ierīcēm: izmanto webcal saiti uz .ics failu (pārliecinies, ka event.ics ir pieejams tavā serverī)
-        window.location.href = 'webcal://p103-caldav.icloud.com/published/2/MTEzMjk0NTU1ODUxMTMyOSP840DMUuN089me9askTKwkcG0NhsG5uqJlY6S1xTwC_oRiYRSVCqIYoxEFXE4gJm7BmR6PrxshoZLBIsKyY0k';
+        window.location.href = 'webcal://yourdomain.com/event.ics';
       } else {
-        // Android, desktop un pārējām ierīcēm: atver Google Calendar ar norādītu lokāciju
+        // Android, desktop un pārējām ierīcēm: atver Google Calendar ar precīzu lokāciju
         var googleUrl = "https://calendar.google.com/calendar/render?action=TEMPLATE" +
                         "&text=" + eventTitle +
                         "&dates=" + startDate + "/" + endDate +
@@ -173,6 +184,10 @@
                         "&location=" + locationText;
         window.open(googleUrl, '_blank');
       }
+    }
+    function declineInvitation() {
+      document.getElementById("invitationContainer").style.display = "none";
+      document.getElementById("declinedContainer").style.display = "flex";
     }
   </script>
 </body>
