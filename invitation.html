@@ -4,17 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VEZITIVUS WEEKEND Ielūgums</title>
-  <!-- Ielādējam modernu fontu -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
     /* CSS Reset un pamata stili */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
       width: 100%;
       min-height: 100vh;
@@ -116,16 +111,6 @@
       color: #00d1b2;
       text-decoration: underline;
     }
-    .calendar-info {
-      margin-top: 30px;
-      padding-top: 20px;
-      border-top: 1px solid rgba(255, 255, 255, 0.3);
-      text-align: center;
-    }
-    .calendar-info p {
-      margin-bottom: 15px;
-      font-size: 1.1rem;
-    }
   </style>
 </head>
 <body>
@@ -136,7 +121,7 @@
         Sveiki, draugi un ballīšu zvēri!<br><br>
         Esat gatavi piedzīvot visu, par ko vien sapņojat? Mēs jūs aicinām uz visinovatīvāko un stilīgāko nedēļas nogales festivālu, kurā svinēsim Kapteiņa dzimšanas dienu ar enerģiju, deju un neapturamu jautrību!<br><br>
         <strong>Kad?</strong><br>
-        <span class="highlight" onclick="addToCalendar()">11.–13. jūlijā</span> (piektdiena – svētdiena). Saglabā datumus un piesprīdini savus kalendārus jau tagad!<br><br>
+        <span class="highlight" onclick="addToCalendar()">11.–13. jūlijā</span> (piektdiena – svētdiena).<br><br>
         <strong>Kur?</strong><br>
         Pļavā pie Ķekavas, tikai 4 km no autobusa pieturas "Vadoņi".<br><br>
         <strong>Programmā:</strong>
@@ -155,20 +140,8 @@
           <li>Nepārprotams – pozitīvu garastāvokli!</li>
         </ul>
         Piezīme: Ikviens pats nodrošina sev ēdienu un dzērienu. Pasākuma laikā tiks fiksēti neaizmirstami mirkļi Instagram kontā <a href="https://www.instagram.com/vezitivus/" target="_blank">@vezitivus</a>.<br><br>
-        Un, lai viss būtu vēl īpašāk – ar vienu klikšķi vari pievienot pasākumu savam kalendāram!
+        Pievienojot pasākumu savam kalendāram, tiks iekļauti arī notikuma datumi un precīza lokācija.
       </p>
-      
-      <!-- Precīza lokācija un atkārtota datuma poga -->
-      <div class="calendar-info">
-        <p>
-          Precīza pasākuma lokācija būs redzama, pievienojot pasākumu savam kalendāram. Izmanto šīs saites:<br>
-          <a href="https://teams.microsoft.com/l/message/48:notes/1742211446709?context=%7B%22contextType%22%3A%22chat%22%7D" target="_blank">Apple kalendārs</a> |
-          <a href="https://maps.app.goo.gl/LU9bjzJpFtrGn7Df7?g_st=com.google.maps.preview.copy" target="_blank">Google kalendārs</a>
-        </p>
-        <p>
-          <span class="highlight" onclick="addToCalendar()">11.–13. jūlijā</span>
-        </p>
-      </div>
       
       <div class="buttons">
         <button class="button confirm" onclick="goBack()">Apstiprināt</button>
@@ -186,17 +159,18 @@
       var startDate = "20250711T000000Z"; // UTC formātā
       var endDate = "20250713T235959Z"; // UTC formātā
       var details = encodeURIComponent("Svini Kapteiņa dzimšanas dienu ar stilu un enerģiju!");
+      var locationText = encodeURIComponent("Pļava pie Ķekavas, aptuveni 4 km no autobusa pieturas 'Vadoņi'");
       
       if (/iPhone|iPad|iPod/.test(ua) && !window.MSStream) {
         // iOS ierīcēm: izmanto webcal saiti uz .ics failu (pārliecinies, ka event.ics ir pieejams tavā serverī)
         window.location.href = 'webcal://yourdomain.com/event.ics';
-      } else if (/android/i.test(ua)) {
-        // Android: atver Google Calendar
-        var googleUrl = "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + eventTitle + "&dates=" + startDate + "/" + endDate + "&details=" + details;
-        window.open(googleUrl, '_blank');
       } else {
-        // Desktop un pārējām ierīcēm – pēc noklusējuma izmanto Google Calendar
-        var googleUrl = "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + eventTitle + "&dates=" + startDate + "/" + endDate + "&details=" + details;
+        // Android, desktop un pārējām ierīcēm: atver Google Calendar ar norādītu lokāciju
+        var googleUrl = "https://calendar.google.com/calendar/render?action=TEMPLATE" +
+                        "&text=" + eventTitle +
+                        "&dates=" + startDate + "/" + endDate +
+                        "&details=" + details +
+                        "&location=" + locationText;
         window.open(googleUrl, '_blank');
       }
     }
