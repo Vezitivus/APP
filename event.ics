@@ -1,0 +1,17 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//VEZITIVUS//NONSGUI EVENT//LV
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:vezitivus-20250711@yourdomain.com
+DTSTAMP:20250526T120000Z
+DTSTART:20250711T000000Z
+DTEND:20250713T235959Z
+SUMMARY:VEZITIVUS WEEKEND Festivāls
+DESCRIPTION:Svini Kapteiņa dzimšanas dienu ar stilu un enerģiju! Piedalies neaizmirstamā festivālā, kurā gaidāmas dejas, mūzika un jautrība. 
+ Ko ņemt līdzi: Telts, guļammaiss, spilvens, piemērots apģērbs, peldkostīms, ēdiens un dzērieni, kā arī labs garastāvoklis!
+LOCATION:Pļava pie Ķekavas, aptuveni 4 km no autobusa pieturas "Vadoņi"
+URL:https://www.vezitivus.lv
+END:VEVENT
+END:VCALENDAR
