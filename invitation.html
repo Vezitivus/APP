@@ -3,24 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ielūgums</title>
+    <title>VEZITIVUS WEEKEND Ielūgums</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        .invitation-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-image: url('background.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .glass-effect {
+            max-width: 650px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            color: #fff;
+            font-family: 'Arial', sans-serif;
+            box-shadow: 0 8px 32px 0 rgba(0,0,0,0.37);
+        }
+
+        .glass-effect h1 {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .glass-effect ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .glass-effect li::before {
+            content: '✔️';
+            margin-right: 8px;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .button {
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+        }
+
+        .green {
+            background-color: #28a745;
+        }
+
+        .red {
+            background-color: #dc3545;
+        }
+
+        .highlight {
+            text-decoration: underline;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
     <div class="invitation-container">
         <div class="glass-effect">
-            <h1 class="title">VEZITIVUS WEEKEND Ielūgums</h1>
-            <p>TXTXTX</p>
+            <h1>VEZITIVUS WEEKEND Ielūgums</h1>
+            <p>
+                Hei, draugi un ballīšu zvēri! 🥳<br><br>
+                Gatavojiet saulesbrilles, piepūšamos flamingo un savus spožākos outfitus – tuvojas gada gaidītākais pasākums – Kapteiņa dzimšanas dienas festivāls <b>"Vezitivus"!</b> 🎉<br><br>
+
+                <b>Kas tad īsti būs?</b><br>
+                Trīs dienu jautrības maratons, kurā atzīmēsim Kapteiņa dzimšanas dienu brīvā dabā! 🏕️ Sagaidāmas lieliskas aktivitātes, dziesmas, dejas, jaunas pazīšanās un neaizmirstami piedzīvojumi. Protams, neiztrūks arī atpūta baseinā, karstā baļļa un vakara disenītes!<br><br>
+
+                <strong>Kad?</strong><br>
+                <span class="highlight" onclick="addToCalendar()">11.–13. jūlijā</span> (piektdiena–svētdiena). Saglabā datumus un gatavojies neaizmirstamai nedēļas nogalei!<br><br>
+
+                <strong>Kur?</strong><br>
+                Turpat jau zināmajā vietā – pļavā pie Ķekavas, aptuveni 4 km no autobusa pieturas "Vadoņi" (Ķekava).<br><br>
+
+                <strong>Programmā:</strong>
+                <ul>
+                    <li>Laba mūzika un dejas līdz saullēktam</li>
+                    <li>Sportiskas aktivitātes</li>
+                    <li>Dziedāšana un socializēšanās</li>
+                </ul><br>
+
+                <strong>Ko ņemt līdzi?</strong>
+                <ul>
+                    <li>Telts, guļammaiss, spilvens</li>
+                    <li>Drēbes dažādiem laikapstākļiem</li>
+                    <li>Peldkostīms un dvielis</li>
+                    <li>Pārtika un dzērieni pēc izvēles</li>
+                    <li>Telefona lādētājs</li>
+                    <li>Labs garastāvoklis!</li>
+                </ul><br>
+
+                Ierodoties, katrs pats rūpējas par savu ēdienu un dzērienu. Pasākuma laikā tiks uzņemtas bildes un video Instagram <a href="https://www.instagram.com/vezitivus/" target="_blank">@vezitivus</a>.<br><br>
+
+                <em>Un mazliet nopietni:</em> Šī ir mūsu mīļā Kapteiņa dzimšanas diena. Kapteinis priecāsies, ja palīdzēsiet atbalstīt ballīti!<br><br>
+
+                🎈🎉 Tiekamies 11.–13. jūlijā! 🎉🎈
+            </p>
             <div class="buttons">
-                <button onclick="goBack()" class="button green">Apstiprināt ielūgumu</button>
-                <a href="declined.html" class="button red">Noraidīt ielūgumu</a>
+                <button onclick="goBack()" class="button green">Apstiprināt</button>
+                <a href="#" onclick="alert('Paldies! Informācija saglabāta.')" class="button red">Noraidīt</a>
             </div>
         </div>
     </div>
     <script>
         function goBack() {
-            window.history.back(); // Atgriežas iepriekšējā lapā
+            window.history.back();
         }
+
+        document.querySelectorAll('.highlight').forEach(item => {
+            item.addEventListener('click', () => {
+                const calendarUrl = "https://calendar.google.com/calendar/r/eventedit?text=VEZITIVUS+WEEKEND&dates=20250711/20250713";
+                window.open(calendarUrl, '_blank');
+            });
+        });
     </script>
 </body>
 </html>
