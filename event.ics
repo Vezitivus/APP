@@ -15,8 +15,6 @@ DESCRIPTION:Svini Kapteiņa dzimšanas dienu ar stilu un enerģiju! Piedalies ne
 
 LOCATION:56,80480° N, 24,16101° E
 
-GEO:56.946285;24.105078
-
 X-APPLE-STRUCTURED-LOCATION;VALUE=URI;
  X-APPLE-RADIUS=72;
  X-TITLE="Vezitivus":geo:56.946285,24.105078
