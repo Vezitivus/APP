@@ -50,23 +50,6 @@
       line-height: 1.6;
       margin-bottom: 20px;
     }
-    ul {
-      list-style: none;
-      margin: 10px 0;
-      padding-left: 20px;
-      text-align: left;
-    }
-    li {
-      margin-bottom: 8px;
-      position: relative;
-      padding-left: 25px;
-    }
-    li::before {
-      content: '✔️';
-      position: absolute;
-      left: 0;
-      top: 0;
-    }
     .buttons {
       display: flex;
       justify-content: center;
@@ -120,32 +103,28 @@
   <!-- Ielūguma saturs -->
   <div id="invitationContainer" class="container">
     <div class="glass-effect">
-      <h1>VEZITIVUS WEEKEND Ielūgums</h1>
-      <p>
-        Sveiki, draugi un ballīšu zvēri!<br><br>
-        Esat gatavi piedzīvot visu, par ko vien sapņojat? Mēs jūs aicinām uz visinovatīvāko un stilīgāko nedēļas nogales festivālu, kurā svinēsim Kapteiņa dzimšanas dienu ar enerģiju, deju un neapturamu jautrību!<br><br>
-        <strong>Kur?</strong><br>
-        Pļavā pie Ķekavas, tikai 4 km no autobusa pieturas "Vadoņi".<br><br>
-        <strong>Programmā:</strong>
-        <ul>
-          <li>Neaizmirstama mūzika un dejas līdz saullēktam</li>
-          <li>Enerģiskas sporta aktivitātes</li>
-          <li>Kopīgas dziesmas un spontāna socializēšanās</li>
-        </ul>
-        <strong>Ko ņemt līdzi?</strong>
-        <ul>
-          <li>Telts, guļammaiss un spilvens</li>
-          <li>Dzīvības pilnas drēbes dažādiem laikapstākļiem</li>
-          <li>Peldkostīms un dvielis</li>
-          <li>Ēdiens un dzērieni pēc izvēles</li>
-          <li>Telefona lādētājs</li>
-          <li>Nepārprotams – pozitīvu garastāvokli!</li>
-        </ul>
-        Piezīme: Ikviens pats nodrošina sev ēdienu un dzērienu. Pasākuma laikā tiks fiksēti neaizmirstami mirkļi Instagram kontā 
-        <a href="https://www.instagram.com/vezitivus/" target="_blank">@vezitivus</a>.<br><br>
-        Pievienojot pasākumu savam kalendāram, tiks iekļauti arī notikuma datumi un precīza lokācija.
-      </p>
-      <!-- Pulsējošs datums, novietots virs pogām -->
+      <h1>🌟 VEZITIVUS WEEKEND 🌟</h1>
+      <p>Tava neaizmirstamā vasaras nedēļas nogale!</p>
+      <p>🌿 Sveiks, piedzīvojumu meklētāj! 🌿</p>
+      <p>Vai esi gatavs piedzīvot vasaras spilgtākās atmiņas?</p>
+      <p><strong>📍 Kur tiekamies?</strong><br>
+         Gleznainā un rūpīgi koptā pļavā netālu no Ķekavas.</p>
+      <p><strong>✨ Programmā:</strong><br>
+         🎶 Mūzika un dejas līdz pat saullēktam<br>
+         🏐 Jautras un enerģiskas sporta aktivitātes<br>
+         🎤 Kopīgas dziesmas un draudzīgas sarunas</p>
+      <p><strong>🎒 Ko ņemt līdzi?</strong><br>
+         ⛺️ Telti, guļammaisu un spilvenu<br>
+         🍔 Ēdienu un dzērienu pēc savas gaumes<br>
+         📱 Telefona lādētāju<br>
+         😊 Galvenais – pozitīvu noskaņojumu!</p>
+      <p><strong>📌 Svarīgi:</strong><br>
+         Katrs pats nodrošina sev ēdienu un dzērienu.<br>
+         Antisociāla uzvedība netiks paciesta – būsim draudzīgi!<br>
+         Ienākot teritorijā, Tu piekrīti ievērot iekšējās kārtības noteikumus.<br>
+         Tu piekrīti, ka vari tikt fotografēts un filmēts, un šie materiāli var tikt publicēti Instagram kontā @vezitivus.</p>
+      <p>🌟 Gaidīsim tieši Tevi! 🌟</p>
+      <!-- Pulsējošs datums, novietots apakšā -->
       <p>
         <span class="highlight" onclick="addToCalendar()">11.–13. jūlijā</span>
       </p>
@@ -168,17 +147,17 @@
     function addToCalendar() {
       var ua = navigator.userAgent || navigator.vendor || window.opera;
       var eventTitle = encodeURIComponent("VEZITIVUS WEEKEND Festivāls");
-      // All-day event: 11.–13. jūlijs (DTEND ir 20250714, jo tas ir ekskluzīvs)
+      // All-day event: 11.–13. jūlijs (DTEND ir 20250714, jo tas nav iekļauts)
       var startDate = "20250711";
       var endDate = "20250714";
       var details = encodeURIComponent("Svini Kapteiņa dzimšanas dienu ar stilu un enerģiju!");
       var locationText = encodeURIComponent("Pļava pie Ķekavas, aptuveni 4 km no autobusa pieturas 'Vadoņi'");
       
-      // Ja lietotājs ir iOS, izmanto HTTPS saiti uz ICS failu, kas importē notikumu kā parastu ierakstu
+      // iOS: izmanto HTTPS saiti uz ICS failu, lai importētu notikumu kā parastu ierakstu
       if (/iPhone|iPad|iPod/.test(ua) && !window.MSStream) {
         window.location.href = 'https://vezitivus.github.io/APP/event.ics';
       } else {
-        // Atver Google Calendar Event Edit logu, kas izveido parastu notikumu ierakstu
+        // Atver Google Calendar Event Edit logu ar precīzu notikuma ierakstu
         var googleUrl = "https://calendar.google.com/calendar/u/0/r/eventedit?text=" + eventTitle +
                         "&dates=" + startDate + "/" + endDate +
                         "&details=" + details +
