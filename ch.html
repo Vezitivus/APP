@@ -30,7 +30,8 @@
   </style>
 </head>
 <body>
-  <div id="check">CHECK IN</div>
+  <!-- Sākumā tiek rādīts "Loading..." kamēr netiek saņemta atbilde -->
+  <div id="check">Loading...</div>
   <script>
     document.addEventListener("DOMContentLoaded", function() {
       // Iegūst uid no URL, piemēram: index.html?uid=lietotajaID
@@ -53,15 +54,15 @@
       
       // Atbildes apstrāde "read" darbībai – pārbauda, vai uid atrodas Sheets lapā un kāda ir C kolonnas vērtība
       window.processRead = function(data) {
+        const checkEl = document.getElementById("check");
         if (data.status === "success") {
-          const checkEl = document.getElementById("check");
           if (data.checkin === "TRUE") {
-            // Ja C kolonnas vērtība ir "TRUE", parādām ieķeksētu lauku ar atbilstošu tekstu
-            checkEl.textContent = "✓ Esi veiksmīgi check in vezitivus spēlēm";
+            // Ja C kolonnas vērtība ir "TRUE", uzreiz rādām atzīmētu paziņojumu
+            checkEl.textContent = "✓ Esi veiksmīgi CHECKED-IN";
             checkEl.classList.add("checked");
             checkEl.removeEventListener("click", onCheckClick);
           } else {
-            // Ja vērtība ir "FALSE", rādam klikšķināmu lauku
+            // Ja vērtība ir "FALSE", rādam klikšķināmu "CHECK IN" lauku
             checkEl.textContent = "CHECK IN";
             checkEl.addEventListener("click", onCheckClick);
           }
@@ -72,9 +73,9 @@
       
       // Atbildes apstrāde "update" darbībai – pēc veiksmīga check‑in atjaunināšanas
       window.processUpdate = function(data) {
+        const checkEl = document.getElementById("check");
         if (data.status === "success") {
-          const checkEl = document.getElementById("check");
-          checkEl.textContent = "✓ Esi veiksmīgi check in vezitivus spēlēm";
+          checkEl.textContent = "✓ Esi veiksmīgi CHECKED-IN";
           checkEl.classList.add("checked");
           checkEl.removeEventListener("click", onCheckClick);
         } else {
