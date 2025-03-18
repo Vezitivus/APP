@@ -41,17 +41,17 @@
         return;
       }
       
-      // API endpoint – šeit norādīts Google Apps Script, kas ir savienots ar Google Sheets dokumentu
+      // Webapp URL – pārliecinies, ka tas ir publicēts kā "Anyone, even anonymous"
       const apiUrl = "https://script.google.com/macros/s/AKfycby1JxJsrmsGDBUJ1NRpeFfnvlmDI68YHINB9wE3AKkoW_FD8CX--qy5RadkxZexvgE-pg/exec";
       
-      // JSONP pieprasījuma funkcija
+      // Funkcija JSONP pieprasījumam
       function jsonpRequest(url, callbackName) {
         const script = document.createElement('script');
         script.src = url + (url.includes('?') ? "&" : "?") + "callback=" + callbackName;
         document.body.appendChild(script);
       }
       
-      // API atbildes apstrāde "read" darbībai – pārbauda, vai uid atrodas Sheets lapā un kāda ir C kolonnas vērtība
+      // Atbildes apstrāde "read" darbībai – pārbauda, vai uid atrodas Sheets lapā un kāda ir C kolonnas vērtība
       window.processRead = function(data) {
         if (data.status === "success") {
           const checkEl = document.getElementById("check");
@@ -61,7 +61,7 @@
             checkEl.classList.add("checked");
             checkEl.removeEventListener("click", onCheckClick);
           } else {
-            // Ja vērtība ir "FALSE", rādam tukšu/klikšķināmu lauku
+            // Ja vērtība ir "FALSE", rādam klikšķināmu lauku
             checkEl.textContent = "CHECK IN";
             checkEl.addEventListener("click", onCheckClick);
           }
@@ -70,7 +70,7 @@
         }
       };
       
-      // API atbildes apstrāde "update" darbībai – ja check‑in veikts, tiek atjaunots lauks
+      // Atbildes apstrāde "update" darbībai – pēc veiksmīga check‑in atjaunināšanas
       window.processUpdate = function(data) {
         if (data.status === "success") {
           const checkEl = document.getElementById("check");
@@ -82,12 +82,12 @@
         }
       };
       
-      // Funkcija, kas izsaucas, kad tiek nospiests "CHECK IN" lauks
+      // Funkcija, kas tiek izsaukta, kad tiek nospiests "CHECK IN"
       function onCheckClick() {
         jsonpRequest(apiUrl + "?action=update&uid=" + encodeURIComponent(uid), "processUpdate");
       }
       
-      // Sākotnēji pārbaudām, vai uid atrodas Google Sheets un kāda ir C kolonnas vērtība
+      // Sākotnēji pārbaudām statusu, vai check‑in jau veikts
       jsonpRequest(apiUrl + "?action=read&uid=" + encodeURIComponent(uid), "processRead");
     });
   </script>
