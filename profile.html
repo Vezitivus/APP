@@ -167,7 +167,7 @@
         <div class="grid-margin"></div>
         <button class="action-button" onclick="redirectToOption()">option</button>
         <div class="grid-spacer"></div>
-        <button class="action-button" onclick="redirectToSpin()">Mini game</button>
+        <button class="action-button" onclick="redirectToSpin()">Minigame</button>
         <div class="grid-spacer"></div>
         <button class="action-button" onclick="redirectToSuggest()">Ieteikumi</button>
         <div class="grid-margin"></div>
@@ -213,7 +213,7 @@
         const params = new URLSearchParams(window.location.search);
         const uid = params.get("uid");
         if (uid) {
-          window.location.href = `ch.html?uid=${uid}`;
+          window.location.href = `option.html?uid=${uid}`;
         } else {
           alert("UID nav atrasts!");
         }
