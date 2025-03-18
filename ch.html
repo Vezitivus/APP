@@ -3,29 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Check‑in VEZITIVUS</title>
+  <title>Check‑in</title>
   <style>
     body {
-      margin: 0;
-      background-color: black;
-      color: #0F0;
-      font-family: 'Courier New', monospace;
+      background-color: white;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
+      font-family: sans-serif;
+      margin: 0;
     }
-    button {
-      padding: 10px 20px;
-      font-size: 1.5em;
+    #check {
+      font-size: 4em;
       cursor: pointer;
-      border: 2px solid #0F0;
-      background: none;
-      color: #0F0;
+      user-select: none;
+    }
+    /* Ja jau check‑in veikts, pazīmējam tekstu un izslēdzam klikšķi */
+    #check.checked {
+      color: gray;
+      cursor: default;
     }
   </style>
 </head>
 <body>
+  <div id="check">CHECK IN</div>
   <script>
     document.addEventListener("DOMContentLoaded", function() {
       // Nolasa "uid" no URL (piemēram, ?uid=lietotajaID)
@@ -35,55 +37,51 @@
         document.body.innerHTML = "<h1>Nav norādīts uid!</h1>";
         return;
       }
-
+      
       const apiUrl = "https://script.google.com/macros/s/AKfycby1JxJsrmsGDBUJ1NRpeFfnvlmDI68YHINB9wE3AKkoW_FD8CX--qy5RadkxZexvgE-pg/exec";
-
+      
       // Funkcija JSONP pieprasījumam
       function jsonpRequest(url, callbackName) {
         const script = document.createElement('script');
         script.src = url + (url.includes('?') ? "&" : "?") + "callback=" + callbackName;
         document.body.appendChild(script);
       }
-
-      // API atbildes apstrāde pēc "read" darbības
+      
+      // Atbildes apstrāde pēc "read" darbības
       window.processRead = function(data) {
         if (data.status === "success") {
+          const checkEl = document.getElementById("check");
           if (data.checkin === "TRUE") {
-            showMessage("TU JAU ESI REŠISTRĒJIES");
+            // Ja jau veikts, pievieno atzīmi un izslēdz klikšķi
+            checkEl.textContent = "✓ CHECK IN";
+            checkEl.classList.add("checked");
+            checkEl.removeEventListener("click", onCheckClick);
           } else {
-            showButton();
+            // Ja nav, ļauj noklikšķināt
+            checkEl.addEventListener("click", onCheckClick);
           }
         } else {
           document.body.innerHTML = "<h1>ID netika atrasts!</h1>";
         }
       };
-
-      // API atbildes apstrāde pēc "update" darbības
+      
+      // Atbildes apstrāde pēc "update" darbības
       window.processUpdate = function(data) {
         if (data.status === "success") {
-          showMessage("TU JAU ESI REŠISTRĒJIES");
+          const checkEl = document.getElementById("check");
+          checkEl.textContent = "✓ CHECK IN";
+          checkEl.classList.add("checked");
+          checkEl.removeEventListener("click", onCheckClick);
         } else {
           console.error("Update failed:", data);
         }
       };
-
-      // Parāda pogu "CHECK‑IN"
-      function showButton() {
-        document.body.innerHTML = "";
-        const btn = document.createElement("button");
-        btn.textContent = "CHECK‑IN";
-        btn.addEventListener("click", function() {
-          jsonpRequest(apiUrl + "?action=update&uid=" + encodeURIComponent(uid), "processUpdate");
-        });
-        document.body.appendChild(btn);
+      
+      function onCheckClick() {
+        jsonpRequest(apiUrl + "?action=update&uid=" + encodeURIComponent(uid), "processUpdate");
       }
-
-      // Parāda paziņojumu
-      function showMessage(text) {
-        document.body.innerHTML = "<h1>" + text + "</h1>";
-      }
-
-      // Sāk ar "read" darbību
+      
+      // Sāk ar "read" darbību, lai pārbaudītu, vai check‑in jau veikts
       jsonpRequest(apiUrl + "?action=read&uid=" + encodeURIComponent(uid), "processRead");
     });
   </script>
