@@ -5,164 +5,161 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>GameOn Tournament</title>
   <style>
-    /* Pamatstils */
+    /* iOS/Apple stila dizains */
     body {
-      font-family: Arial, sans-serif;
-      background: #f7f7f7;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
       margin: 0;
       padding: 0;
-      color: #333;
+      background-color: #F2F2F7;
+      color: #1C1C1E;
     }
-    /* Navigācijas josla */
-    nav {
-      background: #0056b3;
-      padding: 10px;
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    nav button {
-      background: #fff;
-      color: #0056b3;
-      border: none;
-      padding: 10px 15px;
-      font-size: 1em;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    nav button:hover {
-      background: #e6e6e6;
-    }
-    /* Saturam pielāgota konteiner */
     .container {
       max-width: 900px;
       margin: 20px auto;
-      background: #fff;
+      background: #FFFFFF;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       padding: 20px;
-      border-radius: 6px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
     h1, h2 {
-      color: #0056b3;
+      font-weight: 600;
+      color: #007AFF;
+      margin-bottom: 16px;
     }
-    textarea, input[type="number"], input[type="text"] {
+    p {
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    input, textarea {
       width: 100%;
-      padding: 8px;
-      margin: 5px 0 10px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 1em;
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #C7C7CC;
+      border-radius: 10px;
+      margin-bottom: 16px;
     }
-    button.action {
-      background: #0056b3;
-      color: #fff;
+    button {
+      font-size: 16px;
+      padding: 12px 20px;
+      background-color: #007AFF;
+      color: #FFFFFF;
       border: none;
-      padding: 8px 12px;
-      font-size: 1em;
-      border-radius: 4px;
+      border-radius: 10px;
       cursor: pointer;
+      transition: background-color 0.2s ease-in-out;
     }
-    button.action:hover {
-      background: #004494;
+    button:hover {
+      background-color: #005BBB;
+    }
+    /* Fiksēta navigācijas josla (tab bar) apakšā */
+    .tab-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: #FFFFFF;
+      border-top: 1px solid #C7C7CC;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+      z-index: 1000;
+    }
+    .tab-bar button {
+      background: none;
+      border: none;
+      font-size: 14px;
+      color: #007AFF;
+      flex-grow: 1;
+      text-align: center;
+      padding: 8px 0;
+    }
+    .tab-bar button.active {
+      font-weight: 600;
+    }
+    /* Sadaļu stils */
+    .section {
+      display: none;
+    }
+    .section.active {
+      display: block;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
+      margin-top: 16px;
     }
     th, td {
-      padding: 8px;
+      padding: 12px;
+      border: 1px solid #C7C7CC;
       text-align: center;
-      border: 1px solid #ddd;
     }
     th {
-      background: #e6f0ff;
-    }
-    .hidden {
-      display: none;
-    }
-    .section {
-      margin-top: 20px;
+      background-color: #F2F2F7;
+      font-weight: 600;
     }
   </style>
 </head>
 <body>
   <!-- Sākuma sadaļa -->
-  <div class="container" id="startContainer">
+  <div class="container" id="startSection">
     <h1>GameOn – Spēles pārvaldība</h1>
-    <p>Nospied “Jauna spēle”, lai sāktu jaunu turnīru (viena spēle = viena Google Sheets lapa). Pēc tam ievadi komandas un aizpildi rezultātus.</p>
-    <button class="action" onclick="newGame()">Jauna spēle</button>
-    <div id="currentGame" class="section hidden">
+    <p>Sāc jaunu turnīru, kurā viss notiek vienā Google Sheets lapā. Izveido spēli, ievadi komandas un aizpildi rezultātus – viss ir vienkārši!</p>
+    <button onclick="newGame()">Jauna Spēle</button>
+    <div id="currentGameInfo" style="margin-top:16px; display:none;">
       <p><strong>Spēles ID:</strong> <span id="gameNameDisplay"></span></p>
-      <button class="action" onclick="showSection('inputSection')">Turpināt – Komandu ievade</button>
+      <button onclick="activateSection('inputSection')">Ievadi Komandas</button>
     </div>
   </div>
-  
-  <!-- Augšējā navigācija (parādās pēc spēles izveides) -->
-  <nav id="navBar" class="hidden">
-    <button onclick="showSection('inputSection')">Komandu ievade</button>
-    <button onclick="showSection('groupASection')">Group A</button>
-    <button onclick="showSection('groupBSection')">Group B</button>
-    <button onclick="showSection('standingsSection')">Standings</button>
-    <button onclick="showSection('playoffsSection')">Playoffs</button>
-  </nav>
-  
+
   <!-- Galvenais saturs -->
-  <div class="container hidden" id="mainContainer">
-    <!-- Komandu ievades sadaļa -->
-    <section id="inputSection" class="section">
-      <h2>Komandu ievade</h2>
+  <div class="container" id="mainContent" style="display:none;">
+    <!-- Komandu Ievade -->
+    <div class="section" id="inputSection">
+      <h2>Komandu Ievade</h2>
       <p>Ievadi katru komandu jaunā rindā:</p>
-      <form id="teamForm">
-         <textarea id="teamsInput" rows="8" placeholder="Piemēram:
-Team A
-Team B
-Team C"></textarea>
-         <button type="submit" class="action">Saglabāt komandas un ģenerēt turnīru</button>
-      </form>
-    </section>
-    
-    <!-- Group A sadaļa -->
-    <section id="groupASection" class="section hidden">
-      <h2>Group A Schedule</h2>
+      <textarea id="teamsInput" rows="6" placeholder="Team A&#10;Team B&#10;Team C"></textarea>
+      <button onclick="saveTeams()">Saglabāt Komandas un Ģenerēt Turnīru</button>
+    </div>
+
+    <!-- Group A -->
+    <div class="section" id="groupASection">
+      <h2>Group A</h2>
       <div id="groupAContainer"></div>
-    </section>
-    
-    <!-- Group B sadaļa -->
-    <section id="groupBSection" class="section hidden">
-      <h2>Group B Schedule</h2>
+    </div>
+
+    <!-- Group B -->
+    <div class="section" id="groupBSection">
+      <h2>Group B</h2>
       <div id="groupBContainer"></div>
-    </section>
-    
-    <!-- Standings sadaļa -->
-    <section id="standingsSection" class="section hidden">
+    </div>
+
+    <!-- Standings -->
+    <div class="section" id="standingsSection">
       <h2>Standings</h2>
       <div id="standingsContainer"></div>
-    </section>
-    
-    <!-- Playoffs sadaļa -->
-    <section id="playoffsSection" class="section hidden">
+    </div>
+
+    <!-- Playoffs -->
+    <div class="section" id="playoffsSection">
       <h2>Playoffs</h2>
       <div id="playoffsContainer"></div>
-    </section>
+    </div>
   </div>
-  
+
+  <!-- Fiksēta tab bar navigācija -->
+  <div class="tab-bar" id="tabBar" style="display:none;">
+    <button id="tabInput" onclick="activateSection('inputSection')">Ievade</button>
+    <button id="tabGroupA" onclick="activateSection('groupASection')">Group A</button>
+    <button id="tabGroupB" onclick="activateSection('groupBSection')">Group B</button>
+    <button id="tabStandings" onclick="activateSection('standingsSection')">Standings</button>
+    <button id="tabPlayoffs" onclick="activateSection('playoffsSection')">Playoffs</button>
+  </div>
+
   <script>
-    // Google Apps Script webapp URL – pielāgo, ja nepieciešams
     const scriptUrl = "https://script.google.com/macros/s/AKfycbzfBFIGVe5RhJh5Kgucv2K3ms2MIUMAd2haR6-WCqUkDEt6KJZMmootY5_R3FP9QSssZA/exec";
     let currentGameName = "";
-    
-    // Pārliecināmies, ka, kad spēle ir izveidota, tiek parādīta navigācija un galvenais saturs
-    function afterGameCreated(gameName) {
-      currentGameName = gameName;
-      document.getElementById("gameNameDisplay").innerText = gameName;
-      document.getElementById("currentGame").classList.remove("hidden");
-      document.getElementById("navBar").classList.remove("hidden");
-      document.getElementById("mainContainer").classList.remove("hidden");
-    }
-    
-    // Jauna spēle – izsauc back-end action "newGame"
+
     function newGame() {
       fetch(scriptUrl + "?action=newGame")
       .then(response => response.json())
@@ -170,7 +167,13 @@ Team C"></textarea>
          if(data.error) {
            alert("Kļūda: " + data.error);
          } else {
-           afterGameCreated(data.gameName);
+           currentGameName = data.gameName;
+           document.getElementById("gameNameDisplay").innerText = currentGameName;
+           document.getElementById("currentGameInfo").style.display = "block";
+           document.getElementById("startSection").style.display = "none";
+           document.getElementById("mainContent").style.display = "block";
+           document.getElementById("tabBar").style.display = "flex";
+           activateSection('inputSection');
          }
       })
       .catch(error => {
@@ -178,27 +181,24 @@ Team C"></textarea>
          alert("Kļūda jaunas spēles izveidē");
       });
     }
-    
-    // Sadaļu pārslēgšana
-    function showSection(sectionId) {
-      const sections = document.querySelectorAll("section");
-      sections.forEach(sec => {
-        if(sec.id === sectionId) {
-          sec.classList.remove("hidden");
-          // Ielādē datus, ja nepieciešams
-          if(sectionId === "groupASection") loadGroupSchedule("A");
-          if(sectionId === "groupBSection") loadGroupSchedule("B");
-          if(sectionId === "standingsSection") loadStandings();
-          if(sectionId === "playoffsSection") loadPlayoffs();
-        } else {
-          sec.classList.add("hidden");
-        }
-      });
+
+    function activateSection(sectionId) {
+      document.querySelectorAll(".section").forEach(sec => sec.classList.remove("active"));
+      document.getElementById(sectionId).classList.add("active");
+      document.querySelectorAll(".tab-bar button").forEach(btn => btn.classList.remove("active"));
+      if(sectionId === "inputSection") document.getElementById("tabInput").classList.add("active");
+      if(sectionId === "groupASection") document.getElementById("tabGroupA").classList.add("active");
+      if(sectionId === "groupBSection") document.getElementById("tabGroupB").classList.add("active");
+      if(sectionId === "standingsSection") document.getElementById("tabStandings").classList.add("active");
+      if(sectionId === "playoffsSection") document.getElementById("tabPlayoffs").classList.add("active");
+
+      if(sectionId === "groupASection") loadGroupSchedule("A");
+      if(sectionId === "groupBSection") loadGroupSchedule("B");
+      if(sectionId === "standingsSection") loadStandings();
+      if(sectionId === "playoffsSection") loadPlayoffs();
     }
-    
-    // Komandu ievades formas apstrāde
-    document.getElementById("teamForm").addEventListener("submit", function(e) {
-      e.preventDefault();
+
+    function saveTeams() {
       const teamsText = document.getElementById("teamsInput").value;
       const teamsArray = teamsText.split("\n").map(t => t.trim()).filter(t => t !== "");
       if(teamsArray.length === 0) {
@@ -220,17 +220,16 @@ Team C"></textarea>
          if(data.error) {
            alert("Kļūda: " + data.error);
          } else {
-           alert("Turnīrs izveidots: " + data.message);
-           showSection("standingsSection");
+           alert("Turnīrs izveidots!");
+           activateSection('standingsSection');
          }
       })
       .catch(error => {
          console.error("Kļūda saglabājot komandas:", error);
          alert("Kļūda saglabājot komandas");
       });
-    });
-    
-    // Ielādē grupas grafiku (Group A vai B)
+    }
+
     function loadGroupSchedule(group) {
       if(currentGameName === "") return;
       const params = new URLSearchParams();
@@ -244,8 +243,7 @@ Team C"></textarea>
          alert("Kļūda ielādējot datus");
       });
     }
-    
-    // Attēlo grupas grafiku ar punktu ievadi
+
     function displayGroupSchedule(group, data) {
       let html = `<table>
                     <tr>
@@ -268,7 +266,7 @@ Team C"></textarea>
                    <td><input type="number" id="scoreB_${group}_${matchNum}" value="${row[4]}" ${disabled}></td>
                    <td>${row[5]}</td>
                    <td>
-                     ${disabled ? "Saglabāts" : `<button class="action" onclick="saveGroupScore('${group}', ${matchNum})">Saglabāt</button>`}
+                     ${disabled ? "Saglabāts" : `<button onclick="saveGroupScore('${group}', ${matchNum})">Saglabāt</button>`}
                    </td>
                  </tr>`;
       });
@@ -279,8 +277,7 @@ Team C"></textarea>
         document.getElementById("groupBContainer").innerHTML = html;
       }
     }
-    
-    // Saglabā grupas spēles punktus
+
     function saveGroupScore(group, matchNumber) {
       const scoreA = document.getElementById(`scoreA_${group}_${matchNumber}`).value;
       const scoreB = document.getElementById(`scoreB_${group}_${matchNumber}`).value;
@@ -311,8 +308,7 @@ Team C"></textarea>
          alert("Kļūda saglabājot punktus");
       });
     }
-    
-    // Ielādē Standings datus
+
     function loadStandings() {
       if(currentGameName === "") return;
       const params = new URLSearchParams();
@@ -326,7 +322,6 @@ Team C"></textarea>
                         <th>Team</th>
                       </tr>`;
          data.rows.forEach(row => {
-           // row[0] satur komandas nosaukumu
            html += `<tr><td>${row[0]}</td></tr>`;
          });
          html += `</table>`;
@@ -337,8 +332,7 @@ Team C"></textarea>
          alert("Kļūda ielādējot datus");
       });
     }
-    
-    // Ielādē Playoffs datus
+
     function loadPlayoffs() {
       if(currentGameName === "") return;
       const params = new URLSearchParams();
@@ -352,8 +346,7 @@ Team C"></textarea>
          alert("Kļūda ielādējot datus");
       });
     }
-    
-    // Attēlo Playoffs tabulu ar punktu ievades laukiem
+
     function displayPlayoffs(data) {
       let html = `<table>
                     <tr>
@@ -376,15 +369,14 @@ Team C"></textarea>
                    <td><input type="number" id="pScore2_${matchId}" value="${row[4]}" ${disabled}></td>
                    <td>${row[5] || ""}</td>
                    <td>
-                     ${disabled ? "Saglabāts" : `<button class="action" onclick="savePlayoffScore('${matchId}')">Saglabāt</button>`}
+                     ${disabled ? "Saglabāts" : `<button onclick="savePlayoffScore('${matchId}')">Saglabāt</button>`}
                    </td>
                  </tr>`;
       });
       html += `</table>`;
       document.getElementById("playoffsContainer").innerHTML = html;
     }
-    
-    // Saglabā Playoffs spēles punktus
+
     function savePlayoffScore(matchId) {
       const score1 = document.getElementById(`pScore1_${matchId}`).value;
       const score2 = document.getElementById(`pScore2_${matchId}`).value;
