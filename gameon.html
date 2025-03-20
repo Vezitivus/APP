@@ -204,7 +204,7 @@
   </div>
 
   <script>
-    const scriptUrl = "https://script.google.com/macros/s/AKfycbzfBFIGVe5RhJh5Kgucv2K3ms2MIUMAd2haR6-WCqUkDEt6KJZMmootY5_R3FP9QSssZA/exec";
+    const scriptUrl = "YOUR_DEPLOYED_WEBAPP_URL";  // <-- Nomainiet uz īsto Google Apps Script webapp URL
     let currentGameName = "";
     let currentGamePin = "";
 
@@ -238,8 +238,6 @@
          } else {
            currentGameName = data.gameName;
            currentGamePin = pinInput;
-           document.getElementById("gameNameDisplay").innerText = currentGameName;
-           document.getElementById("gamePinDisplay").innerText = currentGamePin;
            showMainContent();
          }
       })
@@ -427,15 +425,16 @@
       fetch(scriptUrl + "?" + params.toString())
       .then(response => response.json())
       .then(data => {
+         // data => [ [Team, Games, Wins, Losses, PointsWon, PointsLost], ... ]
          let html = `<table>
                       <tr>
                         <th>Rk.</th>
                         <th>Team</th>
-                        <th>Games</th>
-                        <th>Wins</th>
-                        <th>Losses</th>
-                        <th>Points Won</th>
-                        <th>Points Lost</th>
+                        <th>G</th>
+                        <th>W</th>
+                        <th>L</th>
+                        <th>Pts+</th>
+                        <th>Pts-</th>
                       </tr>`;
          data.forEach((row, index) => {
            html += `<tr>
@@ -473,9 +472,12 @@
     }
 
     function displayPlayoffs(data) {
+      /* data.rows satur QF1, QF2, QF3, QF4, SF1, SF2, 3rd Place, Final
+         Katram: [matchId, team1, team2, score1, score2] 
+      */
       let html = `<table>
                     <tr>
-                      <th>Position</th>
+                      <th>Match</th>
                       <th>Team 1</th>
                       <th>Team 2</th>
                       <th>Score 1</th>
@@ -483,16 +485,16 @@
                       <th>Action</th>
                     </tr>`;
       data.rows.forEach(row => {
-        const position = row[0];
+        const matchId = row[0]; // QF1, QF2, SF1, Final, utt.
         const disabled = (row[3] !== "" && row[4] !== "") ? "disabled" : "";
         html += `<tr>
-                   <td>${position}</td>
+                   <td>${matchId}</td>
                    <td>${row[1]}</td>
                    <td>${row[2]}</td>
-                   <td><input type="number" id="pScore1_${position}" value="${row[3]}" ${disabled}></td>
-                   <td><input type="number" id="pScore2_${position}" value="${row[4]}" ${disabled}></td>
+                   <td><input type="number" id="pScore1_${matchId}" value="${row[3]}" ${disabled}></td>
+                   <td><input type="number" id="pScore2_${matchId}" value="${row[4]}" ${disabled}></td>
                    <td>
-                     ${disabled ? "✔️" : `<button onclick="savePlayoffScore('${position}')">✔️</button>`}
+                     ${disabled ? "✔️" : `<button onclick="savePlayoffScore('${matchId}')">✔️</button>`}
                    </td>
                  </tr>`;
       });
@@ -500,9 +502,9 @@
       document.getElementById("playoffsContainer").innerHTML = html;
     }
 
-    function savePlayoffScore(position) {
-      const score1 = document.getElementById(`pScore1_${position}`).value;
-      const score2 = document.getElementById(`pScore2_${position}`).value;
+    function savePlayoffScore(matchId) {
+      const score1 = document.getElementById(`pScore1_${matchId}`).value;
+      const score2 = document.getElementById(`pScore2_${matchId}`).value;
       if(score1 === "" || score2 === "") {
         alert("Lūdzu aizpildi abas punktu vērtības!");
         return;
@@ -511,7 +513,7 @@
       params.append("action", "savePlayoffScore");
       params.append("gameName", currentGameName);
       params.append("pin", currentGamePin);
-      params.append("matchId", position);
+      params.append("matchId", matchId);
       params.append("score1", score1);
       params.append("score2", score2);
       
@@ -540,15 +542,16 @@
       fetch(scriptUrl + "?" + params.toString())
       .then(response => response.json())
       .then(data => {
+         /* data => [ [Team, Games, Wins, Losses, PointsWon, PointsLost], ... ] */
          let html = `<table>
                       <tr>
                         <th>Vieta</th>
                         <th>Team</th>
-                        <th>Games</th>
-                        <th>Wins</th>
-                        <th>Losses</th>
-                        <th>Points Won</th>
-                        <th>Points Lost</th>
+                        <th>G</th>
+                        <th>W</th>
+                        <th>L</th>
+                        <th>Pts+</th>
+                        <th>Pts-</th>
                       </tr>`;
          data.forEach((row, index) => {
            html += `<tr>
