@@ -21,6 +21,7 @@
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       padding: 20px;
+      box-sizing: border-box;
     }
     h1, h2 {
       font-weight: 600;
@@ -104,9 +105,6 @@
       background-color: #F2F2F7;
       font-weight: 600;
     }
-    .full-width {
-      width: 100%;
-    }
   </style>
 </head>
 <body>
@@ -115,10 +113,13 @@
     <h1>GameOn – Spēles pārvaldība</h1>
     <p>Sāc jaunu turnīru, kurā viss notiek vienā Google Sheets lapā. Izveido spēli, ievadi komandas un aizpildi rezultātus – viss ir vienkārši!</p>
     <label for="gameNameInput"><strong>Spēles nosaukums:</strong></label>
-    <input type="text" id="gameNameInput" placeholder="Ievadi spēles nosaukumu (piem. 'Rīga Cup 2025')">
+    <input type="text" id="gameNameInput" placeholder="piem. 'Rīga Cup 2025'">
+    <label for="pinInput"><strong>4-ciparu PIN:</strong></label>
+    <input type="text" id="pinInput" maxlength="4" placeholder="Ievadi PIN (piem. 1234)">
     <button onclick="newGame()">Jauna Spēle</button>
     <div id="currentGameInfo" style="margin-top:16px; display:none;">
       <p><strong>Spēles ID:</strong> <span id="gameNameDisplay"></span></p>
+      <p><strong>PIN:</strong> <span id="gamePinDisplay"></span></p>
       <button onclick="activateSection('inputSection')">Ievadi Komandas</button>
       <button onclick="activateSection('historySection')">Apskatīt iepriekšējās spēles</button>
     </div>
@@ -178,14 +179,21 @@
   <script>
     const scriptUrl = "https://script.google.com/macros/s/AKfycbzfBFIGVe5RhJh5Kgucv2K3ms2MIUMAd2haR6-WCqUkDEt6KJZMmootY5_R3FP9QSssZA/exec";
     let currentGameName = "";
+    let currentGamePin = "";
 
     function newGame() {
-      let userGameName = document.getElementById("gameNameInput").value.trim();
-      // Ja lietotājs neko nav ievadījis, ģenerē automātiski
+      const gameNameInput = document.getElementById("gameNameInput").value.trim();
+      const pinInput = document.getElementById("pinInput").value.trim();
+      if (pinInput === "" || !/^\d{4}$/.test(pinInput)) {
+        alert("Lūdzu ievadi derīgu 4-ciparu PIN!");
+        return;
+      }
+      // Sagatavo parametrus
       const params = new URLSearchParams();
       params.append("action", "newGame");
-      if(userGameName !== "") {
-        params.append("userGameName", userGameName);
+      params.append("pin", pinInput);
+      if(gameNameInput !== "") {
+        params.append("userGameName", gameNameInput);
       }
       fetch(scriptUrl + "?" + params.toString())
       .then(response => response.json())
@@ -194,7 +202,9 @@
            alert("Kļūda: " + data.error);
          } else {
            currentGameName = data.gameName;
+           currentGamePin = pinInput;
            document.getElementById("gameNameDisplay").innerText = currentGameName;
+           document.getElementById("gamePinDisplay").innerText = currentGamePin;
            document.getElementById("currentGameInfo").style.display = "block";
            document.getElementById("startSection").style.display = "none";
            document.getElementById("mainContent").style.display = "block";
@@ -235,13 +245,14 @@
          alert("Lūdzu ievadi vismaz vienu komandu!");
          return;
       }
-      if(currentGameName === "") {
+      if(currentGameName === "" || currentGamePin === "") {
          alert("Nav izvēlēta spēle!");
          return;
       }
       const params = new URLSearchParams();
       params.append("action", "saveTeams");
       params.append("gameName", currentGameName);
+      params.append("pin", currentGamePin);
       params.append("teams", JSON.stringify(teamsArray));
       
       fetch(scriptUrl + "?" + params.toString())
@@ -261,10 +272,11 @@
     }
 
     function loadGroupSchedule(group) {
-      if(currentGameName === "") return;
+      if(currentGameName === "" || currentGamePin === "") return;
       const params = new URLSearchParams();
       params.append("action", group === "A" ? "getGroupASchedule" : "getGroupBSchedule");
       params.append("gameName", currentGameName);
+      params.append("pin", currentGamePin);
       fetch(scriptUrl + "?" + params.toString())
       .then(response => response.json())
       .then(data => displayGroupSchedule(group, data))
@@ -316,6 +328,7 @@
       const params = new URLSearchParams();
       params.append("action", "saveGroupScore");
       params.append("gameName", currentGameName);
+      params.append("pin", currentGamePin);
       params.append("group", group);
       params.append("matchNumber", matchNumber);
       params.append("scoreA", scoreA);
@@ -338,10 +351,11 @@
     }
 
     function loadStandings() {
-      if(currentGameName === "") return;
+      if(currentGameName === "" || currentGamePin === "") return;
       const params = new URLSearchParams();
       params.append("action", "standings");
       params.append("gameName", currentGameName);
+      params.append("pin", currentGamePin);
       fetch(scriptUrl + "?" + params.toString())
       .then(response => response.json())
       .then(data => {
@@ -362,10 +376,11 @@
     }
 
     function loadPlayoffs() {
-      if(currentGameName === "") return;
+      if(currentGameName === "" || currentGamePin === "") return;
       const params = new URLSearchParams();
       params.append("action", "getPlayoffSchedule");
       params.append("gameName", currentGameName);
+      params.append("pin", currentGamePin);
       fetch(scriptUrl + "?" + params.toString())
       .then(response => response.json())
       .then(data => displayPlayoffs(data))
@@ -415,6 +430,7 @@
       const params = new URLSearchParams();
       params.append("action", "savePlayoffScore");
       params.append("gameName", currentGameName);
+      params.append("pin", currentGamePin);
       params.append("matchId", matchId);
       params.append("score1", score1);
       params.append("score2", score2);
@@ -435,7 +451,7 @@
       });
     }
 
-    // Spēles vēstures ielāde – izgūst visus lapas nosaukumus, kas sākas ar "Game_"
+    // Spēles vēstures ielāde – izgūst visus lapas nosaukumus, kas sākas ar "Game_" vai satur lietotāja ievadīto nosaukumu
     function loadGameHistory() {
       const params = new URLSearchParams();
       params.append("action", "getGameHistory");
@@ -444,7 +460,7 @@
       .then(data => {
          let html = "<ul style='list-style:none; padding:0;'>";
          data.games.forEach(gameName => {
-           html += `<li style="margin-bottom:8px;"><button onclick="loadExistingGame('${gameName}')" style="width:100%;">${gameName}</button></li>`;
+           html += `<li style="margin-bottom:8px;"><button onclick="loadExistingGamePrompt('${gameName}')" style="width:100%;">${gameName}</button></li>`;
          });
          html += "</ul>";
          document.getElementById("historyContainer").innerHTML = html;
@@ -455,10 +471,17 @@
       });
     }
     
-    // Ielādē izvēlēto spēli no vēstures – uzstāda currentGameName un rāda komandu ievadi
-    function loadExistingGame(gameName) {
+    // Ielādē izvēlēto spēli no vēstures – prasa PIN un uzstāda currentGameName un currentGamePin
+    function loadExistingGamePrompt(gameName) {
+      let userPin = prompt("Lūdzu ievadi spēles PIN:");
+      if(!userPin || !/^\d{4}$/.test(userPin.trim())){
+        alert("Nepareizs PIN!");
+        return;
+      }
       currentGameName = gameName;
+      currentGamePin = userPin.trim();
       document.getElementById("gameNameDisplay").innerText = currentGameName;
+      document.getElementById("gamePinDisplay").innerText = currentGamePin;
       document.getElementById("currentGameInfo").style.display = "block";
       activateSection("inputSection");
     }
