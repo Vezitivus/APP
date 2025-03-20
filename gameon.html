@@ -8,116 +8,195 @@
     /* Pamatstils */
     body {
       font-family: Arial, sans-serif;
-      background: #f2f2f2;
+      background: #f7f7f7;
       margin: 0;
-      padding: 20px;
+      padding: 0;
       color: #333;
     }
-    header {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    h1 {
-      font-size: 2.5em;
-      color: #0056b3;
-    }
-    main {
-      max-width: 800px;
-      margin: 0 auto;
-      background: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    section {
-      margin-bottom: 30px;
-    }
-    h2 {
-      color: #0056b3;
-    }
-    textarea {
-      width: 100%;
-      padding: 10px;
-      font-size: 1em;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-      resize: vertical;
-    }
-    button {
+    /* Navigācijas josla */
+    nav {
       background: #0056b3;
-      color: #fff;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    nav button {
+      background: #fff;
+      color: #0056b3;
       border: none;
-      padding: 10px 20px;
+      padding: 10px 15px;
       font-size: 1em;
       border-radius: 4px;
       cursor: pointer;
-      margin: 5px;
     }
-    button:hover {
+    nav button:hover {
+      background: #e6e6e6;
+    }
+    /* Saturam pielāgota konteiner */
+    .container {
+      max-width: 900px;
+      margin: 20px auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+      color: #0056b3;
+    }
+    textarea, input[type="number"], input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1em;
+    }
+    button.action {
+      background: #0056b3;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      font-size: 1em;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button.action:hover {
       background: #004494;
     }
     table {
-      border-collapse: collapse;
       width: 100%;
+      border-collapse: collapse;
       margin-top: 10px;
-    }
-    table, th, td {
-      border: 1px solid #ccc;
     }
     th, td {
       padding: 8px;
       text-align: center;
+      border: 1px solid #ddd;
     }
     th {
       background: #e6f0ff;
     }
-    pre {
-      background: #f4f4f4;
-      padding: 10px;
-      overflow-x: auto;
+    .hidden {
+      display: none;
+    }
+    .section {
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>GameOn Tournament Generator</h1>
-  </header>
-  <main>
+  <!-- Sākuma sadaļa -->
+  <div class="container" id="startContainer">
+    <h1>GameOn – Spēles pārvaldība</h1>
+    <p>Nospied “Jauna spēle”, lai sāktu jaunu turnīru (viena spēle = viena Google Sheets lapa). Pēc tam ievadi komandas un aizpildi rezultātus.</p>
+    <button class="action" onclick="newGame()">Jauna spēle</button>
+    <div id="currentGame" class="section hidden">
+      <p><strong>Spēles ID:</strong> <span id="gameNameDisplay"></span></p>
+      <button class="action" onclick="showSection('inputSection')">Turpināt – Komandu ievade</button>
+    </div>
+  </div>
+  
+  <!-- Augšējā navigācija (parādās pēc spēles izveides) -->
+  <nav id="navBar" class="hidden">
+    <button onclick="showSection('inputSection')">Komandu ievade</button>
+    <button onclick="showSection('groupASection')">Group A</button>
+    <button onclick="showSection('groupBSection')">Group B</button>
+    <button onclick="showSection('standingsSection')">Standings</button>
+    <button onclick="showSection('playoffsSection')">Playoffs</button>
+  </nav>
+  
+  <!-- Galvenais saturs -->
+  <div class="container hidden" id="mainContainer">
     <!-- Komandu ievades sadaļa -->
-    <section id="inputSection">
-      <h2>Ievadi komandas</h2>
+    <section id="inputSection" class="section">
+      <h2>Komandu ievade</h2>
       <p>Ievadi katru komandu jaunā rindā:</p>
       <form id="teamForm">
-         <textarea id="teamsInput" rows="8" placeholder="Piemēram: 
+         <textarea id="teamsInput" rows="8" placeholder="Piemēram:
 Team A
 Team B
 Team C"></textarea>
-         <br>
-         <button type="submit">Saglabāt komandas</button>
+         <button type="submit" class="action">Saglabāt komandas un ģenerēt turnīru</button>
       </form>
     </section>
     
-    <!-- Poga izvēlei -->
-    <section id="buttonsSection" style="display:none;">
-       <h2>Turnīra sadaļas</h2>
-       <button id="groupAButton">Group A</button>
-       <button id="groupBButton">Group B</button>
-       <button id="standingsButton">Standings</button>
-       <button id="playoffsButton">Playoffs</button>
+    <!-- Group A sadaļa -->
+    <section id="groupASection" class="section hidden">
+      <h2>Group A Schedule</h2>
+      <div id="groupAContainer"></div>
     </section>
     
-    <!-- Rezultātu attēlošanas sadaļa -->
-    <section id="resultSection" style="display:none;">
-      <h2>Rezultāti</h2>
-      <div id="resultContainer"></div>
+    <!-- Group B sadaļa -->
+    <section id="groupBSection" class="section hidden">
+      <h2>Group B Schedule</h2>
+      <div id="groupBContainer"></div>
     </section>
-  </main>
+    
+    <!-- Standings sadaļa -->
+    <section id="standingsSection" class="section hidden">
+      <h2>Standings</h2>
+      <div id="standingsContainer"></div>
+    </section>
+    
+    <!-- Playoffs sadaļa -->
+    <section id="playoffsSection" class="section hidden">
+      <h2>Playoffs</h2>
+      <div id="playoffsContainer"></div>
+    </section>
+  </div>
   
   <script>
-    // Google Apps Script webapp URL (back-end)
+    // Google Apps Script webapp URL – pielāgo, ja nepieciešams
     const scriptUrl = "https://script.google.com/macros/s/AKfycbzfBFIGVe5RhJh5Kgucv2K3ms2MIUMAd2haR6-WCqUkDEt6KJZMmootY5_R3FP9QSssZA/exec";
-
-    // Saglabā komandu sarakstu Google Sheets
+    let currentGameName = "";
+    
+    // Pārliecināmies, ka, kad spēle ir izveidota, tiek parādīta navigācija un galvenais saturs
+    function afterGameCreated(gameName) {
+      currentGameName = gameName;
+      document.getElementById("gameNameDisplay").innerText = gameName;
+      document.getElementById("currentGame").classList.remove("hidden");
+      document.getElementById("navBar").classList.remove("hidden");
+      document.getElementById("mainContainer").classList.remove("hidden");
+    }
+    
+    // Jauna spēle – izsauc back-end action "newGame"
+    function newGame() {
+      fetch(scriptUrl + "?action=newGame")
+      .then(response => response.json())
+      .then(data => {
+         if(data.error) {
+           alert("Kļūda: " + data.error);
+         } else {
+           afterGameCreated(data.gameName);
+         }
+      })
+      .catch(error => {
+         console.error("Kļūda jaunas spēles izveidē:", error);
+         alert("Kļūda jaunas spēles izveidē");
+      });
+    }
+    
+    // Sadaļu pārslēgšana
+    function showSection(sectionId) {
+      const sections = document.querySelectorAll("section");
+      sections.forEach(sec => {
+        if(sec.id === sectionId) {
+          sec.classList.remove("hidden");
+          // Ielādē datus, ja nepieciešams
+          if(sectionId === "groupASection") loadGroupSchedule("A");
+          if(sectionId === "groupBSection") loadGroupSchedule("B");
+          if(sectionId === "standingsSection") loadStandings();
+          if(sectionId === "playoffsSection") loadPlayoffs();
+        } else {
+          sec.classList.add("hidden");
+        }
+      });
+    }
+    
+    // Komandu ievades formas apstrāde
     document.getElementById("teamForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const teamsText = document.getElementById("teamsInput").value;
@@ -126,19 +205,24 @@ Team C"></textarea>
          alert("Lūdzu ievadi vismaz vienu komandu!");
          return;
       }
-      
-      // Nosūtām komandu sarakstu kā JSON
+      if(currentGameName === "") {
+         alert("Nav izvēlēta spēle!");
+         return;
+      }
       const params = new URLSearchParams();
       params.append("action", "saveTeams");
+      params.append("gameName", currentGameName);
       params.append("teams", JSON.stringify(teamsArray));
       
       fetch(scriptUrl + "?" + params.toString())
       .then(response => response.json())
       .then(data => {
-         console.log("Komandas saglabātas:", data);
-         alert("Komandas veiksmīgi saglabātas!");
-         document.getElementById("inputSection").style.display = "none";
-         document.getElementById("buttonsSection").style.display = "block";
+         if(data.error) {
+           alert("Kļūda: " + data.error);
+         } else {
+           alert("Turnīrs izveidots: " + data.message);
+           showSection("standingsSection");
+         }
       })
       .catch(error => {
          console.error("Kļūda saglabājot komandas:", error);
@@ -146,84 +230,190 @@ Team C"></textarea>
       });
     });
     
-    // Funkcija datu izgūšanai atkarībā no izvēlētās sadaļas
-    function fetchData(action) {
-       const params = new URLSearchParams();
-       params.append("action", action);
-       fetch(scriptUrl + "?" + params.toString())
-       .then(response => response.json())
-       .then(data => {
-         displayData(action, data);
-       })
-       .catch(error => {
-         console.error("Kļūda izgūstot datus:", error);
-         alert("Kļūda izgūstot datus par: " + action);
-       });
+    // Ielādē grupas grafiku (Group A vai B)
+    function loadGroupSchedule(group) {
+      if(currentGameName === "") return;
+      const params = new URLSearchParams();
+      params.append("action", group === "A" ? "getGroupASchedule" : "getGroupBSchedule");
+      params.append("gameName", currentGameName);
+      fetch(scriptUrl + "?" + params.toString())
+      .then(response => response.json())
+      .then(data => displayGroupSchedule(group, data))
+      .catch(error => {
+         console.error("Kļūda ielādējot Group " + group, error);
+         alert("Kļūda ielādējot datus");
+      });
     }
     
-    // Datu attēlošana HTML formātā
-    function displayData(action, data) {
-      const resultContainer = document.getElementById("resultContainer");
-      resultContainer.innerHTML = "";
-      
-      if(action === "groupA" || action === "groupB") {
-         let html = `<h3>${action === "groupA" ? "Group A" : "Group B"}</h3>`;
-         if(Array.isArray(data)) {
-            html += "<ul>";
-            data.forEach(item => {
-              html += `<li>${item}</li>`;
-            });
-            html += "</ul>";
-         } else {
-            html += "<p>Nekas nav atrasts.</p>";
-         }
-         resultContainer.innerHTML = html;
-      } else if(action === "standings") {
-         let html = "<h3>Standings</h3>";
-         if(Array.isArray(data)) {
-           html += "<table><tr><th>Team</th><th>Games</th><th>Wins</th><th>Losses</th><th>Points Won</th><th>Points Lost</th></tr>";
-           data.forEach(row => {
-             html += `<tr>
-                        <td>${row.team}</td>
-                        <td>${row.games}</td>
-                        <td>${row.wins}</td>
-                        <td>${row.losses}</td>
-                        <td>${row.pointsWon}</td>
-                        <td>${row.pointsLost}</td>
-                      </tr>`;
-           });
-           html += "</table>";
-         } else {
-           html += "<p>Nekas nav atrasts.</p>";
-         }
-         resultContainer.innerHTML = html;
-      } else if(action === "playoffs") {
-         let html = "<h3>Playoffs</h3>";
-         if(data && typeof data === "object") {
-            // Šeit var pielāgot atbilstoši saņemtajam struktūras formātam – šeit vienkārši izvadām JSON
-            html += "<pre>" + JSON.stringify(data, null, 2) + "</pre>";
-         } else {
-            html += "<p>Nekas nav atrasts.</p>";
-         }
-         resultContainer.innerHTML = html;
+    // Attēlo grupas grafiku ar punktu ievadi
+    function displayGroupSchedule(group, data) {
+      let html = `<table>
+                    <tr>
+                      <th>Match #</th>
+                      <th>Team A</th>
+                      <th>Team B</th>
+                      <th>Score A</th>
+                      <th>Score B</th>
+                      <th>Free Team</th>
+                      <th>Action</th>
+                    </tr>`;
+      data.rows.forEach(row => {
+        const matchNum = row[0];
+        const disabled = (row[3] !== "" && row[4] !== "") ? "disabled" : "";
+        html += `<tr>
+                   <td>${matchNum}</td>
+                   <td>${row[1]}</td>
+                   <td>${row[2]}</td>
+                   <td><input type="number" id="scoreA_${group}_${matchNum}" value="${row[3]}" ${disabled}></td>
+                   <td><input type="number" id="scoreB_${group}_${matchNum}" value="${row[4]}" ${disabled}></td>
+                   <td>${row[5]}</td>
+                   <td>
+                     ${disabled ? "Saglabāts" : `<button class="action" onclick="saveGroupScore('${group}', ${matchNum})">Saglabāt</button>`}
+                   </td>
+                 </tr>`;
+      });
+      html += `</table>`;
+      if(group === "A") {
+        document.getElementById("groupAContainer").innerHTML = html;
+      } else {
+        document.getElementById("groupBContainer").innerHTML = html;
       }
-      
-      document.getElementById("resultSection").style.display = "block";
     }
     
-    // Notikumu klausītāji pogām
-    document.getElementById("groupAButton").addEventListener("click", function(){
-       fetchData("groupA");
-    });
-    document.getElementById("groupBButton").addEventListener("click", function(){
-       fetchData("groupB");
-    });
-    document.getElementById("standingsButton").addEventListener("click", function(){
-       fetchData("standings");
-    });
-    document.getElementById("playoffsButton").addEventListener("click", function(){
-       fetchData("playoffs");
-    });
+    // Saglabā grupas spēles punktus
+    function saveGroupScore(group, matchNumber) {
+      const scoreA = document.getElementById(`scoreA_${group}_${matchNumber}`).value;
+      const scoreB = document.getElementById(`scoreB_${group}_${matchNumber}`).value;
+      if(scoreA === "" || scoreB === "") {
+        alert("Lūdzu aizpildi abas punktu vērtības!");
+        return;
+      }
+      const params = new URLSearchParams();
+      params.append("action", "saveGroupScore");
+      params.append("gameName", currentGameName);
+      params.append("group", group);
+      params.append("matchNumber", matchNumber);
+      params.append("scoreA", scoreA);
+      params.append("scoreB", scoreB);
+      
+      fetch(scriptUrl + "?" + params.toString())
+      .then(response => response.json())
+      .then(data => {
+         if(data.error) {
+           alert("Kļūda: " + data.error);
+         } else {
+           alert("Punkti saglabāti!");
+           loadGroupSchedule(group);
+         }
+      })
+      .catch(error => {
+         console.error("Kļūda saglabājot punktus:", error);
+         alert("Kļūda saglabājot punktus");
+      });
+    }
+    
+    // Ielādē Standings datus
+    function loadStandings() {
+      if(currentGameName === "") return;
+      const params = new URLSearchParams();
+      params.append("action", "standings");
+      params.append("gameName", currentGameName);
+      fetch(scriptUrl + "?" + params.toString())
+      .then(response => response.json())
+      .then(data => {
+         let html = `<table>
+                      <tr>
+                        <th>Team</th>
+                      </tr>`;
+         data.rows.forEach(row => {
+           // row[0] satur komandas nosaukumu
+           html += `<tr><td>${row[0]}</td></tr>`;
+         });
+         html += `</table>`;
+         document.getElementById("standingsContainer").innerHTML = html;
+      })
+      .catch(error => {
+         console.error("Kļūda ielādējot standings:", error);
+         alert("Kļūda ielādējot datus");
+      });
+    }
+    
+    // Ielādē Playoffs datus
+    function loadPlayoffs() {
+      if(currentGameName === "") return;
+      const params = new URLSearchParams();
+      params.append("action", "getPlayoffSchedule");
+      params.append("gameName", currentGameName);
+      fetch(scriptUrl + "?" + params.toString())
+      .then(response => response.json())
+      .then(data => displayPlayoffs(data))
+      .catch(error => {
+         console.error("Kļūda ielādējot playoffs:", error);
+         alert("Kļūda ielādējot datus");
+      });
+    }
+    
+    // Attēlo Playoffs tabulu ar punktu ievades laukiem
+    function displayPlayoffs(data) {
+      let html = `<table>
+                    <tr>
+                      <th>Match ID</th>
+                      <th>Team1</th>
+                      <th>Team2</th>
+                      <th>Score1</th>
+                      <th>Score2</th>
+                      <th>Winner</th>
+                      <th>Action</th>
+                    </tr>`;
+      data.rows.forEach(row => {
+        const matchId = row[0];
+        const disabled = (row[3] !== "" && row[4] !== "") ? "disabled" : "";
+        html += `<tr>
+                   <td>${matchId}</td>
+                   <td>${row[1]}</td>
+                   <td>${row[2]}</td>
+                   <td><input type="number" id="pScore1_${matchId}" value="${row[3]}" ${disabled}></td>
+                   <td><input type="number" id="pScore2_${matchId}" value="${row[4]}" ${disabled}></td>
+                   <td>${row[5] || ""}</td>
+                   <td>
+                     ${disabled ? "Saglabāts" : `<button class="action" onclick="savePlayoffScore('${matchId}')">Saglabāt</button>`}
+                   </td>
+                 </tr>`;
+      });
+      html += `</table>`;
+      document.getElementById("playoffsContainer").innerHTML = html;
+    }
+    
+    // Saglabā Playoffs spēles punktus
+    function savePlayoffScore(matchId) {
+      const score1 = document.getElementById(`pScore1_${matchId}`).value;
+      const score2 = document.getElementById(`pScore2_${matchId}`).value;
+      if(score1 === "" || score2 === "") {
+        alert("Lūdzu aizpildi abas punktu vērtības!");
+        return;
+      }
+      const params = new URLSearchParams();
+      params.append("action", "savePlayoffScore");
+      params.append("gameName", currentGameName);
+      params.append("matchId", matchId);
+      params.append("score1", score1);
+      params.append("score2", score2);
+      
+      fetch(scriptUrl + "?" + params.toString())
+      .then(response => response.json())
+      .then(data => {
+         if(data.error) {
+           alert("Kļūda: " + data.error);
+         } else {
+           alert("Punkti saglabāti!");
+           loadPlayoffs();
+         }
+      })
+      .catch(error => {
+         console.error("Kļūda saglabājot playoff punktus:", error);
+         alert("Kļūda saglabājot punktus");
+      });
+    }
   </script>
 </body>
 </html>
