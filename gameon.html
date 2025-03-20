@@ -105,27 +105,51 @@
       background-color: #F2F2F7;
       font-weight: 600;
     }
+    /* Sākuma poga, lai atgrieztos uz sākumu – top left */
+    .start-btn {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background-color: #007AFF;
+      color: #fff;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      z-index: 1100;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-  <!-- Sākuma sadaļa -->
+  <!-- Sākuma poga (attēlota tikai, kad lietotājs ir spēlē) -->
+  <button class="start-btn" id="startBtn" style="display:none;" onclick="goToStart()">Sākums</button>
+  
+  <!-- Sākuma sadaļa: Jauna spēle / Pievienoties esošai spēlei -->
   <div class="container" id="startSection">
     <h1>GameOn – Spēles pārvaldība</h1>
-    <p>Sāc jaunu turnīru, kurā viss notiek vienā Google Sheets lapā. Izveido spēli, ievadi komandas un aizpildi rezultātus – viss ir vienkārši!</p>
-    <label for="gameNameInput"><strong>Spēles nosaukums:</strong></label>
-    <input type="text" id="gameNameInput" placeholder="piem. 'Rīga Cup 2025'">
-    <label for="pinInput"><strong>4-ciparu PIN:</strong></label>
-    <input type="text" id="pinInput" maxlength="4" placeholder="Ievadi PIN (piem. 1234)">
-    <button onclick="newGame()">Jauna Spēle</button>
-    <div id="currentGameInfo" style="margin-top:16px; display:none;">
-      <p><strong>Spēles ID:</strong> <span id="gameNameDisplay"></span></p>
-      <p><strong>PIN:</strong> <span id="gamePinDisplay"></span></p>
-      <button onclick="activateSection('inputSection')">Ievadi Komandas</button>
-      <button onclick="activateSection('historySection')">Apskatīt iepriekšējās spēles</button>
-    </div>
+    <p>Izvēlies, vai izveidot jaunu spēli vai pievienoties esošai:</p>
+    
+    <!-- Jauna spēle forma -->
+    <h2>Izveidot Jaunu Spēli</h2>
+    <label for="newGameName"><strong>Spēles nosaukums:</strong></label>
+    <input type="text" id="newGameName" placeholder="piem. 'Rīga Cup 2025' (var būt tukšs)">
+    <label for="newPin"><strong>4-ciparu PIN:</strong></label>
+    <input type="text" id="newPin" maxlength="4" placeholder="piem. 1234">
+    <button onclick="createNewGame()">Izveidot Spēli</button>
+    
+    <hr style="margin:20px 0;">
+    
+    <!-- Pievienoties esošai spēlei forma -->
+    <h2>Pievienoties Spēlei</h2>
+    <label for="joinGameName"><strong>Spēles ID:</strong></label>
+    <input type="text" id="joinGameName" placeholder="Ievadi esošās spēles ID">
+    <label for="joinPin"><strong>4-ciparu PIN:</strong></label>
+    <input type="text" id="joinPin" maxlength="4" placeholder="Ievadi PIN">
+    <button onclick="joinGame()">Pievienoties</button>
   </div>
-
-  <!-- Galvenais saturs -->
+  
+  <!-- Galvenais saturs pēc tam, kad spēle ir atvērta -->
   <div class="container" id="mainContent" style="display:none;">
     <!-- Komandu Ievade -->
     <div class="section" id="inputSection">
@@ -158,22 +182,15 @@
       <h2>Playoffs</h2>
       <div id="playoffsContainer"></div>
     </div>
-    
-    <!-- Spēles vēsture -->
-    <div class="section" id="historySection">
-      <h2>Iepriekšējās Spēles</h2>
-      <div id="historyContainer"></div>
-    </div>
   </div>
 
-  <!-- Fiksēta tab bar navigācija -->
+  <!-- Fiksēta tab bar navigācija (bez vēstures) -->
   <div class="tab-bar" id="tabBar" style="display:none;">
     <button id="tabInput" onclick="activateSection('inputSection')">Ievade</button>
     <button id="tabGroupA" onclick="activateSection('groupASection')">Group A</button>
     <button id="tabGroupB" onclick="activateSection('groupBSection')">Group B</button>
     <button id="tabStandings" onclick="activateSection('standingsSection')">Standings</button>
     <button id="tabPlayoffs" onclick="activateSection('playoffsSection')">Playoffs</button>
-    <button id="tabHistory" onclick="activateSection('historySection')">Vēsture</button>
   </div>
 
   <script>
@@ -181,14 +198,24 @@
     let currentGameName = "";
     let currentGamePin = "";
 
-    function newGame() {
-      const gameNameInput = document.getElementById("gameNameInput").value.trim();
-      const pinInput = document.getElementById("pinInput").value.trim();
+    // Atgriež uz sākuma sadaļu; PIN tiks noņemts
+    function goToStart() {
+      currentGameName = "";
+      currentGamePin = "";
+      document.getElementById("startSection").style.display = "block";
+      document.getElementById("mainContent").style.display = "none";
+      document.getElementById("tabBar").style.display = "none";
+      document.getElementById("startBtn").style.display = "none";
+    }
+
+    // Jaunas spēles izveide
+    function createNewGame() {
+      const gameNameInput = document.getElementById("newGameName").value.trim();
+      const pinInput = document.getElementById("newPin").value.trim();
       if (pinInput === "" || !/^\d{4}$/.test(pinInput)) {
         alert("Lūdzu ievadi derīgu 4-ciparu PIN!");
         return;
       }
-      // Sagatavo parametrus
       const params = new URLSearchParams();
       params.append("action", "newGame");
       params.append("pin", pinInput);
@@ -205,17 +232,55 @@
            currentGamePin = pinInput;
            document.getElementById("gameNameDisplay").innerText = currentGameName;
            document.getElementById("gamePinDisplay").innerText = currentGamePin;
-           document.getElementById("currentGameInfo").style.display = "block";
-           document.getElementById("startSection").style.display = "none";
-           document.getElementById("mainContent").style.display = "block";
-           document.getElementById("tabBar").style.display = "flex";
-           activateSection('inputSection');
+           showMainContent();
          }
       })
       .catch(error => {
          console.error("Kļūda jaunas spēles izveidē:", error);
          alert("Kļūda jaunas spēles izveidē");
       });
+    }
+
+    // Pievienoties esošai spēlei
+    function joinGame() {
+      const gameNameInput = document.getElementById("joinGameName").value.trim();
+      const pinInput = document.getElementById("joinPin").value.trim();
+      if (gameNameInput === "" || pinInput === "" || !/^\d{4}$/.test(pinInput)) {
+        alert("Lūdzu ievadi spēles ID un derīgu 4-ciparu PIN!");
+        return;
+      }
+      // Mēģinām pievienoties – vienkārši saglabājam mainīgos un mēģinām ielādēt datus (piem. Standings)
+      currentGameName = gameNameInput;
+      currentGamePin = pinInput;
+      // Pārbaudam PIN ar vienkāršu pieprasījumu uz Standings (ja PIN neder, backend atgriezīs kļūdu)
+      const params = new URLSearchParams();
+      params.append("action", "standings");
+      params.append("gameName", currentGameName);
+      params.append("pin", currentGamePin);
+      fetch(scriptUrl + "?" + params.toString())
+      .then(response => response.json())
+      .then(data => {
+         if(data.error) {
+           alert("Kļūda: " + data.error);
+           currentGameName = "";
+           currentGamePin = "";
+         } else {
+           showMainContent();
+         }
+      })
+      .catch(error => {
+         console.error("Kļūda pievienojoties spēlei:", error);
+         alert("Kļūda pievienojoties spēlei");
+      });
+    }
+
+    // Parāda galveno saturu, saglabājot spēles datus; rāda arī Sākuma pogu (top left) un navigāciju
+    function showMainContent() {
+      document.getElementById("startSection").style.display = "none";
+      document.getElementById("mainContent").style.display = "block";
+      document.getElementById("tabBar").style.display = "flex";
+      document.getElementById("startBtn").style.display = "block";
+      activateSection('inputSection');
     }
 
     function activateSection(sectionId) {
@@ -227,10 +292,6 @@
       if(sectionId === "groupBSection") document.getElementById("tabGroupB").classList.add("active");
       if(sectionId === "standingsSection") document.getElementById("tabStandings").classList.add("active");
       if(sectionId === "playoffsSection") document.getElementById("tabPlayoffs").classList.add("active");
-      if(sectionId === "historySection") {
-        document.getElementById("tabHistory").classList.add("active");
-        loadGameHistory();
-      }
 
       if(sectionId === "groupASection") loadGroupSchedule("A");
       if(sectionId === "groupBSection") loadGroupSchedule("B");
@@ -449,41 +510,6 @@
          console.error("Kļūda saglabājot playoff punktus:", error);
          alert("Kļūda saglabājot punktus");
       });
-    }
-
-    // Spēles vēstures ielāde – izgūst visus lapas nosaukumus, kas sākas ar "Game_" vai satur lietotāja ievadīto nosaukumu
-    function loadGameHistory() {
-      const params = new URLSearchParams();
-      params.append("action", "getGameHistory");
-      fetch(scriptUrl + "?" + params.toString())
-      .then(response => response.json())
-      .then(data => {
-         let html = "<ul style='list-style:none; padding:0;'>";
-         data.games.forEach(gameName => {
-           html += `<li style="margin-bottom:8px;"><button onclick="loadExistingGamePrompt('${gameName}')" style="width:100%;">${gameName}</button></li>`;
-         });
-         html += "</ul>";
-         document.getElementById("historyContainer").innerHTML = html;
-      })
-      .catch(error => {
-         console.error("Kļūda ielādējot spēļu vēsturi:", error);
-         alert("Kļūda ielādējot spēļu vēsturi");
-      });
-    }
-    
-    // Ielādē izvēlēto spēli no vēstures – prasa PIN un uzstāda currentGameName un currentGamePin
-    function loadExistingGamePrompt(gameName) {
-      let userPin = prompt("Lūdzu ievadi spēles PIN:");
-      if(!userPin || !/^\d{4}$/.test(userPin.trim())){
-        alert("Nepareizs PIN!");
-        return;
-      }
-      currentGameName = gameName;
-      currentGamePin = userPin.trim();
-      document.getElementById("gameNameDisplay").innerText = currentGameName;
-      document.getElementById("gamePinDisplay").innerText = currentGamePin;
-      document.getElementById("currentGameInfo").style.display = "block";
-      activateSection("inputSection");
     }
   </script>
 </body>
