@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>GameOn Mobile</title>
   <style>
-    /* Mobilajām ierīcēm piemērots dizains – samazināts fonts, pielāgots platums */
+    /* Mobilajām ierīcēm piemērots dizains */
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
       margin: 0;
@@ -114,7 +114,7 @@
   <!-- Sākuma ekrāns -->
   <div class="container" id="startSection">
     <h1>GameOn Mobile</h1>
-    <p>Ievadi esošas spēles nosaukumu vai jaunu, lai ielādētu / izveidotu spēli.</p>
+    <p>Ievadi esošas vai jaunas spēles nosaukumu, lai ielādētu / izveidotu spēli.</p>
     <input type="text" id="gameNameInput" placeholder="Spēles nosaukums (piem. 'Riga Cup')">
     <button onclick="loadOrCreateGame()">Ielādēt / Izveidot spēli</button>
     <div id="currentGameInfo" style="display:none;">
@@ -171,7 +171,6 @@
     const scriptUrl = "https://script.google.com/macros/s/AKfycbzfBFIGVe5RhJh5Kgucv2K3ms2MIUMAd2haR6-WCqUkDEt6KJZMmootY5_R3FP9QSssZA/exec";
     let currentGameName = "";
     
-    // Ielādē / izveido spēli
     function loadOrCreateGame() {
       const userGameName = document.getElementById("gameNameInput").value.trim();
       if(!userGameName) {
@@ -256,7 +255,6 @@
       }
     }
     
-    // Komandu ievade
     function saveTeams() {
       const teamsText = document.getElementById("teamsInput").value;
       const teamsArray = teamsText.split("\n").map(t => t.trim()).filter(t => t !== "");
@@ -288,7 +286,6 @@
         });
     }
     
-    // Group Schedule
     function loadGroupSchedule(group) {
       if(!currentGameName) return;
       const params = new URLSearchParams();
@@ -367,7 +364,6 @@
         });
     }
     
-    // Standings – nolasa abas grupas
     function loadStandings() {
       if(!currentGameName) return;
       const params = new URLSearchParams();
@@ -403,7 +399,6 @@
       container.innerHTML = html;
     }
     
-    // Playoffs – ielāde
     function loadPlayoffs() {
       if(!currentGameName) return;
       const params = new URLSearchParams();
