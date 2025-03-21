@@ -204,7 +204,7 @@
   </div>
 
   <script>
-    const scriptUrl = "https://script.google.com/macros/s/AKfycbzfBFIGVe5RhJh5Kgucv2K3ms2MIUMAd2haR6-WCqUkDEt6KJZMmootY5_R3FP9QSssZA/exec";  // <-- Nomainiet uz īsto Google Apps Script webapp URL
+    const scriptUrl = "YOUR_DEPLOYED_WEBAPP_URL";  // Nomainiet uz savu Web App URL
     let currentGameName = "";
     let currentGamePin = "";
 
@@ -256,7 +256,6 @@
       }
       currentGameName = gameNameInput;
       currentGamePin = pinInput;
-      // Pārbauda PIN, izmantojot Standings pieprasījumu
       const params = new URLSearchParams();
       params.append("action", "standings");
       params.append("gameName", currentGameName);
@@ -371,9 +370,7 @@
                    <td>${row[2]}</td>
                    <td><input type="number" id="scoreA_${group}_${matchNum}" value="${row[3]}" ${disabled}></td>
                    <td><input type="number" id="scoreB_${group}_${matchNum}" value="${row[4]}" ${disabled}></td>
-                   <td>
-                     ${disabled ? "✔️" : `<button onclick="saveGroupScore('${group}', ${matchNum})">✔️</button>`}
-                   </td>
+                   <td>${disabled ? "✔️" : `<button onclick="saveGroupScore('${group}', ${matchNum})">✔️</button>`}</td>
                  </tr>`;
       });
       html += `</table>`;
@@ -425,7 +422,6 @@
       fetch(scriptUrl + "?" + params.toString())
       .then(response => response.json())
       .then(data => {
-         // data => [ [Team, Games, Wins, Losses, PointsWon, PointsLost], ... ]
          let html = `<table>
                       <tr>
                         <th>Rk.</th>
@@ -472,9 +468,6 @@
     }
 
     function displayPlayoffs(data) {
-      /* data.rows satur QF1, QF2, QF3, QF4, SF1, SF2, 3rd Place, Final
-         Katram: [matchId, team1, team2, score1, score2] 
-      */
       let html = `<table>
                     <tr>
                       <th>Match</th>
@@ -485,7 +478,7 @@
                       <th>Action</th>
                     </tr>`;
       data.rows.forEach(row => {
-        const matchId = row[0]; // QF1, QF2, SF1, Final, utt.
+        const matchId = row[0];
         const disabled = (row[3] !== "" && row[4] !== "") ? "disabled" : "";
         html += `<tr>
                    <td>${matchId}</td>
@@ -493,9 +486,7 @@
                    <td>${row[2]}</td>
                    <td><input type="number" id="pScore1_${matchId}" value="${row[3]}" ${disabled}></td>
                    <td><input type="number" id="pScore2_${matchId}" value="${row[4]}" ${disabled}></td>
-                   <td>
-                     ${disabled ? "✔️" : `<button onclick="savePlayoffScore('${matchId}')">✔️</button>`}
-                   </td>
+                   <td>${disabled ? "✔️" : `<button onclick="savePlayoffScore('${matchId}')">✔️</button>`}</td>
                  </tr>`;
       });
       html += `</table>`;
@@ -542,7 +533,6 @@
       fetch(scriptUrl + "?" + params.toString())
       .then(response => response.json())
       .then(data => {
-         /* data => [ [Team, Games, Wins, Losses, PointsWon, PointsLost], ... ] */
          let html = `<table>
                       <tr>
                         <th>Vieta</th>
