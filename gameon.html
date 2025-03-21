@@ -114,8 +114,8 @@
   <!-- Sākuma ekrāns -->
   <div class="container" id="startSection">
     <h1>GameOn Mobile</h1>
-    <p>Ievadi esošas spēles nosaukumu vai jaunu nosaukumu, lai izveidotu spēli.</p>
-    <input type="text" id="gameNameInput" placeholder="Piemēram, 'Riga Cup'">
+    <p>Ievadi esošas spēles nosaukumu vai jaunu, lai izveidotu/spraudītu spēli.</p>
+    <input type="text" id="gameNameInput" placeholder="Piem., 'Riga Cup'">
     <button onclick="loadOrCreateGame()">Ielādēt / Izveidot spēli</button>
     <div id="currentGameInfo" style="display:none;">
       <p><strong>Pašreizējā spēle:</strong> <span id="gameNameDisplay"></span></p>
@@ -177,7 +177,7 @@
       if (!userGameName) {
         createNewGame("");
       } else {
-        // Mēģinām izveidot jaunu lapu ar lietotāja nosaukumu (back-end automātiski pieliks timestamp, ja nepieciešams)
+        // Ja lapas ar šo nosaukumu eksistē, izveido to, bet, ja tā ir, newGame funkcijā tā netiks atkārtoti radīta
         createNewGame(userGameName);
       }
     }
@@ -201,11 +201,30 @@
             document.getElementById("mainContent").style.display = "block";
             document.getElementById("tabBar").style.display = "flex";
             activateSection("inputSection");
+            // Ielādē esošās komandas, ja tādas ir
+            loadPlayers();
           }
         })
         .catch(err => {
           console.error("Kļūda izveidojot spēli:", err);
           alert("Neizdevās izveidot spēli");
+        });
+    }
+    
+    // Ielādē komandas (spēlētājus) no esošās lapas
+    function loadPlayers() {
+      const params = new URLSearchParams();
+      params.append("action", "getPlayers");
+      params.append("gameName", currentGameName);
+      fetch(scriptUrl + "?" + params.toString())
+        .then(response => response.json())
+        .then(data => {
+          if (data.teams && data.teams.length > 0) {
+            document.getElementById("teamsInput").value = data.teams.join("\n");
+          }
+        })
+        .catch(err => {
+          console.error("Kļūda ielādējot spēlētājus:", err);
         });
     }
     
