@@ -2,14 +2,11 @@
 <html lang="lv">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>GameOn Tournament</title>
   <style>
-    /* Minimālists, Apple/iOS stila dizains – samazināti fonti un attālumi */
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
-      margin: 0;
-      padding: 0;
+      margin: 0; padding: 0;
       background-color: #F2F2F7;
       color: #1C1C1E;
       font-size: 13px;
@@ -58,12 +55,9 @@
     button:hover {
       background-color: #005BBB;
     }
-    /* Fiksēta navigācijas josla (tab bar) apakšā */
     .tab-bar {
       position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
+      bottom: 0; left: 0; right: 0;
       background-color: #FFFFFF;
       border-top: 1px solid #C7C7CC;
       display: flex;
@@ -84,56 +78,31 @@
     .tab-bar button.active {
       font-weight: 600;
     }
-    /* Sadaļu stils */
-    .section {
-      display: none;
-    }
-    .section.active {
-      display: block;
-    }
+    .section { display: none; }
+    .section.active { display: block; }
     table {
-      width: 100%;
-      table-layout: fixed;
-      border-collapse: collapse;
-      margin-top: 8px;
+      width: 100%; table-layout: fixed; border-collapse: collapse; margin-top: 8px;
     }
     th, td {
-      padding: 6px;
-      border-bottom: 1px solid #C7C7CC;
-      text-align: center;
-      word-wrap: break-word;
+      padding: 6px; border-bottom: 1px solid #C7C7CC; text-align: center; word-wrap: break-word;
     }
     th {
-      background-color: #F2F2F7;
-      font-weight: 600;
+      background-color: #F2F2F7; font-weight: 600;
     }
-    /* Sākuma poga – atgriezties uz sākumu (top left) */
     .start-btn {
-      position: fixed;
-      top: 8px;
-      left: 8px;
-      background-color: #007AFF;
-      color: #fff;
-      padding: 6px 10px;
-      border: none;
-      border-radius: 6px;
-      font-size: 12px;
-      z-index: 1100;
-      cursor: pointer;
-      display: none;
+      position: fixed; top: 8px; left: 8px;
+      background-color: #007AFF; color: #fff; padding: 6px 10px;
+      border: none; border-radius: 6px; font-size: 12px;
+      z-index: 1100; cursor: pointer; display: none;
     }
   </style>
 </head>
 <body>
-  <!-- Sākuma poga -->
   <button class="start-btn" id="startBtn" onclick="goToStart()">Sākums</button>
   
-  <!-- Sākuma sadaļa: Jauna spēle / Pievienoties esošai spēlei -->
   <div class="container" id="startSection">
     <h1>GameOn – Spēles pārvaldība</h1>
     <p>Izvēlies, vai izveidot jaunu spēli vai pievienoties esošai:</p>
-    
-    <!-- Jauna spēle forma -->
     <h2>Izveidot Jaunu Spēli</h2>
     <label for="newGameName"><strong>Spēles nosaukums:</strong></label>
     <input type="text" id="newGameName" placeholder="piem. 'Rīga Cup 2025' (var būt tukšs)">
@@ -143,7 +112,6 @@
     
     <hr style="margin:8px 0;">
     
-    <!-- Pievienoties esošai spēlei forma -->
     <h2>Pievienoties Spēlei</h2>
     <label for="joinGameName"><strong>Spēles ID:</strong></label>
     <input type="text" id="joinGameName" placeholder="Ievadi esošās spēles ID">
@@ -152,9 +120,7 @@
     <button onclick="joinGame()">Pievienoties</button>
   </div>
   
-  <!-- Galvenais saturs pēc tam, kad spēle ir atvērta -->
   <div class="container" id="mainContent" style="display:none;">
-    <!-- Komandu Ievade -->
     <div class="section" id="inputSection">
       <h2>Komandu Ievade</h2>
       <p>Ievadi katru komandu jaunā rindā:</p>
@@ -176,14 +142,13 @@
       <div id="playoffsContainer"></div>
     </div>
 
-    <!-- Rezultāti (kopīgais saraksts) -->
+    <!-- Rezultāti (kopīgais) -->
     <div class="section" id="resultsSection">
       <h2>Rezultāti</h2>
       <div id="resultsContainer"></div>
     </div>
   </div>
 
-  <!-- Fiksēta tab bar navigācija -->
   <div class="tab-bar" id="tabBar" style="display:none;">
     <button id="tabInput" onclick="activateSection('inputSection')">Ievade</button>
     <button id="tabStandings" onclick="activateSection('standingsSection')">Standings</button>
@@ -194,10 +159,10 @@
   <script>
     // Google Apps Script Web App URL
     const scriptUrl = "https://script.google.com/macros/s/AKfycbzfBFIGVe5RhJh5Kgucv2K3ms2MIUMAd2haR6-WCqUkDEt6KJZMmootY5_R3FP9QSssZA/exec";
-    
+
     let currentGameName = "";
-    let currentGamePin = "";
-    
+    let currentGamePin = ""; // Bet netiks sūtīts atkārtoti
+
     function goToStart() {
       currentGameName = "";
       currentGamePin = "";
@@ -210,61 +175,45 @@
     function createNewGame() {
       const gameNameInput = document.getElementById("newGameName").value.trim();
       const pinInput = document.getElementById("newPin").value.trim();
-      if (!/^\d{4}$/.test(pinInput)) {
+      if(!/^\d{4}$/.test(pinInput)) {
         alert("Lūdzu ievadi derīgu 4-ciparu PIN!");
         return;
       }
       const params = new URLSearchParams();
-      params.append("action", "newGame");
-      params.append("pin", pinInput);
+      params.append("action","newGame");
+      params.append("pin",pinInput);
       if(gameNameInput) {
-        params.append("userGameName", gameNameInput);
+        params.append("userGameName",gameNameInput);
       }
       fetch(scriptUrl + "?" + params.toString())
-        .then(res => res.json())
-        .then(data => {
+        .then(res=>res.json())
+        .then(data=>{
           if(data.error) {
-            alert("Kļūda: " + data.error);
+            alert("Kļūda: "+data.error);
           } else {
             currentGameName = data.gameName;
-            currentGamePin = pinInput;
+            currentGamePin = pinInput; // bet netiks sūtīts vairs
             showMainContent();
           }
         })
-        .catch(err => {
-          console.error("Kļūda jaunas spēles izveidē:", err);
-          alert("Kļūda jaunas spēles izveidē!");
+        .catch(err=>{
+          console.error("Kļūda jaunā spēlē:", err);
+          alert("Kļūda jaunā spēlē!");
         });
     }
 
     function joinGame() {
       const gameNameInput = document.getElementById("joinGameName").value.trim();
       const pinInput = document.getElementById("joinPin").value.trim();
-      if (!gameNameInput || !/^\d{4}$/.test(pinInput)) {
-        alert("Lūdzu ievadi spēles ID un derīgu 4-ciparu PIN!");
+      if(!gameNameInput || !/^\d{4}$/.test(pinInput)) {
+        alert("Lūdzu ievadi spēles ID un 4-ciparu PIN!");
         return;
       }
       currentGameName = gameNameInput;
-      currentGamePin = pinInput;
-      const params = new URLSearchParams();
-      params.append("action", "standings");
-      params.append("gameName", currentGameName);
-      params.append("pin", currentGamePin);
-      fetch(scriptUrl + "?" + params.toString())
-        .then(res => res.json())
-        .then(data => {
-          if(data.error) {
-            alert("Kļūda: " + data.error);
-            currentGameName = "";
-            currentGamePin = "";
-          } else {
-            showMainContent();
-          }
-        })
-        .catch(err => {
-          console.error("Kļūda pievienojoties spēlei:", err);
-          alert("Kļūda pievienojoties spēlei!");
-        });
+      currentGamePin = pinInput; 
+      // Minimāla validācija: mēģinām ielādēt Standings (ja nav kļūda => ok)
+      // Bet serveris vairs nevalidē, šeit vienkārši izlaižam
+      showMainContent();
     }
 
     function showMainContent() {
@@ -276,17 +225,22 @@
     }
 
     function activateSection(sectionId) {
-      document.querySelectorAll(".section").forEach(sec => sec.classList.remove("active"));
+      document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
       document.getElementById(sectionId).classList.add("active");
-      document.querySelectorAll(".tab-bar button").forEach(btn => btn.classList.remove("active"));
+      document.querySelectorAll(".tab-bar button").forEach(b=>b.classList.remove("active"));
       if(sectionId==="inputSection") document.getElementById("tabInput").classList.add("active");
-      if(sectionId==="standingsSection") document.getElementById("tabStandings").classList.add("active");
-      if(sectionId==="playoffsSection") document.getElementById("tabPlayoffs").classList.add("active");
-      if(sectionId==="resultsSection") document.getElementById("tabResults").classList.add("active");
-      
-      if(sectionId==="standingsSection") loadStandings();
-      if(sectionId==="playoffsSection") loadPlayoffs();
-      if(sectionId==="resultsSection") loadResults();
+      if(sectionId==="standingsSection") { 
+        document.getElementById("tabStandings").classList.add("active");
+        loadStandings();
+      }
+      if(sectionId==="playoffsSection") {
+        document.getElementById("tabPlayoffs").classList.add("active");
+        loadPlayoffs();
+      }
+      if(sectionId==="resultsSection") {
+        document.getElementById("tabResults").classList.add("active");
+        loadResults();
+      }
     }
 
     function saveTeams() {
@@ -296,20 +250,19 @@
         alert("Nav komandu!");
         return;
       }
-      if(!currentGameName || !currentGamePin) {
+      if(!currentGameName) {
         alert("Nav izvēlēta spēle!");
         return;
       }
       const params = new URLSearchParams();
       params.append("action","saveTeams");
       params.append("gameName",currentGameName);
-      params.append("pin",currentGamePin);
       params.append("teams", JSON.stringify(teamsArray));
       fetch(scriptUrl + "?" + params.toString())
         .then(res=>res.json())
         .then(data=>{
           if(data.error) {
-            alert("Kļūda: " + data.error);
+            alert("Kļūda: "+data.error);
           } else {
             alert("Turnīrs izveidots!");
             activateSection("standingsSection");
@@ -322,23 +275,21 @@
     }
 
     function loadStandings() {
-      if(!currentGameName || !currentGamePin) return;
+      if(!currentGameName) return;
       const params = new URLSearchParams();
       params.append("action","standings");
       params.append("gameName",currentGameName);
-      params.append("pin",currentGamePin);
       fetch(scriptUrl + "?" + params.toString())
         .then(res=>res.json())
         .then(data=>{
           if(data.error) {
-            alert("Kļūda: " + data.error);
+            // var gadīties, ja nav komandu vai nav datus
+            document.getElementById("standingsAContainer").innerHTML = "Kļūda: " + data.error;
+            document.getElementById("standingsBContainer").innerHTML = "";
             return;
           }
-          // data => { groupA: [...], groupB: [...] }
           let htmlA = `<table>
-                         <tr>
-                           <th>Rk.</th><th>Team</th><th>G</th><th>W</th><th>L</th><th>Pts+</th><th>Pts-</th>
-                         </tr>`;
+                         <tr><th>Rk.</th><th>Team</th><th>G</th><th>W</th><th>L</th><th>Pts+</th><th>Pts-</th></tr>`;
           (data.groupA||[]).forEach((row,i)=>{
             htmlA += `<tr>
                         <td>${i+1}</td>
@@ -353,9 +304,7 @@
           htmlA += `</table>`;
           
           let htmlB = `<table>
-                         <tr>
-                           <th>Rk.</th><th>Team</th><th>G</th><th>W</th><th>L</th><th>Pts+</th><th>Pts-</th>
-                         </tr>`;
+                         <tr><th>Rk.</th><th>Team</th><th>G</th><th>W</th><th>L</th><th>Pts+</th><th>Pts-</th></tr>`;
           (data.groupB||[]).forEach((row,i)=>{
             htmlB += `<tr>
                         <td>${i+1}</td>
@@ -374,32 +323,25 @@
         })
         .catch(err=>{
           console.error("Kļūda ielādējot standings:", err);
-          alert("Kļūda ielādējot standings!");
+          document.getElementById("standingsAContainer").innerHTML = "Kļūda ielādējot A standings!";
+          document.getElementById("standingsBContainer").innerHTML = "Kļūda ielādējot B standings!";
         });
     }
 
     function loadPlayoffs() {
-      if(!currentGameName || !currentGamePin) return;
+      if(!currentGameName) return;
       const params = new URLSearchParams();
       params.append("action","getPlayoffSchedule");
       params.append("gameName",currentGameName);
-      params.append("pin",currentGamePin);
       fetch(scriptUrl + "?" + params.toString())
         .then(res=>res.json())
         .then(data=>{
           if(data.error) {
-            alert("Kļūda: " + data.error);
+            document.getElementById("playoffsContainer").innerHTML = "Kļūda: " + data.error;
             return;
           }
           let html = `<table>
-                        <tr>
-                          <th>Match</th>
-                          <th>Team1</th>
-                          <th>Team2</th>
-                          <th>Score1</th>
-                          <th>Score2</th>
-                          <th>Action</th>
-                        </tr>`;
+                        <tr><th>Match</th><th>Team1</th><th>Team2</th><th>Score1</th><th>Score2</th><th>Action</th></tr>`;
           (data.rows||[]).forEach(row=>{
             const matchId = row[0];
             const disabled = (row[3]!=="" && row[4]!=="") ? "disabled" : "";
@@ -412,12 +354,12 @@
                        <td>${disabled ? "✔️" : `<button onclick="savePlayoffScore('${matchId}')">✔️</button>`}</td>
                      </tr>`;
           });
-          html += `</table>`;
+          html += "</table>";
           document.getElementById("playoffsContainer").innerHTML = html;
         })
         .catch(err=>{
           console.error("Kļūda ielādējot playoffs:", err);
-          alert("Kļūda ielādējot playoffs!");
+          document.getElementById("playoffsContainer").innerHTML = "Kļūda ielādējot playoffs!";
         });
     }
 
@@ -431,7 +373,6 @@
       const params = new URLSearchParams();
       params.append("action","savePlayoffScore");
       params.append("gameName",currentGameName);
-      params.append("pin",currentGamePin);
       params.append("matchId",matchId);
       params.append("score1",score1);
       params.append("score2",score2);
@@ -441,38 +382,31 @@
           if(data.error) {
             alert("Kļūda: " + data.error);
           } else {
-            alert("Punkti saglabāti!");
+            alert("Playoff punkti saglabāti!");
             loadPlayoffs();
           }
         })
         .catch(err=>{
           console.error("Kļūda saglabājot playoff punktus:", err);
-          alert("Kļūda saglabājot punktus!");
+          alert("Kļūda saglabājot playoff punktus!");
         });
     }
 
     function loadResults() {
-      if(!currentGameName || !currentGamePin) return;
+      if(!currentGameName) return;
       const params = new URLSearchParams();
       params.append("action","getResults");
       params.append("gameName",currentGameName);
-      params.append("pin",currentGamePin);
       fetch(scriptUrl + "?" + params.toString())
         .then(res=>res.json())
         .then(data=>{
           if(data.error) {
-            alert("Kļūda: " + data.error);
+            document.getElementById("resultsContainer").innerHTML = "Kļūda: " + data.error;
             return;
           }
           let html = `<table>
                         <tr>
-                          <th>Vieta</th>
-                          <th>Team</th>
-                          <th>G</th>
-                          <th>W</th>
-                          <th>L</th>
-                          <th>Pts+</th>
-                          <th>Pts-</th>
+                          <th>Vieta</th><th>Team</th><th>G</th><th>W</th><th>L</th><th>Pts+</th><th>Pts-</th>
                         </tr>`;
           (data||[]).forEach((row,idx)=>{
             html += `<tr>
@@ -485,12 +419,12 @@
                        <td>${row[5]}</td>
                      </tr>`;
           });
-          html += `</table>`;
+          html += "</table>";
           document.getElementById("resultsContainer").innerHTML = html;
         })
         .catch(err=>{
           console.error("Kļūda ielādējot rezultātus:", err);
-          alert("Kļūda ielādējot rezultātus!");
+          document.getElementById("resultsContainer").innerHTML = "Kļūda ielādējot rezultātus!";
         });
     }
   </script>
