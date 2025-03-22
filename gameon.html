@@ -421,77 +421,103 @@
       });
     }
     
-    function loadPlayoffs() {
-      if(currentGameName === "") return;
-      const params = new URLSearchParams();
-      params.append("action", "getPlayoffSchedule");
-      params.append("gameName", currentGameName);
-      fetch(scriptUrl + "?" + params.toString())
+
+  // ... citi skripti (newGame, joinGame, saveTeams, loadGroupSchedule, loadStandings, utt.) ...
+
+  function loadPlayoffs() {
+    if(currentGameName === "") return;
+    const params = new URLSearchParams();
+    params.append("action", "getPlayoffSchedule");
+    params.append("gameName", currentGameName);
+
+    fetch(scriptUrl + "?" + params.toString())
       .then(response => response.json())
       .then(data => displayPlayoffs(data))
       .catch(error => {
          console.error("Kļūda ielādējot playoffs:", error);
          alert("Kļūda ielādējot datus");
       });
+  }
+
+  // Funkcija, kas parāda VISAS playoff rindas (QF, SF, Final, 3rd Place, 5th, 7th, utt.)
+  function displayPlayoffs(data) {
+    // HTML tabulas virsraksts
+    let html = `
+      <table style="width:100%; border-collapse:collapse;">
+        <tr>
+          <th>Match</th>
+          <th>Team 1</th>
+          <th>Team 2</th>
+          <th>Score 1</th>
+          <th>Score 2</th>
+          <th>Winner</th>
+          <th>Action</th>
+        </tr>`;
+
+    data.rows.forEach(row => {
+      const matchId = row.match;   // Piem., "QF1", "SF1 (1-4)", "Final", "5th Place", utt.
+      const team1 = row.team1 || "";
+      const team2 = row.team2 || "";
+      const score1 = row.score1 || "";
+      const score2 = row.score2 || "";
+      const winner = row.winner || "";  // Uzvarētājs (var rādīt "Draw", ja neizšķirts)
+      // Ja punkti jau ievadīti (score1 & score2 nav tukši), padarām ievades laukus disabled
+      const disabled = (score1 !== "" && score2 !== "") ? "disabled" : "";
+      const actionBtn = disabled 
+          ? "Saglabāts" 
+          : `<button onclick="savePlayoffScore('${matchId}')">Saglabāt</button>`;
+
+      html += `
+        <tr>
+          <td>${matchId}</td>
+          <td>${team1}</td>
+          <td>${team2}</td>
+          <td><input type="number" id="pScore1_${matchId}" value="${score1}" ${disabled} style="width:60px;"></td>
+          <td><input type="number" id="pScore2_${matchId}" value="${score2}" ${disabled} style="width:60px;"></td>
+          <td>${winner}</td>
+          <td>${actionBtn}</td>
+        </tr>`;
+    });
+
+    html += `</table>`;
+
+    // Ievietojam izveidoto tabulu "playoffsContainer" elementā
+    document.getElementById("playoffsContainer").innerHTML = html;
+  }
+
+  // Saglabā playoff spēles rezultātu
+  function savePlayoffScore(matchId) {
+    const score1 = document.getElementById(`pScore1_${matchId}`).value;
+    const score2 = document.getElementById(`pScore2_${matchId}`).value;
+    if(score1 === "" || score2 === "") {
+      alert("Lūdzu ievadi abas punktu vērtības!");
+      return;
     }
-    
-    function displayPlayoffs(data) {
-      let html = `<table>
-                    <tr>
-                      <th>Match</th>
-                      <th>Team 1</th>
-                      <th>Team 2</th>
-                      <th>Score 1</th>
-                      <th>Score 2</th>
-                      <th>Result</th>
-                      <th>Action</th>
-                    </tr>`;
-      data.rows.forEach(row => {
-        const matchId = row.match;
-        const disabled = (row.score1 !== "" && row.score2 !== "") ? "disabled" : "";
-        html += `<tr>
-                   <td>${row.match}</td>
-                   <td>${row.team1}</td>
-                   <td>${row.team2}</td>
-                   <td><input type="number" id="pScore1_${matchId}" value="${row.score1}" ${disabled}></td>
-                   <td><input type="number" id="pScore2_${matchId}" value="${row.score2}" ${disabled}></td>
-                   <td>${row.result || ""}</td>
-                   <td>${disabled ? "Saglabāts" : `<button onclick="savePlayoffScore('${matchId}')">Saglabāt</button>`}</td>
-                 </tr>`;
-      });
-      html += `</table>`;
-      document.getElementById("playoffsContainer").innerHTML = html;
-    }
-    
-    function savePlayoffScore(matchId) {
-      const score1 = document.getElementById(`pScore1_${matchId}`).value;
-      const score2 = document.getElementById(`pScore2_${matchId}`).value;
-      if(score1 === "" || score2 === "") {
-        alert("Lūdzu aizpildi abas punktu vērtības!");
-        return;
-      }
-      const params = new URLSearchParams();
-      params.append("action", "savePlayoffScore");
-      params.append("gameName", currentGameName);
-      params.append("matchId", matchId);
-      params.append("score1", score1);
-      params.append("score2", score2);
-      
-      fetch(scriptUrl + "?" + params.toString())
+
+    const params = new URLSearchParams();
+    params.append("action", "savePlayoffScore");
+    params.append("gameName", currentGameName);
+    params.append("matchId", matchId);
+    params.append("score1", score1);
+    params.append("score2", score2);
+
+    fetch(scriptUrl + "?" + params.toString())
       .then(response => response.json())
       .then(data => {
-         if(data.error) {
-           alert("Kļūda: " + data.error);
-         } else {
-           alert("Punkti saglabāti!");
-           loadPlayoffs();
-         }
+        if(data.error) {
+          alert("Kļūda: " + data.error);
+        } else {
+          alert("Punkti saglabāti!");
+          // Pārlādējam playoff, lai atjaunotos (winner, next round)
+          loadPlayoffs();
+        }
       })
       .catch(error => {
-         console.error("Kļūda saglabājot playoff punktus:", error);
-         alert("Kļūda saglabājot punktus");
+        console.error("Kļūda saglabājot playoff punktus:", error);
+        alert("Kļūda saglabājot punktus");
       });
-    }
-  </script>
+  }
+</script>
+
 </body>
 </html>
