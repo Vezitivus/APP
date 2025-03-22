@@ -1,484 +1,497 @@
-<!DOCTYPE html>
-<html lang="lv">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>GameOn Mobile</title>
-  <style>
-    /* Mobilajām ierīcēm pielāgots stils */
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #F2F2F7;
-      color: #1C1C1E;
-      font-size: 13px;
-    }
-    .container {
-      width: 95%;
-      max-width: 600px;
-      margin: 20px auto;
-      background: #FFFFFF;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      padding: 12px;
-      box-sizing: border-box;
-    }
-    h1, h2 {
-      font-weight: 600;
-      color: #007AFF;
-      margin-bottom: 10px;
-      font-size: 16px;
-    }
-    p {
-      font-size: 13px;
-      line-height: 1.4;
-    }
-    input, textarea, button {
-      font-size: 13px;
-    }
-    input, textarea {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #C7C7CC;
-      border-radius: 6px;
-      margin-bottom: 10px;
-      box-sizing: border-box;
-    }
-    button {
-      width: 100%;
-      padding: 10px;
-      background-color: #007AFF;
-      color: #FFFFFF;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-bottom: 10px;
-    }
-    button:hover {
-      background-color: #005BBB;
-    }
-    /* Fiksēta navigācijas josla (tab bar) */
-    .tab-bar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background-color: #FFFFFF;
-      border-top: 1px solid #C7C7CC;
-      display: flex;
-      justify-content: space-around;
-      padding: 6px 0;
-      box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
-      z-index: 1000;
-    }
-    .tab-bar button {
-      background: none;
-      border: none;
-      font-size: 12px;
-      color: #007AFF;
-      flex-grow: 1;
-      text-align: center;
-      padding: 6px 0;
-    }
-    .tab-bar button.active {
-      font-weight: 600;
-    }
-    /* Sadaļas */
-    .section {
-      display: none;
-    }
-    .section.active {
-      display: block;
-    }
-    table {
-      width: 100%;
-      table-layout: fixed;
-      border-collapse: collapse;
-      margin-top: 8px;
-    }
-    th, td {
-      padding: 6px;
-      border: 1px solid #C7C7CC;
-      text-align: center;
-      word-wrap: break-word;
-      font-size: 12px;
-    }
-    th {
-      background-color: #F2F2F7;
-      font-weight: 600;
-    }
-  </style>
-</head>
-<body>
-  <!-- Sākuma ekrāns -->
-  <div class="container" id="startSection">
-    <h1>GameOn Mobile</h1>
-    <p>Ievadi esošas spēles nosaukumu vai jaunu, lai izveidotu/spraudītu spēli.</p>
-    <input type="text" id="gameNameInput" placeholder="Piem., 'Riga Cup'">
-    <button onclick="loadOrCreateGame()">Ielādēt / Izveidot spēli</button>
-    <div id="currentGameInfo" style="display:none;">
-      <p><strong>Pašreizējā spēle:</strong> <span id="gameNameDisplay"></span></p>
-    </div>
-  </div>
+/***********************************************************
+ * GOOGLE APPS SCRIPT – TURNĪRA PĀRVALDE
+ ***********************************************************/
+
+/** Norāda Google Sheets ID. */
+var SPREADSHEET_ID = "1aqu4ge0K__oePsdaLGnYmsCPqy8073XzHTxzTdurBJA";
+
+/** doGet – API ieeja */
+function doGet(e) {
+  var action = e.parameter.action;
+  if (!action) {
+    return outputJSON({ error: "No action provided" });
+  }
   
-  <!-- Galvenais saturs -->
-  <div class="container" id="mainContent" style="display:none;">
-    <!-- Komandu ievade -->
-    <div class="section" id="inputSection">
-      <h2>Komandu ievade</h2>
-      <p>Ievadi katru komandu jaunā rindā:</p>
-      <textarea id="teamsInput" rows="5" placeholder="Team A&#10;Team B&#10;Team C"></textarea>
-      <button onclick="saveTeams()">Saglabāt Komandas un Ģenerēt</button>
-    </div>
-    
-    <!-- Group A -->
-    <div class="section" id="groupASection">
-      <h2>Group A</h2>
-      <div id="groupAContainer"></div>
-    </div>
-    
-    <!-- Group B -->
-    <div class="section" id="groupBSection">
-      <h2>Group B</h2>
-      <div id="groupBContainer"></div>
-    </div>
-    
-    <!-- Standings -->
-    <div class="section" id="standingsSection">
-      <h2>Standings</h2>
-      <div id="standingsAContainer"></div>
-      <div id="standingsBContainer"></div>
-    </div>
-    
-    <!-- Playoffs -->
-    <div class="section" id="playoffsSection">
-      <h2>Playoffs</h2>
-      <div id="playoffsContainer"></div>
-    </div>
-  </div>
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   
-  <!-- Fiksēta tab bar navigācija -->
-  <div class="tab-bar" id="tabBar" style="display:none;">
-    <button id="tabInput" onclick="activateSection('inputSection')">Ievade</button>
-    <button id="tabGroupA" onclick="activateSection('groupASection')">Group A</button>
-    <button id="tabGroupB" onclick="activateSection('groupBSection')">Group B</button>
-    <button id="tabStandings" onclick="activateSection('standingsSection')">Standings</button>
-    <button id="tabPlayoffs" onclick="activateSection('playoffsSection')">Playoffs</button>
-  </div>
+  switch(action) {
+    case "newGame":
+      return newGame(ss, e);
+    case "saveTeams":
+      return saveTeams(e, ss);
+    case "getGroupASchedule":
+      return getGroupSchedule(ss, "A", e.parameter.gameName);
+    case "getGroupBSchedule":
+      return getGroupSchedule(ss, "B", e.parameter.gameName);
+    case "standings":
+      return getStandings(ss, e.parameter.gameName);
+    case "getPlayoffSchedule":
+      return getPlayoffSchedule(ss, e.parameter.gameName);
+    case "saveGroupScore":
+      return saveGroupScore(e, ss);
+    case "savePlayoffScore":
+      return savePlayoffScore(e, ss);
+    default:
+      return outputJSON({ error: "Invalid action" });
+  }
+}
+
+/** Ērtāka JSON atgriešana. */
+function outputJSON(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+/** 
+ * Jauna spēle – ja spēles lapa ar lietotāja ievadīto nosaukumu jau pastāv, 
+ * atgriež esošo lapu; citādi izveido jaunu lapu.
+ */
+function newGame(ss, e) {
+  var userGameName = e.parameter.userGameName || "";
+  userGameName = userGameName.trim();
   
-  <script>
-    // Izmanto savu Web App URL
-    const scriptUrl = "https://script.google.com/macros/s/AKfycbzfBFIGVe5RhJh5Kgucv2K3ms2MIUMAd2haR6-WCqUkDEt6KJZMmootY5_R3FP9QSssZA/exec";
-    let currentGameName = "";
-    
-    function loadOrCreateGame() {
-      const userGameName = document.getElementById("gameNameInput").value.trim();
-      if (!userGameName) {
-        createNewGame("");
-      } else {
-        // Ja lapas ar šo nosaukumu eksistē, izveido to, bet, ja tā ir, newGame funkcijā tā netiks atkārtoti radīta
-        createNewGame(userGameName);
+  var sheet;
+  var gameName;
+  if (userGameName) {
+    sheet = ss.getSheetByName(userGameName);
+    if (sheet) {
+      // Spēles lapa jau pastāv – atgriež esošo nosaukumu.
+      gameName = userGameName;
+      return outputJSON({ gameName: gameName });
+    } else {
+      gameName = userGameName;
+    }
+  } else {
+    var now = new Date();
+    gameName = "Game_" + Utilities.formatDate(now, ss.getSpreadsheetTimeZone(), "yyyyMMdd_HHmmss");
+  }
+  
+  sheet = ss.insertSheet(gameName);
+  sheet.clear();
+  sheet.getRange(1, 1).setValue("Game: " + gameName);
+  
+  return outputJSON({ gameName: gameName });
+}
+
+/** Saglabā komandas un ģenerē turnīra struktūru (Group A/B Schedule, Standings A/B). */
+function saveTeams(e, ss) {
+  var gameName = e.parameter.gameName;
+  if (!gameName) return outputJSON({ error: "No gameName provided" });
+  
+  var teamsParam = e.parameter.teams;
+  if (!teamsParam) return outputJSON({ error: "No teams provided" });
+  
+  var teams;
+  try {
+    teams = JSON.parse(teamsParam);
+  } catch(err) {
+    return outputJSON({ error: "Invalid teams format" });
+  }
+  
+  var sheet = ss.getSheetByName(gameName);
+  if (!sheet) return outputJSON({ error: "Game sheet not found" });
+  
+  var result = generateTournamentForGame(sheet, teams);
+  return outputJSON({ status: "OK", message: result.message });
+}
+
+/** 
+ * Ģenerē turnīra struktūru ar 20 tukšām rindām starp sadaļām.
+ * Playoffs tiks ģenerēts no Standings Top 4 (no abām grupām) pēc norādītās loģikas.
+ */
+function generateTournamentForGame(sheet, teams) {
+  sheet.clear();
+  var r = 1;
+  
+  // Virsraksts
+  sheet.getRange(r, 1).setValue("Game: " + sheet.getName());
+  r++;
+  
+  // 1. Team Input
+  sheet.getRange(r, 1).setValue("Team Input");
+  r++;
+  sheet.getRange(r, 1).setValue("Team");
+  r++;
+  for (var i = 0; i < teams.length; i++) {
+    sheet.getRange(r + i, 1).setValue(teams[i]);
+  }
+  r += teams.length;
+  r += 20;
+  
+  // Sadala komandas grupās
+  var groupA, groupB;
+  if (teams.length <= 5) {
+    groupA = teams;
+    groupB = [];
+  } else {
+    var half = Math.ceil(teams.length / 2);
+    groupA = teams.slice(0, half);
+    groupB = teams.slice(half);
+  }
+  
+  // 2. Group A Schedule
+  sheet.getRange(r, 1).setValue("Group A Schedule");
+  r++;
+  sheet.getRange(r, 1, 1, 5).setValues([["Match #", "Team A", "Team B", "Score A", "Score B"]]);
+  r++;
+  var matchNum = 1;
+  for (var a = 0; a < groupA.length - 1; a++) {
+    for (var b = a + 1; b < groupA.length; b++) {
+      sheet.getRange(r, 1, 1, 5).setValues([[matchNum, groupA[a], groupA[b], "", ""]]);
+      r++;
+      matchNum++;
+    }
+  }
+  r += 20;
+  
+  // 3. Group B Schedule (ja ir)
+  if (groupB.length > 0) {
+    sheet.getRange(r, 1).setValue("Group B Schedule");
+    r++;
+    sheet.getRange(r, 1, 1, 5).setValues([["Match #", "Team A", "Team B", "Score A", "Score B"]]);
+    r++;
+    matchNum = 1;
+    for (var a = 0; a < groupB.length - 1; a++) {
+      for (var b = a + 1; b < groupB.length; b++) {
+        sheet.getRange(r, 1, 1, 5).setValues([[matchNum, groupB[a], groupB[b], "", ""]]);
+        r++;
+        matchNum++;
       }
     }
-    
-    function createNewGame(userGameName) {
-      const params = new URLSearchParams();
-      params.append("action", "newGame");
-      if (userGameName) {
-        params.append("userGameName", userGameName);
-      }
-      fetch(scriptUrl + "?" + params.toString())
-        .then(response => response.json())
-        .then(data => {
-          if (data.error) {
-            alert("Kļūda: " + data.error);
-          } else {
-            currentGameName = data.gameName;
-            document.getElementById("gameNameDisplay").innerText = currentGameName;
-            document.getElementById("currentGameInfo").style.display = "block";
-            document.getElementById("startSection").style.display = "none";
-            document.getElementById("mainContent").style.display = "block";
-            document.getElementById("tabBar").style.display = "flex";
-            activateSection("inputSection");
-            // Ielādē esošās komandas, ja tādas ir
-            loadPlayers();
-          }
-        })
-        .catch(err => {
-          console.error("Kļūda izveidojot spēli:", err);
-          alert("Neizdevās izveidot spēli");
-        });
+    r += 20;
+  }
+  
+  // 4. Standings A – sākotnēji ieraksta komandu sarakstu
+  sheet.getRange(r, 1).setValue("Standings A");
+  r++;
+  sheet.getRange(r, 1, 1, 6).setValues([["Team", "Games", "Wins", "Losses", "Points For", "Points Against"]]);
+  r++;
+  for (var i = 0; i < groupA.length; i++) {
+    sheet.getRange(r + i, 1).setValue(groupA[i]);
+  }
+  r += groupA.length;
+  r += 20;
+  
+  // 5. Standings B
+  if (groupB.length > 0) {
+    sheet.getRange(r, 1).setValue("Standings B");
+    r++;
+    sheet.getRange(r, 1, 1, 6).setValues([["Team", "Games", "Wins", "Losses", "Points For", "Points Against"]]);
+    r++;
+    for (var i = 0; i < groupB.length; i++) {
+      sheet.getRange(r + i, 1).setValue(groupB[i]);
     }
+    r += groupB.length;
+    r += 20;
+  }
+  
+  // 6. Playoffs – sākotnēji ievieto paziņojumu (reālo bracket ģenerē "getPlayoffSchedule")
+  sheet.getRange(r, 1).setValue("Playoffs: (tiks ģenerēts no Standings top 4, kad atvērs Playoffs sadaļu)");
+  
+  return { message: "Tournament structure created for " + sheet.getName() };
+}
+
+/** Palīgfunkcija: atrod norādītā virsraksta rindu datu masīvā. */
+function findHeaderRow(data, headerText) {
+  for (var i = 0; i < data.length; i++) {
+    if (data[i][0] === headerText) return i;
+  }
+  return -1;
+}
+
+/** Palīgfunkcija: nolasām datus no noteiktas sadaļas (header un rows). */
+function getSectionData(sheet, headerText) {
+  var data = sheet.getDataRange().getValues();
+  var start = findHeaderRow(data, headerText);
+  if (start === -1) return { header: [], rows: [] };
+  
+  var header = data[start + 1];
+  var rows = [];
+  for (var i = start + 2; i < data.length; i++) {
+    if (!data[i][0]) break;
+    rows.push(data[i].slice(0, header.length));
+  }
+  return { header: header, rows: rows };
+}
+
+/** Atgriež Group A/B grafiku datus. */
+function getGroupSchedule(ss, group, gameName) {
+  if (!gameName) return outputJSON({ error: "No gameName provided" });
+  
+  var sheet = ss.getSheetByName(gameName);
+  if (!sheet) return outputJSON({ error: "Game sheet not found" });
+  
+  var headerText = (group === "A") ? "Group A Schedule" : "Group B Schedule";
+  var result = getSectionData(sheet, headerText);
+  return outputJSON(result);
+}
+
+/** 
+ * Standings – pārrēķina statistiku no "Group X Schedule", sakārto un ieraksta to "Standings X".
+ * Sakārtošanas kārtība:
+ *  - Wins dilstoši,
+ *  - Losses augoši,
+ *  - Points For dilstoši,
+ *  - Points Against augoši.
+ */
+function getStandings(ss, gameName) {
+  if (!gameName) return outputJSON({ error: "No gameName provided" });
+  
+  var sheet = ss.getSheetByName(gameName);
+  if (!sheet) return outputJSON({ error: "Game sheet not found" });
+  
+  calcStandingsForGroup(sheet, "A");
+  calcStandingsForGroup(sheet, "B");
+  
+  var standingsA = getSectionData(sheet, "Standings A");
+  var standingsB = getSectionData(sheet, "Standings B");
+  return outputJSON({ standingsA: standingsA, standingsB: standingsB });
+}
+
+/** Pārrēķina un sakārto statistiku attiecīgai grupai un ieraksta to "Standings X". */
+function calcStandingsForGroup(sheet, group) {
+  var headerText = (group === "A") ? "Group A Schedule" : "Group B Schedule";
+  var scheduleData = getSectionData(sheet, headerText);
+  var stats = {};
+  
+  scheduleData.rows.forEach(function(row) {
+    // row: [Match#, Team A, Team B, Score A, Score B]
+    var teamA = row[1];
+    var teamB = row[2];
+    var sA = parseFloat(row[3]);
+    var sB = parseFloat(row[4]);
     
-    // Ielādē komandas (spēlētājus) no esošās lapas
-    function loadPlayers() {
-      const params = new URLSearchParams();
-      params.append("action", "getPlayers");
-      params.append("gameName", currentGameName);
-      fetch(scriptUrl + "?" + params.toString())
-        .then(response => response.json())
-        .then(data => {
-          if (data.teams && data.teams.length > 0) {
-            document.getElementById("teamsInput").value = data.teams.join("\n");
-          }
-        })
-        .catch(err => {
-          console.error("Kļūda ielādējot spēlētājus:", err);
-        });
-    }
+    if (!teamA || !teamB) return;
+    if (!stats[teamA]) stats[teamA] = { games: 0, wins: 0, losses: 0, pf: 0, pa: 0 };
+    if (!stats[teamB]) stats[teamB] = { games: 0, wins: 0, losses: 0, pf: 0, pa: 0 };
     
-    function activateSection(sectionId) {
-      document.querySelectorAll(".section").forEach(sec => sec.classList.remove("active"));
-      document.getElementById(sectionId).classList.add("active");
-      
-      document.querySelectorAll(".tab-bar button").forEach(btn => btn.classList.remove("active"));
-      if (sectionId === "inputSection") document.getElementById("tabInput").classList.add("active");
-      if (sectionId === "groupASection") {
-        document.getElementById("tabGroupA").classList.add("active");
-        loadGroupSchedule("A");
-      }
-      if (sectionId === "groupBSection") {
-        document.getElementById("tabGroupB").classList.add("active");
-        loadGroupSchedule("B");
-      }
-      if (sectionId === "standingsSection") {
-        document.getElementById("tabStandings").classList.add("active");
-        loadStandings();
-      }
-      if (sectionId === "playoffsSection") {
-        document.getElementById("tabPlayoffs").classList.add("active");
-        loadPlayoffs();
-      }
-    }
-    
-    function saveTeams() {
-      const teamsText = document.getElementById("teamsInput").value;
-      const teamsArray = teamsText.split("\n").map(t => t.trim()).filter(t => t !== "");
-      if (teamsArray.length === 0) {
-        alert("Lūdzu ievadi vismaz vienu komandu!");
-        return;
-      }
-      if (!currentGameName) {
-        alert("Nav izvēlēta spēle!");
-        return;
-      }
-      const params = new URLSearchParams();
-      params.append("action", "saveTeams");
-      params.append("gameName", currentGameName);
-      params.append("teams", JSON.stringify(teamsArray));
-      fetch(scriptUrl + "?" + params.toString())
-        .then(response => response.json())
-        .then(data => {
-          if (data.error) {
-            alert("Kļūda: " + data.error);
-          } else {
-            alert("Komandas saglabātas un turnīrs ģenerēts!");
-            activateSection("standingsSection");
-          }
-        })
-        .catch(err => {
-          console.error("Kļūda saglabājot komandas:", err);
-          alert("Kļūda saglabājot komandas");
-        });
-    }
-    
-    function loadGroupSchedule(group) {
-      if (!currentGameName) return;
-      const params = new URLSearchParams();
-      params.append("action", group === "A" ? "getGroupASchedule" : "getGroupBSchedule");
-      params.append("gameName", currentGameName);
-      fetch(scriptUrl + "?" + params.toString())
-        .then(response => response.json())
-        .then(data => displayGroupSchedule(group, data))
-        .catch(err => {
-          console.error("Kļūda ielādējot Group " + group + ":", err);
-          alert("Kļūda ielādējot datus grupai " + group);
-        });
-    }
-    
-    function displayGroupSchedule(group, data) {
-      let html = `<table>
-                    <tr>
-                      <th>Match #</th>
-                      <th>Team A</th>
-                      <th>Team B</th>
-                      <th>Score A</th>
-                      <th>Score B</th>
-                      <th>Action</th>
-                    </tr>`;
-      if (!data.rows || data.rows.length === 0) {
-        html += `<tr><td colspan="6">Nav datu</td></tr>`;
-      } else {
-        data.rows.forEach(row => {
-          const matchNum = row[0];
-          const disabled = (row[3] !== "" && row[4] !== "") ? "disabled" : "";
-          html += `<tr>
-                     <td>${matchNum}</td>
-                     <td>${row[1]}</td>
-                     <td>${row[2]}</td>
-                     <td><input type="number" id="scoreA_${group}_${matchNum}" value="${row[3]}" ${disabled} style="width:60px;"></td>
-                     <td><input type="number" id="scoreB_${group}_${matchNum}" value="${row[4]}" ${disabled} style="width:60px;"></td>
-                     <td>${disabled ? "Saglabāts" : `<button onclick="saveGroupScore('${group}', ${matchNum})">OK</button>`}</td>
-                   </tr>`;
-        });
-      }
-      html += `</table>`;
-      if (group === "A") {
-        document.getElementById("groupAContainer").innerHTML = html;
-      } else {
-        document.getElementById("groupBContainer").innerHTML = html;
+    if (!isNaN(sA) && !isNaN(sB)) {
+      stats[teamA].games++;
+      stats[teamB].games++;
+      stats[teamA].pf += sA;
+      stats[teamA].pa += sB;
+      stats[teamB].pf += sB;
+      stats[teamB].pa += sA;
+      if (sA > sB) {
+        stats[teamA].wins++;
+        stats[teamB].losses++;
+      } else if (sB > sA) {
+        stats[teamB].wins++;
+        stats[teamA].losses++;
       }
     }
-    
-    function saveGroupScore(group, matchNumber) {
-      const scoreA = document.getElementById(`scoreA_${group}_${matchNumber}`).value;
-      const scoreB = document.getElementById(`scoreB_${group}_${matchNumber}`).value;
-      if (scoreA === "" || scoreB === "") {
-        alert("Lūdzu aizpildi abas punktu vērtības!");
-        return;
-      }
-      const params = new URLSearchParams();
-      params.append("action", "saveGroupScore");
-      params.append("gameName", currentGameName);
-      params.append("group", group);
-      params.append("matchNumber", matchNumber);
-      params.append("scoreA", scoreA);
-      params.append("scoreB", scoreB);
-      fetch(scriptUrl + "?" + params.toString())
-        .then(response => response.json())
-        .then(data => {
-          if (data.error) {
-            alert("Kļūda: " + data.error);
-          } else {
-            alert("Punkti saglabāti!");
-            loadGroupSchedule(group);
-          }
-        })
-        .catch(err => {
-          console.error("Kļūda saglabājot punktus:", err);
-          alert("Kļūda saglabājot punktus");
-        });
+  });
+  
+  var standingsHeader = (group === "A") ? "Standings A" : "Standings B";
+  var stData = getSectionData(sheet, standingsHeader);
+  if (!stData.rows || stData.rows.length === 0) return;
+  
+  // Izveidojam masīvu no komandu vārdiem
+  var teams = stData.rows.map(function(row) { return row[0]; });
+  
+  // Izveidojam statistiku masīvu
+  var standingsArr = teams.map(function(team) {
+    var s = stats[team] || { games: 0, wins: 0, losses: 0, pf: 0, pa: 0 };
+    return { team: team, games: s.games, wins: s.wins, losses: s.losses, pf: s.pf, pa: s.pa };
+  });
+  
+  // Sakārtojam pēc: wins dilstoši, losses augoši, pf dilstoši, pa augoši.
+  standingsArr.sort(function(a, b) {
+    if (b.wins !== a.wins) return b.wins - a.wins;
+    if (a.losses !== b.losses) return a.losses - b.losses;
+    if (b.pf !== a.pf) return b.pf - a.pf;
+    return a.pa - b.pa;
+  });
+  
+  // Atrodam Standings X sadaļas sākuma rindu
+  var dataRange = sheet.getDataRange().getValues();
+  var headerRowIndex = findHeaderRow(dataRange, standingsHeader);
+  if (headerRowIndex === -1) return;
+  var startRow = headerRowIndex + 2;
+  
+  // Pierakstām sakārtotos datus atpakaļ
+  for (var i = 0; i < standingsArr.length; i++) {
+    sheet.getRange(startRow + i, 1).setValue(standingsArr[i].team);
+    sheet.getRange(startRow + i, 2).setValue(standingsArr[i].games);
+    sheet.getRange(startRow + i, 3).setValue(standingsArr[i].wins);
+    sheet.getRange(startRow + i, 4).setValue(standingsArr[i].losses);
+    sheet.getRange(startRow + i, 5).setValue(standingsArr[i].pf);
+    sheet.getRange(startRow + i, 6).setValue(standingsArr[i].pa);
+  }
+}
+
+/** 
+ * Kad atver Playoffs, ja "Playoffs" sadaļa nav izveidota, ģenerē to no Standings TOP 4 saskaņā ar loģiku.
+ */
+function getPlayoffSchedule(ss, gameName) {
+  if (!gameName) return outputJSON({ error: "No gameName provided" });
+  
+  var sheet = ss.getSheetByName(gameName);
+  if (!sheet) return outputJSON({ error: "Game sheet not found" });
+  
+  var data = sheet.getDataRange().getValues();
+  var playoffsRow = findHeaderRow(data, "Playoffs");
+  if (playoffsRow === -1 || (data[playoffsRow][0] && data[playoffsRow][0].indexOf("Playoffs:") === 0)) {
+    generatePlayoffsFromStandings(sheet);
+  }
+  
+  var result = getSectionData(sheet, "Playoffs");
+  return outputJSON(result);
+}
+
+/** 
+ * Ģenerē "Playoffs" tabulu no Standings TOP 4 no abām grupām saskaņā ar loģiku:
+ * QF1: A1 vs B4, QF2: A2 vs B3, QF3: A3 vs B2, QF4: A4 vs B1,
+ * SF1 (1-4): Winner QF1 vs Winner QF4, SF2 (1-4): Winner QF2 vs Winner QF3,
+ * Final: Winner SF1 vs Winner SF2, 3rd Place: Loser SF1 vs Loser SF2,
+ * SF1 (5-8): Loser QF1 vs Loser QF4, SF2 (5-8): Loser QF2 vs Loser QF3,
+ * 5th Place: Winner SF1 (5-8) vs Winner SF2 (5-8), 7th Place: Loser SF1 (5-8) vs Loser SF2 (5-8).
+ * Kamēr rezultāti netiek ievadīti, rezultātu lauki paliek tukši.
+ */
+function generatePlayoffsFromStandings(sheet) {
+  // Pārrēķina Standings, lai tie būtu aktuāli.
+  calcStandingsForGroup(sheet, "A");
+  calcStandingsForGroup(sheet, "B");
+  
+  var stA = getSectionData(sheet, "Standings A");
+  var stB = getSectionData(sheet, "Standings B");
+  if (stA.rows.length < 4 || stB.rows.length < 4) {
+    var row = sheet.getLastRow() + 1;
+    sheet.getRange(row, 1).setValue("Playoffs");
+    sheet.getRange(row + 1, 1).setValue("Nepietiek komandu (mazāk par 4 abās grupās)");
+    return;
+  }
+  
+  var A1 = stA.rows[0][0], A2 = stA.rows[1][0], A3 = stA.rows[2][0], A4 = stA.rows[3][0];
+  var B1 = stB.rows[0][0], B2 = stB.rows[1][0], B3 = stB.rows[2][0], B4 = stB.rows[3][0];
+  
+  var row = sheet.getLastRow() + 1;
+  sheet.getRange(row, 1).setValue("Playoffs");
+  row++;
+  sheet.getRange(row, 1, 1, 6).setValues([["Match", "Team 1", "Team 2", "Score 1", "Score 2", "Winner"]]);
+  row++;
+  
+  // QF
+  sheet.getRange(row, 1, 4, 6).setValues([
+    ["QF1", A1, B4, "", "", ""],
+    ["QF2", A2, B3, "", "", ""],
+    ["QF3", A3, B2, "", "", ""],
+    ["QF4", A4, B1, "", "", ""]
+  ]);
+  row += 4; row += 2;
+  
+  // SF (1-4)
+  sheet.getRange(row, 1, 2, 6).setValues([
+    ["SF1 (1-4)", "Winner QF1", "Winner QF4", "", "", ""],
+    ["SF2 (1-4)", "Winner QF2", "Winner QF3", "", "", ""]
+  ]);
+  row += 2; row += 2;
+  
+  // Final and 3rd Place
+  sheet.getRange(row, 1, 2, 6).setValues([
+    ["Final", "Winner SF1", "Winner SF2", "", "", ""],
+    ["3rd Place", "Loser SF1", "Loser SF2", "", "", ""]
+  ]);
+  row += 2; row += 2;
+  
+  // SF (5-8)
+  sheet.getRange(row, 1, 2, 6).setValues([
+    ["SF1 (5-8)", "Loser QF1", "Loser QF4", "", "", ""],
+    ["SF2 (5-8)", "Loser QF2", "Loser QF3", "", "", ""]
+  ]);
+  row += 2; row += 2;
+  
+  // 5th and 7th Place
+  sheet.getRange(row, 1, 2, 6).setValues([
+    ["5th Place", "Winner SF1 (5-8)", "Winner SF2 (5-8)", "", "", ""],
+    ["7th Place", "Loser SF1 (5-8)", "Loser SF2 (5-8)", "", "", ""]
+  ]);
+}
+
+/** Saglabā grupas spēles rezultātus. */
+function saveGroupScore(e, ss) {
+  var gameName = e.parameter.gameName;
+  var group = e.parameter.group;
+  var matchNumber = parseInt(e.parameter.matchNumber);
+  var scoreA = e.parameter.scoreA;
+  var scoreB = e.parameter.scoreB;
+  
+  if (!gameName || !group || !matchNumber || scoreA === undefined || scoreB === undefined)
+    return outputJSON({ error: "Missing parameters" });
+  
+  var sheet = ss.getSheetByName(gameName);
+  if (!sheet) return outputJSON({ error: "Game sheet not found" });
+  
+  var headerText = (group === "A") ? "Group A Schedule" : "Group B Schedule";
+  var data = sheet.getDataRange().getValues();
+  
+  var startRow = findHeaderRow(data, headerText);
+  if (startRow === -1) return outputJSON({ error: "Group schedule not found" });
+  
+  var rowFound = -1;
+  for (var i = startRow + 2; i < data.length; i++) {
+    if (data[i][0] === matchNumber) {
+      rowFound = i;
+      break;
     }
-    
-    function loadStandings() {
-      if (!currentGameName) return;
-      const params = new URLSearchParams();
-      params.append("action", "standings");
-      params.append("gameName", currentGameName);
-      fetch(scriptUrl + "?" + params.toString())
-        .then(response => response.json())
-        .then(data => {
-          displayGroupStandings("A", data.standingsA);
-          displayGroupStandings("B", data.standingsB);
-        })
-        .catch(err => {
-          console.error("Kļūda ielādējot standings:", err);
-          alert("Kļūda ielādējot datus (Standings)");
-        });
+  }
+  if (rowFound === -1) return outputJSON({ error: "Match not found" });
+  
+  var currentA = sheet.getRange(rowFound + 1, 4).getValue();
+  var currentB = sheet.getRange(rowFound + 1, 5).getValue();
+  if (currentA !== "" || currentB !== "")
+    return outputJSON({ error: "Score already saved" });
+  
+  sheet.getRange(rowFound + 1, 4).setValue(scoreA);
+  sheet.getRange(rowFound + 1, 5).setValue(scoreB);
+  
+  return outputJSON({ status: "Score saved" });
+}
+
+/** Saglabā Playoff spēles rezultātus un aprēķina Winner. */
+function savePlayoffScore(e, ss) {
+  var gameName = e.parameter.gameName;
+  var matchId = e.parameter.matchId;
+  var score1 = e.parameter.score1;
+  var score2 = e.parameter.score2;
+  
+  if (!gameName || !matchId || score1 === undefined || score2 === undefined)
+    return outputJSON({ error: "Missing parameters" });
+  
+  var sheet = ss.getSheetByName(gameName);
+  if (!sheet) return outputJSON({ error: "Game sheet not found" });
+  
+  var data = sheet.getDataRange().getValues();
+  var startRow = findHeaderRow(data, "Playoffs");
+  if (startRow === -1) return outputJSON({ error: "Playoffs section not found" });
+  
+  var rowFound = -1;
+  for (var i = startRow + 2; i < data.length; i++) {
+    if (data[i][0] === matchId) {
+      rowFound = i;
+      break;
     }
-    
-    function displayGroupStandings(group, standingsData) {
-      const container = (group === "A") ? document.getElementById("standingsAContainer") : document.getElementById("standingsBContainer");
-      if (!standingsData || !standingsData.rows || standingsData.rows.length === 0) {
-        container.innerHTML = `<h3>Group ${group}</h3><p>Nav datu</p>`;
-        return;
-      }
-      let html = `<h3>Group ${group}</h3><table><tr>`;
-      standingsData.header.forEach(h => {
-        html += `<th>${h}</th>`;
-      });
-      html += `</tr>`;
-      standingsData.rows.forEach(row => {
-        html += `<tr>`;
-        row.forEach(cell => {
-          html += `<td>${cell}</td>`;
-        });
-        html += `</tr>`;
-      });
-      html += `</table>`;
-      container.innerHTML = html;
-    }
-    
-    function loadPlayoffs() {
-      if (!currentGameName) return;
-      const params = new URLSearchParams();
-      params.append("action", "getPlayoffSchedule");
-      params.append("gameName", currentGameName);
-      fetch(scriptUrl + "?" + params.toString())
-        .then(response => response.json())
-        .then(data => displayPlayoffs(data))
-        .catch(err => {
-          console.error("Kļūda ielādējot playoffs:", err);
-          alert("Kļūda ielādējot datus (Playoffs)");
-        });
-    }
-    
-    function displayPlayoffs(data) {
-      if (!data || !data.rows || data.rows.length === 0) {
-        document.getElementById("playoffsContainer").innerHTML = "<p>Nav Playoffs vai nepietiek komandu.</p>";
-        return;
-      }
-      let html = `<table>
-                    <tr>
-                      <th>Match</th>
-                      <th>Team 1</th>
-                      <th>Team 2</th>
-                      <th>Score 1</th>
-                      <th>Score 2</th>
-                      <th>Winner</th>
-                      <th>Action</th>
-                    </tr>`;
-      data.rows.forEach(row => {
-        const matchId = row[0];
-        const team1 = row[1];
-        const team2 = row[2];
-        const score1 = row[3];
-        const score2 = row[4];
-        const winner = row[5] || "";
-        const disabled = (score1 !== "" && score2 !== "") ? "disabled" : "";
-        html += `<tr>
-                   <td>${matchId}</td>
-                   <td>${team1}</td>
-                   <td>${team2}</td>
-                   <td><input type="number" id="pScore1_${matchId}" value="${score1}" ${disabled} style="width:60px;"></td>
-                   <td><input type="number" id="pScore2_${matchId}" value="${score2}" ${disabled} style="width:60px;"></td>
-                   <td>${winner}</td>
-                   <td>${disabled ? "Saglabāts" : `<button onclick="savePlayoffScore('${matchId}')">OK</button>`}</td>
-                 </tr>`;
-      });
-      html += `</table>`;
-      document.getElementById("playoffsContainer").innerHTML = html;
-    }
-    
-    function savePlayoffScore(matchId) {
-      const score1 = document.getElementById(`pScore1_${matchId}`).value;
-      const score2 = document.getElementById(`pScore2_${matchId}`).value;
-      if (score1 === "" || score2 === "") {
-        alert("Lūdzu aizpildi abas punktu vērtības!");
-        return;
-      }
-      const params = new URLSearchParams();
-      params.append("action", "savePlayoffScore");
-      params.append("gameName", currentGameName);
-      params.append("matchId", matchId);
-      params.append("score1", score1);
-      params.append("score2", score2);
-      fetch(scriptUrl + "?" + params.toString())
-        .then(response => response.json())
-        .then(data => {
-          if (data.error) {
-            alert("Kļūda: " + data.error);
-          } else {
-            alert("Punkti saglabāti!");
-            loadPlayoffs();
-          }
-        })
-        .catch(err => {
-          console.error("Kļūda saglabājot playoff punktus:", err);
-          alert("Kļūda saglabājot playoff punktus");
-        });
-    }
-  </script>
-</body>
-</html>
+  }
+  if (rowFound === -1) return outputJSON({ error: "Match not found" });
+  
+  var current1 = sheet.getRange(rowFound + 1, 4).getValue();
+  var current2 = sheet.getRange(rowFound + 1, 5).getValue();
+  if (current1 !== "" || current2 !== "")
+    return outputJSON({ error: "Score already saved" });
+  
+  sheet.getRange(rowFound + 1, 4).setValue(score1);
+  sheet.getRange(rowFound + 1, 5).setValue(score2);
+  
+  var team1 = sheet.getRange(rowFound + 1, 2).getValue();
+  var team2 = sheet.getRange(rowFound + 1, 3).getValue();
+  var s1 = parseFloat(score1);
+  var s2 = parseFloat(score2);
+  var w = "";
+  if (s1 > s2) w = team1;
+  else if (s2 > s1) w = team2;
+  else w = "Draw";
+  
+  sheet.getRange(rowFound + 1, 6).setValue(w);
+  
+  return outputJSON({ status: "Score saved" });
+}
