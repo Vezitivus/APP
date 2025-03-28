@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>GameOn Tournament</title>
   <style>
-    /* Mobilajam pielāgots dizains – samazināts fonts un kompaktāki izmeri */
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
       margin: 0; padding: 0;
@@ -14,14 +13,10 @@
       font-size: 12px;
     }
     .container {
-      width: 95%;
-      max-width: 900px;
-      margin: 20px auto;
-      background: #FFFFFF;
-      border-radius: 12px;
+      width: 95%; max-width: 900px; margin: 20px auto;
+      background: #FFFFFF; border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      padding: 10px;
-      box-sizing: border-box;
+      padding: 10px; box-sizing: border-box;
     }
     h1, h2 { font-weight: 600; color: #007AFF; margin-bottom: 8px; font-size: 16px; }
     h3, h4 { font-weight: 600; color: #007AFF; margin: 6px 0; font-size: 14px; }
@@ -54,13 +49,13 @@
     .section.active { display: block; }
     table { width: 100%; border-collapse: collapse; font-size: 10px; }
     th, td {
-      padding: 2px; border: 1px solid #C7C7CC; text-align: center; word-wrap: break-word;
+      padding: 2px; border: 1px solid #C7C7CC;
+      text-align: center; word-wrap: break-word;
     }
     th { background-color: #F2F2F7; font-weight: 600; }
   </style>
 </head>
 <body>
-  <!-- Sākuma sadaļa -->
   <div class="container" id="startSection">
     <h1>GameOn – Turnīra Pārvaldība</h1>
     <p>Ievadi spēles nosaukumu, lai izveidotu jaunu turnīru vai pievienotos esošam.</p>
@@ -74,7 +69,6 @@
     </div>
   </div>
   
-  <!-- Galvenais saturs -->
   <div class="container" id="mainContent" style="display:none;">
     <!-- Komandu Ievade -->
     <div class="section" id="inputSection">
@@ -84,19 +78,19 @@
       <button onclick="saveTeams()">Saglabāt Komandas un Ģenerēt Turnīru</button>
     </div>
     
-    <!-- Group A Section -->
+    <!-- Group A Schedule -->
     <div class="section" id="groupASection">
       <h2>Group A Schedule</h2>
       <div id="groupAContainer"></div>
     </div>
     
-    <!-- Group B Section -->
+    <!-- Group B Schedule -->
     <div class="section" id="groupBSection">
       <h2>Group B Schedule</h2>
       <div id="groupBContainer"></div>
     </div>
     
-    <!-- Standings Section -->
+    <!-- Standings -->
     <div class="section" id="standingsSection">
       <h2>Standings</h2>
       <h3>Group A Standings</h3>
@@ -105,14 +99,13 @@
       <div id="standingsBContainer"></div>
     </div>
     
-    <!-- Playoffs Section – SF1, SF2, Final, 3rd Place -->
+    <!-- Playoffs -->
     <div class="section" id="playoffsSection">
       <h2>Playoffs Bracket</h2>
       <div id="playoffsContainer"></div>
     </div>
   </div>
   
-  <!-- Apakšējā navigācijas josla -->
   <div class="tab-bar" id="tabBar" style="display:none;">
     <button id="tabInput" onclick="activateSection('inputSection')">Ievade</button>
     <button id="tabGroupA" onclick="activateSection('groupASection')">Group A</button>
@@ -133,12 +126,12 @@
         params.append("userGameName", userGameName);
       }
       fetch(scriptUrl + "?" + params.toString())
-      .then(res => res.json())
-      .then(data => {
-        if(data.error) {
-          alert("Kļūda: " + data.error);
+      .then(r => r.json())
+      .then(d => {
+        if(d.error) {
+          alert("Kļūda: " + d.error);
         } else {
-          currentGameName = data.gameName;
+          currentGameName = d.gameName;
           document.getElementById("gameNameDisplay").innerText = currentGameName;
           document.getElementById("currentGameInfo").style.display = "block";
           document.getElementById("startSection").style.display = "none";
@@ -163,12 +156,12 @@
       params.append("action", "joinGame");
       params.append("gameName", gameName);
       fetch(scriptUrl + "?" + params.toString())
-      .then(res => res.json())
-      .then(data => {
-        if(data.error) {
-          alert("Kļūda: " + data.error);
+      .then(r => r.json())
+      .then(d => {
+        if(d.error) {
+          alert("Kļūda: " + d.error);
         } else {
-          currentGameName = data.gameName;
+          currentGameName = d.gameName;
           document.getElementById("gameNameDisplay").innerText = currentGameName;
           document.getElementById("currentGameInfo").style.display = "block";
           document.getElementById("startSection").style.display = "none";
@@ -184,9 +177,9 @@
     }
     
     function activateSection(sectionId) {
-      document.querySelectorAll(".section").forEach(sec => sec.classList.remove("active"));
+      document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
       document.getElementById(sectionId).classList.add("active");
-      document.querySelectorAll(".tab-bar button").forEach(btn => btn.classList.remove("active"));
+      document.querySelectorAll(".tab-bar button").forEach(b => b.classList.remove("active"));
       if(sectionId === "inputSection") document.getElementById("tabInput").classList.add("active");
       if(sectionId === "groupASection") document.getElementById("tabGroupA").classList.add("active");
       if(sectionId === "groupBSection") document.getElementById("tabGroupB").classList.add("active");
@@ -216,10 +209,10 @@
       params.append("teams", JSON.stringify(teamsArray));
       
       fetch(scriptUrl + "?" + params.toString())
-      .then(res => res.json())
-      .then(data => {
-        if(data.error) {
-          alert("Kļūda: " + data.error);
+      .then(r => r.json())
+      .then(d => {
+        if(d.error) {
+          alert("Kļūda: " + d.error);
         } else {
           alert("Turnīrs izveidots!");
           activateSection('standingsSection');
@@ -237,8 +230,8 @@
       params.append("action", group === "A" ? "getGroupASchedule" : "getGroupBSchedule");
       params.append("gameName", currentGameName);
       fetch(scriptUrl + "?" + params.toString())
-      .then(res => res.json())
-      .then(data => displayGroupSchedule(group, data))
+      .then(r => r.json())
+      .then(d => displayGroupSchedule(group, d))
       .catch(err => {
         console.error("Kļūda ielādējot Group " + group, err);
         alert("Kļūda ielādējot datus");
@@ -291,10 +284,10 @@
       params.append("scoreB", scoreB);
       
       fetch(scriptUrl + "?" + params.toString())
-      .then(res => res.json())
-      .then(data => {
-        if(data.error) {
-          alert("Kļūda: " + data.error);
+      .then(r => r.json())
+      .then(d => {
+        if(d.error) {
+          alert("Kļūda: " + d.error);
         } else {
           alert("Punkti saglabāti!");
           loadGroupSchedule(group);
@@ -312,8 +305,8 @@
       params.append("action", "standings");
       params.append("gameName", currentGameName);
       fetch(scriptUrl + "?" + params.toString())
-      .then(res => res.json())
-      .then(data => {
+      .then(r => r.json())
+      .then(d => {
         let htmlA = `<table>
                       <tr>
                         <th>Team</th>
@@ -323,7 +316,7 @@
                         <th>Points For</th>
                         <th>Points Against</th>
                       </tr>`;
-        data.standingsA.forEach(row => {
+        d.standingsA.forEach(row => {
           htmlA += `<tr>
                       <td>${row.Team}</td>
                       <td>${row.Games}</td>
@@ -345,7 +338,7 @@
                         <th>Points For</th>
                         <th>Points Against</th>
                       </tr>`;
-        data.standingsB.forEach(row => {
+        d.standingsB.forEach(row => {
           htmlB += `<tr>
                       <td>${row.Team}</td>
                       <td>${row.Games}</td>
@@ -364,19 +357,19 @@
       });
     }
     
-    // Playoffs
+    // --- Playoffs ---
     function loadPlayoffs() {
       if(currentGameName === "") return;
       const params = new URLSearchParams();
       params.append("action", "getPlayoffSchedule");
       params.append("gameName", currentGameName);
       fetch(scriptUrl + "?" + params.toString())
-      .then(res => res.json())
-      .then(data => {
-        if(data.error) {
-          alert("Kļūda ielādējot playoffs: " + data.error);
+      .then(r => r.json())
+      .then(d => {
+        if(d.error) {
+          alert("Kļūda ielādējot playoffs: " + d.error);
         } else {
-          displayPlayoffs(data);
+          displayPlayoffs(d);
         }
       })
       .catch(err => {
@@ -391,7 +384,6 @@
         document.getElementById("playoffsContainer").innerHTML = "<p>Nav Playoff datu</p>";
         return;
       }
-      // Izveido tabulu
       let html = `<table style="width:100%; border-collapse:collapse; font-size:10px;">
         <tr>
           <th>Match</th>
@@ -412,6 +404,7 @@
         const winner = row.winner || "";
         const loser = row.loser || "";
         const disabled = (score1 !== "" && score2 !== "") ? "disabled" : "";
+        const actionBtn = disabled ? "ok" : `<button onclick="savePlayoffScore('${matchId}')">ok</button>`;
         html += `
           <tr>
             <td>${matchId}</td>
@@ -421,7 +414,7 @@
             <td><input type="number" id="pScore2_${matchId}" value="${score2}" ${disabled} style="width:50px; font-size:10px;"></td>
             <td>${winner}</td>
             <td>${loser}</td>
-            <td>${disabled ? "ok" : `<button onclick="savePlayoffScore('${matchId}')">ok</button>`}</td>
+            <td>${actionBtn}</td>
           </tr>`;
       });
       html += `</table>`;
@@ -447,10 +440,10 @@
       params.append("score2", score2);
       
       fetch(scriptUrl + "?" + params.toString())
-      .then(res => res.json())
-      .then(data => {
-        if(data.error) {
-          alert("Kļūda: " + data.error);
+      .then(r => r.json())
+      .then(d => {
+        if(d.error) {
+          alert("Kļūda: " + d.error);
         } else {
           alert("Punkti saglabāti!");
           loadPlayoffs();
