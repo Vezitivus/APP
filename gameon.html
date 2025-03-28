@@ -48,14 +48,12 @@
     .section { display: none; }
     .section.active { display: block; }
     table { width: 100%; border-collapse: collapse; font-size: 10px; }
-    th, td {
-      padding: 2px; border: 1px solid #C7C7CC;
-      text-align: center; word-wrap: break-word;
-    }
+    th, td { padding: 2px; border: 1px solid #C7C7CC; text-align: center; }
     th { background-color: #F2F2F7; font-weight: 600; }
   </style>
 </head>
 <body>
+  <!-- Sākuma sadaļa -->
   <div class="container" id="startSection">
     <h1>GameOn – Turnīra Pārvaldība</h1>
     <p>Ievadi spēles nosaukumu, lai izveidotu jaunu turnīru vai pievienotos esošam.</p>
@@ -69,6 +67,7 @@
     </div>
   </div>
   
+  <!-- Galvenais saturs -->
   <div class="container" id="mainContent" style="display:none;">
     <!-- Komandu Ievade -->
     <div class="section" id="inputSection">
@@ -106,6 +105,7 @@
     </div>
   </div>
   
+  <!-- Navigācijas josla -->
   <div class="tab-bar" id="tabBar" style="display:none;">
     <button id="tabInput" onclick="activateSection('inputSection')">Ievade</button>
     <button id="tabGroupA" onclick="activateSection('groupASection')">Group A</button>
@@ -122,9 +122,7 @@
       let userGameName = document.getElementById("gameNameInput").value.trim();
       const params = new URLSearchParams();
       params.append("action", "newGame");
-      if(userGameName !== "") {
-        params.append("userGameName", userGameName);
-      }
+      if(userGameName !== "") params.append("userGameName", userGameName);
       fetch(scriptUrl + "?" + params.toString())
       .then(r => r.json())
       .then(d => {
@@ -195,8 +193,8 @@
     function saveTeams() {
       const teamsText = document.getElementById("teamsInput").value;
       const teamsArray = teamsText.split("\n").map(t => t.trim()).filter(t => t !== "");
-      if(teamsArray.length === 0) {
-        alert("Lūdzu ievadi vismaz vienu komandu!");
+      if(teamsArray.length < 2) {
+        alert("Lūdzu ievadi vismaz divas komandas!");
         return;
       }
       if(currentGameName === "") {
