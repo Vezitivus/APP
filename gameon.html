@@ -101,13 +101,13 @@
       table-layout: fixed;
       border-collapse: collapse;
       margin-top: 12px;
+      font-size: 12px;
     }
     th, td {
-      padding: 8px;
+      padding: 4px;
       border: 1px solid #C7C7CC;
       text-align: center;
       word-wrap: break-word;
-      font-size: 12px;
     }
     th {
       background-color: #F2F2F7;
@@ -179,9 +179,11 @@
   </div>
   
   <script>
+    // Globālie mainīgie – URL un spēles nosaukums (currentGameName tiek iestatīts no newGame/joinGame funkcijām)
     const scriptUrl = "https://script.google.com/macros/s/AKfycbzfBFIGVe5RhJh5Kgucv2K3ms2MIUMAd2haR6-WCqUkDEt6KJZMmootY5_R3FP9QSssZA/exec";
     let currentGameName = "";
-    
+
+    // Jaunas spēles izveide un pievienošanās
     function newGame() {
       let userGameName = document.getElementById("gameNameInput").value.trim();
       const params = new URLSearchParams();
@@ -253,7 +255,7 @@
       if(sectionId === "groupASection") loadGroupSchedule("A");
       if(sectionId === "groupBSection") loadGroupSchedule("B");
       if(sectionId === "standingsSection") loadStandings();
-      if(sectionId === "playoffsSection") loadPlayoffs();
+      if(sectionId === "playoffsSection") loadQFPlayoffs();
     }
     
     function saveTeams() {
@@ -421,75 +423,17 @@
       });
     }
     
+    // ----------------------------
+    // Playoffs funkcionalitāte
+    // ----------------------------
 
-  // ... citi skripti (newGame, joinGame, saveTeams, loadGroupSchedule, loadStandings, utt.) ...
-
- function loadPlayoffs() {
-  if (currentGameName === "") return;
-  const params = new URLSearchParams();
-  params.append("action", "getPlayoffSchedule"); // QF posms
-  params.append("gameName", currentGameName);
-
-  fetch(scriptUrl + "?" + params.toString())
-    .then(response => response.json())
-    .then(data => displayPlayoffs(data))
-    .catch(error => {
-      console.error("Kļūda ielādējot playoffs:", error);
-      alert("Kļūda ielādējot datus");
-    });
-}
-
-// Ielādē SF un finālu spēles (pārējais posms)
-function loadSFMatches() {
-  if (currentGameName === "") return;
-  const params = new URLSearchParams();
-  params.append("action", "getSFPlayoffSchedule"); // Serverī jābūt definētam atbilstošam endpointam
-  params.append("gameName", currentGameName);
-
-  fetch(scriptUrl + "?" + params.toString())
-    .then(response => response.json())
-    .then(data => displayPlayoffs(data))
-    .catch(error => {
-      console.error("Kļūda ielādējot SF playoffs:", error);
-      alert("Kļūda ielādējot datus");
-    });
-}
-
-function displayPlayoffs(data) {
-  // Samazināts fonts un kompaktāki izmeri, lai derētu mobilajām ierīcēm
-  let html = `
-    <table style="width:100%; border-collapse:collapse; font-size:12px;">
-      <tr>
-        <th style="padding:4px;">Match</th>
-        <th style="padding:4px;">Team 1</th>
-        <th style="padding:4px;">Team 2</th>
-        <th style="padding:4px;">Score 1</th>
-        <th style="padding:4px;">Score 2</th>
-        <th style="padding:4px;">Winner</th>
-        <th style="padding:4px;">Action</th>
-      </tr>
-  `;
-
-  // Ja datus saņem un tajos ir rindu ieraksti
-  if (data.rows && data.rows.length > 0) {
-    // Pārbauda, vai visas spēles ir QF posma (spēļu id sākas ar "QF")
-    const isQFStage = data.rows.every(row => row.match && row.match.startsWith("QF"));
-
-    data.rows.forEach(row => {
-      const matchId = row.match;
-      const team1 = row.team1 || "";
-      const team2 = row.team2 || "";
-      // Nodrošina, ka vērtība 0 netiek interpretēta kā tukšs – pārbaude ar undefined/null
-      const score1 = (row.score1 !== undefined && row.score1 !== null) ? row.score1 : "";
-      const score2 = (row.score2 !== undefined && row.score2 !== null) ? row.score2 : "";
-      const winner = row.winner || "";
-      // Ja punktu lauki nav tukši (0 iekļauts), padara ievades laukus nerediģējamus
+    // Palīgfunkcija – izveido spēles rindas HTML (ar ievades laukiem)
+    function createRow(matchId, team1 = "", team2 = "", score1 = "", score2 = "", winner = "") {
       const disabled = (score1 !== "" && score2 !== "") ? "disabled" : "";
       const actionBtn = disabled 
-          ? "ok" 
-          : `<button onclick="savePlayoffScore('${matchId}')" style="font-size:12px; padding:4px;">ok</button>`;
-      
-      html += `
+        ? "ok" 
+        : `<button onclick="savePlayoffScore('${matchId}')" style="font-size:12px; padding:4px;">ok</button>`;
+      return `
         <tr>
           <td style="padding:4px;">${matchId}</td>
           <td style="padding:4px;"><input type="text" id="pTeam1_${matchId}" value="${team1}" placeholder="Team 1" style="font-size:12px; width:100%;"></td>
@@ -500,84 +444,174 @@ function displayPlayoffs(data) {
           <td style="padding:4px;">${actionBtn}</td>
         </tr>
       `;
-    });
-    
-    // Ja mēs atrodamies QF posmā, pārbaudām, vai visas QF spēles ir aizspēlētas
-    if (data.rows.every(row => {
-      const s1 = (row.score1 !== undefined && row.score1 !== null) ? row.score1 : "";
-      const s2 = (row.score2 !== undefined && row.score2 !== null) ? row.score2 : "";
-      return s1 !== "" && s2 !== "";
-    }) && data.rows[0].match.startsWith("QF")) {
-      // Pievieno rindu ar pogu "Ielādēt SF spēles"
-      html += `
-        <tr>
-          <td colspan="7" style="text-align:center; padding:8px;">
-            <button onclick="loadSFMatches()" style="font-size:12px; padding:6px;">Ielādēt SF spēles</button>
-          </td>
-        </tr>
-      `;
+    }
+
+    function createHeaderRow(label) {
+      return `<tr>
+        <td colspan="7" style="background-color:#F2F2F7; font-weight:bold; padding:4px;">${label}</td>
+      </tr>`;
     }
     
-  } else {
-    // Ja nav datu, parādām noklusējuma QF spēļu struktūru
-    const defaultQFMatches = ["QF1", "QF2", "QF3", "QF4"];
-    defaultQFMatches.forEach(matchId => {
-      html += `
-        <tr>
-          <td style="padding:4px;">${matchId}</td>
-          <td style="padding:4px;"><input type="text" id="pTeam1_${matchId}" value="" placeholder="Team 1" style="font-size:12px; width:100%;"></td>
-          <td style="padding:4px;"><input type="text" id="pTeam2_${matchId}" value="" placeholder="Team 2" style="font-size:12px; width:100%;"></td>
-          <td style="padding:4px;"><input type="number" id="pScore1_${matchId}" value="" style="width:60px; font-size:12px;"></td>
-          <td style="padding:4px;"><input type="number" id="pScore2_${matchId}" value="" style="width:60px; font-size:12px;"></td>
-          <td style="padding:4px;"><input type="text" id="pWinner_${matchId}" value="" placeholder="Winner" style="font-size:12px; width:100%;"></td>
-          <td style="padding:4px;"><button onclick="savePlayoffScore('${matchId}')" style="font-size:12px; padding:4px;">ok</button></td>
-        </tr>
+    // Ielādē QF spēles (Quarter Finals)
+    function loadQFPlayoffs() {
+      if (currentGameName === "") return;
+      const params = new URLSearchParams();
+      params.append("action", "getPlayoffSchedule"); // QF endpoint
+      params.append("gameName", currentGameName);
+      
+      fetch(scriptUrl + "?" + params.toString())
+        .then(response => response.json())
+        .then(data => displayQFPlayoffs(data))
+        .catch(error => {
+          console.error("Kļūda ielādējot QF playoffs:", error);
+          alert("Kļūda ielādējot datus");
+        });
+    }
+    
+    // Attēlo QF spēļu tabulu
+    function displayQFPlayoffs(data) {
+      let html = `
+        <table style="width:100%; border-collapse:collapse; font-size:12px;">
+          <tr>
+            <th style="padding:4px;">Match</th>
+            <th style="padding:4px;">Team 1</th>
+            <th style="padding:4px;">Team 2</th>
+            <th style="padding:4px;">Score 1</th>
+            <th style="padding:4px;">Score 2</th>
+            <th style="padding:4px;">Winner</th>
+            <th style="padding:4px;">Action</th>
+          </tr>
       `;
-    });
-  }
-  
-  html += `</table>`;
-  document.getElementById("playoffsContainer").innerHTML = html;
-}
-
-function savePlayoffScore(matchId) {
-  const team1 = document.getElementById(`pTeam1_${matchId}`).value;
-  const team2 = document.getElementById(`pTeam2_${matchId}`).value;
-  const score1 = document.getElementById(`pScore1_${matchId}`).value;
-  const score2 = document.getElementById(`pScore2_${matchId}`).value;
-  const winner = document.getElementById(`pWinner_${matchId}`).value;
-  
-  if(score1 === "" || score2 === "") {
-    alert("Lūdzu ievadi abas punktu vērtības!");
-    return;
-  }
-  
-  const params = new URLSearchParams();
-  params.append("action", "savePlayoffScore");
-  params.append("gameName", currentGameName);
-  params.append("matchId", matchId);
-  params.append("team1", team1);
-  params.append("team2", team2);
-  params.append("score1", score1);
-  params.append("score2", score2);
-  params.append("winner", winner);
-  
-  fetch(scriptUrl + "?" + params.toString())
-    .then(response => response.json())
-    .then(data => {
-      if(data.error) {
-        alert("Kļūda: " + data.error);
+      if (data.rows && data.rows.length > 0) {
+        data.rows.forEach(row => {
+          const matchId = row.match;
+          const team1 = row.team1 || "";
+          const team2 = row.team2 || "";
+          const score1 = (row.score1 !== undefined && row.score1 !== null) ? row.score1 : "";
+          const score2 = (row.score2 !== undefined && row.score2 !== null) ? row.score2 : "";
+          const winner = row.winner || "";
+          html += createRow(matchId, team1, team2, score1, score2, winner);
+        });
+        // Ja visās QF spēlēs ir rezultāti (ieskaitot 0), pievieno pogu "Ielādēt SF spēles"
+        const allQFComplete = data.rows.every(row => {
+          const s1 = (row.score1 !== undefined && row.score1 !== null) ? row.score1 : "";
+          const s2 = (row.score2 !== undefined && row.score2 !== null) ? row.score2 : "";
+          return s1 !== "" && s2 !== "";
+        });
+        if (allQFComplete) {
+          html += `<tr>
+            <td colspan="7" style="text-align:center; padding:8px;">
+              <button onclick="loadSFMatches()" style="font-size:12px; padding:6px;">Ielādēt SF spēles</button>
+            </td>
+          </tr>`;
+        }
       } else {
-        alert("Punkti saglabāti!");
-        loadPlayoffs();
+        // Noklusējuma QF struktūra, ja nav datu
+        const defaultQFMatches = ["QF1", "QF2", "QF3", "QF4"];
+        defaultQFMatches.forEach(matchId => {
+          html += createRow(matchId);
+        });
       }
-    })
-    .catch(error => {
-      console.error("Kļūda saglabājot playoff punktus:", error);
-      alert("Kļūda saglabājot punktus");
-    });
-}
-</script>
-
+      html += `</table>`;
+      document.getElementById("playoffsContainer").innerHTML = html;
+    }
+    
+    // Ielādē SF, Final, 3rd Place un Consolation spēles
+    function loadSFMatches() {
+      if (currentGameName === "") return;
+      const params = new URLSearchParams();
+      params.append("action", "getSFPlayoffSchedule"); // Endpoint SF, Final utt.
+      params.append("gameName", currentGameName);
+      
+      fetch(scriptUrl + "?" + params.toString())
+        .then(response => response.json())
+        .then(data => displaySFPlayoffs(data))
+        .catch(error => {
+          console.error("Kļūda ielādējot SF playoffs:", error);
+          alert("Kļūda ielādējot datus");
+        });
+    }
+    
+    // Attēlo SF, Final un Consolation spēļu struktūru
+    function displaySFPlayoffs(data) {
+      let html = `
+        <table style="width:100%; border-collapse:collapse; font-size:12px;">
+          <tr>
+            <th style="padding:4px;">Match</th>
+            <th style="padding:4px;">Team 1</th>
+            <th style="padding:4px;">Team 2</th>
+            <th style="padding:4px;">Score 1</th>
+            <th style="padding:4px;">Score 2</th>
+            <th style="padding:4px;">Winner</th>
+            <th style="padding:4px;">Action</th>
+          </tr>
+      `;
+      if (data.rows && data.rows.length > 0) {
+        data.rows.forEach(row => {
+          const matchId = row.match;
+          const team1 = row.team1 || "";
+          const team2 = row.team2 || "";
+          const score1 = (row.score1 !== undefined && row.score1 !== null) ? row.score1 : "";
+          const score2 = (row.score2 !== undefined && row.score2 !== null) ? row.score2 : "";
+          const winner = row.winner || "";
+          html += createRow(matchId, team1, team2, score1, score2, winner);
+        });
+      } else {
+        // Noklusējuma struktūra, ja nav datu – tiek veidots breaks ar SF, Final, 3rd Place un Consolation
+        html += createHeaderRow("SF (1-4)");
+        html += createRow("SF1 (1-4)");
+        html += createRow("SF2 (1-4)");
+        html += createHeaderRow("Final / 3rd Place");
+        html += createRow("Final");
+        html += createRow("3rd Place");
+        html += createHeaderRow("Consolation");
+        html += createRow("SF (5-8) - 1");
+        html += createRow("SF (5-8) - 2");
+        html += createRow("5th Place");
+        html += createRow("7th Place");
+      }
+      html += `</table>`;
+      document.getElementById("playoffsContainer").innerHTML = html;
+    }
+    
+    // Saglabā playoff spēles rezultātu – dati tiek sūtīti uz serveri un pēc tam atjaunots skatījums
+    function savePlayoffScore(matchId) {
+      const team1 = document.getElementById(`pTeam1_${matchId}`).value;
+      const team2 = document.getElementById(`pTeam2_${matchId}`).value;
+      const score1 = document.getElementById(`pScore1_${matchId}`).value;
+      const score2 = document.getElementById(`pScore2_${matchId}`).value;
+      const winner = document.getElementById(`pWinner_${matchId}`).value;
+      
+      if(score1 === "" || score2 === "") {
+        alert("Lūdzu ievadi abas punktu vērtības!");
+        return;
+      }
+      
+      const params = new URLSearchParams();
+      params.append("action", "savePlayoffScore");
+      params.append("gameName", currentGameName);
+      params.append("matchId", matchId);
+      params.append("team1", team1);
+      params.append("team2", team2);
+      params.append("score1", score1);
+      params.append("score2", score2);
+      params.append("winner", winner);
+      
+      fetch(scriptUrl + "?" + params.toString())
+        .then(response => response.json())
+        .then(data => {
+          if(data.error) {
+            alert("Kļūda: " + data.error);
+          } else {
+            alert("Punkti saglabāti!");
+            loadQFPlayoffs();
+          }
+        })
+        .catch(error => {
+          console.error("Kļūda saglabājot playoff punktus:", error);
+          alert("Kļūda saglabājot punktus");
+        });
+    }
+  </script>
 </body>
 </html>
