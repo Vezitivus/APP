@@ -439,29 +439,30 @@
       });
   }
 
-  // Funkcija, kas parāda VISAS playoff rindas (QF, SF, Final, 3rd Place, 5th, 7th, utt.)
-  function displayPlayoffs(data) {
-    // HTML tabulas virsraksts
-    let html = `
-      <table style="width:100%; border-collapse:collapse;">
-        <tr>
-          <th>Match</th>
-          <th>Team 1</th>
-          <th>Team 2</th>
-          <th>Score 1</th>
-          <th>Score 2</th>
-          <th>Winner</th>
-          <th>Action</th>
-        </tr>`;
+function displayPlayoffs(data) {
+  // HTML tabulas virsraksts
+  let html = `
+    <table style="width:100%; border-collapse:collapse;">
+      <tr>
+        <th>Match</th>
+        <th>Team 1</th>
+        <th>Team 2</th>
+        <th>Score 1</th>
+        <th>Score 2</th>
+        <th>Winner</th>
+        <th>Action</th>
+      </tr>`;
 
+  // Ja ir datus, ciklam pa rindām
+  if (data.rows && data.rows.length > 0) {
     data.rows.forEach(row => {
       const matchId = row.match;   // Piem., "QF1", "SF1 (1-4)", "Final", "5th Place", utt.
       const team1 = row.team1 || "";
       const team2 = row.team2 || "";
       const score1 = row.score1 || "";
       const score2 = row.score2 || "";
-      const winner = row.winner || "";  // Uzvarētājs (var rādīt "Draw", ja neizšķirts)
-      // Ja punkti jau ievadīti (score1 & score2 nav tukši), padarām ievades laukus disabled
+      const winner = row.winner || "";  // Uzvarētājs (var būt "Draw", ja neizšķirts)
+      // Ja punkti jau ievadīti (score1 & score2 nav tukši), ievades lauki tiek padarīti nerediģējami
       const disabled = (score1 !== "" && score2 !== "") ? "disabled" : "";
       const actionBtn = disabled 
           ? "Saglabāts" 
@@ -478,12 +479,26 @@
           <td>${actionBtn}</td>
         </tr>`;
     });
-
-    html += `</table>`;
-
-    // Ievietojam izveidoto tabulu "playoffsContainer" elementā
-    document.getElementById("playoffsContainer").innerHTML = html;
+  } else {
+    // Ja nav datu, pievienojam vienu tukšu, rediģējamu rindu
+    const newId = "new";
+    html += `
+      <tr>
+        <td><input type="text" id="pMatch_${newId}" value="" placeholder="Match"></td>
+        <td><input type="text" id="pTeam1_${newId}" value="" placeholder="Team 1"></td>
+        <td><input type="text" id="pTeam2_${newId}" value="" placeholder="Team 2"></td>
+        <td><input type="number" id="pScore1_${newId}" value="" style="width:60px;"></td>
+        <td><input type="number" id="pScore2_${newId}" value="" style="width:60px;"></td>
+        <td><input type="text" id="pWinner_${newId}" value="" placeholder="Winner"></td>
+        <td><button onclick="savePlayoffScore('${newId}')">Saglabāt</button></td>
+      </tr>`;
   }
+
+  html += `</table>`;
+
+  // Ievieto tabulu elementā ar id "playoffsContainer"
+  document.getElementById("playoffsContainer").innerHTML = html;
+}
 
   // Saglabā playoff spēles rezultātu
   function savePlayoffScore(matchId) {
