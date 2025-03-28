@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>GameOn Tournament</title>
   <style>
-    /* Mobilajam pielāgots dizains – samazināts fonta izmērs un kompaktāki izmeri */
+    /* Mobilam pielāgots dizains – samazināts fonts un kompaktāki izmeri */
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
       margin: 0; padding: 0;
@@ -105,7 +105,7 @@
       <div id="standingsBContainer"></div>
     </div>
     
-    <!-- Playoffs – Pilns bracket, redzams uzreiz -->
+    <!-- Playoffs – pilns dinamisks bracket -->
     <div class="section" id="playoffsSection">
       <h2>Playoffs Bracket</h2>
       <div id="playoffsContainer"></div>
@@ -364,7 +364,7 @@
       });
     }
     
-    // Playoffs – viss bracket automātiski un uzreiz redzams
+    // Playoffs – dinamisks bracket, kas uzreiz parāda visas spēles
     function loadPlayoffs() {
       if(currentGameName === "") return;
       const params = new URLSearchParams();
@@ -381,17 +381,18 @@
     
     function displayPlayoffs(data) {
       let html = `<div style="font-size:10px;">`;
-      let qf = [], sf = [], final = [], consolation = [];
+      // Grupē rindas pēc atzīmēm
+      let qf = [], sf = [], fin = [], cons = [];
       data.rows.forEach(row => {
          let m = row.match;
-         if(m.startsWith("QF")) {
+         if(m.indexOf("QF") === 0) {
            qf.push(row);
-         } else if(m.startsWith("SF (1-4)") || m.startsWith("SF1 (1-4)") || m.startsWith("SF2 (1-4)")) {
+         } else if(m.indexOf("SF") === 0 && m.indexOf("SF (1-4)") === -1) {
            sf.push(row);
          } else if(m === "Final" || m === "3rd Place") {
-           final.push(row);
+           fin.push(row);
          } else {
-           consolation.push(row);
+           cons.push(row);
          }
       });
       
@@ -403,13 +404,13 @@
          html += `<h4>Semi Finals</h4>`;
          html += renderTable(sf);
       }
-      if(final.length > 0) {
-         html += `<h4>Finals</h4>`;
-         html += renderTable(final);
+      if(fin.length > 0) {
+         html += `<h4>Final & 3rd Place</h4>`;
+         html += renderTable(fin);
       }
-      if(consolation.length > 0) {
+      if(cons.length > 0) {
          html += `<h4>Consolation Bracket</h4>`;
-         html += renderTable(consolation);
+         html += renderTable(cons);
       }
       html += `</div>`;
       document.getElementById("playoffsContainer").innerHTML = html;
