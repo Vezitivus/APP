@@ -424,94 +424,115 @@
 
   // ... citi skripti (newGame, joinGame, saveTeams, loadGroupSchedule, loadStandings, utt.) ...
 
-  function loadPlayoffs() {
-    if(currentGameName === "") return;
-    const params = new URLSearchParams();
-    params.append("action", "getPlayoffSchedule");
-    params.append("gameName", currentGameName);
+ function loadPlayoffs() {
+  if (currentGameName === "") return;
+  const params = new URLSearchParams();
+  params.append("action", "getPlayoffSchedule"); // QF posms
+  params.append("gameName", currentGameName);
 
-    fetch(scriptUrl + "?" + params.toString())
-      .then(response => response.json())
-      .then(data => displayPlayoffs(data))
-      .catch(error => {
-         console.error("Kļūda ielādējot playoffs:", error);
-         alert("Kļūda ielādējot datus");
-      });
-  }
+  fetch(scriptUrl + "?" + params.toString())
+    .then(response => response.json())
+    .then(data => displayPlayoffs(data))
+    .catch(error => {
+      console.error("Kļūda ielādējot playoffs:", error);
+      alert("Kļūda ielādējot datus");
+    });
+}
+
+// Ielādē SF un finālu spēles (pārējais posms)
+function loadSFMatches() {
+  if (currentGameName === "") return;
+  const params = new URLSearchParams();
+  params.append("action", "getSFPlayoffSchedule"); // Serverī jābūt definētam atbilstošam endpointam
+  params.append("gameName", currentGameName);
+
+  fetch(scriptUrl + "?" + params.toString())
+    .then(response => response.json())
+    .then(data => displayPlayoffs(data))
+    .catch(error => {
+      console.error("Kļūda ielādējot SF playoffs:", error);
+      alert("Kļūda ielādējot datus");
+    });
+}
 
 function displayPlayoffs(data) {
-  // HTML tabulas virsraksts
+  // Samazināts fonts un kompaktāki izmeri, lai derētu mobilajām ierīcēm
   let html = `
-    <table style="width:100%; border-collapse:collapse;">
+    <table style="width:100%; border-collapse:collapse; font-size:12px;">
       <tr>
-        <th>Match</th>
-        <th>Team 1</th>
-        <th>Team 2</th>
-        <th>Score 1</th>
-        <th>Score 2</th>
-        <th>Winner</th>
-        <th>Action</th>
-      </tr>`;
-  
-  // Palīgfunkcija – veido parasto spēles rindu
-  function createRow(matchId, team1 = "", team2 = "", score1 = "", score2 = "", winner = "") {
-    // Nodrošina, ka, ja abi punktu lauki ir aizpildīti (pat ja ir 0), tad tie tiek atzīmēti kā aizsargāti
-    const disabled = (score1 !== "" && score2 !== "") ? "disabled" : "";
-    const actionBtn = disabled 
-          ? "ok" 
-          : `<button onclick="savePlayoffScore('${matchId}')">ok</button>`;
-    return `
-      <tr>
-        <td>${matchId}</td>
-        <td><input type="text" id="pTeam1_${matchId}" value="${team1}" placeholder="Team 1"></td>
-        <td><input type="text" id="pTeam2_${matchId}" value="${team2}" placeholder="Team 2"></td>
-        <td><input type="number" id="pScore1_${matchId}" value="${score1}" ${disabled} style="width:60px;"></td>
-        <td><input type="number" id="pScore2_${matchId}" value="${score2}" ${disabled} style="width:60px;"></td>
-        <td><input type="text" id="pWinner_${matchId}" value="${winner}" placeholder="Winner"></td>
-        <td>${actionBtn}</td>
-      </tr>`;
-  }
-  
-  // Palīgfunkcija – veido virsraksta rindu ar pilnu kolonnu
-  function createHeaderRow(label) {
-    return `<tr>
-      <td colspan="7" style="background-color:#F2F2F7; font-weight:bold;">${label}</td>
-    </tr>`;
-  }
-  
+        <th style="padding:4px;">Match</th>
+        <th style="padding:4px;">Team 1</th>
+        <th style="padding:4px;">Team 2</th>
+        <th style="padding:4px;">Score 1</th>
+        <th style="padding:4px;">Score 2</th>
+        <th style="padding:4px;">Winner</th>
+        <th style="padding:4px;">Action</th>
+      </tr>
+  `;
+
+  // Ja datus saņem un tajos ir rindu ieraksti
   if (data.rows && data.rows.length > 0) {
-    // Ja ir servera dati, iterē pa rindām
+    // Pārbauda, vai visas spēles ir QF posma (spēļu id sākas ar "QF")
+    const isQFStage = data.rows.every(row => row.match && row.match.startsWith("QF"));
+
     data.rows.forEach(row => {
       const matchId = row.match;
       const team1 = row.team1 || "";
       const team2 = row.team2 || "";
-      // Nodrošina, ka skaitliskās vērtības 0 netiek aizvietotas ar tukšu vērtību
-      const score1 = (row.score1 != null ? row.score1 : "");
-      const score2 = (row.score2 != null ? row.score2 : "");
+      // Nodrošina, ka vērtība 0 netiek interpretēta kā tukšs – pārbaude ar undefined/null
+      const score1 = (row.score1 !== undefined && row.score1 !== null) ? row.score1 : "";
+      const score2 = (row.score2 !== undefined && row.score2 !== null) ? row.score2 : "";
       const winner = row.winner || "";
-      html += createRow(matchId, team1, team2, score1, score2, winner);
+      // Ja punktu lauki nav tukši (0 iekļauts), padara ievades laukus nerediģējamus
+      const disabled = (score1 !== "" && score2 !== "") ? "disabled" : "";
+      const actionBtn = disabled 
+          ? "ok" 
+          : `<button onclick="savePlayoffScore('${matchId}')" style="font-size:12px; padding:4px;">ok</button>`;
+      
+      html += `
+        <tr>
+          <td style="padding:4px;">${matchId}</td>
+          <td style="padding:4px;"><input type="text" id="pTeam1_${matchId}" value="${team1}" placeholder="Team 1" style="font-size:12px; width:100%;"></td>
+          <td style="padding:4px;"><input type="text" id="pTeam2_${matchId}" value="${team2}" placeholder="Team 2" style="font-size:12px; width:100%;"></td>
+          <td style="padding:4px;"><input type="number" id="pScore1_${matchId}" value="${score1}" ${disabled} style="width:60px; font-size:12px;"></td>
+          <td style="padding:4px;"><input type="number" id="pScore2_${matchId}" value="${score2}" ${disabled} style="width:60px; font-size:12px;"></td>
+          <td style="padding:4px;"><input type="text" id="pWinner_${matchId}" value="${winner}" placeholder="Winner" style="font-size:12px; width:100%;"></td>
+          <td style="padding:4px;">${actionBtn}</td>
+        </tr>
+      `;
     });
+    
+    // Ja mēs atrodamies QF posmā, pārbaudām, vai visas QF spēles ir aizspēlētas
+    if (data.rows.every(row => {
+      const s1 = (row.score1 !== undefined && row.score1 !== null) ? row.score1 : "";
+      const s2 = (row.score2 !== undefined && row.score2 !== null) ? row.score2 : "";
+      return s1 !== "" && s2 !== "";
+    }) && data.rows[0].match.startsWith("QF")) {
+      // Pievieno rindu ar pogu "Ielādēt SF spēles"
+      html += `
+        <tr>
+          <td colspan="7" style="text-align:center; padding:8px;">
+            <button onclick="loadSFMatches()" style="font-size:12px; padding:6px;">Ielādēt SF spēles</button>
+          </td>
+        </tr>
+      `;
+    }
+    
   } else {
-    // Ja nav datu, uzreiz izveidojam pilnu playoff braketi ar nepieciešamajām rindām
-    const defaultMatches = [
-      { header: "SF (1-4)" },
-      { match: "SF1 (1-4)" },
-      { match: "SF2 (1-4)" },
-      { header: "Final / 3rd Place" },
-      { match: "Final" },
-      { match: "3rd Place" },
-      { header: "Consolation" },
-      { match: "SF (5-8) - 1" },
-      { match: "SF (5-8) - 2" },
-      { match: "5th Place" },
-      { match: "7th Place" }
-    ];
-    defaultMatches.forEach(item => {
-      if (item.header) {
-        html += createHeaderRow(item.header);
-      } else if (item.match) {
-        html += createRow(item.match);
-      }
+    // Ja nav datu, parādām noklusējuma QF spēļu struktūru
+    const defaultQFMatches = ["QF1", "QF2", "QF3", "QF4"];
+    defaultQFMatches.forEach(matchId => {
+      html += `
+        <tr>
+          <td style="padding:4px;">${matchId}</td>
+          <td style="padding:4px;"><input type="text" id="pTeam1_${matchId}" value="" placeholder="Team 1" style="font-size:12px; width:100%;"></td>
+          <td style="padding:4px;"><input type="text" id="pTeam2_${matchId}" value="" placeholder="Team 2" style="font-size:12px; width:100%;"></td>
+          <td style="padding:4px;"><input type="number" id="pScore1_${matchId}" value="" style="width:60px; font-size:12px;"></td>
+          <td style="padding:4px;"><input type="number" id="pScore2_${matchId}" value="" style="width:60px; font-size:12px;"></td>
+          <td style="padding:4px;"><input type="text" id="pWinner_${matchId}" value="" placeholder="Winner" style="font-size:12px; width:100%;"></td>
+          <td style="padding:4px;"><button onclick="savePlayoffScore('${matchId}')" style="font-size:12px; padding:4px;">ok</button></td>
+        </tr>
+      `;
     });
   }
   
@@ -520,19 +541,17 @@ function displayPlayoffs(data) {
 }
 
 function savePlayoffScore(matchId) {
-  // Iegūst ievades vērtības – gan komandu nosaukumus, gan punktus un uzvarētāju
   const team1 = document.getElementById(`pTeam1_${matchId}`).value;
   const team2 = document.getElementById(`pTeam2_${matchId}`).value;
   const score1 = document.getElementById(`pScore1_${matchId}`).value;
   const score2 = document.getElementById(`pScore2_${matchId}`).value;
   const winner = document.getElementById(`pWinner_${matchId}`).value;
   
-  // Pārbauda, vai punktu lauki nav tukši (vērtība "0" ir derīga)
   if(score1 === "" || score2 === "") {
     alert("Lūdzu ievadi abas punktu vērtības!");
     return;
   }
-
+  
   const params = new URLSearchParams();
   params.append("action", "savePlayoffScore");
   params.append("gameName", currentGameName);
@@ -542,7 +561,7 @@ function savePlayoffScore(matchId) {
   params.append("score1", score1);
   params.append("score2", score2);
   params.append("winner", winner);
-
+  
   fetch(scriptUrl + "?" + params.toString())
     .then(response => response.json())
     .then(data => {
@@ -550,7 +569,6 @@ function savePlayoffScore(matchId) {
         alert("Kļūda: " + data.error);
       } else {
         alert("Punkti saglabāti!");
-        // Atjauno playoff lauku ar jaunajiem datiem
         loadPlayoffs();
       }
     })
