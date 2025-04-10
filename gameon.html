@@ -365,15 +365,15 @@
     }
     
     // Playoffs
-    function loadPlayoffs() {
-      if(currentGameName === "") return;
-      const params = new URLSearchParams();
-      params.append("action", "getPlayoffSchedule");
-      params.append("gameName", currentGameName);
-      fetch(scriptUrl + "?" + params.toString())
+     function loadPlayoffs() {
+    if (currentGameName === "") return;
+    const params = new URLSearchParams();
+    params.append("action", "getPlayoffSchedule");
+    params.append("gameName", currentGameName);
+    fetch(scriptUrl + "?" + params.toString())
       .then(res => res.json())
       .then(data => {
-        if(data.error) {
+        if (data.error) {
           alert("Kļūda ielādējot playoffs: " + data.error);
         } else {
           displayPlayoffs(data);
@@ -383,70 +383,77 @@
         console.error("Kļūda ielādējot playoffs:", err);
         alert("Kļūda ielādējot datus");
       });
+  }
+  
+  function displayPlayoffs(data) {
+    let rows = data.rows || [];
+    if (rows.length === 0) {
+      document.getElementById("playoffsContainer").innerHTML = "<p>Nav Playoff datu</p>";
+      return;
     }
     
-    function displayPlayoffs(data) {
-      let rows = data.rows || [];
-      if(rows.length === 0) {
-        document.getElementById("playoffsContainer").innerHTML = "<p>Nav Playoff datu</p>";
-        return;
+    // Izveido dinamisko tabulu: ja rindā atrodam “Playoffs - Dynamic” vai “Round X”, tad rinda tiek 
+    // attēlota kā galvene, citos gadījumos – par normālu spēles rindu ar rediģējamiem laukiem.
+    let html = `<table style="width:100%; border-collapse:collapse; font-size:10px;">`;
+    rows.forEach(row => {
+      // Ja rinda satur tikai vienu šūnu un tā satur nosaukumu, piemēram, "Playoffs - Dynamic"
+      if(row.length === 1 || (typeof row[0] === "string" && (row[0] === "Playoffs - Dynamic" || row[0].startsWith("Round")))){
+        html += `<tr><td colspan="8" style="font-weight:bold; text-align:center; border:1px solid #000;">${row[0]}</td></tr>`;
       }
-      // Izveido tabulu
-      let html = `<table style="width:100%; border-collapse:collapse; font-size:10px;">
-        <tr>
-          <th>Match</th>
-          <th>Team 1</th>
-          <th>Team 2</th>
-          <th>Score 1</th>
-          <th>Score 2</th>
-          <th>Winner</th>
-          <th>Loser</th>
-          <th>Action</th>
-        </tr>`;
-      rows.forEach(row => {
-        const matchId = row.match;
-        const team1 = row.team1 || "";
-        const team2 = row.team2 || "";
-        const score1 = row.score1 || "";
-        const score2 = row.score2 || "";
-        const winner = row.winner || "";
-        const loser = row.loser || "";
+      // Ja ir tabulas virsraksta rindas (piemēram, ar "Match" kā pirmo vērtību)
+      else if (row[0] === "Match") {
+        html += `<tr>`;
+        row.forEach(cell => {
+          html += `<th style="border:1px solid #000;">${cell}</th>`;
+        });
+        html += `</tr>`;
+      }
+      // Pretējā gadījumā pieņemam, ka šī ir normaļa spēles rinda
+      else {
+        const matchId = row[0];
+        const team1 = row[1] || "";
+        const team2 = row[2] || "";
+        const score1 = row[3] || "";
+        const score2 = row[4] || "";
+        const winner = row[5] || "";
+        const loser = row[6] || "";
+        // Ja rezultāti jau ievadīti, atslēdzam input rediģēšanu
         const disabled = (score1 !== "" && score2 !== "") ? "disabled" : "";
-        html += `
-          <tr>
-            <td>${matchId}</td>
-            <td><input type="text" id="pTeam1_${matchId}" value="${team1}" style="width:100%; font-size:10px;"></td>
-            <td><input type="text" id="pTeam2_${matchId}" value="${team2}" style="width:100%; font-size:10px;"></td>
-            <td><input type="number" id="pScore1_${matchId}" value="${score1}" ${disabled} style="width:50px; font-size:10px;"></td>
-            <td><input type="number" id="pScore2_${matchId}" value="${score2}" ${disabled} style="width:50px; font-size:10px;"></td>
-            <td>${winner}</td>
-            <td>${loser}</td>
-            <td>${disabled ? "ok" : `<button onclick="savePlayoffScore('${matchId}')">ok</button>`}</td>
-          </tr>`;
-      });
-      html += `</table>`;
-      document.getElementById("playoffsContainer").innerHTML = html;
-    }
-    
-    function savePlayoffScore(matchId) {
-      const team1 = document.getElementById(`pTeam1_${matchId}`).value;
-      const team2 = document.getElementById(`pTeam2_${matchId}`).value;
-      const score1 = document.getElementById(`pScore1_${matchId}`).value;
-      const score2 = document.getElementById(`pScore2_${matchId}`).value;
-      if(score1 === "" || score2 === "") {
-        alert("Lūdzu ievadi abas punktu vērtības!");
-        return;
+        html += `<tr>`;
+        html += `<td style="border:1px solid #000;">${matchId}</td>`;
+        html += `<td style="border:1px solid #000;"><input type="text" id="pTeam1_${matchId}" value="${team1}" style="width:100%; font-size:10px;"></td>`;
+        html += `<td style="border:1px solid #000;"><input type="text" id="pTeam2_${matchId}" value="${team2}" style="width:100%; font-size:10px;"></td>`;
+        html += `<td style="border:1px solid #000;"><input type="number" id="pScore1_${matchId}" value="${score1}" ${disabled} style="width:50px; font-size:10px;"></td>`;
+        html += `<td style="border:1px solid #000;"><input type="number" id="pScore2_${matchId}" value="${score2}" ${disabled} style="width:50px; font-size:10px;"></td>`;
+        html += `<td style="border:1px solid #000;">${winner}</td>`;
+        html += `<td style="border:1px solid #000;">${loser}</td>`;
+        html += `<td style="border:1px solid #000;">${disabled ? "ok" : `<button onclick="savePlayoffScore('${matchId}')">ok</button>`}</td>`;
+        html += `</tr>`;
       }
-      const params = new URLSearchParams();
-      params.append("action", "savePlayoffScore");
-      params.append("gameName", currentGameName);
-      params.append("matchId", matchId);
-      params.append("team1", team1);
-      params.append("team2", team2);
-      params.append("score1", score1);
-      params.append("score2", score2);
-      
-      fetch(scriptUrl + "?" + params.toString())
+    });
+    html += `</table>`;
+    document.getElementById("playoffsContainer").innerHTML = html;
+  }
+  
+  function savePlayoffScore(matchId) {
+    const team1 = document.getElementById(`pTeam1_${matchId}`).value;
+    const team2 = document.getElementById(`pTeam2_${matchId}`).value;
+    const score1 = document.getElementById(`pScore1_${matchId}`).value;
+    const score2 = document.getElementById(`pScore2_${matchId}`).value;
+    if(score1 === "" || score2 === "") {
+      alert("Lūdzu ievadi abas punktu vērtības!");
+      return;
+    }
+    const params = new URLSearchParams();
+    params.append("action", "savePlayoffScore");
+    params.append("gameName", currentGameName);
+    params.append("matchId", matchId);
+    params.append("team1", team1);
+    params.append("team2", team2);
+    params.append("score1", score1);
+    params.append("score2", score2);
+    
+    fetch(scriptUrl + "?" + params.toString())
       .then(res => res.json())
       .then(data => {
         if(data.error) {
@@ -460,7 +467,12 @@
         console.error("Kļūda saglabājot playoff punktus:", err);
         alert("Kļūda saglabājot punktus");
       });
-    }
+  }
+  
+  // Ielādē playoffs automātiski lapas ielādes brīdī
+  window.onload = function() {
+    loadPlayoffs();
+  };
   </script>
 </body>
 </html>
