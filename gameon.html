@@ -204,37 +204,40 @@
     }
     
     // Komandu saglabāšana
-    function saveTeams() {
-      const teamsText = document.getElementById("teamsInput").value;
-      const teamsArray = teamsText.split("\n").map(t => t.trim()).filter(t => t !== "");
-      if (teamsArray.length === 0) {
-        alert("Lūdzu ievadi vismaz vienu komandu!");
-        return;
-      }
-      if (currentGameName === "") {
-        alert("Nav izvēlēta spēle!");
-        return;
-      }
-      const params = new URLSearchParams();
-      params.append("action", "saveTeams");
-      params.append("gameName", currentGameName);
-      params.append("teams", JSON.stringify(teamsArray));
-      
-      fetch(scriptUrl + "?" + params.toString())
-        .then(res => res.json())
-        .then(data => {
-          if(data.error) {
-            alert("Kļūda: " + data.error);
-          } else {
-            alert("Turnīrs izveidots!");
-            activateSection('standingsSection');
-          }
-        })
-        .catch(err => {
-          console.error("Kļūda saglabājot komandas:", err);
-          alert("Kļūda saglabājot komandas");
-        });
-    }
+    function saveTeams(e, ss) {
+  var gameName = e.parameter.gameName;
+  if (!gameName) {
+    return ContentService.createTextOutput(JSON.stringify({ error: "No gameName provided" }))
+                         .setMimeType(ContentService.MimeType.JSON);
+  }
+  var teamsParam = e.parameter.teams;
+  if (!teamsParam) {
+    return ContentService.createTextOutput(JSON.stringify({ error: "No teams provided" }))
+                         .setMimeType(ContentService.MimeType.JSON);
+  }
+  var teams;
+  try {
+    teams = JSON.parse(teamsParam);
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({ error: "Invalid teams format" }))
+                         .setMimeType(ContentService.MimeType.JSON);
+  }
+  
+  var sheet = ss.getSheetByName(gameName);
+  if (!sheet) {
+    return ContentService.createTextOutput(JSON.stringify({ error: "Game sheet not found" }))
+                         .setMimeType(ContentService.MimeType.JSON);
+  }
+  
+  // Ļauj servera pusē uzģenerēt visu turnīra informāciju
+  var result = generateTournamentForGame(sheet, teams);
+  
+  return ContentService.createTextOutput(JSON.stringify({
+    status: "Teams saved",
+    message: result.message
+  })).setMimeType(ContentService.MimeType.JSON);
+}
+
     
     // Grupas grafiku ielāde
     function loadGroupSchedule(group) {
