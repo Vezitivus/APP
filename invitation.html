@@ -69,6 +69,13 @@
       50% { transform: scale(1.1); }
       100% { transform: scale(1); }
     }
+    /* Iekšējās kārtības noteikumu saites stils */
+    .rules-link {
+      color: #007BFF;
+      text-decoration: underline;
+      cursor: pointer;
+      animation: pulse 2s infinite;
+    }
     .buttons {
       display: flex;
       justify-content: center;
@@ -95,10 +102,6 @@
     }
     .decline {
       background-color: #dc3545;
-      color: #fff;
-    }
-    .rules {
-      background-color: #007BFF;
       color: #fff;
     }
     video {
@@ -135,7 +138,7 @@
       <p><strong>📌 Svarīgi:</strong><br>
          Katrs pats nodrošina sev ēdienu un dzērienu.<br>
          Antisociāla uzvedība netiks paciesta – būsim draudzīgi un cieņpilni viens pret otru!<br>
-         Ienākot teritorijā, Tu piekrīti ievērot iekšējās kārtības noteikumus.<br>
+         Ienākot teritorijā, Tu piekrīti ievērot <a class="rules-link" onclick="openRules()">iekšējās kārtības noteikumus</a>.<br>
          Tu piekrīti, ka vari tikt fotografēts un filmēts, un šie materiāli var tikt publicēti Instagram kontā 
          <a href="https://www.instagram.com/vezitivus/" target="_blank">@vezitivus</a>.
       </p>
@@ -143,13 +146,11 @@
       <!-- Pulsējošs datums, kas uzspiež kalendāra funkciju -->
       <p>
         <span class="highlight" onclick="addToCalendar()">
-          11.–13. jūlijā (oficiālā atklāšana: sestdien, 12. jūlijā, plkst. 12:00)
+          11.–13. jūlijā (oficiālā atklāšana: 12.07 - 12:00)
         </span>
       </p>
-      <!-- Pogas: Apstiprināt, Iekšējās kārtības noteikumi un Noraidīt -->
       <div class="buttons">
         <button class="button confirm" onclick="goBack()">Apstiprināt</button>
-        <button class="button rules" onclick="openRules()">Iekšējās kārtības noteikumi</button>
         <button class="button decline" onclick="declineInvitation()">Noraidīt</button>
       </div>
     </div>
@@ -161,21 +162,19 @@
   </div>
   
   <script>
-    // Atgriezties atpakaļ
     function goBack() {
       window.history.back();
     }
-    // Kalendāra notikuma funkcija
     function addToCalendar() {
       var ua = navigator.userAgent || navigator.vendor || window.opera;
       var eventTitle = encodeURIComponent("VEZITIVUS WEEKEND Festivāls");
-      // All-day event: 11.–13. jūlijs (DTEND ir 20250714, jo tas ir ekskluzīvs)
+      // All-day event: 11.–13. jūlijs (DTEND ir 20250714, jo tas ir neiekļauts)
       var startDate = "20250711";
       var endDate = "20250714";
       var details = encodeURIComponent("Svini Kapteiņa dzimšanas dienu ar stilu un enerģiju!");
       var locationText = encodeURIComponent("Pļava pie Ķekavas, aptuveni 4 km no autobusa pieturas 'Vadoņi'");
       
-      // iOS: lieto ICS failu, lai importētu notikumu kā parastu ierakstu
+      // iOS: izmanto ICS failu, lai importētu notikumu kā parastu ierakstu
       if (/iPhone|iPad|iPod/.test(ua) && !window.MSStream) {
         window.location.href = 'https://vezitivus.github.io/APP/event.ics';
       } else {
@@ -187,11 +186,9 @@
         window.open(googleUrl, '_blank');
       }
     }
-    // Iekšējās kārtības noteikumu funkcija – atver PDF failu jaunā logā/tabā
     function openRules() {
       window.open('https://vezitivus.github.io/APP/rules.pdf', '_blank');
     }
-    // Noraidītā funkcija – paslēpj ielūguma saturu, parāda tikai video
     function declineInvitation() {
       document.getElementById("invitationContainer").style.display = "none";
       document.getElementById("declinedContainer").style.display = "flex";
