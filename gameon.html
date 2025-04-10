@@ -385,103 +385,156 @@
       });
     }
     
-    // Playoffs
-    function loadPlayoffs() {
-      if(currentGameName === "") return;
-      const params = new URLSearchParams();
-      params.append("action", "getPlayoffSchedule");
-      params.append("gameName", currentGameName);
-      fetch(scriptUrl + "?" + params.toString())
-      .then(res => res.json())
-      .then(data => {
-        if(data.error) {
-          alert("Kļūda ielādējot playoffs: " + data.error);
-        } else {
-          displayPlayoffs(data);
-        }
-      })
-      .catch(err => {
-        console.error("Kļūda ielādējot playoffs:", err);
-        alert("Kļūda ielādējot datus");
-      });
-    }
-    
-    function displayPlayoffs(data) {
-      let rows = data.rows || [];
-      if(rows.length === 0) {
-        document.getElementById("playoffsContainer").innerHTML = "<p>Nav Playoff datu</p>";
-        return;
+   // Jaunā funkcija – izveido dinamiski pielāgojamu playoff kārtību
+function generatePlayoffs() {
+  if (currentGameName === "") return;
+  const params = new URLSearchParams();
+  // Šeit servera puses skripts pārbauda komandu skaitu un ģenerē atbilstošu bracket:
+  // - Ja ceturādi finales nav piemērotas, tiek izveidots 8daļfinālu kārtas bracket.
+  // - Ja spēlētāju skaits ir pārāk liels, uzvarētāji no grupām var tieši ieiet QF vai SF.
+  params.append("action", "generatePlayoffs");
+  params.append("gameName", currentGameName);
+  fetch(scriptUrl + "?" + params.toString())
+    .then(res => res.json())
+    .then(data => {
+      if (data.error) {
+        alert("Kļūda ģenerējot playoffs: " + data.error);
+      } else {
+        console.log("Playoffs bracket veiksmīgi ģenerēts un saglabāts uz Google Sheets.");
+        // Pēc bracket ģenerēšanas, ielādē playoff datus, lai tie tiktu parādīti lapā.
+        loadPlayoffs();
       }
-      // Izveido tabulu
-      let html = `<table style="width:100%; border-collapse:collapse; font-size:10px;">
-        <tr>
-          <th>Match</th>
-          <th>Team 1</th>
-          <th>Team 2</th>
-          <th>Score 1</th>
-          <th>Score 2</th>
-          <th>Winner</th>
-          <th>Loser</th>
-          <th>Action</th>
-        </tr>`;
-      rows.forEach(row => {
-        const matchId = row.match;
-        const team1 = row.team1 || "";
-        const team2 = row.team2 || "";
-        const score1 = row.score1 || "";
-        const score2 = row.score2 || "";
-        const winner = row.winner || "";
-        const loser = row.loser || "";
-        const disabled = (score1 !== "" && score2 !== "") ? "disabled" : "";
-        html += `
-          <tr>
-            <td>${matchId}</td>
-            <td><input type="text" id="pTeam1_${matchId}" value="${team1}" style="width:100%; font-size:10px;"></td>
-            <td><input type="text" id="pTeam2_${matchId}" value="${team2}" style="width:100%; font-size:10px;"></td>
-            <td><input type="number" id="pScore1_${matchId}" value="${score1}" ${disabled} style="width:50px; font-size:10px;"></td>
-            <td><input type="number" id="pScore2_${matchId}" value="${score2}" ${disabled} style="width:50px; font-size:10px;"></td>
-            <td>${winner}</td>
-            <td>${loser}</td>
-            <td>${disabled ? "ok" : `<button onclick="savePlayoffScore('${matchId}')">ok</button>`}</td>
-          </tr>`;
-      });
-      html += `</table>`;
-      document.getElementById("playoffsContainer").innerHTML = html;
-    }
-    
-    function savePlayoffScore(matchId) {
-      const team1 = document.getElementById(`pTeam1_${matchId}`).value;
-      const team2 = document.getElementById(`pTeam2_${matchId}`).value;
-      const score1 = document.getElementById(`pScore1_${matchId}`).value;
-      const score2 = document.getElementById(`pScore2_${matchId}`).value;
-      if(score1 === "" || score2 === "") {
-        alert("Lūdzu ievadi abas punktu vērtības!");
-        return;
+    })
+    .catch(err => {
+      console.error("Kļūda ģenerējot playoffs:", err);
+      alert("Kļūda ģenerējot playoffs");
+    });
+}
+
+// Ielādē saglabāto playoff bracket no Google Sheets
+function loadPlayoffs() {
+  if (currentGameName === "") return;
+  const params = new URLSearchParams();
+  params.append("action", "getPlayoffSchedule");
+  params.append("gameName", currentGameName);
+  fetch(scriptUrl + "?" + params.toString())
+    .then(res => res.json())
+    .then(data => {
+      if (data.error) {
+        alert("Kļūda ielādējot playoffs: " + data.error);
+      } else {
+        displayPlayoffs(data);
       }
-      const params = new URLSearchParams();
-      params.append("action", "savePlayoffScore");
-      params.append("gameName", currentGameName);
-      params.append("matchId", matchId);
-      params.append("team1", team1);
-      params.append("team2", team2);
-      params.append("score1", score1);
-      params.append("score2", score2);
-      
-      fetch(scriptUrl + "?" + params.toString())
-      .then(res => res.json())
-      .then(data => {
-        if(data.error) {
-          alert("Kļūda: " + data.error);
-        } else {
-          alert("Punkti saglabāti!");
-          loadPlayoffs();
-        }
-      })
-      .catch(err => {
-        console.error("Kļūda saglabājot playoff punktus:", err);
-        alert("Kļūda saglabājot punktus");
-      });
-    }
+    })
+    .catch(err => {
+      console.error("Kļūda ielādējot playoffs:", err);
+      alert("Kļūda ielādējot datus");
+    });
+}
+
+// Attēlo playoff bracket – tiek iekļauta papildus kolonna "Round"
+// (serveris katram spēļu ierakstam nosaka, cikā tas ieiet – piemēram, "8daļfināls", "QF", "SF", "Final")
+function displayPlayoffs(data) {
+  let rows = data.rows || [];
+  if (rows.length === 0) {
+    document.getElementById("playoffsContainer").innerHTML = "<p>Nav Playoff datu</p>";
+    return;
+  }
+  let html = `<table style="width:100%; border-collapse:collapse; font-size:10px;">
+    <tr>
+      <th>Round</th>
+      <th>Match</th>
+      <th>Team 1</th>
+      <th>Team 2</th>
+      <th>Score 1</th>
+      <th>Score 2</th>
+      <th>Winner</th>
+      <th>Loser</th>
+      <th>Action</th>
+    </tr>`;
+  rows.forEach(row => {
+    const matchId = row.match;
+    const round = row.round || "";
+    const team1 = row.team1 || "";
+    const team2 = row.team2 || "";
+    const score1 = row.score1 || "";
+    const score2 = row.score2 || "";
+    const winner = row.winner || "";
+    const loser = row.loser || "";
+    const disabled = (score1 !== "" && score2 !== "") ? "disabled" : "";
+    html += `
+      <tr>
+        <td>${round}</td>
+        <td>${matchId}</td>
+        <td><input type="text" id="pTeam1_${matchId}" value="${team1}" style="width:100%; font-size:10px;"></td>
+        <td><input type="text" id="pTeam2_${matchId}" value="${team2}" style="width:100%; font-size:10px;"></td>
+        <td><input type="number" id="pScore1_${matchId}" value="${score1}" ${disabled} style="width:50px; font-size:10px;"></td>
+        <td><input type="number" id="pScore2_${matchId}" value="${score2}" ${disabled} style="width:50px; font-size:10px;"></td>
+        <td>${winner}</td>
+        <td>${loser}</td>
+        <td>${disabled ? "ok" : `<button onclick="savePlayoffScore('${matchId}')">ok</button>`}</td>
+      </tr>`;
+  });
+  html += `</table>`;
+  document.getElementById("playoffsContainer").innerHTML = html;
+}
+
+// Saglabā spēļu rezultātus playoff kārtībā un atjauno bracket
+function savePlayoffScore(matchId) {
+  const team1 = document.getElementById(`pTeam1_${matchId}`).value;
+  const team2 = document.getElementById(`pTeam2_${matchId}`).value;
+  const score1 = document.getElementById(`pScore1_${matchId}`).value;
+  const score2 = document.getElementById(`pScore2_${matchId}`).value;
+  if (score1 === "" || score2 === "") {
+    alert("Lūdzu ievadi abas punktu vērtības!");
+    return;
+  }
+  const params = new URLSearchParams();
+  params.append("action", "savePlayoffScore");
+  params.append("gameName", currentGameName);
+  params.append("matchId", matchId);
+  params.append("team1", team1);
+  params.append("team2", team2);
+  params.append("score1", score1);
+  params.append("score2", score2);
+  
+  fetch(scriptUrl + "?" + params.toString())
+    .then(res => res.json())
+    .then(data => {
+      if (data.error) {
+        alert("Kļūda: " + data.error);
+      } else {
+        alert("Punkti saglabāti!");
+        loadPlayoffs();
+      }
+    })
+    .catch(err => {
+      console.error("Kļūda saglabājot playoff punktus:", err);
+      alert("Kļūda saglabājot punktus");
+    });
+}
+
+// Atjaunotā activateSection funkcija – ja tiek aktivizēta playoffs sadaļa,
+// tiek izsaukta generatePlayoffs funkcija, kas ģenerē un saglabā playoff bracket uz Google Sheets.
+function activateSection(sectionId) {
+  document.querySelectorAll(".section").forEach(sec => sec.classList.remove("active"));
+  document.getElementById(sectionId).classList.add("active");
+  document.querySelectorAll(".tab-bar button").forEach(btn => btn.classList.remove("active"));
+  if(sectionId === "inputSection") document.getElementById("tabInput").classList.add("active");
+  if(sectionId === "groupASection") document.getElementById("tabGroupA").classList.add("active");
+  if(sectionId === "groupBSection") document.getElementById("tabGroupB").classList.add("active");
+  if(sectionId === "standingsSection") document.getElementById("tabStandings").classList.add("active");
+  if(sectionId === "playoffsSection") document.getElementById("tabPlayoffs").classList.add("active");
+  
+  if (sectionId === "groupASection") loadGroupSchedule("A");
+  if (sectionId === "groupBSection") loadGroupSchedule("B");
+  if (sectionId === "standingsSection") loadStandings();
+  if (sectionId === "playoffsSection") {
+    // Dinamisk ģenerē playoff bracket, lai pielāgotos spēlētāju skaitam
+    generatePlayoffs();
+  }
+}
+
   </script>
 </body>
 </html>
