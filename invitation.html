@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    /* CSS Reset un pamatstili */
+    /* CSS reset un pamata stili */
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
       width: 100%;
@@ -50,33 +50,11 @@
       line-height: 1.6;
       margin-bottom: 20px;
     }
-    .buttons {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      margin-top: 30px;
+    a {
+      color: #00d1b2;
+      text-decoration: underline;
     }
-    .button {
-      padding: 12px 25px;
-      border-radius: 10px;
-      border: none;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.2s ease;
-    }
-    .button:hover {
-      transform: scale(1.05);
-    }
-    .confirm {
-      background-color: #28a745;
-      color: #fff;
-    }
-    .decline {
-      background-color: #dc3545;
-      color: #fff;
-      border: none;
-    }
+    /* Pulsējošs datuma stils */
     .highlight {
       text-decoration: underline;
       cursor: pointer;
@@ -91,6 +69,38 @@
       50% { transform: scale(1.1); }
       100% { transform: scale(1); }
     }
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    .button {
+      padding: 12px 25px;
+      border-radius: 10px;
+      border: none;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+      margin-top: 10px;
+    }
+    .button:hover {
+      transform: scale(1.05);
+    }
+    .confirm {
+      background-color: #28a745;
+      color: #fff;
+    }
+    .decline {
+      background-color: #dc3545;
+      color: #fff;
+    }
+    .rules {
+      background-color: #007BFF;
+      color: #fff;
+    }
     video {
       width: 100%;
       max-width: 600px;
@@ -103,12 +113,14 @@
   <!-- Ielūguma saturs -->
   <div id="invitationContainer" class="container">
     <div class="glass-effect">
-      <h1>🌟 VEZITIVUS WEEKEND 🌟</h1>
+      <h1>VEZITIVUS WEEKEND 🌟</h1>
       <p>Tava neaizmirstamā vasaras nedēļas nogale!</p>
       <p>🌿 Sveiks, piedzīvojumu meklētāj! 🌿</p>
-      <p>Vai esi gatavs piedzīvot vasaras spilgtākās atmiņas?</p>
+      <p>Vai esi gatavs radīt vasaras spilgtākās atmiņas?</p>
       <p><strong>📍 Kur tiekamies?</strong><br>
          Gleznainā un rūpīgi koptā pļavā netālu no Ķekavas.</p>
+      <p><strong>📅 Kad tiekamies?</strong><br>
+         11.–13. jūlijā (oficiālā pasākuma atklāšana – sestdien, 12. jūlijā, plkst. 12:00)</p>
       <p><strong>✨ Programmā:</strong><br>
          🎶 Mūzika un dejas līdz pat saullēktam<br>
          🏐 Jautras un enerģiskas sporta aktivitātes<br>
@@ -118,18 +130,26 @@
          🍔 Ēdienu un dzērienu pēc savas gaumes<br>
          📱 Telefona lādētāju<br>
          😊 Galvenais – pozitīvu noskaņojumu!</p>
+      <p><strong>👗 Dresscode:</strong><br>
+         Vēlamais apģērbs – it kā jūs būtu gatavojušies doties kaut kur citur, bet pēkšņi ieradāties uz Vezitivus!</p>
       <p><strong>📌 Svarīgi:</strong><br>
          Katrs pats nodrošina sev ēdienu un dzērienu.<br>
-         Antisociāla uzvedība netiks paciesta – būsim draudzīgi!<br>
+         Antisociāla uzvedība netiks paciesta – būsim draudzīgi un cieņpilni viens pret otru!<br>
          Ienākot teritorijā, Tu piekrīti ievērot iekšējās kārtības noteikumus.<br>
-         Tu piekrīti, ka vari tikt fotografēts un filmēts, un šie materiāli var tikt publicēti Instagram kontā @vezitivus.</p>
-      <p>🌟 Gaidīsim tieši Tevi! 🌟</p>
-      <!-- Pulsējošs datums, novietots apakšā -->
-      <p>
-        <span class="highlight" onclick="addToCalendar()">11.–13. jūlijā</span>
+         Tu piekrīti, ka vari tikt fotografēts un filmēts, un šie materiāli var tikt publicēti Instagram kontā 
+         <a href="https://www.instagram.com/vezitivus/" target="_blank">@vezitivus</a>.
       </p>
+      <p>🌟 Ar nepacietību gaidīsim tieši Tevi! 🌟</p>
+      <!-- Pulsējošs datums, kas uzspiež kalendāra funkciju -->
+      <p>
+        <span class="highlight" onclick="addToCalendar()">
+          11.–13. jūlijā (oficiālā atklāšana: sestdien, 12. jūlijā, plkst. 12:00)
+        </span>
+      </p>
+      <!-- Pogas: Apstiprināt, Iekšējās kārtības noteikumi un Noraidīt -->
       <div class="buttons">
         <button class="button confirm" onclick="goBack()">Apstiprināt</button>
+        <button class="button rules" onclick="openRules()">Iekšējās kārtības noteikumi</button>
         <button class="button decline" onclick="declineInvitation()">Noraidīt</button>
       </div>
     </div>
@@ -141,19 +161,21 @@
   </div>
   
   <script>
+    // Atgriezties atpakaļ
     function goBack() {
       window.history.back();
     }
+    // Kalendāra notikuma funkcija
     function addToCalendar() {
       var ua = navigator.userAgent || navigator.vendor || window.opera;
       var eventTitle = encodeURIComponent("VEZITIVUS WEEKEND Festivāls");
-      // All-day event: 11.–13. jūlijs (DTEND ir 20250714, jo tas nav iekļauts)
+      // All-day event: 11.–13. jūlijs (DTEND ir 20250714, jo tas ir ekskluzīvs)
       var startDate = "20250711";
       var endDate = "20250714";
       var details = encodeURIComponent("Svini Kapteiņa dzimšanas dienu ar stilu un enerģiju!");
       var locationText = encodeURIComponent("Pļava pie Ķekavas, aptuveni 4 km no autobusa pieturas 'Vadoņi'");
       
-      // iOS: izmanto HTTPS saiti uz ICS failu, lai importētu notikumu kā parastu ierakstu
+      // iOS: lieto ICS failu, lai importētu notikumu kā parastu ierakstu
       if (/iPhone|iPad|iPod/.test(ua) && !window.MSStream) {
         window.location.href = 'https://vezitivus.github.io/APP/event.ics';
       } else {
@@ -165,6 +187,11 @@
         window.open(googleUrl, '_blank');
       }
     }
+    // Iekšējās kārtības noteikumu funkcija – atver PDF failu jaunā logā/tabā
+    function openRules() {
+      window.open('https://vezitivus.github.io/APP/rules.pdf', '_blank');
+    }
+    // Noraidītā funkcija – paslēpj ielūguma saturu, parāda tikai video
     function declineInvitation() {
       document.getElementById("invitationContainer").style.display = "none";
       document.getElementById("declinedContainer").style.display = "flex";
