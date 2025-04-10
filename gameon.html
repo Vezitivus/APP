@@ -199,37 +199,56 @@
       if(sectionId === "playoffsSection") loadPlayoffs();
     }
     
-    function saveTeams() {
-      const teamsText = document.getElementById("teamsInput").value;
-      const teamsArray = teamsText.split("\n").map(t => t.trim()).filter(t => t !== "");
-      if(teamsArray.length === 0) {
-        alert("Lūdzu ievadi vismaz vienu komandu!");
-        return;
+   function saveTeams() {
+  const teamsText = document.getElementById("teamsInput").value;
+  const teamsArray = teamsText.split("\n").map(t => t.trim()).filter(t => t !== "");
+  if (teamsArray.length === 0) {
+    alert("Lūdzu ievadi vismaz vienu komandu!");
+    return;
+  }
+  if (currentGameName === "") {
+    alert("Nav izvēlēta spēle!");
+    return;
+  }
+  const params = new URLSearchParams();
+  params.append("action", "saveTeams");
+  params.append("gameName", currentGameName);
+  params.append("teams", JSON.stringify(teamsArray));
+
+  fetch(scriptUrl + "?" + params.toString())
+    .then(res => res.json())
+    .then(data => {
+      if (data.error) {
+        alert("Kļūda: " + data.error);
+      } else {
+        // Pēc veiksmīga komandu saglabāšanas, ģenerē spēļu kārtību (ar nejaušu secību) un saglabā to.
+        const scheduleParams = new URLSearchParams();
+        scheduleParams.append("action", "generateSchedule");
+        scheduleParams.append("gameName", currentGameName);
+        // Ja nepieciešams, var pievienot papildu datus, piemēram, komandu sarakstu,
+        // kuru serveris izmantos spēļu kārtības ģenerēšanai.
+        fetch(scriptUrl + "?" + scheduleParams.toString())
+          .then(res => res.json())
+          .then(scheduleData => {
+            if (scheduleData.error) {
+              console.error("Kļūda ģenerējot spēļu kārtību:", scheduleData.error);
+            } else {
+              console.log("Spēļu kārtība veiksmīgi ģenerēta un saglabāta.");
+            }
+          })
+          .catch(err => {
+            console.error("Kļūda ģenerējot spēļu kārtību:", err);
+          });
+
+        alert("Turnīrs izveidots!");
+        activateSection('standingsSection');
       }
-      if(currentGameName === "") {
-        alert("Nav izvēlēta spēle!");
-        return;
-      }
-      const params = new URLSearchParams();
-      params.append("action", "saveTeams");
-      params.append("gameName", currentGameName);
-      params.append("teams", JSON.stringify(teamsArray));
-      
-      fetch(scriptUrl + "?" + params.toString())
-      .then(res => res.json())
-      .then(data => {
-        if(data.error) {
-          alert("Kļūda: " + data.error);
-        } else {
-          alert("Turnīrs izveidots!");
-          activateSection('standingsSection');
-        }
-      })
-      .catch(err => {
-        console.error("Kļūda saglabājot komandas:", err);
-        alert("Kļūda saglabājot komandas");
-      });
-    }
+    })
+    .catch(err => {
+      console.error("Kļūda saglabājot komandas:", err);
+      alert("Kļūda saglabājot komandas");
+    });
+}
     
     function loadGroupSchedule(group) {
       if(currentGameName === "") return;
@@ -246,49 +265,7 @@
     }
     
    function displayGroupSchedule(group, data) {
-  // Funkcija, kas pārbauda, vai dotā spēļu kārtība ir derīga,
-  // t.i., neviens komanda spēlē trīs spēles pēc kārtas.
-  function isValidSchedule(rows) {
-    for (let i = 0; i <= rows.length - 3; i++) {
-      // Iegūst divu komandu masīvus katrā spēles rindā.
-      const teamsMatch1 = new Set(rows[i].slice(1, 3));     // kolonnas ar komandu nosaukumiem
-      const teamsMatch2 = new Set(rows[i + 1].slice(1, 3));
-      const teamsMatch3 = new Set(rows[i + 2].slice(1, 3));
-
-      // Pārbauda katru komandu no pirmās spēles, vai tā ir arī nākamajās divās.
-      for (const team of teamsMatch1) {
-        if (teamsMatch2.has(team) && teamsMatch3.has(team)) {
-          return false; // Ja tāda komanda eksistē, kārtība nav derīga.
-        }
-      }
-    }
-    return true; // Ja neviena komanda neatkārtojas trīs spēlēs pēc kārtas, kārtība ir derīga.
-  }
-
-  // Funkcija, kas nejauši sajauc masīvu (Fisher-Yates algoritms).
-  function shuffleArray(array) {
-    const arr = array.slice();
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-  }
-
-  // Mēģina atrast derīgu kārtību, kur kāds komanda nepiedalās vairāk kā 2x pēc kārtas.
-  let shuffledRows = data.rows.slice(); // kopija no oriģinālajiem datiem
-  let attempts = 0;
-  const maxAttempts = 1000;
-  while (attempts < maxAttempts && !isValidSchedule(shuffledRows)) {
-    shuffledRows = shuffleArray(shuffledRows);
-    attempts++;
-  }
-  if (attempts >= maxAttempts) {
-    console.warn("Nav atrasta derīga spēļu kārtība pēc " + maxAttempts + " mēģinājumiem, tiek izmantota oriģinālā kārtība.");
-    shuffledRows = data.rows.slice();
-  }
-
-  // Veido HTML tabulu ar spēļu sīšu kārtību.
+  // Tieši izveido HTML tabulu no jau saglabātā (un serverī ģenerētā) spēļu kārtības datiem.
   let html = `<table>
                 <tr>
                   <th>Match #</th>
@@ -298,7 +275,7 @@
                   <th>Score B</th>
                   <th>Action</th>
                 </tr>`;
-  shuffledRows.forEach(row => {
+  data.rows.forEach(row => {
     const matchNum = row[0];
     const disabled = (row[3] !== "" && row[4] !== "") ? "disabled" : "";
     html += `<tr>
@@ -312,14 +289,12 @@
   });
   html += `</table>`;
 
-  // Ievieto HTML atbilstošajā konteinerā atkarībā no grupas.
   if (group === "A") {
     document.getElementById("groupAContainer").innerHTML = html;
   } else {
     document.getElementById("groupBContainer").innerHTML = html;
   }
 }
-
     
     function saveGroupScore(group, matchNumber) {
       const scoreA = document.getElementById(`scoreA_${group}_${matchNumber}`).value;
