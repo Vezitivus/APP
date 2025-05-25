@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>LED Kontrole (USB-Serial)</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; margin-top: 50px; }
+    button { font-size: 1.1em; padding: 8px 16px; margin: 8px; }
+  </style>
+</head>
+<body>
+  <h1>LED Kontrole caur USB-Serial</h1>
+  <button id="btnConnect">Savienot ar ierīci</button><br>
+  <button id="btnOn" disabled>Ieslēgt</button>
+  <button id="btnOff" disabled>Izslēgt</button>
+  <pre id="log" style="text-align:left; max-width:600px; margin:20px auto; background:#f0f0f0; padding:10px;"></pre>
+
+  <script>
+    let port, writer, reader;
+    const logEl = document.getElementById('log');
+
+    function log(msg) {
+      logEl.textContent += msg + '\n';
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    document.getElementById('btnConnect').onclick = async () => {
+      try {
+        // pieprasa lietotājam serial portu
+        port = await navigator.serial.requestPort();
+        await port.open({ baudRate: 115200 });
+        log('Savienots ar portu');
+
+        writer = port.writable.getWriter();
+        reader = port.readable.getReader();
+
+        // iededzam pogas
+        document.getElementById('btnOn').disabled = false;
+        document.getElementById('btnOff').disabled = false;
+
+        // gaidām serdes atbildes
+        (async function readLoop() {
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            const text = new TextDecoder().decode(value);
+            log('← ' + text.trim());
+          }
+        })();
+      } catch (e) {
+        log('Kļūda: ' + e);
+      }
+    };
+
+    async function send(cmd) {
+      if (!writer) return;
+      log('→ ' + cmd);
+      const data = new TextEncoder().encode(cmd + '\n');
+      await writer.write(data);
+    }
+
+    document.getElementById('btnOn').onclick  = () => send('ON');
+    document.getElementById('btnOff').onclick = () => send('OFF');
+  </script>
+</body>
+</html>
