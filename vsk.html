@@ -35,18 +35,37 @@
       gap: 1rem;
       margin-bottom: 1.5rem;
     }
-    .digit-picker {
-      width: 200px;              /* 2× no iepriekšējā 100px */
-      padding: 1rem;
-      font-size: 3rem;           /* 2× no iepriekšējā 1.5rem */
-      text-align: center;
+    .wheel {
+      width: 200px;
+      height: 120px;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
       border: 2px solid var(--primary-color);
       border-radius: 0.5rem;
       background: #fff;
-      caret-color: transparent;  /* paslēpj kursora atzīmi */
     }
-    /* Bloķē teksta ievadi, bet atļauj wheel */
-    .digit-picker:focus { outline: none; }
+    .wheel::-webkit-scrollbar {
+      display: none;
+    }
+    .wheel-item {
+      height: 120px;
+      scroll-snap-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      user-select: none;
+    }
+    /* Centra līnija, lai redzētu, kas atlasīts */
+    .wheel::before {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 0;
+      top: calc(50% + 60px);
+      border-top: 2px solid rgba(0,0,0,0.1);
+      pointer-events: none;
+    }
     button#submit {
       padding: 0.75rem 2rem;
       font-size: 1rem;
@@ -62,49 +81,55 @@
   <main class="container">
     <h1>Rīgas 25.vsk izlaideņu tusiņš</h1>
     <div class="pickers">
-      <input
-        id="digit1"
-        class="digit-picker"
-        type="text"
-        readonly
-        aria-label="Desmitnieku izvēle">
-      <input
-        id="digit2"
-        class="digit-picker"
-        type="text"
-        readonly
-        aria-label="Vieninieku izvēle">
+      <div id="wheel1" class="wheel" aria-label="Desmitnieku ritenis">
+        <div class="wheel-item">0</div>
+        <div class="wheel-item">1</div>
+        <div class="wheel-item">2</div>
+        <div class="wheel-item">3</div>
+        <div class="wheel-item">4</div>
+        <div class="wheel-item">5</div>
+        <div class="wheel-item">6</div>
+        <div class="wheel-item">7</div>
+        <div class="wheel-item">8</div>
+        <div class="wheel-item">9</div>
+      </div>
+      <div id="wheel2" class="wheel" aria-label="Vieninieku ritenis">
+        <div class="wheel-item">0</div>
+        <div class="wheel-item">1</div>
+        <div class="wheel-item">2</div>
+        <div class="wheel-item">3</div>
+        <div class="wheel-item">4</div>
+        <div class="wheel-item">5</div>
+        <div class="wheel-item">6</div>
+        <div class="wheel-item">7</div>
+        <div class="wheel-item">8</div>
+        <div class="wheel-item">9</div>
+      </div>
     </div>
     <button id="submit">Piedalīties</button>
   </main>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const d1 = document.getElementById('digit1');
-      const d2 = document.getElementById('digit2');
+      const wheels = [
+        document.getElementById('wheel1'),
+        document.getElementById('wheel2')
+      ];
       const submitBtn = document.getElementById('submit');
+      const itemHeight = wheels[0].querySelector('.wheel-item').clientHeight;
 
-      // Sākotnējās vērtības
-      d1.value = '0';
-      d2.value = '0';
-
-      // Funkcija: pieskaita/atņem 1 modulo 10
-      function wheelAdjust(el, deltaY) {
-        let num = parseInt(el.value, 10);
-        if (deltaY < 0) num = (num + 1) % 10;
-        else           num = (num - 1 + 10) % 10;
-        el.value = num.toString();
-      }
-
-      [d1, d2].forEach(el => {
-        el.addEventListener('wheel', ev => {
-          ev.preventDefault();
-          wheelAdjust(el, ev.deltaY);
-        });
+      // Sākotnēji centrēt uz "0"
+      wheels.forEach(wheel => {
+        wheel.scrollTop = 0;
       });
 
+      // Kad klikšķis uz pogas → nolasa katra ritenīša ciparu
       submitBtn.addEventListener('click', () => {
-        const uid = d1.value + d2.value;
+        const digits = wheels.map(wheel => {
+          const idx = Math.round(wheel.scrollTop / itemHeight);
+          return wheel.querySelectorAll('.wheel-item')[idx].textContent;
+        });
+        const uid = digits.join('');
         window.location.href = `https://vezitivus.github.io/APP/?uid=VZ2${uid}`;
       });
     });
