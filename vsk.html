@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rīgas 25.vsk izlaideņu tusiņš</title>
+  
+  <!-- 1) Google Fonts tipogrāfija -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+    rel="stylesheet">
+
+  <!-- 2) Iekļautais CSS -->
+  <style>
+    :root {
+      --primary-color: #4a90e2;
+      --bg-color: #f9f9f9;
+      --text-color: #333;
+    }
+    * {
+      margin: 0; padding: 0; box-sizing: border-box;
+    }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .container {
+      text-align: center;
+    }
+    h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 2rem;
+    }
+    .spinner {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 1.5rem;
+    }
+    .spinner input {
+      width: 100px;
+      padding: 0.5rem;
+      font-size: 1.5rem;
+      text-align: center;
+      border: 2px solid var(--primary-color);
+      border-radius: 0.5rem;
+    }
+    /* No default browser spinner */
+    .spinner input::-webkit-outer-spin-button,
+    .spinner input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .spinner input[type=number] {
+      -moz-appearance: textfield;
+    }
+    .controls {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+    }
+    .controls button {
+      background: none;
+      border: none;
+      font-size: 0.75rem;
+      line-height: 1;
+      cursor: pointer;
+      color: var(--primary-color);
+      padding: 2px;
+    }
+    button#submit {
+      padding: 0.75rem 2rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      background: var(--primary-color);
+      color: #fff;
+      cursor: pointer;
+      transition: opacity 0.3s;
+    }
+    button#submit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <!-- 3) Galvenais virsraksts -->
+    <h1>Rīgas 25.vsk izlaideņu tusiņš</h1>
+
+    <!-- 4) Ciparu spinner -->
+    <div class="spinner">
+      <input
+        id="uid"
+        type="text"
+        maxlength="2"
+        inputmode="numeric"
+        pattern="\d*"
+        placeholder="00"
+        aria-label="Ievadi divus ciparus">
+      <div class="controls">
+        <button type="button" class="up" aria-label="palielināt">▲</button>
+        <button type="button" class="down" aria-label="samazināt">▼</button>
+      </div>
+    </div>
+
+    <!-- 5) Piedalīties poga -->
+    <button id="submit" disabled>Piedalīties</button>
+  </main>
+
+  <!-- 6) Iekļautais JavaScript -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const input     = document.getElementById('uid');
+      const upBtn     = document.querySelector('.controls .up');
+      const downBtn   = document.querySelector('.controls .down');
+      const submitBtn = document.getElementById('submit');
+
+      const updateState = () => {
+        const val     = input.value;
+        const isValid = /^\d{2}$/.test(val);
+        submitBtn.disabled = !isValid;
+      };
+
+      input.addEventListener('input', () => {
+        // Atļaut tikai ciparus, līdz 2 rakstzīmēm
+        input.value = input.value.replace(/\D/g, '').slice(0, 2);
+        updateState();
+      });
+
+      upBtn.addEventListener('click', () => {
+        let num = parseInt(input.value) || 0;
+        num = (num + 1) % 100;
+        input.value = num.toString().padStart(2, '0');
+        updateState();
+      });
+
+      downBtn.addEventListener('click', () => {
+        let num = parseInt(input.value) || 0;
+        num = (num - 1 + 100) % 100;
+        input.value = num.toString().padStart(2, '0');
+        updateState();
+      });
+
+      submitBtn.addEventListener('click', () => {
+        const uid = input.value;
+        window.location.href = `https://vezitivus.github.io/APP/?uid=VZ2${uid}`;
+      });
+    });
+  </script>
+</body>
+</html>
