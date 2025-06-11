@@ -12,48 +12,60 @@
       --primary-color: #4a90e2;
       --bg-color: #f9f9f9;
       --text-color: #333;
-      /* Cipara laukuma izmērs: 3rem teksts + 1rem kopējais padding */
+      /* Cipara laukuma izmērs: 3rem teksta augstums + 1rem kopējais padding */
       --wheel-size: 4rem;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body {
       width: 100%; height: 100%;
-      overflow: hidden; /* nepieļauj body scroll */
+      overflow: hidden;  /* nepieļauj ārējo scroll */
     }
     body {
       font-family: 'Poppins', sans-serif;
       background: var(--bg-color);
       color: var(--text-color);
-      display: flex; justify-content: center; align-items: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;  /* centrs visam inline(-block) saturam */
     }
-    .container { text-align: center; }
+
     h1 {
-      font-size: 3rem; font-weight: 700;
+      font-size: 3rem;
+      font-weight: 700;
       margin-bottom: 1.5rem;
     }
+
+    /* --------- ŠEIT IR IZMAIŅA: .pickers tiek centrs ar margin:0 auto --------- */
     .pickers {
-      display: flex; gap: 1rem;
-      margin-bottom: 1.5rem;
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin: 0 auto 1.5rem;  /* centrs un apakšā 1.5rem */
     }
+    /* ----------------------------------------------------------------------- */
+
     .wheel {
       position: relative;
       width: var(--wheel-size);
       height: var(--wheel-size);
       overflow-y: scroll;
       scroll-snap-type: y mandatory;
-      overscroll-behavior: contain; /* novērš ķēdes scroll uz body */
+      overscroll-behavior: contain;
       border: 2px solid var(--primary-color);
       border-radius: 0.5rem;
       background: #fff;
-      /* no rādiem ritentimekanisma scrollbar */
       -ms-overflow-style: none;
     }
     .wheel::-webkit-scrollbar { display: none; }
+
     .wheel-item {
       height: var(--wheel-size);
       scroll-snap-align: center;
       scroll-snap-stop: always;
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 3rem;
       user-select: none;
     }
@@ -66,6 +78,7 @@
       border-top: 2px solid rgba(0,0,0,0.1);
       pointer-events: none;
     }
+
     button#submit {
       padding: 0.75rem 2rem;
       font-size: 1rem;
@@ -78,7 +91,7 @@
   </style>
 </head>
 <body>
-  <main class="container">
+  <main>
     <h1>Rīgas 25.vsk izlaideņu tusiņš</h1>
     <div class="pickers">
       <div id="wheel1" class="wheel" aria-label="Desmitnieku ritenis">
@@ -115,9 +128,9 @@
         document.getElementById('wheel1'),
         document.getElementById('wheel2')
       ];
-      // Cipara augstums atbilst riteņa augstumam
       const itemHeight = wheels[0].querySelector('.wheel-item').clientHeight;
-      // Sākotnēji centrēt uz “0”
+
+      // Sākumā ritenīši uz “0”
       wheels.forEach(w => w.scrollTop = 0);
 
       document.getElementById('submit').addEventListener('click', () => {
