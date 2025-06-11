@@ -2,7 +2,7 @@
 <html lang="lv">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>Rīgas 25.vsk izlaideņu tusiņš</title>
   <link
     href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
@@ -12,57 +12,57 @@
       --primary-color: #4a90e2;
       --bg-color: #f9f9f9;
       --text-color: #333;
+      /* Cipara laukuma izmērs: 3rem teksts + 1rem kopējais padding */
+      --wheel-size: 4rem;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden; /* nepieļauj body scroll */
+    }
     body {
       font-family: 'Poppins', sans-serif;
       background: var(--bg-color);
       color: var(--text-color);
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      display: flex; justify-content: center; align-items: center;
     }
     .container { text-align: center; }
     h1 {
-      font-size: 3rem;
-      font-weight: 700;
-      margin-bottom: 2rem;
+      font-size: 3rem; font-weight: 700;
+      margin-bottom: 1.5rem;
     }
     .pickers {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
+      display: flex; gap: 1rem;
       margin-bottom: 1.5rem;
     }
     .wheel {
-      width: 200px;
-      height: 120px;
+      position: relative;
+      width: var(--wheel-size);
+      height: var(--wheel-size);
       overflow-y: scroll;
       scroll-snap-type: y mandatory;
+      overscroll-behavior: contain; /* novērš ķēdes scroll uz body */
       border: 2px solid var(--primary-color);
       border-radius: 0.5rem;
       background: #fff;
+      /* no rādiem ritentimekanisma scrollbar */
+      -ms-overflow-style: none;
     }
-    .wheel::-webkit-scrollbar {
-      display: none;
-    }
+    .wheel::-webkit-scrollbar { display: none; }
     .wheel-item {
-      height: 120px;
+      height: var(--wheel-size);
       scroll-snap-align: center;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      scroll-snap-stop: always;
+      display: flex; align-items: center; justify-content: center;
       font-size: 3rem;
       user-select: none;
     }
-    /* Centra līnija, lai redzētu, kas atlasīts */
     .wheel::before {
       content: "";
       position: absolute;
+      top: 50%;
+      left: 0;
       width: 100%;
-      height: 0;
-      top: calc(50% + 60px);
       border-top: 2px solid rgba(0,0,0,0.1);
       pointer-events: none;
     }
@@ -115,22 +115,17 @@
         document.getElementById('wheel1'),
         document.getElementById('wheel2')
       ];
-      const submitBtn = document.getElementById('submit');
+      // Cipara augstums atbilst riteņa augstumam
       const itemHeight = wheels[0].querySelector('.wheel-item').clientHeight;
+      // Sākotnēji centrēt uz “0”
+      wheels.forEach(w => w.scrollTop = 0);
 
-      // Sākotnēji centrēt uz "0"
-      wheels.forEach(wheel => {
-        wheel.scrollTop = 0;
-      });
-
-      // Kad klikšķis uz pogas → nolasa katra ritenīša ciparu
-      submitBtn.addEventListener('click', () => {
-        const digits = wheels.map(wheel => {
-          const idx = Math.round(wheel.scrollTop / itemHeight);
-          return wheel.querySelectorAll('.wheel-item')[idx].textContent;
+      document.getElementById('submit').addEventListener('click', () => {
+        const digits = wheels.map(w => {
+          const idx = Math.round(w.scrollTop / itemHeight);
+          return w.querySelectorAll('.wheel-item')[idx].textContent;
         });
-        const uid = digits.join('');
-        window.location.href = `https://vezitivus.github.io/APP/?uid=VZ2${uid}`;
+        window.location.href = `https://vezitivus.github.io/APP/?uid=VZ2${digits.join('')}`;
       });
     });
   </script>
