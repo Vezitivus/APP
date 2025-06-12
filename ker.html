@@ -17,6 +17,17 @@
   <pre id="log" style="text-align:left; max-width:600px; margin:20px auto; background:#f0f0f0; padding:10px;"></pre>
 
   <script>
+    const isSerialSupported = 'serial' in navigator;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!isSerialSupported) {
+        document.getElementById('btnConnect').style.display = 'none';
+        document.getElementById('btnOn').style.display = 'none';
+        document.getElementById('btnOff').style.display = 'none';
+        document.getElementById('log').textContent = 'Šī funkcija pieejama tikai uz datora ar Chrome vai Edge pārlūku.';
+      }
+    });
+
     let port, writer, reader;
     const logEl = document.getElementById('log');
 
@@ -27,7 +38,6 @@
 
     document.getElementById('btnConnect').onclick = async () => {
       try {
-        // pieprasa lietotājam serial portu
         port = await navigator.serial.requestPort();
         await port.open({ baudRate: 115200 });
         log('Savienots ar portu');
@@ -35,11 +45,9 @@
         writer = port.writable.getWriter();
         reader = port.readable.getReader();
 
-        // iededzam pogas
         document.getElementById('btnOn').disabled = false;
         document.getElementById('btnOff').disabled = false;
 
-        // gaidām serdes atbildes
         (async function readLoop() {
           while (true) {
             const { value, done } = await reader.read();
