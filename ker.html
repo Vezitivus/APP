@@ -5,80 +5,34 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>ESP8266 LED Tālvadība</title>
   <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      margin-top: 80px;
-    }
-    button {
-      font-size: 2em;
-      padding: 20px 60px;
-      margin: 20px;
-      cursor: pointer;
-    }
-    #status {
-      margin-top: 30px;
-      font-size: 1em;
-      color: #555;
-    }
-    input {
-      font-size: 1em;
-      padding: 8px;
-      width: 200px;
-      margin-bottom: 20px;
-    }
+    body { font-family: sans-serif; text-align: center; margin-top: 80px; }
+    button { font-size: 2em; padding: 20px 60px; margin: 20px; cursor: pointer; }
+    #status { margin-top: 30px; font-size: 1em; color: #555; }
   </style>
 </head>
 <body>
   <h1>ESP8266 LED Tālvadība</h1>
 
-  <!-- Lauciņš, kur lietotājs var ievadīt ESP IP adresi -->
-  <div>
-    <input id="espIpInput" type="text" placeholder="Ievadi ESP IP (piem., 192.168.1.10)" />
-  </div>
+  <!-- Šeit jau ielikts tavs ESP IP -->
+  <script>
+    const espIP = "192.168.1.10";  // ← nomaini uz savējo no Serial Monitor
+  </script>
 
-  <!-- Vadības pogas -->
-  <button id="btnOn" disabled>Ieslēgt</button>
-  <button id="btnOff" disabled>Izslēgt</button>
-
-  <!-- Statusa ziņa -->
-  <p id="status">Gaida IP...</p>
+  <button id="btnOn">Ieslēgt</button>
+  <button id="btnOff">Izslēgt</button>
+  <p id="status">Saglabāts IP: <strong><script>document.write(espIP);</script></strong></p>
 
   <script>
-    const ipInput = document.getElementById('espIpInput');
-    const btnOn   = document.getElementById('btnOn');
-    const btnOff  = document.getElementById('btnOff');
-    const status  = document.getElementById('status');
+    const btnOn  = document.getElementById('btnOn');
+    const btnOff = document.getElementById('btnOff');
+    const status = document.getElementById('status');
 
-    let espIP = '';
-
-    // Kad lietotājs ievada vai maina IP
-    ipInput.addEventListener('input', () => {
-      const val = ipInput.value.trim();
-      // Vienkārša IP adrešu validācija (četros skaitļos 0–255)
-      const valid = /^(\d{1,3}\.){3}\d{1,3}$/.test(val);
-      if (valid) {
-        espIP = val;
-        status.textContent = `IP iestatīts: http://${espIP}/`;
-        btnOn.disabled  = false;
-        btnOff.disabled = false;
-      } else {
-        espIP = '';
-        status.textContent = 'Nederīga IP adrese';
-        btnOn.disabled  = true;
-        btnOff.disabled = true;
-      }
-    });
-
-    // Funkcija, kas sūta komandu ESP
     async function sendCmd(cmd) {
-      if (!espIP) return;
       try {
-        // Izmanto no-cors, jo ESP atbild vienkārši HTTP/1.1 bez CORS galvenes
         await fetch(`http://${espIP}/${cmd}`, { mode: 'no-cors' });
         status.textContent = `Komanda "${cmd}" nosūtīta uz ${espIP}`;
       } catch (e) {
-        status.textContent = `Kļūda: nevar sasniegt ${espIP}`;
+        status.textContent = `Neizdevās pieslēgties ${espIP}`;
       }
     }
 
