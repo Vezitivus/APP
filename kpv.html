@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+  <meta charset="UTF-8">
+  <title>Vecpuiša Ballītes Uzdevumi</title>
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: #fafafa url('https://i.imgur.com/ZF6s192.png') center/cover no-repeat; /* diskrete konfeti fona bilde */
+      padding: 20px;
+      color: #333;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .header h1 {
+      font-size: 2.5rem;
+      color: #222;
+      text-shadow: 1px 1px #fff;
+    }
+    .counter {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+    .task-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+    }
+    .task-card {
+      background: #fff;
+      border: 2px dashed #555;
+      border-radius: 8px;
+      padding: 12px;
+      position: relative;
+      cursor: pointer;
+      transition: background .2s, transform .1s;
+    }
+    .task-card:hover {
+      transform: translateY(-2px);
+    }
+    .task-card.completed {
+      background: #dff0d8;
+      border-color: #3c763d;
+      text-decoration: line-through;
+      color: #3c763d;
+    }
+    .task-card .icon {
+      font-size: 1.5rem;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    .task-card .text {
+      display: inline-block;
+      vertical-align: middle;
+      width: calc(100% - 32px);
+    }
+    .stamp {
+      width: 24px;
+      height: 24px;
+      border: 2px solid #555;
+      border-radius: 4px;
+      position: absolute;
+      top: 12px;
+      right: 12px;
+    }
+    .task-card.completed .stamp {
+      background: url('https://i.imgur.com/L3hX1gM.png') center/contain no-repeat; /* zīmoga ikona */
+      border-color: transparent;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Vecpuiša 15 Izaicinājumi</h1>
+  </div>
+  <div class="counter">
+    Izpildīti: <span id="doneCount">0</span> / 15 → Punkti: <span id="score">0</span>
+  </div>
+
+  <div class="task-grid">
+    <div class="task-card" data-points="10">
+      <div class="stamp"></div>
+      <span class="icon">💍</span>
+      <span class="text">Nopērc Topošai sievai kāzu dāvanu “SExyStyle”</span>
+    </div>
+    <div class="task-card" data-points="10">
+      <div class="stamp"></div>
+      <span class="icon">🍻</span>
+      <span class="text">Izmaksā čomiem dzērienu</span>
+    </div>
+    <div class="task-card" data-points="10">
+      <div class="stamp"></div>
+      <span class="icon">🔍</span>
+      <span class="text">Atrodi sievieti vārdā Jurita un pierunā pievienoties</span>
+    </div>
+    <div class="task-card" data-points="10">
+      <div class="stamp"></div>
+      <span class="icon">👖</span>
+      <span class="text">Izžāvē drēbes laundromatā Borata tērpā</span>
+    </div>
+    <div class="task-card" data-points="10">
+      <div class="stamp"></div>
+      <span class="icon">✋</span>
+      <span class="text">Dabū high five no 5 maziem zēniem</span>
+    </div>
+    <div class="task-card" data-points="10">
+      <div class="stamp"></div>
+      <span class="icon">❓</span>
+      <span class="text">Nopērc blašķi ar nezināmu džiņdžu</span>
+    </div>
+    <div class="task-card" data-points="10">
+      <div class="stamp"></div>
+      <span class="icon">🏋️</span>
+      <span class="text">Atspiesties 400x visas dienas garumā</span>
+    </div>
+    <div class="task-card" data-points="10">
+      <div class="stamp"></div>
+      <span class="icon">👍</span>
+      <span class="text">Stundu jāpiekrīt visam</span>
+    </div>
+    <div class="task-card" data-points="10">
+      <div class="stamp"></div>
+      <span class="icon">⛽</span>
+      <span class="text">Pajautā Straujupītes benzīntankā par baterijas pulti</span>
+    </div>
+    <div class="task-card" data-points="10">
+      <div class="stamp"></div>
+      <span class="icon">🎥</span>
+      <span class="text">Uzfilmē populāru TikTok video</span>
+    </div>
+    <div class="task-card" data-points="10">
+      <div class="stamp"></div>
+      <span class="icon">🍺</span>
+      <span class="text">Iečago aliņu</span>
+    </div>
+    <div class="task-card" data-points="10">
+      <div class="stamp"></div>
+      <span class="icon">🛴</span>
+      <span class="text">Uztaisi triku ar Bolt skūteri</span>
+    </div>
+    <div class="task-card" data-points="10">
+      <div class="stamp"></div>
+      <span class="icon">🎶</span>
+      <span class="text">Mūzikas izvēles uzdevums</span>
+    </div>
+    <div class="task-card" data-points="10">
+      <div class="stamp"></div>
+      <span class="icon">👶</span>
+      <span class="text">Bērni skaļi saka: “Mums pāvests apsolīja multenes”</span>
+    </div>
+    <div class="task-card" data-points="10">
+      <div class="stamp"></div>
+      <span class="icon">💧</span>
+      <span class="text">Stundas laikā 3 dažādās ūdens tilpnēs</span>
+    </div>
+  </div>
+
+  <script>
+    const cards = document.querySelectorAll('.task-card');
+    const doneCountEl = document.getElementById('doneCount');
+    const scoreEl = document.getElementById('score');
+
+    function updateCounter() {
+      const doneCards = document.querySelectorAll('.task-card.completed');
+      let totalScore = 0;
+      doneCards.forEach(c => totalScore += parseInt(c.dataset.points, 10));
+      doneCountEl.textContent = doneCards.length;
+      scoreEl.textContent = totalScore;
+    }
+
+    cards.forEach(card => {
+      card.addEventListener('click', () => {
+        card.classList.toggle('completed');
+        updateCounter();
+      });
+    });
+  </script>
+
+</body>
+</html>
