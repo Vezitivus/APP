@@ -23,7 +23,7 @@
       padding: 10px;
       box-sizing: border-box;
     }
-    h1, h2 { font-weight: 600; color: #007AFF; margin-bottom: 8px; font-size: 24px; }
+    h1,h2 { font-weight: 600; color: #007AFF; margin-bottom: 8px; font-size: 24px; }
     h3 { font-weight: 600; color: #007AFF; margin: 12px 0 4px; font-size: 22px; }
     p { font-size: 20px; line-height: 1.4; }
     input, textarea {
@@ -124,346 +124,266 @@
   <script>
     const scriptUrl = "https://script.google.com/macros/s/AKfycbzfBFIGVe5RhJh5Kgucv2K3ms2MIUMAd2haR6-WCqUkDEt6KJZMmootY5_R3FP9QSssZA/exec";
     let currentGameName = "";
-    
+
     function newGame() {
-      let userGameName = document.getElementById("gameNameInput").value.trim();
-      const params = new URLSearchParams();
-      params.append("action", "newGame");
-      if (userGameName !== "") {
-        params.append("userGameName", userGameName);
-      }
-      fetch(scriptUrl + "?" + params.toString())
-        .then(res => res.json())
-        .then(data => {
-          if (data.error) {
-            alert("Kļūda: " + data.error);
-          } else {
-            currentGameName = data.gameName;
-            document.getElementById("gameNameDisplay").innerText = currentGameName;
+      const name = document.getElementById("gameNameInput").value.trim();
+      const params = new URLSearchParams({ action: "newGame" });
+      if (name) params.append("userGameName", name);
+      fetch(`${scriptUrl}?${params}`)
+        .then(r => r.json())
+        .then(d => {
+          if (d.error) alert("Kļūda: " + d.error);
+          else {
+            currentGameName = d.gameName;
+            document.getElementById("gameNameDisplay").innerText = d.gameName;
             document.getElementById("currentGameInfo").style.display = "block";
             document.getElementById("startSection").style.display = "none";
             document.getElementById("mainContent").style.display = "block";
             document.getElementById("tabBar").style.display = "flex";
-            activateSection('inputSection');
+            activateSection("inputSection");
           }
         })
-        .catch(err => {
-          console.error("Kļūda jaunas spēles izveidē:", err);
-          alert("Kļūda jaunas spēles izveidē");
-        });
+        .catch(e => { console.error(e); alert("Kļūda jaunas spēles izveidē"); });
     }
-    
+
     function joinGame() {
-      let gameName = document.getElementById("gameNameInput").value.trim();
-      if (gameName === "") {
-        alert("Lūdzu ievadi spēles nosaukumu!");
-        return;
-      }
-      const params = new URLSearchParams();
-      params.append("action", "joinGame");
-      params.append("gameName", gameName);
-      fetch(scriptUrl + "?" + params.toString())
-        .then(res => res.json())
-        .then(data => {
-          if (data.error) {
-            alert("Kļūda: " + data.error);
-          } else {
-            currentGameName = data.gameName;
-            document.getElementById("gameNameDisplay").innerText = currentGameName;
+      const name = document.getElementById("gameNameInput").value.trim();
+      if (!name) return alert("Lūdzu ievadi spēles nosaukumu!");
+      const params = new URLSearchParams({ action: "joinGame", gameName: name });
+      fetch(`${scriptUrl}?${params}`)
+        .then(r => r.json())
+        .then(d => {
+          if (d.error) alert("Kļūda: " + d.error);
+          else {
+            currentGameName = d.gameName;
+            document.getElementById("gameNameDisplay").innerText = d.gameName;
             document.getElementById("currentGameInfo").style.display = "block";
             document.getElementById("startSection").style.display = "none";
             document.getElementById("mainContent").style.display = "block";
             document.getElementById("tabBar").style.display = "flex";
-            activateSection('inputSection');
+            activateSection("inputSection");
           }
         })
-        .catch(err => {
-          console.error("Kļūda pievienoties spēlei:", err);
-          alert("Kļūda pievienoties spēlei");
-        });
+        .catch(e => { console.error(e); alert("Kļūda pievienoties spēlei"); });
     }
-    
-    function activateSection(sectionId) {
-      document.querySelectorAll(".section").forEach(sec => sec.classList.remove("active"));
-      document.getElementById(sectionId).classList.add("active");
-      document.querySelectorAll(".tab-bar button").forEach(btn => btn.classList.remove("active"));
-      if (sectionId === "inputSection")       document.getElementById("tabInput").classList.add("active");
-      if (sectionId === "groupASection")      document.getElementById("tabGroupA").classList.add("active");
-      if (sectionId === "groupBSection")      document.getElementById("tabGroupB").classList.add("active");
-      if (sectionId === "standingsSection")   document.getElementById("tabStandings").classList.add("active");
-      if (sectionId === "playoffsSection")    document.getElementById("tabPlayoffs").classList.add("active");
-      if (sectionId === "groupASection")      loadGroupSchedule("A");
-      if (sectionId === "groupBSection")      loadGroupSchedule("B");
-      if (sectionId === "standingsSection")   loadStandings();
-      if (sectionId === "playoffsSection")    loadPlayoffs();
+
+    function activateSection(id) {
+      document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+      document.querySelectorAll(".tab-bar button").forEach(b => b.classList.remove("active"));
+      if (id === "inputSection")   document.getElementById("tabInput").classList.add("active");
+      if (id === "groupASection")  document.getElementById("tabGroupA").classList.add("active");
+      if (id === "groupBSection")  document.getElementById("tabGroupB").classList.add("active");
+      if (id === "standingsSection") document.getElementById("tabStandings").classList.add("active");
+      if (id === "playoffsSection")  document.getElementById("tabPlayoffs").classList.add("active");
+      if (id === "groupASection")      loadGroupSchedule("A");
+      if (id === "groupBSection")      loadGroupSchedule("B");
+      if (id === "standingsSection")   loadStandings();
+      if (id === "playoffsSection")    loadPlayoffs();
     }
-    
+
     function saveTeams() {
-      const teamsText = document.getElementById("teamsInput").value;
-      const teamsArray = teamsText.split("\n").map(t => t.trim()).filter(t => t !== "");
-      if (teamsArray.length === 0) {
-        alert("Lūdzu ievadi vismaz vienu komandu!");
-        return;
-      }
-      if (currentGameName === "") {
-        alert("Nav izvēlēta spēle!");
-        return;
-      }
-      const params = new URLSearchParams();
-      params.append("action", "saveTeams");
-      params.append("gameName", currentGameName);
-      params.append("teams", JSON.stringify(teamsArray));
-      
-      fetch(scriptUrl + "?" + params.toString())
-        .then(res => res.json())
-        .then(data => {
-          if (data.error) {
-            alert("Kļūda: " + data.error);
-          } else {
-            alert("Turnīrs izveidots!");
-            activateSection('standingsSection');
-          }
+      const teams = document.getElementById("teamsInput").value
+        .split("\n").map(l => l.trim()).filter(l => l);
+      if (!teams.length) return alert("Lūdzu ievadi vismaz vienu komandu!");
+      if (!currentGameName) return alert("Nav izvēlēta spēle!");
+      const params = new URLSearchParams({
+        action: "saveTeams",
+        gameName: currentGameName,
+        teams: JSON.stringify(teams)
+      });
+      fetch(`${scriptUrl}?${params}`)
+        .then(r => r.json())
+        .then(d => {
+          if (d.error) alert("Kļūda: " + d.error);
+          else { alert("Turnīrs izveidots!"); activateSection("standingsSection"); }
         })
-        .catch(err => {
-          console.error("Kļūda saglabājot komandas:", err);
-          alert("Kļūda saglabājot komandas");
-        });
+        .catch(e => { console.error(e); alert("Kļūda saglabājot komandas"); });
     }
-    
+
     function loadGroupSchedule(group) {
       if (!currentGameName) return;
-      const params = new URLSearchParams();
-      params.append("action", group === "A" ? "getGroupASchedule" : "getGroupBSchedule");
-      params.append("gameName", currentGameName);
+      const action = group === "A" ? "getGroupASchedule" : "getGroupBSchedule";
+      const params = new URLSearchParams({ action, gameName: currentGameName });
       fetch(`${scriptUrl}?${params}`)
-        .then(res => res.json())
+        .then(r => r.json())
         .then(data => displayGroupSchedule(group, data))
-        .catch(err => {
-          console.error("Kļūda ielādējot Group " + group, err);
-          alert("Kļūda ielādējot datus");
-        });
+        .catch(e => { console.error(e); alert("Kļūda ielādējot datus"); });
     }
-    
+
     function displayGroupSchedule(group, data) {
       let html = `<table>
-                    <tr>
-                      <th>Match #</th>
-                      <th>Team A</th>
-                      <th>Team B</th>
-                      <th>Score A</th>
-                      <th>Score B</th>
-                      <th>Action</th>
-                    </tr>`;
-      data.rows.forEach(row => {
-        const m = row[0], tA = row[1], tB = row[2], sA = row[3], sB = row[4];
-        const disabled = (sA !== "" && sB !== "") ? "disabled" : "";
+        <tr><th>Match #</th><th>Team A</th><th>Team B</th>
+            <th>Score A</th><th>Score B</th><th>Action</th></tr>`;
+      data.rows.forEach(r => {
+        const [m, tA, tB, sA, sB] = r;
+        const dis = (sA !== "" && sB !== "") ? "disabled" : "";
         html += `<tr>
-                   <td>${m}</td>
-                   <td>${tA}</td>
-                   <td>${tB}</td>
-                   <td><input type="number" id="scoreA_${group}_${m}" value="${sA}" ${disabled}></td>
-                   <td><input type="number" id="scoreB_${group}_${m}" value="${sB}" ${disabled}></td>
-                   <td>${disabled
-                     ? "ok"
-                     : `<button onclick="saveGroupScore('${group}', ${m})">ok</button>`}
-                   </td>
-                 </tr>`;
+          <td>${m}</td><td>${tA}</td><td>${tB}</td>
+          <td><input type="number" id="scoreA_${group}_${m}" value="${sA}" ${dis}></td>
+          <td><input type="number" id="scoreB_${group}_${m}" value="${sB}" ${dis}></td>
+          <td>${dis
+            ? "ok"
+            : `<button onclick="saveGroupScore('${group}',${m})">ok</button>`}
+          </td>
+        </tr>`;
       });
       html += `</table>`;
       document.getElementById(group === "A" ? "groupAContainer" : "groupBContainer").innerHTML = html;
     }
-    
-    // pēc rezultāta saglabāšanas – pārlādē scheduli, standings un playoff
+
     function saveGroupScore(group, matchNumber) {
-      const scoreA = document.getElementById(`scoreA_${group}_${matchNumber}`).value;
-      const scoreB = document.getElementById(`scoreB_${group}_${matchNumber}`).value;
-      if (!scoreA || !scoreB) {
-        alert("Lūdzu aizpildi abas punktu vērtības!");
-        return;
-      }
+      const sA = document.getElementById(`scoreA_${group}_${matchNumber}`).value;
+      const sB = document.getElementById(`scoreB_${group}_${matchNumber}`).value;
+      if (!sA || !sB) return alert("Lūdzu aizpildi abas punktu vērtības!");
       const params = new URLSearchParams({
-        action:       "saveGroupScore",
-        gameName:     currentGameName,
-        group:        group,
-        matchNumber:  matchNumber,
-        scoreA:       scoreA,
-        scoreB:       scoreB
+        action: "saveGroupScore",
+        gameName: currentGameName,
+        group, matchNumber, scoreA: sA, scoreB: sB
       });
       fetch(`${scriptUrl}?${params}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.error) {
-            alert("Kļūda: " + data.error);
-          } else {
+        .then(r => r.json())
+        .then(d => {
+          if (d.error) alert("Kļūda: " + d.error);
+          else {
             alert("Punkti saglabāti!");
             loadGroupSchedule(group);
             loadStandings();
             loadPlayoffs();
           }
         })
-        .catch(err => {
-          console.error("Kļūda saglabājot punktus:", err);
-          alert("Kļūda saglabājot punktus");
-        });
+        .catch(e => { console.error(e); alert("Kļūda saglabājot punktus"); });
     }
-    
+
     function loadStandings() {
-      if (!currentGameName) return;
-      const params = new URLSearchParams({
-        action:   "standings",
-        gameName: currentGameName
-      });
-      fetch(`${scriptUrl}?${params}`)
-        .then(res => res.json())
+      if (!currentGameName) return Promise.resolve();
+      const params = new URLSearchParams({ action: "standings", gameName: currentGameName });
+      return fetch(`${scriptUrl}?${params}`)
+        .then(r => r.json())
         .then(data => {
+          // A
           let htmlA = `<table>
-                        <tr>
-                          <th>Team</th><th>Games</th><th>Wins</th>
-                          <th>Losses</th><th>Points For</th><th>Points Against</th>
-                        </tr>`;
+            <tr><th>Team</th><th>Games</th><th>Wins</th>
+                <th>Losses</th><th>PF</th><th>PA</th></tr>`;
           data.standingsA.forEach(r => {
             htmlA += `<tr>
-                        <td>${r.Team}</td>
-                        <td>${r.Games}</td>
-                        <td>${r.Wins}</td>
-                        <td>${r.Losses}</td>
-                        <td>${r["Points For"]}</td>
-                        <td>${r["Points Against"]}</td>
-                      </tr>`;
+              <td>${r.Team}</td><td>${r.Games}</td><td>${r.Wins}</td>
+              <td>${r.Losses}</td><td>${r["Points For"]}</td><td>${r["Points Against"]}</td>
+            </tr>`;
           });
           htmlA += `</table>`;
           document.getElementById("standingsAContainer").innerHTML = htmlA;
-          
+          // B
           let htmlB = `<table>
-                        <tr>
-                          <th>Team</th><th>Games</th><th>Wins</th>
-                          <th>Losses</th><th>Points For</th><th>Points Against</th>
-                        </tr>`;
+            <tr><th>Team</th><th>Games</th><th>Wins</th>
+                <th>Losses</th><th>PF</th><th>PA</th></tr>`;
           data.standingsB.forEach(r => {
             htmlB += `<tr>
-                        <td>${r.Team}</td>
-                        <td>${r.Games}</td>
-                        <td>${r.Wins}</td>
-                        <td>${r.Losses}</td>
-                        <td>${r["Points For"]}</td>
-                        <td>${r["Points Against"]}</td>
-                      </tr>`;
+              <td>${r.Team}</td><td>${r.Games}</td><td>${r.Wins}</td>
+              <td>${r.Losses}</td><td>${r["Points For"]}</td><td>${r["Points Against"]}</td>
+            </tr>`;
           });
           htmlB += `</table>`;
           document.getElementById("standingsBContainer").innerHTML = htmlB;
+          return data.combinedStandings.map(r => r.Team);
         })
-        .catch(err => {
-          console.error("Kļūda ielādējot standings:", err);
-          alert("Kļūda ielādējot datus");
-        });
+        .catch(e => { console.error(e); alert("Kļūda ielādējot standings"); });
     }
-    
+
     function loadPlayoffs() {
       if (!currentGameName) return;
-      const params = new URLSearchParams({
-        action:   "getPlayoffSchedule",
-        gameName: currentGameName
+      // salīdzinām standings, pēc tam ģenerējam QF→SF→Final
+      loadStandings().then(teams => {
+        if (!teams || teams.length < 2) {
+          document.getElementById("playoffsContainer").innerHTML = "<p>Nav pietiekami daudz komandu playoff</p>";
+          return;
+        }
+        displayDynamicBracket(teams);
       });
-      fetch(`${scriptUrl}?${params}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.error) {
-            alert("Kļūda ielādējot playoffs: " + data.error);
-          } else {
-            displayPlayoffs(data.rows || []);
-          }
-        })
-        .catch(err => {
-          console.error("Kļūda ielādējot playoffs:", err);
-          alert("Kļūda ielādējot datus");
-        });
     }
-    
-    // Izveido html tabulu pēc rindām
+
+    function displayDynamicBracket(teams) {
+      // izvēlam top N, N=2^k
+      let n = 1;
+      while (n * 2 <= teams.length) n *= 2;
+      const bracket = teams.slice(0, n);
+      // QF
+      const qf = [];
+      for (let i = 0; i < n/2; i++) {
+        qf.push({
+          match: `QF${i+1}`,
+          team1: bracket[i],
+          team2: bracket[n-1-i],
+          score1: "", score2: "", winner: "", loser: ""
+        });
+      }
+      // SF placeholders
+      const sf = [
+        { match:"SF1", team1:"", team2:"", score1:"", score2:"", winner:"", loser:"" },
+        { match:"SF2", team1:"", team2:"", score1:"", score2:"", winner:"", loser:"" }
+      ];
+      // Final / 3rd
+      const fin1 = [{ match:"Final1", team1:"", team2:"", score1:"", score2:"", winner:"", loser:"" }];
+      const fin3 = [{ match:"Final2", team1:"", team2:"", score1:"", score2:"", winner:"", loser:"" }];
+
+      let html = "";
+      html += `<h3>Quarterfinals</h3>` + makeTable(qf);
+      html += `<h3>Semifinals</h3>` + makeTable(sf);
+      html += `<h3>Final (1st place)</h3>` + makeTable(fin1);
+      html += `<h3>3rd Place Final</h3>` + makeTable(fin3);
+      document.getElementById("playoffsContainer").innerHTML = html;
+    }
+
     function makeTable(rows) {
       let html = `<table>
-                    <tr>
-                      <th>Match</th><th>Team 1</th><th>Team 2</th>
-                      <th>Score 1</th><th>Score 2</th>
-                      <th>Winner</th><th>Loser</th><th>Action</th>
-                    </tr>`;
+        <tr><th>Match</th><th>Team 1</th><th>Team 2</th>
+            <th>Score 1</th><th>Score 2</th><th>Winner</th><th>Loser</th><th>Action</th></tr>`;
       rows.forEach(r => {
-        const m = r.match, t1 = r.team1||"", t2 = r.team2||"",
-              s1 = r.score1||"", s2 = r.score2||"",
-              win = r.winner||"", lose = r.loser||"",
-              disabled = (s1 !== "" && s2 !== "") ? "disabled" : "";
+        const dis = (r.score1 !== "" && r.score2 !== "") ? "disabled" : "";
         html += `<tr>
-                   <td>${m}</td>
-                   <td><input type="text" id="pTeam1_${m}" value="${t1}" style="width:100%;font-size:10px;"></td>
-                   <td><input type="text" id="pTeam2_${m}" value="${t2}" style="width:100%;font-size:10px;"></td>
-                   <td><input type="number" id="pScore1_${m}" value="${s1}" ${disabled} style="width:50px;font-size:10px;"></td>
-                   <td><input type="number" id="pScore2_${m}" value="${s2}" ${disabled} style="width:50px;font-size:10px;"></td>
-                   <td>${win}</td>
-                   <td>${lose}</td>
-                   <td>${disabled
-                     ? "ok"
-                     : `<button onclick="savePlayoffScore('${m}')">ok</button>`}
-                   </td>
-                 </tr>`;
+          <td>${r.match}</td>
+          <td><input id="t1_${r.match}" value="${r.team1}" style="width:100%;font-size:10px;"></td>
+          <td><input id="t2_${r.match}" value="${r.team2}" style="width:100%;font-size:10px;"></td>
+          <td><input type="number" id="s1_${r.match}" value="${r.score1}" ${dis} style="width:50px;"></td>
+          <td><input type="number" id="s2_${r.match}" value="${r.score2}" ${dis} style="width:50px;"></td>
+          <td>${r.winner}</td>
+          <td>${r.loser}</td>
+          <td>${dis
+            ? "ok"
+            : `<button onclick="savePlayoffScore('${r.match}')">ok</button>`}
+          </td>
+        </tr>`;
       });
       html += `</table>`;
       return html;
     }
-    
-    // Grupē un ataino QF, SF, Final1 un Final2
-    function displayPlayoffs(allRows) {
-      const qf    = allRows.filter(r => /^QF/i.test(r.match));
-      const sf    = allRows.filter(r => /^SF/i.test(r.match));
-      // final1 = the championship final (match name "Final" or "Final1")
-      const final1 = allRows.filter(r => /^Final$/i.test(r.match) || /^Final1$/i.test(r.match));
-      // final2 = the 3rd-place match (match name "3rd" or "Final2")
-      const final2 = allRows.filter(r => /^3rd/i.test(r.match)    || /^Final2$/i.test(r.match));
-      
-      let html = "";
-      if (qf.length)    { html += `<h3>Quarterfinals</h3>` + makeTable(qf); }
-      if (sf.length)    { html += `<h3>Semifinals</h3>`     + makeTable(sf); }
-      if (final1.length){ html += `<h3>Final1</h3>`         + makeTable(final1); }
-      if (final2.length){ html += `<h3>Final2</h3>`         + makeTable(final2); }
-      if (!qf.length && !sf.length && !final1.length && !final2.length) {
-        html = "<p>Nav Playoff datu</p>";
-      }
-      document.getElementById("playoffsContainer").innerHTML = html;
-    }
-    
+
     function savePlayoffScore(matchId) {
-      const t1 = document.getElementById(`pTeam1_${matchId}`).value;
-      const t2 = document.getElementById(`pTeam2_${matchId}`).value;
-      const s1 = document.getElementById(`pScore1_${matchId}`).value;
-      const s2 = document.getElementById(`pScore2_${matchId}`).value;
-      if (s1 === "" || s2 === "") {
-        alert("Lūdzu ievadi abas punktu vērtības!");
-        return;
-      }
+      const score1 = document.getElementById(`s1_${matchId}`).value;
+      const score2 = document.getElementById(`s2_${matchId}`).value;
+      const team1  = document.getElementById(`t1_${matchId}`).value;
+      const team2  = document.getElementById(`t2_${matchId}`).value;
+      if (score1 === "" || score2 === "") return alert("Lūdzu ievadi abas punktu vērtības!");
       const params = new URLSearchParams({
-        action:   "savePlayoffScore",
+        action: "savePlayoffScore",
         gameName: currentGameName,
-        matchId:  matchId,
-        score1:   s1,
-        score2:   s2
+        matchId,
+        team1, team2,
+        score1, score2
       });
       fetch(`${scriptUrl}?${params}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.error) {
-            alert("Kļūda: " + data.error);
-          } else {
+        .then(r => r.json())
+        .then(d => {
+          if (d.error) alert("Kļūda: " + d.error);
+          else {
             alert("Punkti saglabāti!");
             loadPlayoffs();
           }
         })
-        .catch(err => {
-          console.error("Kļūda saglabājot playoff punktus:", err);
-          alert("Kļūda saglabājot punktus");
-        });
+        .catch(e => { console.error(e); alert("Kļūda saglabājot playoff punktus"); });
     }
-    
-    // Automātiska ielāde
-    window.onload = () => { loadPlayoffs(); };
+
+    window.onload = () => { activateSection("inputSection"); };
   </script>
 </body>
 </html>
