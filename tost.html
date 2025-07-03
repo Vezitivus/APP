@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Dropdown no Google Sheets</title>
+</head>
+<body>
+  <h2>Izvēlies vērtību no 1. rindas:</h2>
+  <select id="dropdown"></select>
+
+  <script>
+    // Tavs Web App URL
+    const webAppUrl = 'https://script.google.com/macros/s/AKfycbz40F2L-xfo5YXZqXldeR98yMi7l97BIkfrS5BSrQYdiqwe5fxVuAbaSdyIpTwm8d7BJw/exec';
+
+    // Ielādē dropdown vērtības no 1. rindas
+    fetch(webAppUrl)
+      .then(response => response.json())
+      .then(data => {
+        const dropdown = document.getElementById('dropdown');
+        data.forEach(value => {
+          const option = document.createElement('option');
+          option.value = value;
+          option.textContent = value;
+          dropdown.appendChild(option);
+        });
+      })
+      .catch(error => {
+        console.error('Kļūda ielādējot datus:', error);
+      });
+  </script>
+</body>
+</html>
