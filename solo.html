@@ -7,97 +7,67 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     body {
-      margin: 0; padding: 16px;
-      background: #000; color: #fff;
-      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
-      display: flex; justify-content: center;
+      margin:0; padding:16px;
+      background:#000; color:#fff;
+      font-family:-apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+      display:flex; justify-content:center;
     }
     .container {
-      width: 100%; max-width: 480px;
-      background: #111; border-radius: 12px;
-      padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      width:100%; max-width:480px;
+      background:#111; border-radius:12px;
+      padding:24px; box-shadow:0 4px 20px rgba(0,0,0,0.5);
     }
     h1 {
-      margin: 0 0 24px;
-      font-size: 2.5rem; font-weight: bold;
-      text-align: center; line-height: 1.2;
+      margin:0 0 24px;
+      font-size:2.5rem; font-weight:bold;
+      text-align:center; line-height:1.2;
     }
-    .row { margin-bottom: 20px; }
-    select, input[type="number"] {
-      width: 100%; padding: 12px;
-      font-size: 1rem; border: none;
-      border-radius: 8px; background: #222;
-      color: #fff; outline: none;
+    .row { margin-bottom:20px; }
+    select, input[type="number"], button {
+      width:100%; padding:12px;
+      font-size:1rem; border:none;
+      border-radius:8px; background:#222;
+      color:#fff; outline:none;
     }
     .players-grid {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 12px; margin-bottom: 20px;
+      display:grid; grid-template-columns:1fr 1fr;
+      gap:12px; margin-bottom:20px;
     }
-    .player-column select,
-    .player-column input:first-child {
-      margin-bottom: 8px;
-    }
-    #submitBtn {
-      width: 100%; padding: 14px;
-      font-size: 1.1rem; border: none;
-      border-radius: 10px; background: #1a1a1a;
-      color: #fff; cursor: pointer;
+    .player-column select { margin-bottom:8px; }
+    button {
+      padding:14px; font-size:1.1rem;
+      background:#1a1a1a; cursor:pointer;
       transition: background-color .2s;
     }
-    #submitBtn:hover:not(:disabled) { background: #333; }
-    #submitBtn:disabled { opacity: 0.6; cursor: default; }
-    .hidden { display: none !important; }
+    button:hover:not(:disabled) { background:#333; }
+    button:disabled { opacity:0.6; cursor:default; }
+    .hidden { display:none!important; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>SOLO GAMES</h1>
-
-    <!-- 1) Spēļu izvēle -->
     <div class="row">
       <select id="gameSelect" disabled>
-        <option value="">Ļauj ielādēt spēles…</option>
+        <option>Ļauj ielādēt…</option>
       </select>
     </div>
-
-    <!-- 2+3) Spēlētāji un viņu punkti -->
     <div id="playersGrid" class="players-grid hidden">
       <div class="player-column">
-        <select id="player1">
-          <option value="" disabled selected>Spēlētājs 1</option>
-        </select>
+        <select id="player1"><option>Spēlētājs 1</option></select>
         <input type="number" id="score1" placeholder="Punkti" min="0" disabled>
       </div>
       <div class="player-column">
-        <select id="player2">
-          <option value="" disabled selected>Spēlētājs 2</option>
-        </select>
+        <select id="player2"><option>Spēlētājs 2</option></select>
         <input type="number" id="score2" placeholder="Punkti" min="0" disabled>
       </div>
     </div>
-
-    <!-- 4) Nosūtīšanas poga -->
     <button id="submitBtn" class="hidden" disabled>Nosūtīt rezultātus</button>
   </div>
 
   <script>
     const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxIUgMyljIg79EVd2vC_BkEW-lOLteOkjjJbjEIaoE632jxUujKkNC3i-MmH7xgChP4/exec';
 
-    // 1) Ielādē tikai A1:AA1 → spēļu saraksts
-    function headerCallback(games) {
-      const sel = document.getElementById('gameSelect');
-      sel.innerHTML = '<option value="" disabled selected>Izvēlies spēli</option>';
-      games.forEach(name => sel.appendChild(new Option(name, name)));
-      sel.disabled = false;
-    }
-    function loadHeaders() {
-      const s = document.createElement('script');
-      s.src = `${WEBAPP_URL}?callback=headerCallback&action=getHeaders`;
-      document.body.appendChild(s);
-    }
-    document.addEventListener('DOMContentLoaded', loadHeaders);
-
-    // references
     const gameSelect  = document.getElementById('gameSelect');
     const playersGrid = document.getElementById('playersGrid');
     const player1     = document.getElementById('player1');
@@ -106,37 +76,50 @@
     const score2      = document.getElementById('score2');
     const submitBtn   = document.getElementById('submitBtn');
 
-    // 2) Kad izvēlas spēli → ielādē tās spēlētājus no A2:A1000
-    function playersCallback(players) {
-      [player1, player2].forEach(sel => {
-        sel.innerHTML = '<option value="" disabled selected>Spēlētājs</option>';
-        players.forEach(p => sel.appendChild(new Option(p, p)));
-        sel.selectedIndex = 0;
+    // Ielādē spēļu nosaukumus (A1:AA1)
+    fetch(`${WEBAPP_URL}?action=getHeaders`)
+      .then(r => r.json())
+      .then(headers => {
+        gameSelect.innerHTML = '<option value="" disabled selected>Izvēlies spēli</option>';
+        headers.forEach(name => {
+          const o = document.createElement('option');
+          o.value = name; o.textContent = name;
+          gameSelect.appendChild(o);
+        });
+        gameSelect.disabled = false;
       });
-      [score1, score2].forEach(i => { i.value=''; i.disabled=true; });
-      submitBtn.disabled = true; submitBtn.classList.add('hidden');
-      playersGrid.classList.remove('hidden');
-    }
+
+    // Spēles izvēle → ielādē spēlētājus
     gameSelect.addEventListener('change', () => {
-      const game = encodeURIComponent(gameSelect.value);
-      const s = document.createElement('script');
-      s.src = `${WEBAPP_URL}?callback=playersCallback&action=getPlayers&game=${game}`;
-      document.body.appendChild(s);
+      fetch(`${WEBAPP_URL}?action=getPlayers&game=${encodeURIComponent(gameSelect.value)}`)
+        .then(r => r.json())
+        .then(players => {
+          [player1,player2].forEach(sel => {
+            sel.innerHTML = '<option value="" disabled selected>Spēlētājs</option>';
+            players.forEach(p => sel.appendChild(new Option(p,p)));
+            sel.disabled = false;
+          });
+          [score1,score2].forEach(i => { i.value=''; i.disabled=true; });
+          submitBtn.disabled = true;
+          submitBtn.classList.add('hidden');
+          playersGrid.classList.remove('hidden');
+        });
     });
 
-    // 3) Aktivizē punktu ievadi
+    // Aktivizē punktu ievadi
     function checkPlayers() {
-      if (player1.value && player2.value && player1.value !== player2.value) {
+      if (player1.value && player2.value && player1.value!==player2.value) {
         score1.disabled = score2.disabled = false;
       } else {
         score1.disabled = score2.disabled = true;
-        submitBtn.disabled = true; submitBtn.classList.add('hidden');
+        submitBtn.disabled = true;
+        submitBtn.classList.add('hidden');
       }
     }
     player1.addEventListener('change', checkPlayers);
     player2.addEventListener('change', checkPlayers);
 
-    // 4) Parāda pogu, kad abi punkti ienesti
+    // Parāda pogu, kad abi punkti ievadīti
     function checkScores() {
       if (score1.value!=='' && score2.value!=='') {
         submitBtn.classList.remove('hidden');
@@ -149,30 +132,32 @@
     score1.addEventListener('input', checkScores);
     score2.addEventListener('input', checkScores);
 
-    // 5) Iesūta rezultātus
-    function submitCallback(resp) {
-      if (resp.status === 'success') {
-        alert('Rezultāti saglabāti!');
-        [score1, score2].forEach(i=>i.value='');
-        submitBtn.disabled = true; submitBtn.classList.add('hidden');
-      } else {
-        alert('Kļūda: '+resp.message);
-      }
-    }
+    // Nosūta rezultātus ar POST
     submitBtn.addEventListener('click', () => {
       const s1 = +score1.value, s2 = +score2.value;
-      const params = [
-        'callback=submitCallback',
-        'action=submit',
-        'game='         + encodeURIComponent(gameSelect.value),
-        'winner='       + encodeURIComponent(s1 > s2 ? player1.value : player2.value),
-        'loser='        + encodeURIComponent(s1 > s2 ? player2.value : player1.value),
-        'winnerPoints=' + encodeURIComponent(Math.max(s1, s2)),
-        'loserPoints='  + encodeURIComponent(Math.min(s1, s2))
-      ].join('&');
-      const s = document.createElement('script');
-      s.src = `${WEBAPP_URL}?${params}`;
-      document.body.appendChild(s);
+      const payload = {
+        game: gameSelect.value,
+        winner:  s1 > s2 ? player1.value : player2.value,
+        loser:   s1 > s2 ? player2.value : player1.value,
+        winnerPoints: Math.max(s1,s2),
+        loserPoints:  Math.min(s1,s2)
+      };
+      fetch(WEBAPP_URL, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(payload),
+      })
+      .then(r=>r.json())
+      .then(resp => {
+        if (resp.status==='success') {
+          alert('Rezultāti saglabāti!');
+          [score1,score2].forEach(i=>i.value='');
+          submitBtn.disabled=true; submitBtn.classList.add('hidden');
+        } else {
+          alert('Kļūda: '+resp.message);
+        }
+      })
+      .catch(() => alert('Savienojuma kļūda'));
     });
   </script>
 </body>
