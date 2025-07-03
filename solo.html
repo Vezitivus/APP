@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SOLO GAMES</title>
   <style>
-    /* Global reset */
     *, *::before, *::after { box-sizing: border-box; }
     body {
       margin: 0; padding: 16px;
@@ -29,14 +28,13 @@
       font-size: 1rem; border: none;
       border-radius: 8px; background: #222;
       color: #fff; outline: none;
-      -webkit-appearance: none; /* iOS Safari */
     }
     .players-grid {
       display: grid; grid-template-columns: 1fr 1fr;
       gap: 12px; margin-bottom: 20px;
     }
-    .player-column select,
-    .player-column input[type="number"] {
+    .player-column input:first-child,
+    .player-column select {
       margin-bottom: 8px;
     }
     #submitBtn {
@@ -65,13 +63,13 @@
     <!-- 2+3) Spēlētāji un viņu punkti -->
     <div id="playersGrid" class="players-grid hidden">
       <div class="player-column">
-        <select id="player1Select">
+        <select id="player1">
           <option value="" disabled selected>Spēlētājs 1</option>
         </select>
         <input type="number" id="score1" placeholder="Punkti" min="0" disabled>
       </div>
       <div class="player-column">
-        <select id="player2Select">
+        <select id="player2">
           <option value="" disabled selected>Spēlētājs 2</option>
         </select>
         <input type="number" id="score2" placeholder="Punkti" min="0" disabled>
@@ -86,7 +84,7 @@
     const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxIUgMyljIg79EVd2vC_BkEW-lOLteOkjjJbjEIaoE632jxUujKkNC3i-MmH7xgChP4/exec';
     let gamesData = [];
 
-    // 1) Ielādē spēles ar JSONP (bez kešēšanas)
+    // 1) JSONP ielāde spēlēm
     function gamesCallback(data) {
       gamesData = data;
       const sel = document.getElementById('gameSelect');
@@ -98,56 +96,53 @@
     }
     function loadGames() {
       const s = document.createElement('script');
-      s.src = `${WEBAPP_URL}?callback=gamesCallback&_=${Date.now()}`;
+      s.src = `${WEBAPP_URL}?callback=gamesCallback`;
       document.body.appendChild(s);
     }
     document.addEventListener('DOMContentLoaded', loadGames);
 
     // Elementi
-    const gameSelect   = document.getElementById('gameSelect');
-    const playersGrid  = document.getElementById('playersGrid');
-    const player1Sel   = document.getElementById('player1Select');
-    const player2Sel   = document.getElementById('player2Select');
-    const score1       = document.getElementById('score1');
-    const score2       = document.getElementById('score2');
-    const submitBtn    = document.getElementById('submitBtn');
+    const gameSelect  = document.getElementById('gameSelect');
+    const playersGrid = document.getElementById('playersGrid');
+    const player1     = document.getElementById('player1');
+    const player2     = document.getElementById('player2');
+    const score1      = document.getElementById('score1');
+    const score2      = document.getElementById('score2');
+    const submitBtn   = document.getElementById('submitBtn');
 
-    // 2) Spēles izvēle → aizpilda spēlētājus
+    // 2) Kad spēle izvēlēta → pildām <select> un parādam spēlētāju bloku
     gameSelect.addEventListener('change', () => {
-      const game = gameSelect.value;
-      const sel  = gamesData.find(g => g.name === game);
-      // notīra un aizpilda abus selectus
-      [player1Sel, player2Sel].forEach(select => {
-        select.innerHTML = '<option value="" disabled selected>Izvēlies spēlētāju</option>';
-        sel.players.forEach(p => {
-          const o = document.createElement('option');
-          o.value = p; o.textContent = p;
-          select.appendChild(o);
+      const selData = gamesData.find(g => g.name === gameSelect.value);
+      [player1, player2].forEach(sel => {
+        // notīrām vecās iespējas, atstājam pirmo placeholder
+        for (let i = sel.options.length - 1; i > 0; i--) {
+          sel.remove(i);
+        }
+        // pievienojam jaunus spēlētājus
+        selData.players.forEach(p => {
+          const o = new Option(p, p);
+          sel.add(o);
         });
+        sel.selectedIndex = 0;
       });
-      // atiestata punkti un poga
       [score1, score2].forEach(i => { i.value = ''; i.disabled = true; });
-      submitBtn.disabled = true;
-      submitBtn.classList.add('hidden');
+      submitBtn.disabled = true; submitBtn.classList.add('hidden');
       playersGrid.classList.remove('hidden');
     });
 
-    // 3) Spēlētāju izvēle → aktivizē punktu lauciņus
+    // 3) Aktivizē punktu ievades laukus
     function checkPlayers() {
-      if (player1Sel.value && player2Sel.value && player1Sel.value !== player2Sel.value) {
-        score1.disabled = false;
-        score2.disabled = false;
+      if (player1.value && player2.value && player1.value !== player2.value) {
+        score1.disabled = score2.disabled = false;
       } else {
-        score1.disabled = true;
-        score2.disabled = true;
-        submitBtn.disabled = true;
-        submitBtn.classList.add('hidden');
+        score1.disabled = score2.disabled = true;
+        submitBtn.disabled = true; submitBtn.classList.add('hidden');
       }
     }
-    player1Sel.addEventListener('change', checkPlayers);
-    player2Sel.addEventListener('change', checkPlayers);
+    player1.addEventListener('change', checkPlayers);
+    player2.addEventListener('change', checkPlayers);
 
-    // 4) Punktu ievade → parāda pogu
+    // 4) Parāda pogu, kad abi punkti ievadīti
     function checkScores() {
       if (score1.value !== '' && score2.value !== '') {
         submitBtn.classList.remove('hidden');
@@ -160,13 +155,12 @@
     score1.addEventListener('input', checkScores);
     score2.addEventListener('input', checkScores);
 
-    // 5) Iesūta rezultātus caur JSONP (ar timestamp)
+    // 5) JSONP iesūtīšana
     function submitCallback(resp) {
       if (resp.status === 'success') {
         alert('Rezultāti saglabāti!');
         [score1, score2].forEach(i => i.value = '');
-        submitBtn.disabled = true;
-        submitBtn.classList.add('hidden');
+        submitBtn.disabled = true; submitBtn.classList.add('hidden');
       } else {
         alert('Kļūda: ' + resp.message);
       }
@@ -175,12 +169,11 @@
       const s1 = +score1.value, s2 = +score2.value;
       const params = [
         'callback=submitCallback',
-        'game='         + encodeURIComponent(gameSelect.value),
-        'winner='       + encodeURIComponent(s1>s2 ? player1Sel.value : player2Sel.value),
-        'loser='        + encodeURIComponent(s1>s2 ? player2Sel.value : player1Sel.value),
-        'winnerPoints='+ encodeURIComponent(Math.max(s1,s2)),
-        'loserPoints=' + encodeURIComponent(Math.min(s1,s2)),
-        '_='           + Date.now()
+        'game='          + encodeURIComponent(gameSelect.value),
+        'winner='        + encodeURIComponent(s1 > s2 ? player1.value : player2.value),
+        'loser='         + encodeURIComponent(s1 > s2 ? player2.value : player1.value),
+        'winnerPoints='  + encodeURIComponent(Math.max(s1, s2)),
+        'loserPoints='   + encodeURIComponent(Math.min(s1, s2))
       ].join('&');
       const s = document.createElement('script');
       s.src = `${WEBAPP_URL}?${params}`;
