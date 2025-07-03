@@ -6,33 +6,27 @@
   <title>SOLO GAMES</title>
   <style>
     *,*::before,*::after{box-sizing:border-box}
-    body{margin:0;padding:16px;
-      background:#000;color:#fff;
+    body{margin:0;padding:16px;background:#000;color:#fff;
       font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
       display:flex;justify-content:center}
-    .container{width:100%;max-width:480px;
-      background:#111;border-radius:12px;
-      padding:24px;box-shadow:0 4px 20px rgba(0,0,0,0.5)}
+    .container{width:100%;max-width:480px;background:#111;
+      border-radius:12px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,0.5)}
     h1{margin:0 0 24px;font-size:2.5rem;font-weight:bold;text-align:center}
-    .games-list{display:grid;
-      grid-template-columns:repeat(2,1fr);
+    .games-list{display:grid;grid-template-columns:repeat(2,1fr);
       gap:12px;margin-bottom:24px}
-    .game-btn{padding:8px;font-size:1rem;
-      border:none;border-radius:8px;
-      background:#222;color:#fff;
+    .game-btn{padding:8px;font-size:1rem;border:none;
+      border-radius:8px;background:#222;color:#fff;
       cursor:pointer;transition:background .2s;
       -webkit-appearance:none;white-space:nowrap}
     .game-btn:hover{background:#333}
-    .players-grid{display:grid;
-      grid-template-columns:1fr 1fr;
+    .players-grid{display:grid;grid-template-columns:1fr 1fr;
       gap:12px;margin-bottom:20px}
     select,input[type=number]{width:100%;padding:12px;
       font-size:1rem;border:none;border-radius:8px;
       background:#222;color:#fff;outline:none;margin-bottom:8px}
     #submitBtn{width:100%;padding:14px;font-size:1.1rem;
-      border:none;border-radius:10px;
-      background:#1a1a1a;color:#fff;
-      cursor:pointer;transition:background .2s,transform .2s;
+      border:none;border-radius:10px;background:#1a1a1a;
+      color:#fff;cursor:pointer;transition:background .2s,transform .2s;
       -webkit-appearance:none}
     #submitBtn:hover:not(:disabled){background:#333}
     #submitBtn:disabled{opacity:.6;cursor:default}
@@ -42,42 +36,51 @@
   </style>
 
   <script>
-    // Initialize games list (with localStorage cache)
-    function initGames(data) {
+    // Games JSONP callback (defined *before* injection)
+    function gamesCallback(data) {
+      window.gamesData = data;
+      localStorage.setItem('soloGames', JSON.stringify(data));
+      renderGames(data);
+    }
+    function renderGames(data) {
       const list = document.getElementById('gamesList');
       list.innerHTML = '';
       data.forEach(item => {
         const b = document.createElement('button');
         b.textContent = item.name;
-        b.className   = 'game-btn';
-        b.type        = 'button';
-        b.onclick     = () => selectGame(item.name);
+        b.className = 'game-btn';
+        b.type = 'button';
+        b.onclick = () => selectGame(item.name);
         list.appendChild(b);
       });
     }
-    function gamesCallback(data) {
-      try { localStorage.soloGames = JSON.stringify(data); } catch(e){}
-      window.gamesData = data;
-      initGames(data);
-    }
-    // If cached, render immediately
-    if (localStorage.soloGames) {
-      try {
-        const cached = JSON.parse(localStorage.soloGames);
-        window.gamesData = cached;
-        initGames(cached);
-      } catch(e) { localStorage.removeItem('soloGames'); }
-    }
+
+    // On DOM ready, inject JSONP with cache-buster
+    document.addEventListener('DOMContentLoaded', () => {
+      // If cached, render immediately
+      const cached = localStorage.getItem('soloGames');
+      if (cached) {
+        try { renderGames(JSON.parse(cached)); }
+        catch(e){ localStorage.removeItem('soloGames'); }
+      }
+      // Inject JSONP
+      const s = document.createElement('script');
+      s.src = 'https://script.google.com/macros/s/AKfycbxIUgMyljIg79EVd2vC_BkEW-lOLteOkjjJbjEIaoE632jxUujKkNC3i-MmH7xgChP4/exec'
+            + '?callback=gamesCallback'
+            + '&_=' + Date.now();
+      document.body.appendChild(s);
+    });
   </script>
-  <!-- Static JSONP load; defer ensures DOM exists before callback -->
-  <script defer src="https://script.google.com/macros/s/AKfycbxIUgMyljIg79EVd2vC_BkEW-lOLteOkjjJbjEIaoE632jxUujKkNC3i-MmH7xgChP4/exec?callback=gamesCallback"></script>
 </head>
 
 <body>
   <div class="container">
     <h1>SOLO GAMES</h1>
+
+    <!-- 1) Games -->
     <div id="gamesList" class="games-list"></div>
 
+    <!-- 2) Players & scores -->
     <div id="playersGrid" class="players-grid hidden">
       <div>
         <select id="player1">
@@ -93,6 +96,7 @@
       </div>
     </div>
 
+    <!-- 3) Submit -->
     <button id="submitBtn" class="hidden" disabled>Nosūtīt rezultātus</button>
   </div>
 
@@ -104,77 +108,77 @@
       selectedGame = name;
       document.querySelectorAll('.game-btn')
         .forEach(b => { if (b.textContent !== name) b.remove(); });
-      const players = gamesData.find(g => g.name === name).players;
-      ['player1','player2'].forEach(id => {
+      const players = gamesData.find(g=>g.name===name).players;
+      ['player1','player2'].forEach(id=>{
         const sel = document.getElementById(id);
-        for (let i = sel.options.length - 1; i > 0; i--) sel.remove(i);
-        players.forEach(nm => sel.add(new Option(nm,nm)));
+        for (let i=sel.options.length-1; i>0; i--) sel.remove(i);
+        players.forEach(nm=> sel.add(new Option(nm,nm)));
         sel.selectedIndex = 0;
       });
-      ['score1','score2'].forEach(id => {
+      ['score1','score2'].forEach(id=>{
         const inp = document.getElementById(id);
-        inp.value = ''; inp.disabled = true;
+        inp.value=''; inp.disabled=true;
       });
       const btn = document.getElementById('submitBtn');
-      btn.disabled = true; btn.classList.add('hidden');
+      btn.disabled=true; btn.classList.add('hidden');
       document.getElementById('playersGrid').classList.remove('hidden');
     }
 
-    const p1 = document.getElementById('player1'),
-          p2 = document.getElementById('player2'),
-          s1 = document.getElementById('score1'),
-          s2 = document.getElementById('score2'),
-          btn= document.getElementById('submitBtn');
+    const p1=document.getElementById('player1'),
+          p2=document.getElementById('player2'),
+          s1=document.getElementById('score1'),
+          s2=document.getElementById('score2'),
+          btn=document.getElementById('submitBtn');
 
-    function checkPlayers() {
-      if (p1.value && p2.value && p1.value !== p2.value) {
-        s1.disabled = s2.disabled = false;
+    function checkPlayers(){
+      if (p1.value&&p2.value&&p1.value!==p2.value){
+        s1.disabled=s2.disabled=false;
       } else {
-        s1.disabled = s2.disabled = true;
-        btn.disabled = true; btn.classList.add('hidden');
+        s1.disabled=s2.disabled=true;
+        btn.disabled=true; btn.classList.add('hidden');
       }
     }
     p1.onchange = p2.onchange = checkPlayers;
 
-    function checkScores() {
-      if (s1.value !== '' && s2.value !== '') {
-        btn.disabled = false; btn.classList.remove('hidden');
+    function checkScores(){
+      if (s1.value!==''&&s2.value!==''){
+        btn.disabled=false; btn.classList.remove('hidden');
       } else {
-        btn.disabled = true; btn.classList.add('hidden');
+        btn.disabled=true; btn.classList.add('hidden');
       }
     }
     s1.oninput = s2.oninput = checkScores;
 
     function postCallback(resp) {
-      if (resp.status === 'success') {
-        btn.textContent = 'Rezultāti saglabāti';
+      if (resp.status==='success') {
+        btn.textContent='Rezultāti saglabāti';
         btn.classList.add('pulse');
-        p1.selectedIndex = p2.selectedIndex = 0;
-        s1.value = s2.value = '';
-        setTimeout(() => {
+        p1.selectedIndex=p2.selectedIndex=0;
+        s1.value=s2.value='';
+        setTimeout(()=>{
           btn.classList.remove('pulse');
-          btn.textContent = 'Nosūtīt rezultātus';
-          btn.disabled = true; btn.classList.add('hidden');
-        }, 1000);
+          btn.textContent='Nosūtīt rezultātus';
+          btn.disabled=true; btn.classList.add('hidden');
+        },1000);
       }
     }
 
-    function sendResults() {
-      const v1 = +s1.value, v2 = +s2.value;
-      const params = [
+    function sendResults(){
+      const v1=+s1.value, v2=+s2.value;
+      const params=[
         'callback=postCallback',
-        'game='         + encodeURIComponent(selectedGame),
-        'winner='       + encodeURIComponent(v1>v2? p1.value : p2.value),
-        'loser='        + encodeURIComponent(v1>v2? p2.value : p1.value),
-        'winnerPoints=' + encodeURIComponent(Math.max(v1,v2)),
-        'loserPoints='  + encodeURIComponent(Math.min(v1,v2))
+        'game='+encodeURIComponent(selectedGame),
+        'winner='+encodeURIComponent(v1>v2?p1.value:p2.value),
+        'loser='+ encodeURIComponent(v1>v2?p2.value:p1.value),
+        'winnerPoints='+encodeURIComponent(Math.max(v1,v2)),
+        'loserPoints='+encodeURIComponent(Math.min(v1,v2))
       ].join('&');
-      const sc = document.createElement('script');
-      sc.src = WEBAPP_URL + '?' + params;
+      const sc=document.createElement('script');
+      sc.src=WEBAPP_URL+'?'+params+'&_='+Date.now();
       document.body.appendChild(sc);
     }
     btn.onclick    = sendResults;
-    btn.ontouchend = e => { e.preventDefault(); sendResults(); };
+    btn.ontouchend = e=>{e.preventDefault();sendResults();};
   </script>
 </body>
 </html>
