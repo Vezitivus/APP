@@ -23,15 +23,20 @@
       text-align: center; line-height: 1.2;
     }
     .games-list {
-      display: flex; flex-direction: column;
-      gap: 12px; margin-bottom: 24px;
+      display: grid;
+      grid-template-columns: repeat(2, max-content);
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 24px;
     }
     .game-btn {
-      padding: 12px; font-size: 1rem;
+      padding: 8px 12px;
+      font-size: 1rem;
       border: none; border-radius: 8px;
       background: #222; color: #fff;
-      text-align: left; cursor: pointer;
+      cursor: pointer;
       transition: background-color .2s;
+      white-space: nowrap;
     }
     .game-btn:hover { background: #333; }
     .players-grid {
@@ -82,7 +87,7 @@
       </div>
     </div>
 
-    <!-- 4) Nosūti pogu -->
+    <!-- 4) Nosūtīšanas poga -->
     <button id="submitBtn" class="hidden" disabled>Nosūtīt rezultātus</button>
   </div>
 
@@ -91,7 +96,6 @@
     const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxIUgMyljIg79EVd2vC_BkEW-lOLteOkjjJbjEIaoE632jxUujKkNC3i-MmH7xgChP4/exec';
     let selectedGame = null;
 
-    // 1) Load Google Charts and then first row (spēļu nosaukumi)
     google.charts.load('current', { packages: ['corechart','table'] });
     google.charts.setOnLoadCallback(loadGames);
 
@@ -110,7 +114,6 @@
       }
       const data = resp.getDataTable();
       const list = document.getElementById('gamesList');
-
       for (let c = 0; c < data.getNumberOfColumns(); c++) {
         const name = data.getValue(0, c);
         if (name) {
@@ -123,10 +126,17 @@
       }
     }
 
-    // 2) Kad lietotājs izvēlas spēli
     function selectGame(colIndex, name) {
       selectedGame = name;
-      // Query spēlētājus no izvēlētās kolonnas, sākot no 2. rindas
+      // Noņem visas citas pogas
+      document.querySelectorAll('#gamesList .game-btn').forEach(btn => {
+        if (btn.textContent !== name) btn.remove();
+        else {
+          // pārvieto izvēlētās pogas konteinera sākumā
+          document.getElementById('gamesList').prepend(btn);
+        }
+      });
+      // Ielādē spēlētājus no izvēlētās kolonnas
       const colLetter = String.fromCharCode(65 + colIndex);
       const q = new google.visualization.Query(
         `https://docs.google.com/spreadsheets/d/${SS_ID}/gviz/tq?sheet=SOLO&headers=0`
@@ -143,27 +153,23 @@
       const data = resp.getDataTable();
       const p1 = document.getElementById('player1');
       const p2 = document.getElementById('player2');
-
       // Notīra iepriekšējās opcijas
       [p1, p2].forEach(sel => {
         for (let i = sel.options.length - 1; i > 0; i--) sel.remove(i);
       });
-      // Pievieno jaunās
+      // Pievieno jaunos spēlētājus
       for (let r = 0; r < data.getNumberOfRows(); r++) {
         const nm = data.getValue(r, 0);
-        if (nm) {
-          [p1, p2].forEach(sel => sel.add(new Option(nm, nm)));
-        }
+        if (nm) [p1, p2].forEach(sel => sel.add(new Option(nm, nm)));
       }
-      // Atiestata punkti un parāda bloku
+      // Atiestata punktu lauki un rāda bloku
       [p1, p2].forEach(sel => sel.selectedIndex = 0);
       [score1, score2].forEach(inp => { inp.value = ''; inp.disabled = true; });
-      document.getElementById('submitBtn').disabled = true;
-      document.getElementById('submitBtn').classList.add('hidden');
+      submitBtn.disabled = true;
+      submitBtn.classList.add('hidden');
       document.getElementById('playersGrid').classList.remove('hidden');
     }
 
-    // 3) Punktu ievades loģika
     const player1 = document.getElementById('player1');
     const player2 = document.getElementById('player2');
     const score1  = document.getElementById('score1');
@@ -194,7 +200,6 @@
     score1.addEventListener('input', checkScores);
     score2.addEventListener('input', checkScores);
 
-    // 4) JSONP nosūtīšana (bez fetch)
     function postCallback(resp) {
       if (resp.status === 'success') {
         alert('Rezultāti saglabāti!');
