@@ -7,65 +7,48 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     body {
-      margin: 0;
-      padding: 16px;
-      background: #000;
-      color: #fff;
+      margin: 0; padding: 16px;
+      background: #000; color: #fff;
       font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
-      display: flex;
-      justify-content: center;
+      display: flex; justify-content: center;
     }
     .container {
-      width: 100%;
-      max-width: 480px;
-      background: #111;
-      border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      width: 100%; max-width: 480px;
+      background: #111; border-radius: 12px;
+      padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
     }
     h1 {
       margin: 0 0 24px;
-      font-size: 2.5rem;
-      font-weight: bold;
-      text-align: center;
-      line-height: 1.2;
+      font-size: 2.5rem; font-weight: bold;
+      text-align: center; line-height: 1.2;
     }
     .row { margin-bottom: 20px; }
     select, input[type="number"] {
-      width: 100%;
-      padding: 12px;
-      font-size: 1rem;
-      border: none;
-      border-radius: 8px;
-      background: #222;
-      color: #fff;
-      outline: none;
+      width: 100%; padding: 12px;
+      font-size: 1rem; border: none;
+      border-radius: 8px; background: #222;
+      color: #fff; outline: none;
     }
     .players-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 20px;
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 12px; margin-bottom: 20px;
     }
     .player-column select,
     .player-column input {
       margin-bottom: 8px;
     }
     #submitBtn {
-      width: 100%;
-      padding: 14px;
-      font-size: 1.1rem;
-      border: none;
-      border-radius: 10px;
-      background: #1a1a1a;
-      color: #fff;
-      cursor: pointer;
+      width: 100%; padding: 14px;
+      font-size: 1.1rem; border: none;
+      border-radius: 10px; background: #1a1a1a;
+      color: #fff; cursor: pointer;
       transition: background-color .2s;
     }
     #submitBtn:hover:not(:disabled) { background: #333; }
     #submitBtn:disabled { opacity: .6; cursor: default; }
     .hidden { display: none !important; }
   </style>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 </head>
 <body>
   <div class="container">
@@ -99,27 +82,42 @@
   </div>
 
   <script>
+    // Google Sheets ID un Web App URL (ja vajag POST)
+    const SS_ID      = '1KYwqQ4gpwnXuMjNGjET1KnZVh2hmgadAl1rpmCttdnk';
     const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxIUgMyljIg79EVd2vC_BkEW-lOLteOkjjJbjEIaoE632jxUujKkNC3i-MmH7xgChP4/exec';
 
-    let gamesData = [];
+    let selectedColIndex = null;
 
-    // 1) Ielādē spēles no servera
-    fetch(WEBAPP_URL)
-      .then(res => {
-        if (!res.ok) throw new Error('Servera atbilde ' + res.status);
-        return res.json();
-      })
-      .then(data => {
-        gamesData = data;
-        const gs = document.getElementById('gameSelect');
-        data.forEach(({name}) => {
+    // Uzlādē Google Charts
+    google.charts.load('current', { packages: ['corechart','table'] });
+    google.charts.setOnLoadCallback(loadGames);
+
+    function loadGames() {
+      const query = new google.visualization.Query(
+        `https://docs.google.com/spreadsheets/d/${SS_ID}/gviz/tq?sheet=SOLO&headers=0`
+      );
+      query.setQuery('SELECT * LIMIT 1');
+      query.send(handleGamesResponse);
+    }
+
+    function handleGamesResponse(response) {
+      if (response.isError()) {
+        alert('Kļūda ielādējot spēles: ' + response.getMessage());
+        return;
+      }
+      const data = response.getDataTable();
+      const select = document.getElementById('gameSelect');
+
+      for (let c = 0; c < data.getNumberOfColumns(); c++) {
+        const val = data.getValue(0, c);
+        if (val) {
           const opt = document.createElement('option');
-          opt.value = name;
-          opt.textContent = name;
-          gs.appendChild(opt);
-        });
-      })
-      .catch(err => alert('Neizdevās ielādēt spēles: ' + err.message));
+          opt.value = c;             // saglabā kolonnas indekss
+          opt.textContent = val;
+          select.appendChild(opt);
+        }
+      }
+    }
 
     // Elementu references
     const gameSelect  = document.getElementById('gameSelect');
@@ -130,31 +128,49 @@
     const score2      = document.getElementById('score2');
     const submitBtn   = document.getElementById('submitBtn');
 
-    // 2) Pēc spēles izvēles – uzpildām spēlētāju <select> un parādam bloku
+    // 2) Kad izvēlas spēli → ielādē spēlētājus no tās kolonnas (OFFSET 1)
     gameSelect.addEventListener('change', () => {
-      const selData = gamesData.find(g => g.name === gameSelect.value);
-      [player1, player2].forEach(sel => {
-        // noņem visas options izņemot pirmo
-        for (let i = sel.options.length - 1; i > 0; i--) sel.remove(i);
-        // pievieno jaunos spēlētājus
-        selData.players.forEach(p => {
-          const o = new Option(p, p);
-          sel.add(o);
-        });
-        sel.selectedIndex = 0;
-      });
-      // atiestata punktu lauciņus un pogu
-      [score1, score2].forEach(i => { i.value = ''; i.disabled = true; });
-      submitBtn.disabled = true;
-      submitBtn.classList.add('hidden');
-      playersGrid.classList.remove('hidden');
+      selectedColIndex = parseInt(gameSelect.value, 10);
+      const colLetter = String.fromCharCode(65 + selectedColIndex);
+      const q = new google.visualization.Query(
+        `https://docs.google.com/spreadsheets/d/${SS_ID}/gviz/tq?sheet=SOLO&headers=0`
+      );
+      q.setQuery(`SELECT ${colLetter} OFFSET 1`);
+      q.send(handlePlayersResponse);
     });
 
-    // 3) Aktivizē punktu ievadi, kad abi spēlētāji atlasīti un dažādi
+    function handlePlayersResponse(response) {
+      if (response.isError()) {
+        alert('Kļūda ielādējot spēlētājus: ' + response.getMessage());
+        return;
+      }
+      const data = response.getDataTable();
+      // Noņem vecās opcijas (izņemot 0-tā placeholder)
+      [player1, player2].forEach(sel => {
+        for (let i = sel.options.length - 1; i > 0; i--) sel.remove(i);
+      });
+      // Pievieno katru vārdu
+      for (let r = 0; r < data.getNumberOfRows(); r++) {
+        const name = data.getValue(r, 0);
+        if (name) {
+          [player1, player2].forEach(sel => {
+            const o = document.createElement('option');
+            o.value = name; o.textContent = name;
+            sel.appendChild(o);
+          });
+        }
+      }
+      // Atiestata punkti un rāda bloku
+      [player1, player2].forEach(sel => sel.selectedIndex = 0);
+      [score1, score2].forEach(i => (i.value = '', i.disabled = true));
+      submitBtn.disabled = true; submitBtn.classList.add('hidden');
+      playersGrid.classList.remove('hidden');
+    }
+
+    // 3) Aktivizē punktu ievadi, ja abi spēlētāji atlasīti un dažādi
     function checkPlayers() {
       if (player1.value && player2.value && player1.value !== player2.value) {
-        score1.disabled = false;
-        score2.disabled = false;
+        score1.disabled = score2.disabled = false;
       } else {
         score1.disabled = score2.disabled = true;
         submitBtn.disabled = true;
@@ -164,7 +180,7 @@
     player1.addEventListener('change', checkPlayers);
     player2.addEventListener('change', checkPlayers);
 
-    // 4) Parāda pogu, kad abi punkti ievadīti
+    // 4) Parāda ‘Nosūtīt’ pogu, kad abus punktus ievadīti
     function checkScores() {
       if (score1.value !== '' && score2.value !== '') {
         submitBtn.disabled = false;
@@ -177,13 +193,13 @@
     score1.addEventListener('input', checkScores);
     score2.addEventListener('input', checkScores);
 
-    // 5) Nosūta rezultātus uz Google Sheets ar POST
+    // 5) Nosūta rezultātus uz GAS Web App (kods kā fetch POST)
     submitBtn.addEventListener('click', () => {
       const s1 = +score1.value, s2 = +score2.value;
       const payload = {
-        game: gameSelect.value,
-        winner: s1 > s2 ? player1.value : player2.value,
-        loser:  s1 > s2 ? player2.value : player1.value,
+        game:     gameSelect.options[gameSelect.selectedIndex].text,
+        winner:   s1 > s2 ? player1.value : player2.value,
+        loser:    s1 > s2 ? player2.value : player1.value,
         winnerPoints: Math.max(s1, s2),
         loserPoints:  Math.min(s1, s2)
       };
@@ -192,10 +208,7 @@
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify(payload)
       })
-      .then(res => {
-        if (!res.ok) throw new Error('Servera atbilde ' + res.status);
-        return res.json();
-      })
+      .then(r => r.json())
       .then(resp => {
         if (resp.status === 'success') {
           alert('Rezultāti saglabāti!');
@@ -206,7 +219,7 @@
           alert('Kļūda: ' + resp.message);
         }
       })
-      .catch(err => alert('Neizdevās nosūtīt rezultātus: ' + err.message));
+      .catch(err => alert('Nosūtīšanas kļūda: ' + err.message));
     });
   </script>
 </body>
