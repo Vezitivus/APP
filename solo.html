@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SOLO GAMES</title>
   <style>
-    *, *::before, *::after { box-sizing: border-box }
+    *, *::before, *::after { box-sizing: border-box; }
     body {
       margin:0; padding:16px;
       background:#000; color:#fff;
@@ -30,10 +30,11 @@
     .game-btn {
       padding:8px; font-size:0.9rem;
       border:none; border-radius:8px;
-      background:#222; color:#fff; cursor:pointer;
-      transition:background .2s; white-space:nowrap;
+      background:#222; color:#fff;
+      cursor:pointer; transition:background .2s;
+      white-space:nowrap;
     }
-    .game-btn:hover { background:#333 }
+    .game-btn:hover, .game-btn:active { background:#333; }
     .players-grid {
       display:grid; grid-template-columns:1fr 1fr;
       gap:12px; margin-bottom:20px;
@@ -50,11 +51,13 @@
       background:#1a1a1a; color:#fff; cursor:pointer;
       transition:background .2s,transform .2s;
     }
-    #submitBtn:hover:not(:disabled) { background:#333 }
-    #submitBtn:disabled { opacity:.6; cursor:default }
-    @keyframes pulse {0%{transform:scale(1)}50%{transform:scale(1.1)}100%{transform:scale(1)}}
-    .pulse { animation:pulse 1s ease-out }
-    .hidden { display:none!important }
+    #submitBtn:hover, #submitBtn:active:not(:disabled){background:#333;}
+    #submitBtn:disabled{opacity:.6;cursor:default;}
+    @keyframes pulse {
+      0%{transform:scale(1);}50%{transform:scale(1.1);}100%{transform:scale(1);}
+    }
+    .pulse{animation:pulse 1s ease-out;}
+    .hidden{display:none!important;}
   </style>
   <script src="https://www.gstatic.com/charts/loader.js"></script>
 </head>
@@ -64,11 +67,11 @@
     <div id="gamesList" class="games-list"></div>
     <div id="playersGrid" class="players-grid hidden">
       <div>
-        <select id="player1"><option disabled selected>Spēlētājs 1</option></select>
+        <select id="player1"><option value="" disabled selected>Spēlētājs 1</option></select>
         <input id="score1" type="number" placeholder="Punkti" min="0" disabled>
       </div>
       <div>
-        <select id="player2"><option disabled selected>Spēlētājs 2</option></select>
+        <select id="player2"><option value="" disabled selected>Spēlētājs 2</option></select>
         <input id="score2" type="number" placeholder="Punkti" min="0" disabled>
       </div>
     </div>
@@ -76,132 +79,135 @@
   </div>
 
   <script>
-    const SS_ID      = '1KYwqQ4gpwnXuMjNGjET1KnZVh2hmgadAl1rpmCttdnk';
-    const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxIUgMyljIg79EVd2vC_BkEW-lOLteOkjjJbjEIaoE632jxUujKkNC3i-MmH7xgChP4/exec';
-    let selectedGame = null;
+  const SS_ID = '1KYwqQ4gpwnXuMjNGjET1KnZVh2hmgadAl1rpmCttdnk';
+  const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxIUgMyljIg79EVd2vC_BkEW-lOLteOkjjJbjEIaoE632jxUujKkNC3i-MmH7xgChP4/exec';
+  let selectedGame = null;
 
-    // Load game list
-    google.charts.load('current',{packages:['table']});
-    google.charts.setOnLoadCallback(()=>{
-      const url = `https://docs.google.com/spreadsheets/d/${SS_ID}/gviz/tq?sheet=SOLO&headers=0&range=A1:BB1000&cacheBust=${Date.now()}`;
-      const q = new google.visualization.Query(url);
-      q.setQuery('SELECT * LIMIT 1');
-      q.send(resp=>{
-        const data = resp.getDataTable();
-        const list = document.getElementById('gamesList');
-        for(let c=0;c<data.getNumberOfColumns();c++){
-          const name = data.getValue(0,c);
-          if(!name) continue;
-          const btn = document.createElement('button');
-          btn.textContent = name;
-          btn.className = 'game-btn';
-          btn.addEventListener('pointerup', ()=>selectGame(c,name));
-          list.appendChild(btn);
-        }
-      });
+  google.charts.load('current',{packages:['corechart','table']});
+  google.charts.setOnLoadCallback(loadGames);
+
+  function loadGames(){
+    const url = `https://docs.google.com/spreadsheets/d/${SS_ID}/gviz/tq?sheet=SOLO&headers=0&range=A1:BB1000&cacheBust=${Date.now()}`;
+    const q = new google.visualization.Query(url);
+    q.setQuery('SELECT * LIMIT 1');
+    q.send(r=>{
+      if(r.isError()) return;
+      const data = r.getDataTable(), list = document.getElementById('gamesList');
+      for(let c=0;c<data.getNumberOfColumns();c++){
+        const name = data.getValue(0,c);
+        if(!name) continue;
+        const btn = document.createElement('button');
+        btn.textContent = name;
+        btn.className = 'game-btn';
+        btn.addEventListener('click',()=>selectGame(c,name));
+        btn.addEventListener('pointerup',()=>selectGame(c,name));
+        list.appendChild(btn);
+      }
     });
+  }
 
-    function selectGame(colIndex,name){
-      selectedGame = name;
-      // Keep only selected button
-      document.querySelectorAll('.game-btn').forEach(btn=>{
-        btn.textContent===name
-          ? document.getElementById('gamesList').prepend(btn)
-          : btn.remove();
+  function selectGame(colIndex,name){
+    selectedGame = name;
+    // saglabā tikai izvēlēto pogu augšā
+    document.querySelectorAll('#gamesList .game-btn').forEach(btn=>{
+      if(btn.textContent===name) document.getElementById('gamesList').prepend(btn);
+      else btn.remove();
+    });
+    // ielādē spēlētājus
+    const col = String.fromCharCode(65+colIndex);
+    const url = `https://docs.google.com/spreadsheets/d/${SS_ID}/gviz/tq?sheet=SOLO&headers=0&range=A1:BB1000&cacheBust=${Date.now()}`;
+    const q = new google.visualization.Query(url);
+    q.setQuery(`SELECT ${col} OFFSET 1`);
+    q.send(r=>{
+      if(r.isError()) return;
+      const data=r.getDataTable();
+      const p1=document.getElementById('player1'),
+            p2=document.getElementById('player2');
+      [p1,p2].forEach(s=>{
+        for(let i=s.options.length-1;i>0;i--) s.remove(i);
       });
-      // Load players
-      const colLetter = String.fromCharCode(65+colIndex);
-      const url = `https://docs.google.com/spreadsheets/d/${SS_ID}/gviz/tq?sheet=SOLO&headers=0&range=A1:BB1000&cacheBust=${Date.now()}`;
-      const q = new google.visualization.Query(url);
-      q.setQuery(`SELECT ${colLetter} OFFSET 1`);
-      q.send(resp=>{
-        const dt = resp.getDataTable();
-        ['player1','player2'].forEach(id=>{
-          const sel=document.getElementById(id);
-          while(sel.options.length>1) sel.remove(1);
-        });
-        for(let r=0;r<dt.getNumberOfRows();r++){
-          const nm=dt.getValue(r,0);
-          if(nm) ['player1','player2'].forEach(id=>{
-            document.getElementById(id).add(new Option(nm,nm));
-          });
-        }
-        ['player1','player2'].forEach(id=>document.getElementById(id).selectedIndex=0);
-        ['score1','score2'].forEach(id=>{
-          const inp=document.getElementById(id);
-          inp.value=''; inp.disabled=true;
-        });
-        const btn=document.getElementById('submitBtn');
-        btn.disabled=true; btn.classList.add('hidden');
-        document.getElementById('playersGrid').classList.remove('hidden');
-      });
-    }
-
-    // Elements
-    const player1  = document.getElementById('player1'),
-          player2  = document.getElementById('player2'),
-          score1   = document.getElementById('score1'),
-          score2   = document.getElementById('score2'),
-          submitBtn= document.getElementById('submitBtn');
-
-    function checkPlayers(){
-      if(player1.value && player2.value && player1.value!==player2.value){
-        score1.disabled = score2.disabled = false;
-      } else {
-        score1.disabled = score2.disabled = true;
-        submitBtn.disabled=true; submitBtn.classList.add('hidden');
+      for(let i=0;i<data.getNumberOfRows();i++){
+        const nm=data.getValue(i,0);
+        if(nm) [p1,p2].forEach(s=>s.add(new Option(nm,nm)));
       }
-    }
-    player1.addEventListener('change',checkPlayers);
-    player2.addEventListener('change',checkPlayers);
+      [p1,p2].forEach(s=>s.selectedIndex=0);
+      [score1,score2].forEach(inp=>{inp.value='';inp.disabled=true;});
+      submitBtn.disabled=true;
+      submitBtn.classList.add('hidden');
+      document.getElementById('playersGrid').classList.remove('hidden');
+    });
+  }
 
-    function checkScores(){
-      if(score1.value!=='' && score2.value!==''){
-        submitBtn.disabled=false; submitBtn.classList.remove('hidden');
-      } else {
-        submitBtn.disabled=true; submitBtn.classList.add('hidden');
-      }
-    }
-    score1.addEventListener('input',checkScores);
-    score2.addEventListener('input',checkScores);
+  const player1=document.getElementById('player1'),
+        player2=document.getElementById('player2'),
+        score1=document.getElementById('score1'),
+        score2=document.getElementById('score2'),
+        submitBtn=document.getElementById('submitBtn');
 
-    // Send results via fetch()
-    async function sendResults(){
-      submitBtn.disabled = true;
-      const s1 = +score1.value, s2 = +score2.value;
-      try {
-        const res = await fetch(WEBAPP_URL, {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({
-            game: selectedGame,
-            winner: s1>s2?player1.value:player2.value,
-            loser:  s1>s2?player2.value:player1.value,
-            winnerPoints: Math.max(s1,s2),
-            loserPoints:  Math.min(s1,s2)
-          })
-        });
-        const json = await res.json();
-        if(json.status==='success'){
-          submitBtn.textContent='Rezultāti saglabāti';
-          submitBtn.classList.add('pulse');
-          score1.value=score2.value='';
-          player1.selectedIndex=player2.selectedIndex=0;
-          setTimeout(()=>{
-            submitBtn.classList.remove('pulse');
-            submitBtn.textContent='Nosūtīt rezultātus';
-            submitBtn.disabled=true;
-            submitBtn.classList.add('hidden');
-          },1000);
-        }
-      } catch(e){
-        // retry once
-        setTimeout(sendResults,300);
-      }
+  function checkPlayers(){
+    if(player1.value&&player2.value&&player1.value!==player2.value){
+      score1.disabled=score2.disabled=false;
+    } else {
+      score1.disabled=score2.disabled=true;
+      submitBtn.disabled=true;
+      submitBtn.classList.add('hidden');
     }
+  }
+  player1.addEventListener('change',checkPlayers);
+  player2.addEventListener('change',checkPlayers);
 
-    submitBtn.addEventListener('click', sendResults);
-    submitBtn.addEventListener('pointerup', sendResults);
+  function checkScores(){
+    if(score1.value!==''&&score2.value!==''){
+      submitBtn.disabled=false;
+      submitBtn.classList.remove('hidden');
+    } else {
+      submitBtn.disabled=true;
+      submitBtn.classList.add('hidden');
+    }
+  }
+  score1.addEventListener('input',checkScores);
+  score2.addEventListener('input',checkScores);
+
+  function sendResults(){
+    const s1=+score1.value, s2=+score2.value;
+    const cb = 'cb'+Date.now();
+    window[cb] = function(resp){
+      delete window[cb];
+      postCallback(resp);
+    }
+    const params = [
+      `callback=${cb}`,
+      `cacheBust=${Date.now()}`,
+      `game=${encodeURIComponent(selectedGame)}`,
+      `winner=${encodeURIComponent(s1>s2?player1.value:player2.value)}`,
+      `loser=${encodeURIComponent(s1>s2?player2.value:player1.value)}`,
+      `winnerPoints=${Math.max(s1,s2)}`,
+      `loserPoints=${Math.min(s1,s2)}`
+    ].join('&');
+    const scr=document.createElement('script');
+    scr.src = `${WEBAPP_URL}?${params}`;
+    scr.onload = ()=>scr.remove();
+    document.body.appendChild(scr);
+  }
+
+  function postCallback(resp){
+    if(resp.status==='success'){
+      submitBtn.textContent='Rezultāti saglabāti';
+      submitBtn.classList.add('pulse');
+      // notīra laukus
+      score1.value=score2.value='';
+      player1.selectedIndex=player2.selectedIndex=0;
+      setTimeout(()=>{
+        submitBtn.classList.remove('pulse');
+        submitBtn.textContent='Nosūtīt rezultātus';
+        submitBtn.disabled=true;
+        submitBtn.classList.add('hidden');
+      },1000);
+    }
+  }
+
+  submitBtn.addEventListener('click',sendResults);
+  submitBtn.addEventListener('pointerup',sendResults);
   </script>
 </body>
 </html>
