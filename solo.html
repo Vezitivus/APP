@@ -81,7 +81,7 @@
     const score2      = document.getElementById('score2');
     const submitBtn   = document.getElementById('submitBtn');
 
-    // 1) Ielādē spēļu nosaukumus no servera
+    // 1) On load → getHeaders()
     window.onload = () => {
       google.script.run
         .withSuccessHandler(headers => {
@@ -96,7 +96,7 @@
         .getHeaders();
     };
 
-    // 2) Kad izvēlas spēli → ielādē spēlētājus
+    // 2) Kad izvēlas spēli → getPlayers()
     gameSelect.addEventListener('change', () => {
       google.script.run
         .withSuccessHandler(players => {
@@ -114,7 +114,7 @@
         .getPlayers(gameSelect.value);
     });
 
-    // 3) Aktivizē punktu ievadi, kad abi spēlētāji atlasīti
+    // 3) Iespējo punktu ievadi, kad abi spēlētāji atlasīti
     function checkPlayers() {
       if (player1.value && player2.value && player1.value !== player2.value) {
         score1.disabled = score2.disabled = false;
@@ -138,7 +138,7 @@
     }
     score1.oninput = score2.oninput = checkScores;
 
-    // 5) Nosūta rezultātu serverim
+    // 5) submitResult()
     submitBtn.onclick = () => {
       const s1 = +score1.value, s2 = +score2.value;
       google.script.run
