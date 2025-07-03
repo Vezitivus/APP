@@ -7,42 +7,64 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     body {
-      margin:0; padding:16px;
-      background:#000; color:#fff;
-      font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
-      display:flex; justify-content:center;
+      margin: 0;
+      padding: 16px;
+      background: #000;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+      display: flex;
+      justify-content: center;
     }
     .container {
-      width:100%; max-width:480px;
-      background:#111; border-radius:12px;
-      padding:24px; box-shadow:0 4px 20px rgba(0,0,0,0.5);
+      width: 100%;
+      max-width: 480px;
+      background: #111;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
     }
     h1 {
-      margin:0 0 24px;
-      font-size:2.5rem; font-weight:bold;
-      text-align:center; line-height:1.2;
+      margin: 0 0 24px;
+      font-size: 2.5rem;
+      font-weight: bold;
+      text-align: center;
+      line-height: 1.2;
     }
-    .row { margin-bottom:20px; }
+    .row { margin-bottom: 20px; }
     select, input[type="number"] {
-      width:100%; padding:12px;
-      font-size:1rem; border:none;
-      border-radius:8px; background:#222;
-      color:#fff; outline:none;
+      width: 100%;
+      padding: 12px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      background: #222;
+      color: #fff;
+      outline: none;
     }
     .players-grid {
-      display:grid; grid-template-columns:1fr 1fr;
-      gap:12px; margin-bottom:20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .player-column select,
+    .player-column input {
+      margin-bottom: 8px;
     }
     #submitBtn {
-      width:100%; padding:14px;
-      font-size:1.1rem; border:none;
-      border-radius:10px; background:#1a1a1a;
-      color:#fff; cursor:pointer;
-      transition:background-color .2s;
+      width: 100%;
+      padding: 14px;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 10px;
+      background: #1a1a1a;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color .2s;
     }
-    #submitBtn:hover:not(:disabled) { background:#333; }
-    #submitBtn:disabled { opacity:.6; cursor:default; }
-    .hidden { display:none!important; }
+    #submitBtn:hover:not(:disabled) { background: #333; }
+    #submitBtn:disabled { opacity: .6; cursor: default; }
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
@@ -58,12 +80,16 @@
 
     <!-- 2+3) Spēlētāji un punkti -->
     <div id="playersGrid" class="players-grid hidden">
-      <div>
-        <select id="player1"><option value="" disabled selected>Spēlētājs 1</option></select>
+      <div class="player-column">
+        <select id="player1">
+          <option value="" disabled selected>Spēlētājs 1</option>
+        </select>
         <input type="number" id="score1" placeholder="Punkti" min="0" disabled>
       </div>
-      <div>
-        <select id="player2"><option value="" disabled selected>Spēlētājs 2</option></select>
+      <div class="player-column">
+        <select id="player2">
+          <option value="" disabled selected>Spēlētājs 2</option>
+        </select>
         <input type="number" id="score2" placeholder="Punkti" min="0" disabled>
       </div>
     </div>
@@ -79,19 +105,23 @@
 
     // 1) Ielādē spēles no servera
     fetch(WEBAPP_URL)
-      .then(r => r.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Servera atbilde ' + res.status);
+        return res.json();
+      })
       .then(data => {
         gamesData = data;
         const gs = document.getElementById('gameSelect');
         data.forEach(({name}) => {
-          const o = document.createElement('option');
-          o.value = name; o.textContent = name;
-          gs.appendChild(o);
+          const opt = document.createElement('option');
+          opt.value = name;
+          opt.textContent = name;
+          gs.appendChild(opt);
         });
       })
-      .catch(err => alert('Neizdevās ielādēt spelēs: '+err));
+      .catch(err => alert('Neizdevās ielādēt spēles: ' + err.message));
 
-    // Elements references
+    // Elementu references
     const gameSelect  = document.getElementById('gameSelect');
     const playersGrid = document.getElementById('playersGrid');
     const player1     = document.getElementById('player1');
@@ -100,29 +130,31 @@
     const score2      = document.getElementById('score2');
     const submitBtn   = document.getElementById('submitBtn');
 
-    // 2) Pēc spēles izvēles paņem spēlētājus
+    // 2) Pēc spēles izvēles – uzpildām spēlētāju <select> un parādam bloku
     gameSelect.addEventListener('change', () => {
-      const sel = gamesData.find(g => g.name === gameSelect.value);
-      [player1, player2].forEach(selEl => {
-        // notīrām iepriekšējās opcijas (izņemot placeholder)
-        for (let i = selEl.options.length - 1; i > 0; i--) selEl.remove(i);
-        // pievienojam jaunās
-        sel.players.forEach(p => {
+      const selData = gamesData.find(g => g.name === gameSelect.value);
+      [player1, player2].forEach(sel => {
+        // noņem visas options izņemot pirmo
+        for (let i = sel.options.length - 1; i > 0; i--) sel.remove(i);
+        // pievieno jaunos spēlētājus
+        selData.players.forEach(p => {
           const o = new Option(p, p);
-          selEl.add(o);
+          sel.add(o);
         });
-        selEl.selectedIndex = 0;
+        sel.selectedIndex = 0;
       });
-      // atiestata punkti un poga
-      [score1, score2].forEach(i => (i.value='', i.disabled=true));
-      submitBtn.disabled = true; submitBtn.classList.add('hidden');
+      // atiestata punktu lauciņus un pogu
+      [score1, score2].forEach(i => { i.value = ''; i.disabled = true; });
+      submitBtn.disabled = true;
+      submitBtn.classList.add('hidden');
       playersGrid.classList.remove('hidden');
     });
 
-    // 3) Kad izvēlēti abi spēlētāji un atšķiras → aktivē punktu lauciņus
+    // 3) Aktivizē punktu ievadi, kad abi spēlētāji atlasīti un dažādi
     function checkPlayers() {
-      if (player1.value && player2.value && player1.value!==player2.value) {
-        score1.disabled = score2.disabled = false;
+      if (player1.value && player2.value && player1.value !== player2.value) {
+        score1.disabled = false;
+        score2.disabled = false;
       } else {
         score1.disabled = score2.disabled = true;
         submitBtn.disabled = true;
@@ -132,9 +164,9 @@
     player1.addEventListener('change', checkPlayers);
     player2.addEventListener('change', checkPlayers);
 
-    // 4) Kad abi punkti ievadīti → rāda pogu
+    // 4) Parāda pogu, kad abi punkti ievadīti
     function checkScores() {
-      if (score1.value!=='' && score2.value!=='') {
+      if (score1.value !== '' && score2.value !== '') {
         submitBtn.disabled = false;
         submitBtn.classList.remove('hidden');
       } else {
@@ -145,33 +177,36 @@
     score1.addEventListener('input', checkScores);
     score2.addEventListener('input', checkScores);
 
-    // 5) Nosūta rezultātus ar POST
+    // 5) Nosūta rezultātus uz Google Sheets ar POST
     submitBtn.addEventListener('click', () => {
       const s1 = +score1.value, s2 = +score2.value;
       const payload = {
         game: gameSelect.value,
-        winner: s1>s2?player1.value:player2.value,
-        loser:  s1>s2?player2.value:player1.value,
-        winnerPoints: Math.max(s1,s2),
-        loserPoints:  Math.min(s1,s2)
+        winner: s1 > s2 ? player1.value : player2.value,
+        loser:  s1 > s2 ? player2.value : player1.value,
+        winnerPoints: Math.max(s1, s2),
+        loserPoints:  Math.min(s1, s2)
       };
       fetch(WEBAPP_URL, {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify(payload)
       })
-      .then(r => r.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Servera atbilde ' + res.status);
+        return res.json();
+      })
       .then(resp => {
-        if (resp.status==='success') {
+        if (resp.status === 'success') {
           alert('Rezultāti saglabāti!');
           score1.value = score2.value = '';
           submitBtn.disabled = true;
           submitBtn.classList.add('hidden');
         } else {
-          alert('Kļūda: '+resp.message);
+          alert('Kļūda: ' + resp.message);
         }
       })
-      .catch(err => alert('Neizdevās nosūtīt: '+err));
+      .catch(err => alert('Neizdevās nosūtīt rezultātus: ' + err.message));
     });
   </script>
 </body>
