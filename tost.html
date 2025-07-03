@@ -2,16 +2,15 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Dropdown no Google Sheets</title>
+  <title>Google Sheets 1. rinda</title>
   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 </head>
 <body>
-  <h2>Izvēlies vērtību no 1. rindas:</h2>
-  <select id="dropdown"></select>
+  <h2>1. rinda no Google Sheets (SOLO):</h2>
+  <div id="output"></div>
 
   <script>
-    // Ielādē Google Charts bibliotēku (tiek izmantots kā Google Sheets lasītājs)
-    google.charts.load('current', {'packages':['corechart', 'table']});
+    google.charts.load('current', { packages: ['corechart', 'table'] });
     google.charts.setOnLoadCallback(loadSheetData);
 
     function loadSheetData() {
@@ -19,28 +18,28 @@
         'https://docs.google.com/spreadsheets/d/1KYwqQ4gpwnXuMjNGjET1KnZVh2hmgadAl1rpmCttdnk/gviz/tq?sheet=SOLO'
       );
 
-      query.setQuery('SELECT * LIMIT 1'); // Tikai pirmā rinda
+      query.setQuery('SELECT * LIMIT 1'); // Ielasa tikai pirmo rindu
       query.send(handleQueryResponse);
     }
 
     function handleQueryResponse(response) {
       if (response.isError()) {
-        console.error('Google Sheets kļūda:', response.getMessage());
+        document.getElementById('output').textContent = 'Kļūda ielādējot datus: ' + response.getMessage();
         return;
       }
 
       const data = response.getDataTable();
-      const dropdown = document.getElementById('dropdown');
+      let html = '<ul>';
 
       for (let col = 0; col < data.getNumberOfColumns(); col++) {
         const value = data.getValue(0, col);
         if (value !== null && value !== '') {
-          const option = document.createElement('option');
-          option.value = value;
-          option.textContent = value;
-          dropdown.appendChild(option);
+          html += `<li>${value}</li>`;
         }
       }
+
+      html += '</ul>';
+      document.getElementById('output').innerHTML = html;
     }
   </script>
 </body>
