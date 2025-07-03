@@ -1,262 +1,184 @@
-// Function to show a custom popup notification
-function showPopup(message) {
-  const popup = document.createElement('div');
-  popup.className = 'popup';
-  popup.textContent = message;
-  document.body.appendChild(popup);
-  setTimeout(() => {
-    popup.remove();
-  }, 3000);
-}
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SOLO GAMES</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 16px;
+      background: #000; color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+      display: flex; justify-content: center;
+    }
+    .container {
+      width: 100%; max-width: 480px;
+      background: #111; border-radius: 12px;
+      padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    h1 {
+      margin: 0 0 24px;
+      font-size: 2.5rem; font-weight: bold;
+      text-align: center; line-height: 1.2;
+    }
+    .row { margin-bottom: 20px; }
+    select, input[type="number"] {
+      width: 100%; padding: 12px;
+      font-size: 1rem; border: none;
+      border-radius: 8px; background: #222;
+      color: #fff; outline: none;
+    }
+    .players-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 12px; margin-bottom: 20px;
+    }
+    .player-column input:first-child,
+    .player-column select {
+      margin-bottom: 8px;
+    }
+    #submitBtn {
+      width: 100%; padding: 14px;
+      font-size: 1.1rem; border: none;
+      border-radius: 10px; background: #1a1a1a;
+      color: #fff; cursor: pointer;
+      transition: background-color .2s;
+    }
+    #submitBtn:hover:not(:disabled) { background: #333; }
+    #submitBtn:disabled { opacity: 0.6; cursor: default; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>SOLO GAMES</h1>
 
-document.addEventListener('DOMContentLoaded', async () => {
-  // Elementu atsauces
-  const activityDropdown = document.getElementById('activityDropdown');
-  const dataContainer = document.getElementById('dataContainer');
-  const teamCountInput = document.getElementById('teamCountInput');
-  const createTeamsBtn = document.getElementById('createTeamsBtn');
-  const teamsContainer = document.getElementById('teamsContainer');
-  const saveResultsButton = document.getElementById('saveResultsButton');
-  const splitButton = document.getElementById('splitButton');
-  const sendTeamNamesButton = document.getElementById('sendTeamNamesButton');
-  const deleteTeamsButton = document.getElementById('deleteTeamsButton');
+    <!-- 1) Spēļu izvēle -->
+    <div class="row">
+      <select id="gameSelect">
+        <option value="" disabled selected>Izvēlies spēli</option>
+      </select>
+    </div>
 
-  // Google Apps Script Webapp URL – pievienojam "nocache" parametru, lai izmantotu jaunākos datus
-  const webAppUrl = 'https://script.google.com/macros/s/AKfycbwvbYSracMlNJ2dhhD74EtX2FjJ0ASsDcZBy7qGm9V-kgOWIoybclFSJN1dJ6TFmM-S/exec';
-  const fetchUrl = webAppUrl + '?nocache=' + new Date().getTime();
+    <!-- 2+3) Spēlētāji un viņu punkti -->
+    <div id="playersGrid" class="players-grid hidden">
+      <div class="player-column">
+        <select id="player1">
+          <option value="" disabled selected>Spēlētājs 1</option>
+        </select>
+        <input type="number" id="score1" placeholder="Punkti" min="0" disabled>
+      </div>
+      <div class="player-column">
+        <select id="player2">
+          <option value="" disabled selected>Spēlētājs 2</option>
+        </select>
+        <input type="number" id="score2" placeholder="Punkti" min="0" disabled>
+      </div>
+    </div>
 
-  try {
-    const response = await fetch(fetchUrl);
-    const json = await response.json();
+    <!-- 4) Nosūtīšanas poga -->
+    <button id="submitBtn" class="hidden" disabled>Nosūtīt rezultātus</button>
+  </div>
 
-    // Izveidojam aktivitāšu izvēlni
-    json.activities.forEach(activity => {
-      const option = document.createElement('option');
-      option.value = activity;
-      option.textContent = activity;
-      activityDropdown.appendChild(option);
-    });
+  <script>
+    const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxIUgMyljIg79EVd2vC_BkEW-lOLteOkjjJbjEIaoE632jxUujKkNC3i-MmH7xgChP4/exec';
+    let gamesData = [];
 
-    // Izveidojam spēlētāju kartītes, izmantojot datus no "gamehost"
-    // Kolonna B satur UID (ierakstīts kā row.b), kolonna C – vārdu (row.c)
-    json.data.forEach((row, index) => {
-      const box = document.createElement('div');
-      box.className = 'data-box';
-      box.id = `player-${index}`;
-      box.dataset.uid = row.b;
-
-      box.setAttribute('draggable', 'true');
-      box.addEventListener('dragstart', (e) => {
-        e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData('text/plain', JSON.stringify({ b: row.b, c: row.c, id: box.id }));
-      });
-
-      const topSpan = document.createElement('span');
-      topSpan.className = 'top';
-      // Parādām spēlētāja vārdu
-      topSpan.textContent = row.c ? row.c : '';
-
-      const bottomSpan = document.createElement('span');
-      bottomSpan.className = 'bottom';
-      // Parādām spēlētāja UID
-      bottomSpan.innerHTML = row.b ? `<b>${row.b}</b>` : '';
-
-      // Izveidojam aizvēršanas pogu (X)
-      const closeBtn = document.createElement('span');
-      closeBtn.className = 'close-btn';
-      closeBtn.textContent = 'X';
-      closeBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const card = closeBtn.parentElement;
-        card.setAttribute("draggable", "true");
-        dataContainer.appendChild(card);
-        showPopup("Spēlētājs atgriezts sākotnējā sarakstā");
-      });
-
-      box.appendChild(closeBtn);
-      box.appendChild(topSpan);
-      box.appendChild(bottomSpan);
-      dataContainer.appendChild(box);
-    });
-  } catch (error) {
-    console.error('Kļūda, iegūstot datus no webapp:', error);
-  }
-
-  // Komandu izveide
-  createTeamsBtn.addEventListener('click', () => {
-    teamsContainer.innerHTML = '';
-    const count = parseInt(teamCountInput.value) || 0;
-    for (let i = 0; i < count; i++) {
-      const teamBox = document.createElement('div');
-      teamBox.className = 'team-box';
-
-      const header = document.createElement('h3');
-      header.textContent = `Komanda ${i + 1}`;
-      teamBox.appendChild(header);
-
-      const dropzone = document.createElement('div');
-      dropzone.className = 'team-dropzone';
-      teamBox.appendChild(dropzone);
-
-      const pointsInput = document.createElement('input');
-      pointsInput.className = 'points-input';
-      pointsInput.type = 'text';
-      pointsInput.placeholder = 'Punkti';
-      teamBox.appendChild(pointsInput);
-
-      teamsContainer.appendChild(teamBox);
-
-      // Dropzone notikumi
-      dropzone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
-        dropzone.classList.add('hover');
-      });
-      dropzone.addEventListener('dragleave', () => {
-        dropzone.classList.remove('hover');
-      });
-      dropzone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropzone.classList.remove('hover');
-        const data = e.dataTransfer.getData('text/plain');
-        if (data) {
-          try {
-            const playerData = JSON.parse(data);
-            const originalElem = document.getElementById(playerData.id);
-            if (originalElem) {
-              originalElem.setAttribute("draggable", "true");
-              dropzone.appendChild(originalElem);
-            }
-          } catch (err) {
-            console.error("Kļūda parsējot drag datus:", err);
-          }
-        }
+    // 1) JSONP ielāde spēlēm
+    function gamesCallback(data) {
+      gamesData = data;
+      const sel = document.getElementById('gameSelect');
+      data.forEach(({name}) => {
+        const o = document.createElement('option');
+        o.value = name; o.textContent = name;
+        sel.appendChild(o);
       });
     }
-    splitButton.style.display = 'block';
-    showPopup("Komandu lauki izveidoti!");
-  });
-
-  // Spēlētāju sadale nejaušā kārtībā starp komandām
-  splitButton.addEventListener('click', () => {
-    let allPlayers = Array.from(document.querySelectorAll('.data-box'));
-    for (let i = allPlayers.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [allPlayers[i], allPlayers[j]] = [allPlayers[j], allPlayers[i]];
+    function loadGames() {
+      const s = document.createElement('script');
+      s.src = `${WEBAPP_URL}?callback=gamesCallback`;
+      document.body.appendChild(s);
     }
-    const teamBoxes = Array.from(document.querySelectorAll('.team-box'));
-    const numTeams = teamBoxes.length;
-    const totalPlayers = allPlayers.length;
-    const baseCount = Math.floor(totalPlayers / numTeams);
-    const remainder = totalPlayers % numTeams;
-    let currentIndex = 0;
-    teamBoxes.forEach((teamBox, index) => {
-      const dropzone = teamBox.querySelector('.team-dropzone');
-      dropzone.innerHTML = '';
-      let countForThisTeam = baseCount + (index < remainder ? 1 : 0);
-      for (let i = 0; i < countForThisTeam; i++) {
-        if (currentIndex < allPlayers.length) {
-          dropzone.appendChild(allPlayers[currentIndex]);
-          allPlayers[currentIndex].setAttribute("draggable", "true");
-          currentIndex++;
-        }
-      }
-    });
-    showPopup("Spēlētāji sadalīti pa komandām!");
-  });
+    document.addEventListener('DOMContentLoaded', loadGames);
 
-  // Atgriež spēlētāju kartītes sākotnējā sarakstā
-  dataContainer.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-  });
-  dataContainer.addEventListener('drop', (e) => {
-    e.preventDefault();
-    const data = e.dataTransfer.getData('text/plain');
-    if (data) {
-      try {
-        const playerData = JSON.parse(data);
-        const originalElem = document.getElementById(playerData.id);
-        if (originalElem) {
-          originalElem.setAttribute("draggable", "true");
-          dataContainer.appendChild(originalElem);
-          showPopup("Spēlētājs atgriezts sākotnējā sarakstā");
+    // Elementi
+    const gameSelect  = document.getElementById('gameSelect');
+    const playersGrid = document.getElementById('playersGrid');
+    const player1     = document.getElementById('player1');
+    const player2     = document.getElementById('player2');
+    const score1      = document.getElementById('score1');
+    const score2      = document.getElementById('score2');
+    const submitBtn   = document.getElementById('submitBtn');
+
+    // 2) Kad spēle izvēlēta → pildām <select> un parādam spēlētāju bloku
+    gameSelect.addEventListener('change', () => {
+      const selData = gamesData.find(g => g.name === gameSelect.value);
+      [player1, player2].forEach(sel => {
+        // notīrām vecās iespējas, atstājam pirmo placeholder
+        for (let i = sel.options.length - 1; i > 0; i--) {
+          sel.remove(i);
         }
-      } catch (err) {
-        console.error("Kļūda dataContainer drop:", err);
+        // pievienojam jaunus spēlētājus
+        selData.players.forEach(p => {
+          const o = new Option(p, p);
+          sel.add(o);
+        });
+        sel.selectedIndex = 0;
+      });
+      [score1, score2].forEach(i => { i.value = ''; i.disabled = true; });
+      submitBtn.disabled = true; submitBtn.classList.add('hidden');
+      playersGrid.classList.remove('hidden');
+    });
+
+    // 3) Aktivizē punktu ievades laukus
+    function checkPlayers() {
+      if (player1.value && player2.value && player1.value !== player2.value) {
+        score1.disabled = score2.disabled = false;
+      } else {
+        score1.disabled = score2.disabled = true;
+        submitBtn.disabled = true; submitBtn.classList.add('hidden');
       }
     }
-  });
+    player1.addEventListener('change', checkPlayers);
+    player2.addEventListener('change', checkPlayers);
 
-  // Saglabā rezultātus (gamehost)
-  saveResultsButton.addEventListener('click', () => {
-    let results = [];
-    const activity = activityDropdown.value;
-    const teamBoxes = document.querySelectorAll('.team-box');
-    teamBoxes.forEach((teamBox) => {
-      const teamName = teamBox.querySelector('h3').textContent;
-      const points = teamBox.querySelector('.points-input').value;
-      const dropzone = teamBox.querySelector('.team-dropzone');
-      let players = [];
-      dropzone.querySelectorAll('.data-box').forEach((playerCard) => {
-        const top = playerCard.querySelector('.top').textContent;
-        const bottom = playerCard.querySelector('.bottom').textContent;
-        const uid = playerCard.dataset.uid;
-        players.push({ top: top, bottom: bottom, uid: uid });
-      });
-      results.push({ team: teamName, activity: activity, points: points, players: players });
+    // 4) Parāda pogu, kad abi punkti ievadīti
+    function checkScores() {
+      if (score1.value !== '' && score2.value !== '') {
+        submitBtn.classList.remove('hidden');
+        submitBtn.disabled = false;
+      } else {
+        submitBtn.classList.add('hidden');
+        submitBtn.disabled = true;
+      }
+    }
+    score1.addEventListener('input', checkScores);
+    score2.addEventListener('input', checkScores);
+
+    // 5) JSONP iesūtīšana
+    function submitCallback(resp) {
+      if (resp.status === 'success') {
+        alert('Rezultāti saglabāti!');
+        [score1, score2].forEach(i => i.value = '');
+        submitBtn.disabled = true; submitBtn.classList.add('hidden');
+      } else {
+        alert('Kļūda: ' + resp.message);
+      }
+    }
+    submitBtn.addEventListener('click', () => {
+      const s1 = +score1.value, s2 = +score2.value;
+      const params = [
+        'callback=submitCallback',
+        'game='          + encodeURIComponent(gameSelect.value),
+        'winner='        + encodeURIComponent(s1 > s2 ? player1.value : player2.value),
+        'loser='         + encodeURIComponent(s1 > s2 ? player2.value : player1.value),
+        'winnerPoints='  + encodeURIComponent(Math.max(s1, s2)),
+        'loserPoints='   + encodeURIComponent(Math.min(s1, s2))
+      ].join('&');
+      const s = document.createElement('script');
+      s.src = `${WEBAPP_URL}?${params}`;
+      document.body.appendChild(s);
     });
-    console.log("Saglabātie rezultāti:", results);
-    postResults(results);
-  });
-
-  // Nosūta komandu nosaukumus uz Lapa1 – kolonna A meklē spēlētāju UID, un kolonna J tiek ierakstīts komandas nosaukums
-  sendTeamNamesButton.addEventListener('click', () => {
-    let results = [];
-    const teamBoxes = document.querySelectorAll('.team-box');
-    teamBoxes.forEach((teamBox) => {
-      const teamName = teamBox.querySelector('h3').textContent;
-      const dropzone = teamBox.querySelector('.team-dropzone');
-      let players = [];
-      dropzone.querySelectorAll('.data-box').forEach((playerCard) => {
-        const top = playerCard.querySelector('.top').textContent;
-        const bottom = playerCard.querySelector('.bottom').textContent;
-        const uid = playerCard.dataset.uid;
-        players.push({ top: top, bottom: bottom, uid: uid });
-      });
-      results.push({ team: teamName, players: players });
-    });
-    console.log("Nosūtām komandas nosaukumu:", results);
-    postTeamNames(results);
-  });
-
-  deleteTeamsButton.addEventListener('click', () => {
-    postDeleteTeams();
-    showPopup("Komandas izdzēstas!");
-  });
-
-  function postResults(results) {
-    const resultsData = document.getElementById('resultsData');
-    resultsData.value = JSON.stringify({ results: results });
-    const resultsForm = document.getElementById('resultsForm');
-    resultsForm.action = webAppUrl + '?action=saveResults';
-    resultsForm.submit();
-  }
-  
-  function postTeamNames(results) {
-    const resultsData = document.getElementById('resultsData');
-    resultsData.value = JSON.stringify({ results: results });
-    const resultsForm = document.getElementById('resultsForm');
-    resultsForm.action = webAppUrl + '?action=sendTeamNames';
-    resultsForm.submit();
-  }
-
-  function postDeleteTeams() {
-    const resultsData = document.getElementById('resultsData');
-    // Nosūta tukšu datu bloku, kas norāda uz kolonnu dzēšanu
-    resultsData.value = JSON.stringify({ action: "deleteTeams" });
-    const resultsForm = document.getElementById('resultsForm');
-    resultsForm.action = webAppUrl + '?action=deleteTeams';
-    resultsForm.submit();
-  }
-});
+  </script>
+</body>
+</html>
