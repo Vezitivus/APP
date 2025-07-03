@@ -39,9 +39,7 @@
       white-space: nowrap;
     }
     .game-btn:hover,
-    .game-btn:active {
-      background: #333;
-    }
+    .game-btn:active { background: #333; }
     .players-grid {
       display: grid; grid-template-columns: 1fr 1fr;
       gap: 12px; margin-bottom: 20px;
@@ -55,6 +53,7 @@
       margin-bottom: 8px;
     }
     #submitBtn {
+      type: button;
       width: 100%; padding: 14px;
       font-size: 1.1rem; border: none;
       border-radius: 10px; background: #1a1a1a;
@@ -62,9 +61,7 @@
       transition: background-color .2s;
     }
     #submitBtn:hover,
-    #submitBtn:active:not(:disabled) {
-      background: #333;
-    }
+    #submitBtn:active:not(:disabled) { background: #333; }
     #submitBtn:disabled {
       opacity: .6; cursor: default;
     }
@@ -76,10 +73,8 @@
   <div class="container">
     <h1>SOLO GAMES</h1>
 
-    <!-- 1) Spēļu saraksts kā pogas -->
     <div id="gamesList" class="games-list"></div>
 
-    <!-- 2+3) Spēlētāji un punkti -->
     <div id="playersGrid" class="players-grid hidden">
       <div class="player-column">
         <select id="player1">
@@ -95,8 +90,7 @@
       </div>
     </div>
 
-    <!-- 4) Nosūtīšanas poga -->
-    <button id="submitBtn" class="hidden" disabled ontouchstart="">Nosūtīt rezultātus</button>
+    <button id="submitBtn" type="button" class="hidden" disabled ontouchstart="">Nosūtīt rezultātus</button>
   </div>
 
   <script>
@@ -104,125 +98,131 @@
     const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxIUgMyljIg79EVd2vC_BkEW-lOLteOkjjJbjEIaoE632jxUujKkNC3i-MmH7xgChP4/exec';
     let selectedGame = null;
 
+    // Ielādē Google Charts
     google.charts.load('current',{packages:['corechart','table']});
     google.charts.setOnLoadCallback(loadGames);
 
     function loadGames() {
-      const url = `https://docs.google.com/spreadsheets/d/${SS_ID}/gviz/tq?sheet=SOLO&headers=0`;
+      const url = `https://docs.google.com/spreadsheets/d/${SS_ID}/gviz/tq?sheet=SOLO&headers=0&range=A1:BB1000`;
       const q = new google.visualization.Query(url);
       q.setQuery('SELECT * LIMIT 1');
       q.send(resp => {
-        if (resp.isError()) {
-          alert('Kļūda ielādējot spēles: ' + resp.getMessage());
-          return;
-        }
+        if (resp.isError()) return alert('Kļūda ielādējot spēles: ' + resp.getMessage());
         const data = resp.getDataTable();
         const list = document.getElementById('gamesList');
         for (let c = 0; c < data.getNumberOfColumns(); c++) {
-          const name = data.getValue(0,c);
+          const name = data.getValue(0, c);
           if (name) {
             const btn = document.createElement('button');
             btn.textContent = name;
             btn.className = 'game-btn';
             btn.type = 'button';
             btn.ontouchstart = '';
-            btn.addEventListener('click', () => selectGame(c,name));
+            btn.addEventListener('click', () => selectGame(c, name));
             list.appendChild(btn);
           }
         }
       });
     }
 
-    function selectGame(colIndex,name) {
+    function selectGame(colIndex, name) {
       selectedGame = name;
-      // leave only selected button
+      // Atstāj tikai izvēlēto pogu augšā
       document.querySelectorAll('#gamesList .game-btn').forEach(btn => {
-        if (btn.textContent===name) {
+        if (btn.textContent === name) {
           document.getElementById('gamesList').prepend(btn);
-        } else btn.remove();
+        } else {
+          btn.remove();
+        }
       });
-      // load players from full range, OFFSET 1
-      const colLetter = String.fromCharCode(65+colIndex);
-      const url = `https://docs.google.com/spreadsheets/d/${SS_ID}/gviz/tq?sheet=SOLO&headers=0`;
+      // Ielādē spēlētājus
+      const colLetter = String.fromCharCode(65 + colIndex);
+      const url = `https://docs.google.com/spreadsheets/d/${SS_ID}/gviz/tq?sheet=SOLO&headers=0&range=A1:BB1000`;
       const q = new google.visualization.Query(url);
       q.setQuery(`SELECT ${colLetter} OFFSET 1`);
       q.send(resp => {
-        if (resp.isError()) {
-          alert('Kļūda ielādējot spēlētājus: '+resp.getMessage());
-          return;
-        }
+        if (resp.isError()) return alert('Kļūda ielādējot spēlētājus: ' + resp.getMessage());
         const data = resp.getDataTable();
         const p1 = document.getElementById('player1');
         const p2 = document.getElementById('player2');
-        [p1,p2].forEach(sel=>{
-          for(let i=sel.options.length-1;i>0;i--) sel.remove(i);
+        [p1, p2].forEach(sel => {
+          for (let i = sel.options.length - 1; i > 0; i--) sel.remove(i);
         });
-        for(let r=0;r<data.getNumberOfRows();r++){
-          const nm=data.getValue(r,0);
-          if(nm) [p1,p2].forEach(sel=>sel.add(new Option(nm,nm)));
+        for (let r = 0; r < data.getNumberOfRows(); r++) {
+          const nm = data.getValue(r, 0);
+          if (nm) [p1, p2].forEach(sel => sel.add(new Option(nm, nm)));
         }
-        [p1,p2].forEach(sel=>sel.selectedIndex=0);
-        [score1,score2].forEach(inp=>{inp.value='';inp.disabled=true;});
-        submitBtn.disabled=true;
+        [p1, p2].forEach(sel => sel.selectedIndex = 0);
+        [score1, score2].forEach(inp => { inp.value = ''; inp.disabled = true; });
+        submitBtn.disabled = true;
         submitBtn.classList.add('hidden');
         document.getElementById('playersGrid').classList.remove('hidden');
       });
     }
 
-    const player1 = document.getElementById('player1');
-    const player2 = document.getElementById('player2');
-    const score1  = document.getElementById('score1');
-    const score2  = document.getElementById('score2');
-    const submitBtn = document.getElementById('submitBtn');
+    // Elementu references
+    const player1  = document.getElementById('player1');
+    const player2  = document.getElementById('player2');
+    const score1   = document.getElementById('score1');
+    const score2   = document.getElementById('score2');
+    const submitBtn= document.getElementById('submitBtn');
+    const playersGrid = document.getElementById('playersGrid');
 
-    function checkPlayers(){
-      if(player1.value && player2.value && player1.value!==player2.value){
-        score1.disabled=score2.disabled=false;
+    function checkPlayers() {
+      if (player1.value && player2.value && player1.value !== player2.value) {
+        score1.disabled = score2.disabled = false;
       } else {
-        score1.disabled=score2.disabled=true;
-        submitBtn.disabled=true;
+        score1.disabled = score2.disabled = true;
+        submitBtn.disabled = true;
         submitBtn.classList.add('hidden');
       }
     }
-    player1.addEventListener('change',checkPlayers);
-    player2.addEventListener('change',checkPlayers);
+    player1.addEventListener('change', checkPlayers);
+    player2.addEventListener('change', checkPlayers);
 
-    function checkScores(){
-      if(score1.value!==''&&score2.value!==''){
-        submitBtn.disabled=false;
+    function checkScores() {
+      if (score1.value !== '' && score2.value !== '') {
+        submitBtn.disabled = false;
         submitBtn.classList.remove('hidden');
       } else {
-        submitBtn.disabled=true;
+        submitBtn.disabled = true;
         submitBtn.classList.add('hidden');
       }
     }
-    score1.addEventListener('input',checkScores);
-    score2.addEventListener('input',checkScores);
+    score1.addEventListener('input', checkScores);
+    score2.addEventListener('input', checkScores);
 
-    function postCallback(resp){
-      if(resp.status==='success'){
+    // Abas eventu klausītāji iOS atbalstam
+    function submitResults() {
+      const s1 = +score1.value, s2 = +score2.value;
+      const params = [
+        'callback=postCallback',
+        'game='         + encodeURIComponent(selectedGame),
+        'winner='       + encodeURIComponent(s1 > s2 ? player1.value : player2.value),
+        'loser='        + encodeURIComponent(s1 > s2 ? player2.value : player1.value),
+        'winnerPoints='+ encodeURIComponent(Math.max(s1, s2)),
+        'loserPoints=' + encodeURIComponent(Math.min(s1, s2))
+      ].join('&');
+      const scr = document.createElement('script');
+      scr.src = `${WEBAPP_URL}?${params}`;
+      document.body.appendChild(scr);
+    }
+    submitBtn.addEventListener('click', submitResults);
+    submitBtn.addEventListener('touchend', function(e) {
+      e.preventDefault();
+      submitResults();
+    });
+
+    function postCallback(resp) {
+      if (resp.status === 'success') {
         alert('Rezultāti saglabāti!');
-        score1.value=score2.value='';
-        submitBtn.disabled=true;
+        score1.value = score2.value = '';
+        submitBtn.disabled = true;
         submitBtn.classList.add('hidden');
       } else {
-        alert('Kļūda: '+resp.message);
+        alert('Kļūda: ' + resp.message);
       }
     }
-    submitBtn.addEventListener('click',()=>{
-      const s1=+score1.value, s2=+score2.value;
-      const params=[
-        'callback=postCallback',
-        'game='+encodeURIComponent(selectedGame),
-        'winner='+encodeURIComponent(s1>s2?player1.value:player2.value),
-        'loser='+encodeURIComponent(s1>s2?player2.value:player1.value),
-        'winnerPoints='+encodeURIComponent(Math.max(s1,s2)),
-        'loserPoints='+encodeURIComponent(Math.min(s1,s2))
-      ].join('&');
-      const scr=document.createElement('script');
-      scr.src=`${WEBAPP_URL}?${params}`;
-      document.body.appendChild(scr);
-    });
   </script>
 </body>
 </html>
