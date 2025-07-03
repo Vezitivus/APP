@@ -49,14 +49,14 @@
   <div class="container">
     <h1>SOLO GAMES</h1>
 
-    <!-- 1) Spēļu izvēle -->
+    <!-- Spēļu izvēle -->
     <div class="row">
       <select id="gameSelect" disabled>
-        <option>Ļauj ielādēt…</option>
+        <option>Ļauj ielādēt...</option>
       </select>
     </div>
 
-    <!-- 2+3) Spēlētāji un punkti -->
+    <!-- Spēlētāji un punkti divās kolonnās -->
     <div id="playersGrid" class="players-grid hidden">
       <div class="player-column">
         <select id="player1"><option>Spēlētājs 1</option></select>
@@ -68,7 +68,7 @@
       </div>
     </div>
 
-    <!-- 4) Nosūtīšanas poga -->
+    <!-- Nosūtīšanas poga -->
     <button id="submitBtn" class="hidden" disabled>Nosūtīt rezultātus</button>
   </div>
 
@@ -81,7 +81,7 @@
     const score2      = document.getElementById('score2');
     const submitBtn   = document.getElementById('submitBtn');
 
-    // 1) On load → getHeaders()
+    // 1) Pēc lapas ielādes ielādējam spēļu nosaukumus
     window.onload = () => {
       google.script.run
         .withSuccessHandler(headers => {
@@ -96,13 +96,13 @@
         .getHeaders();
     };
 
-    // 2) Kad izvēlas spēli → getPlayers()
+    // 2) Kad izvēlas spēli — ielādējam spēlētājus
     gameSelect.addEventListener('change', () => {
       google.script.run
         .withSuccessHandler(players => {
-          [player1,player2].forEach(sel => {
+          [player1, player2].forEach(sel => {
             sel.innerHTML = '<option value="" disabled selected>Spēlētājs</option>';
-            players.forEach(p => sel.appendChild(new Option(p,p)));
+            players.forEach(p => sel.appendChild(new Option(p, p)));
             sel.disabled = false;
           });
           score1.value = score2.value = '';
@@ -114,7 +114,7 @@
         .getPlayers(gameSelect.value);
     });
 
-    // 3) Iespējo punktu ievadi, kad abi spēlētāji atlasīti
+    // 3) Iespējo punktu lauciņus, ja abi spēlētāji atlasīti
     function checkPlayers() {
       if (player1.value && player2.value && player1.value !== player2.value) {
         score1.disabled = score2.disabled = false;
@@ -138,7 +138,7 @@
     }
     score1.oninput = score2.oninput = checkScores;
 
-    // 5) submitResult()
+    // 5) Nosūta rezultātus serverim
     submitBtn.onclick = () => {
       const s1 = +score1.value, s2 = +score2.value;
       google.script.run
