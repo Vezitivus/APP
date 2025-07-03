@@ -2,124 +2,116 @@
 <html lang="lv">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SOLO GAMES</title>
   <style>
-    /* --- Global --- */
-    *, *::before, *::after {
-      box-sizing: border-box;
-    }
+    /* Global */
+    *, *::before, *::after { box-sizing: border-box; }
     body {
       margin: 0;
-      padding: 0;
-      background-color: #000;
+      padding: 16px;
+      background: #000;
       color: #fff;
       font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Arial", sans-serif;
       display: flex;
       justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-      padding: 16px;
     }
-
-    /* --- Container --- */
     .container {
       width: 100%;
       max-width: 480px;
       background: #111;
       border-radius: 12px;
       padding: 24px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
     }
-
-    /* --- Header --- */
     h1 {
+      margin: 0 0 24px;
       font-size: 2.5rem;
       font-weight: bold;
       text-align: center;
-      margin-bottom: 24px;
       line-height: 1.2;
     }
-
-    /* --- Form elements --- */
     .row {
-      width: 100%;
       margin-bottom: 20px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      justify-content: center;
+      width: 100%;
     }
-    select,
-    input[type="number"],
-    input[list] {
-      flex: 1 1 100%;
-      max-width: 100%;
-      padding: 12px 14px;
+    select {
+      width: 100%;
+      padding: 12px;
       font-size: 1rem;
-      border-radius: 8px;
       border: none;
-      outline: none;
-      background-color: #222;
+      border-radius: 8px;
+      background: #222;
       color: #fff;
-    }
-    /* On wider screens, two inputs per row */
-    @media (min-width: 400px) {
-      select,
-      input[type="number"],
-      input[list] {
-        flex: 1 1 calc(50% - 12px);
-      }
+      outline: none;
     }
 
-    /* --- Button --- */
+    /* Spēlētāji + punkti divās kolonnās */
+    .players-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .player-column input {
+      width: 100%;
+      padding: 12px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      background: #222;
+      color: #fff;
+      outline: none;
+    }
+    .player-column input:first-child {
+      margin-bottom: 8px;
+    }
+
+    /* Poga */
     #submitBtn {
       width: 100%;
       padding: 14px;
       font-size: 1.1rem;
       border: none;
       border-radius: 10px;
-      background-color: #1a1a1a;
+      background: #1a1a1a;
       color: #fff;
       cursor: pointer;
-      transition: background-color 0.2s ease;
+      transition: background-color .2s;
     }
-    #submitBtn:hover {
-      background-color: #333;
+    #submitBtn:hover:not(:disabled) {
+      background: #333;
     }
     #submitBtn:disabled {
       opacity: 0.6;
       cursor: default;
     }
 
-    /* --- Utility --- */
-    .hidden {
-      display: none !important;
-    }
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>SOLO GAMES</h1>
 
-    <!-- 1) Spēļu nolaižamā izvēlne -->
+    <!-- 1) Spēļu izvēle -->
     <div class="row">
       <select id="gameSelect">
         <option value="" disabled selected>Izvēlies spēli</option>
       </select>
     </div>
 
-    <!-- 2) Spēlētāju atlase -->
-    <div id="playersRow" class="row hidden">
-      <input list="playersList" id="player1" placeholder="Spēlētājs 1">
-      <input list="playersList" id="player2" placeholder="Spēlētājs 2">
+    <!-- 2+3) Spēlētāji un viņu punkti vienā blokā -->
+    <div id="playersGrid" class="players-grid hidden">
+      <div class="player-column">
+        <input list="playersList" id="player1" placeholder="Spēlētājs 1">
+        <input type="number" id="score1" placeholder="Punkti" min="0" disabled>
+      </div>
+      <div class="player-column">
+        <input list="playersList" id="player2" placeholder="Spēlētājs 2">
+        <input type="number" id="score2" placeholder="Punkti" min="0" disabled>
+      </div>
       <datalist id="playersList"></datalist>
-    </div>
-
-    <!-- 3) Punktu ievade -->
-    <div id="scoresRow" class="row hidden">
-      <input type="number" id="score1" placeholder="Punkti 1" min="0">
-      <input type="number" id="score2" placeholder="Punkti 2" min="0">
     </div>
 
     <!-- 4) Nosūtīšanas poga -->
@@ -130,31 +122,29 @@
     const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwQxkmm_Rg3uTi5Fqm4UpXVQIJ6IA6W2cRWWvdNCxm2RT4SIN2S4sknM-u8nff3wYc3/exec';
 
     let gamesData = [];
-    const gameSelect = document.getElementById('gameSelect');
-    const playersRow  = document.getElementById('playersRow');
-    const player1     = document.getElementById('player1');
-    const player2     = document.getElementById('player2');
-    const playersList = document.getElementById('playersList');
-    const scoresRow   = document.getElementById('scoresRow');
-    const score1      = document.getElementById('score1');
-    const score2      = document.getElementById('score2');
-    const submitBtn   = document.getElementById('submitBtn');
+    const gameSelect   = document.getElementById('gameSelect');
+    const playersGrid  = document.getElementById('playersGrid');
+    const player1      = document.getElementById('player1');
+    const player2      = document.getElementById('player2');
+    const playersList  = document.getElementById('playersList');
+    const score1       = document.getElementById('score1');
+    const score2       = document.getElementById('score2');
+    const submitBtn    = document.getElementById('submitBtn');
 
-    // Ielādē spēles un spēlētājus
+    // 1) Ielādē spēles
     fetch(WEBAPP_URL)
-      .then(res => res.json())
+      .then(r => r.json())
       .then(data => {
         gamesData = data;
         data.forEach(({name}) => {
-          const opt = document.createElement('option');
-          opt.value = name;
-          opt.textContent = name;
-          gameSelect.appendChild(opt);
+          const o = document.createElement('option');
+          o.value = name; o.textContent = name;
+          gameSelect.appendChild(o);
         });
       })
       .catch(console.error);
 
-    // Pēc spēles izvēles parāda spēlētājus
+    // 2) Kad spēle izvēlēta → parādi spēlētāju bloku
     gameSelect.addEventListener('change', () => {
       const sel = gamesData.find(g => g.name === gameSelect.value);
       playersList.innerHTML = '';
@@ -163,27 +153,28 @@
         o.value = p;
         playersList.appendChild(o);
       });
-      playersRow.classList.remove('hidden');
-      scoresRow.classList.add('hidden');
-      submitBtn.classList.add('hidden');
-      submitBtn.disabled = true;
-      player1.value = player2.value = '';
+      // atiestata un parāda
+      [player1, player2].forEach(i => i.value = '');
+      [score1, score2].forEach(i => { i.value = ''; i.disabled = true; });
+      submitBtn.disabled = true; submitBtn.classList.add('hidden');
+      playersGrid.classList.remove('hidden');
     });
 
-    // Parāda punktu laukus, ja abi spēlētāji ievadīti un atšķiras
+    // 3) Kad abi spēlētāji izvēlēti atšķirīgi → aktivē punktu laukus
     function checkPlayers() {
       if (player1.value && player2.value && player1.value !== player2.value) {
-        scoresRow.classList.remove('hidden');
+        score1.disabled = false;
+        score2.disabled = false;
       } else {
-        scoresRow.classList.add('hidden');
-        submitBtn.classList.add('hidden');
-        submitBtn.disabled = true;
+        score1.disabled = true;
+        score2.disabled = true;
+        submitBtn.disabled = true; submitBtn.classList.add('hidden');
       }
     }
     player1.addEventListener('input', checkPlayers);
     player2.addEventListener('input', checkPlayers);
 
-    // Parāda pogu, kad abi punkti ievadīti
+    // 4) Kad abi punkti ievadīti → parādi un aktivē pogu
     function checkScores() {
       if (score1.value !== '' && score2.value !== '') {
         submitBtn.classList.remove('hidden');
@@ -196,10 +187,9 @@
     score1.addEventListener('input', checkScores);
     score2.addEventListener('input', checkScores);
 
-    // Nosūta rezultātus
+    // 5) Nosūtīšana
     submitBtn.addEventListener('click', () => {
-      const s1 = +score1.value;
-      const s2 = +score2.value;
+      const s1 = +score1.value, s2 = +score2.value;
       const payload = {
         game: gameSelect.value,
         winner: s1 > s2 ? player1.value : player2.value,
@@ -207,21 +197,19 @@
         winnerPoints: Math.max(s1, s2),
         loserPoints:  Math.min(s1, s2)
       };
-
       fetch(WEBAPP_URL, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: {'Content-Type':'application/json'},
         body: JSON.stringify(payload)
       })
-      .then(res => res.json())
+      .then(r => r.json())
       .then(resp => {
-        if (resp.status === 'success') {
+        if (resp.status==='success') {
           alert('Rezultāti saglabāti!');
-          score1.value = score2.value = '';
-          submitBtn.disabled = true;
-          submitBtn.classList.add('hidden');
+          [score1, score2].forEach(i => i.value = '');
+          submitBtn.disabled = true; submitBtn.classList.add('hidden');
         } else {
-          alert('Kļūda: ' + resp.message);
+          alert('Kļūda: '+resp.message);
         }
       })
       .catch(() => alert('Neizdevās sazināties ar serveri.'));
