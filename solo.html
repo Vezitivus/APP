@@ -5,68 +5,70 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SOLO GAMES</title>
   <style>
-    *, *::before, *::after { box-sizing: border-box }
+    *, *::before, *::after { box-sizing: border-box; }
     body {
-      margin:0; padding:16px;
-      background:#000; color:#fff;
-      font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
-      display:flex; justify-content:center;
+      margin: 0; padding: 16px;
+      background: #000; color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+      display: flex; justify-content: center;
     }
     .container {
-      width:100%; max-width:480px;
-      background:#111; border-radius:12px;
-      padding:24px; box-shadow:0 4px 20px rgba(0,0,0,0.5);
+      width: 100%; max-width: 480px;
+      background: #111; border-radius: 12px;
+      padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
     }
     h1 {
-      margin:0 0 24px;
-      font-size:2.5rem; font-weight:bold;
-      text-align:center;
+      margin: 0 0 24px;
+      font-size: 2.5rem; font-weight: bold;
+      text-align: center;
     }
     .games-list {
-      display:grid;
-      grid-template-columns:repeat(2,1fr);
-      gap:12px; margin-bottom:24px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
     }
     .game-btn {
-      padding:8px; font-size:1rem;
-      border:none; border-radius:8px;
-      background:#222; color:#fff;
-      cursor:pointer; transition:background .2s;
-      white-space:nowrap; -webkit-appearance:none;
+      padding: 8px; font-size: 1rem;
+      border: none; border-radius: 8px;
+      background: #222; color: #fff;
+      cursor: pointer; transition: background .2s;
+      -webkit-appearance: none;
+      white-space: nowrap;
     }
-    .game-btn:hover { background:#333 }
+    .game-btn:hover { background: #333 }
     .players-grid {
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:12px; margin-bottom:20px;
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 12px; margin-bottom: 20px;
     }
     select, input[type=number] {
-      width:100%; padding:12px;
-      font-size:1rem; border:none;
-      border-radius:8px; background:#222;
-      color:#fff; outline:none; margin-bottom:8px;
+      width: 100%; padding: 12px;
+      font-size: 1rem; border: none;
+      border-radius: 8px; background: #222;
+      color: #fff; outline: none; margin-bottom: 8px;
     }
     #submitBtn {
-      width:100%; padding:14px; font-size:1.1rem;
-      border:none; border-radius:10px;
-      background:#1a1a1a; color:#fff;
-      cursor:pointer; transition:background .2s;
-      -webkit-appearance:none;
+      width: 100%; padding: 14px; font-size: 1.1rem;
+      border: none; border-radius: 10px;
+      background: #1a1a1a; color: #fff;
+      cursor: pointer; transition: background .2s, transform .2s;
+      -webkit-appearance: none;
     }
-    #submitBtn:hover:not(:disabled) { background:#333 }
-    #submitBtn:disabled { opacity:.6; cursor:default }
-    .hidden { display:none!important }
+    #submitBtn:hover:not(:disabled) { background: #333 }
+    #submitBtn:disabled { opacity: .6; cursor: default }
+    @keyframes pulse {
+      0%,100% { transform: scale(1) }
+      50%     { transform: scale(1.1) }
+    }
+    .pulse { animation: pulse 1s ease-out }
+    .hidden { display: none!important }
   </style>
   <script src="https://www.gstatic.com/charts/loader.js"></script>
 </head>
 <body>
   <div class="container">
     <h1>SOLO GAMES</h1>
-
-    <!-- 1) Spēļu saraksts -->
     <div id="gamesList" class="games-list"></div>
-
-    <!-- 2+3) Spēlētāji un punkti -->
     <div id="playersGrid" class="players-grid hidden">
       <div>
         <select id="player1">
@@ -81,8 +83,6 @@
         <input type="number" id="score2" placeholder="Punkti" min="0" disabled>
       </div>
     </div>
-
-    <!-- 4) Nosūtīšanas poga -->
     <button id="submitBtn" class="hidden" disabled>Nosūtīt rezultātus</button>
   </div>
 
@@ -90,7 +90,7 @@
     const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxIUgMyljIg79EVd2vC_BkEW-lOLteOkjjJbjEIaoE632jxUujKkNC3i-MmH7xgChP4/exec';
     let gamesData = [], selectedGame = null;
 
-    // 1) JSONP ielādē sarakstu
+    // JSONP callback for loading games
     function gamesCallback(data) {
       gamesData = data;
       const list = document.getElementById('gamesList');
@@ -103,25 +103,26 @@
         list.appendChild(btn);
       });
     }
-    ;(function(){
+    // inject JSONP script
+    (function loadGames(){
       const s = document.createElement('script');
       s.src = `${WEBAPP_URL}?callback=gamesCallback`;
       document.body.appendChild(s);
     })();
 
-    // 2) Lietotājs izvēlas spēli
+    // select a game, show players
     function selectGame(name) {
       selectedGame = name;
-      document.querySelectorAll('#gamesList .game-btn').forEach(btn=>{
-        if (btn.textContent!==name) btn.remove();
+      document.querySelectorAll('#gamesList .game-btn').forEach(b=>{
+        if(b.textContent!==name) b.remove();
       });
-      const players = gamesData.find(g=>g.name===name).players;
+      const players = gamesData.find(g => g.name === name).players;
       const p1 = document.getElementById('player1');
       const p2 = document.getElementById('player2');
       [p1,p2].forEach(sel=>{
         for(let i=sel.options.length-1;i>0;i--) sel.remove(i);
-        players.forEach(nm=> sel.add(new Option(nm,nm)));
-        sel.selectedIndex=0;
+        players.forEach(nm => sel.add(new Option(nm,nm)));
+        sel.selectedIndex = 0;
       });
       ['score1','score2'].forEach(id=>{
         const inp = document.getElementById(id);
@@ -132,18 +133,18 @@
       document.getElementById('playersGrid').classList.remove('hidden');
     }
 
-    // 3) Aktivizē punktu laukus un pogu
-    const p1=document.getElementById('player1'),
-          p2=document.getElementById('player2'),
-          s1=document.getElementById('score1'),
-          s2=document.getElementById('score2'),
-          btn=document.getElementById('submitBtn');
+    // enable score inputs and button
+    const p1 = document.getElementById('player1'),
+          p2 = document.getElementById('player2'),
+          s1 = document.getElementById('score1'),
+          s2 = document.getElementById('score2'),
+          btn= document.getElementById('submitBtn');
 
     function checkPlayers(){
-      if(p1.value&&p2.value&&p1.value!==p2.value){
-        s1.disabled=s2.disabled=false;
+      if(p1.value && p2.value && p1.value!==p2.value){
+        s1.disabled = s2.disabled = false;
       } else {
-        s1.disabled=s2.disabled=true;
+        s1.disabled = s2.disabled = true;
         btn.disabled=true; btn.classList.add('hidden');
       }
     }
@@ -151,7 +152,7 @@
     p2.addEventListener('change',checkPlayers);
 
     function checkScores(){
-      if(s1.value!=''&&s2.value!=''){
+      if(s1.value!=='' && s2.value!==''){
         btn.disabled=false; btn.classList.remove('hidden');
       } else {
         btn.disabled=true; btn.classList.add('hidden');
@@ -160,26 +161,42 @@
     s1.addEventListener('input',checkScores);
     s2.addEventListener('input',checkScores);
 
-    // 4) JSONP nosūtīšana
-    function postCallback(resp){
-      // atgriež tikai status; rīkošanās citreiz
+    // JSONP post callback: animate button, clear fields
+    function postCallback(resp) {
+      if (resp.status==='success') {
+        btn.textContent = 'Rezultāti saglabāti';
+        btn.classList.add('pulse');
+        p1.selectedIndex = p2.selectedIndex = 0;
+        s1.value = s2.value = '';
+        setTimeout(()=>{
+          btn.classList.remove('pulse');
+          btn.textContent = 'Nosūtīt rezultātus';
+          btn.disabled = true;
+          btn.classList.add('hidden');
+        }, 1000);
+      }
     }
+
+    // send results via JSONP
     function sendResults(){
-      const a1=+s1.value, a2=+s2.value;
-      const params=[
+      const v1 = Number(s1.value), v2 = Number(s2.value);
+      const params = [
         'callback=postCallback',
-        'game='+encodeURIComponent(selectedGame),
-        'winner='+encodeURIComponent(a1>a2? p1.value:p2.value),
-        'loser='+encodeURIComponent(a1>a2? p2.value:p1.value),
-        'winnerPoints='+encodeURIComponent(Math.max(a1,a2)),
-        'loserPoints='+encodeURIComponent(Math.min(a1,a2))
+        'game=' + encodeURIComponent(selectedGame),
+        'winner=' + encodeURIComponent(v1>v2? p1.value:p2.value),
+        'loser='  + encodeURIComponent(v1>v2? p2.value:p1.value),
+        'winnerPoints=' + encodeURIComponent(Math.max(v1,v2)),
+        'loserPoints='  + encodeURIComponent(Math.min(v1,v2))
       ].join('&');
-      const sc=document.createElement('script');
-      sc.src=`${WEBAPP_URL}?${params}`;
-      document.body.appendChild(sc);
+      const s = document.createElement('script');
+      s.src = `${WEBAPP_URL}?${params}`;
+      document.body.appendChild(s);
     }
     btn.addEventListener('click',sendResults);
-    btn.addEventListener('touchend',e=>{ e.preventDefault(); sendResults(); });
+    btn.addEventListener('touchend',e=>{
+      e.preventDefault();
+      sendResults();
+    });
   </script>
 </body>
 </html>
