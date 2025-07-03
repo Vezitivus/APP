@@ -14,11 +14,12 @@
     google.charts.setOnLoadCallback(loadSheetData);
 
     function loadSheetData() {
+      // Šis `headers=0` liek Google interpretēt, ka nav virsrakstu -> dati sākas no 1. rindas
       const query = new google.visualization.Query(
-        'https://docs.google.com/spreadsheets/d/1KYwqQ4gpwnXuMjNGjET1KnZVh2hmgadAl1rpmCttdnk/gviz/tq?sheet=SOLO'
+        'https://docs.google.com/spreadsheets/d/1KYwqQ4gpwnXuMjNGjET1KnZVh2hmgadAl1rpmCttdnk/gviz/tq?sheet=SOLO&headers=0'
       );
 
-      query.setQuery('SELECT * LIMIT 1'); // Ielasa tikai pirmo rindu
+      query.setQuery('SELECT * LIMIT 1'); // Patiešām paņem tikai 1. rindu
       query.send(handleQueryResponse);
     }
 
