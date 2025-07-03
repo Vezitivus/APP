@@ -120,31 +120,35 @@
 
   <script>
     const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwQxkmm_Rg3uTi5Fqm4UpXVQIJ6IA6W2cRWWvdNCxm2RT4SIN2S4sknM-u8nff3wYc3/exec';
-
     let gamesData = [];
-    const gameSelect   = document.getElementById('gameSelect');
-    const playersGrid  = document.getElementById('playersGrid');
-    const player1      = document.getElementById('player1');
-    const player2      = document.getElementById('player2');
-    const playersList  = document.getElementById('playersList');
-    const score1       = document.getElementById('score1');
-    const score2       = document.getElementById('score2');
-    const submitBtn    = document.getElementById('submitBtn');
 
-    // 1) Ielādē spēles
-    fetch(WEBAPP_URL)
-      .then(r => r.json())
-      .then(data => {
-        gamesData = data;
-        data.forEach(({name}) => {
-          const o = document.createElement('option');
-          o.value = name; o.textContent = name;
-          gameSelect.appendChild(o);
-        });
-      })
-      .catch(console.error);
+    // 1) Ielādē spēles caur JSONP
+    function gamesCallback(data) {
+      gamesData = data;
+      const sel = document.getElementById('gameSelect');
+      data.forEach(({name}) => {
+        const o = document.createElement('option');
+        o.value = name; o.textContent = name;
+        sel.appendChild(o);
+      });
+    }
+    function loadGames() {
+      const s = document.createElement('script');
+      s.src = `${WEBAPP_URL}?callback=gamesCallback`;
+      document.body.appendChild(s);
+    }
+    document.addEventListener('DOMContentLoaded', loadGames);
 
-    // 2) Kad spēle izvēlēta → parādi spēlētāju bloku
+    // 2) Kad spēle izvēlēta
+    const gameSelect = document.getElementById('gameSelect');
+    const playersGrid= document.getElementById('playersGrid');
+    const player1    = document.getElementById('player1');
+    const player2    = document.getElementById('player2');
+    const playersList= document.getElementById('playersList');
+    const score1     = document.getElementById('score1');
+    const score2     = document.getElementById('score2');
+    const submitBtn  = document.getElementById('submitBtn');
+
     gameSelect.addEventListener('change', () => {
       const sel = gamesData.find(g => g.name === gameSelect.value);
       playersList.innerHTML = '';
@@ -153,14 +157,13 @@
         o.value = p;
         playersList.appendChild(o);
       });
-      // atiestata un parāda
       [player1, player2].forEach(i => i.value = '');
       [score1, score2].forEach(i => { i.value = ''; i.disabled = true; });
       submitBtn.disabled = true; submitBtn.classList.add('hidden');
       playersGrid.classList.remove('hidden');
     });
 
-    // 3) Kad abi spēlētāji izvēlēti atšķirīgi → aktivē punktu laukus
+    // 3) Aktivē punktu ievadi
     function checkPlayers() {
       if (player1.value && player2.value && player1.value !== player2.value) {
         score1.disabled = false;
@@ -174,7 +177,7 @@
     player1.addEventListener('input', checkPlayers);
     player2.addEventListener('input', checkPlayers);
 
-    // 4) Kad abi punkti ievadīti → parādi un aktivē pogu
+    // 4) Parāda pogu, kad abi punkti ievadīti
     function checkScores() {
       if (score1.value !== '' && score2.value !== '') {
         submitBtn.classList.remove('hidden');
@@ -187,32 +190,29 @@
     score1.addEventListener('input', checkScores);
     score2.addEventListener('input', checkScores);
 
-    // 5) Nosūtīšana
+    // 5) Nosūtīšana caur JSONP
+    function submitCallback(resp) {
+      if (resp.status === 'success') {
+        alert('Rezultāti saglabāti!');
+        [score1, score2].forEach(i => i.value = '');
+        submitBtn.disabled = true; submitBtn.classList.add('hidden');
+      } else {
+        alert('Kļūda: ' + resp.message);
+      }
+    }
     submitBtn.addEventListener('click', () => {
       const s1 = +score1.value, s2 = +score2.value;
-      const payload = {
-        game: gameSelect.value,
-        winner: s1 > s2 ? player1.value : player2.value,
-        loser:  s1 > s2 ? player2.value : player1.value,
-        winnerPoints: Math.max(s1, s2),
-        loserPoints:  Math.min(s1, s2)
-      };
-      fetch(WEBAPP_URL, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify(payload)
-      })
-      .then(r => r.json())
-      .then(resp => {
-        if (resp.status==='success') {
-          alert('Rezultāti saglabāti!');
-          [score1, score2].forEach(i => i.value = '');
-          submitBtn.disabled = true; submitBtn.classList.add('hidden');
-        } else {
-          alert('Kļūda: '+resp.message);
-        }
-      })
-      .catch(() => alert('Neizdevās sazināties ar serveri.'));
+      const params = [
+        'callback=submitCallback',
+        'game='         + encodeURIComponent(gameSelect.value),
+        'winner='       + encodeURIComponent(s1 > s2 ? player1.value : player2.value),
+        'loser='        + encodeURIComponent(s1 > s2 ? player2.value : player1.value),
+        'winnerPoints='+ encodeURIComponent(Math.max(s1, s2)),
+        'loserPoints=' + encodeURIComponent(Math.min(s1, s2))
+      ].join('&');
+      const s = document.createElement('script');
+      s.src = `${WEBAPP_URL}?${params}`;
+      document.body.appendChild(s);
     });
   </script>
 </body>
