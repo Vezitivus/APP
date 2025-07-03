@@ -56,7 +56,7 @@
     <!-- 1) Spēļu izvēle -->
     <div class="row">
       <select id="gameSelect" disabled>
-        <option value="">Loading…</option>
+        <option value="">Ļauj ielādēt spēles…</option>
       </select>
     </div>
 
@@ -81,30 +81,23 @@
   </div>
 
   <script>
-    // atsevišķais Web App URL
     const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxIUgMyljIg79EVd2vC_BkEW-lOLteOkjjJbjEIaoE632jxUujKkNC3i-MmH7xgChP4/exec';
 
-    let gamesData = [];  // šeit glabāsim visu sheet (game+players) kešā
-
-    // 1) JSONP ielāde – jau uz lapas ielādes iemetam <script>
-    function gamesCallback(data) {
-      gamesData = data;          // A1:AA1000 parsēts serverī, šeit tikai filtrēts
+    // 1) Ielādē tikai A1:AA1 → spēļu saraksts
+    function headerCallback(games) {
       const sel = document.getElementById('gameSelect');
       sel.innerHTML = '<option value="" disabled selected>Izvēlies spēli</option>';
-      data.forEach(({name}) => {
-        const o = new Option(name, name);
-        sel.appendChild(o);
-      });
-      sel.disabled = false;      // iespējam izvēli
+      games.forEach(name => sel.appendChild(new Option(name, name)));
+      sel.disabled = false;
     }
-    ;(function loadAll() {
+    function loadHeaders() {
       const s = document.createElement('script');
-      s.src = `${WEBAPP_URL}?callback=gamesCallback`;
+      s.src = `${WEBAPP_URL}?callback=headerCallback&action=getHeaders`;
       document.body.appendChild(s);
-    })();
+    }
+    document.addEventListener('DOMContentLoaded', loadHeaders);
 
-
-    // 2) Elementu refs
+    // references
     const gameSelect  = document.getElementById('gameSelect');
     const playersGrid = document.getElementById('playersGrid');
     const player1     = document.getElementById('player1');
@@ -113,37 +106,39 @@
     const score2      = document.getElementById('score2');
     const submitBtn   = document.getElementById('submitBtn');
 
-    // 3) Kad izvēlas spēli → no gamesData pildām abas player <select>
-    gameSelect.addEventListener('change', () => {
-      const selObj = gamesData.find(g => g.name === gameSelect.value);
+    // 2) Kad izvēlas spēli → ielādē tās spēlētājus no A2:A1000
+    function playersCallback(players) {
       [player1, player2].forEach(sel => {
         sel.innerHTML = '<option value="" disabled selected>Spēlētājs</option>';
-        selObj.players.forEach(p => sel.appendChild(new Option(p, p)));
+        players.forEach(p => sel.appendChild(new Option(p, p)));
         sel.selectedIndex = 0;
       });
-      // resetējam punktus un pogu
-      [score1, score2].forEach(i => { i.value = ''; i.disabled = true; });
-      submitBtn.disabled = true;
-      submitBtn.classList.add('hidden');
+      [score1, score2].forEach(i => { i.value=''; i.disabled=true; });
+      submitBtn.disabled = true; submitBtn.classList.add('hidden');
       playersGrid.classList.remove('hidden');
+    }
+    gameSelect.addEventListener('change', () => {
+      const game = encodeURIComponent(gameSelect.value);
+      const s = document.createElement('script');
+      s.src = `${WEBAPP_URL}?callback=playersCallback&action=getPlayers&game=${game}`;
+      document.body.appendChild(s);
     });
 
-    // 4) Aktivizē punktu ievadi, kad abi izvēlēti
+    // 3) Aktivizē punktu ievadi
     function checkPlayers() {
       if (player1.value && player2.value && player1.value !== player2.value) {
         score1.disabled = score2.disabled = false;
       } else {
         score1.disabled = score2.disabled = true;
-        submitBtn.disabled = true;
-        submitBtn.classList.add('hidden');
+        submitBtn.disabled = true; submitBtn.classList.add('hidden');
       }
     }
     player1.addEventListener('change', checkPlayers);
     player2.addEventListener('change', checkPlayers);
 
-    // 5) Parāda pogu, kad abi punkti ir ievadīti
+    // 4) Parāda pogu, kad abi punkti ienesti
     function checkScores() {
-      if (score1.value !== '' && score2.value !== '') {
+      if (score1.value!=='' && score2.value!=='') {
         submitBtn.classList.remove('hidden');
         submitBtn.disabled = false;
       } else {
@@ -154,21 +149,21 @@
     score1.addEventListener('input', checkScores);
     score2.addEventListener('input', checkScores);
 
-    // 6) Iesūtām rezultātu JSONP veidā
+    // 5) Iesūta rezultātus
     function submitCallback(resp) {
       if (resp.status === 'success') {
         alert('Rezultāti saglabāti!');
-        [score1, score2].forEach(i => i.value = '');
-        submitBtn.disabled = true;
-        submitBtn.classList.add('hidden');
+        [score1, score2].forEach(i=>i.value='');
+        submitBtn.disabled = true; submitBtn.classList.add('hidden');
       } else {
-        alert('Kļūda: ' + resp.message);
+        alert('Kļūda: '+resp.message);
       }
     }
     submitBtn.addEventListener('click', () => {
       const s1 = +score1.value, s2 = +score2.value;
       const params = [
         'callback=submitCallback',
+        'action=submit',
         'game='         + encodeURIComponent(gameSelect.value),
         'winner='       + encodeURIComponent(s1 > s2 ? player1.value : player2.value),
         'loser='        + encodeURIComponent(s1 > s2 ? player2.value : player1.value),
