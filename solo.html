@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+  <meta charset="UTF-8">
+  <title>SOLO GAMES</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Arial", sans-serif;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      font-size: 3rem;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    select, input[type="text"] {
+      padding: 8px;
+      font-size: 1rem;
+      margin: 0 10px 20px;
+      border-radius: 6px;
+      border: none;
+      outline: none;
+      width: 200px;
+    }
+    input[type="number"] {
+      padding: 8px;
+      font-size: 1rem;
+      margin: 0 10px 20px;
+      border-radius: 6px;
+      border: none;
+      outline: none;
+      width: 100px;
+    }
+    #submitBtn {
+      padding: 12px 24px;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 8px;
+      background-color: #1a1a1a;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    #submitBtn:hover {
+      background-color: #333;
+    }
+    .hidden {
+      display: none;
+    }
+    .row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>SOLO GAMES</h1>
+
+  <!-- 1) Spēļu nolaižamā izvēlne -->
+  <div class="row">
+    <select id="gameSelect">
+      <option value="" disabled selected>Izvēlies spēli</option>
+    </select>
+  </div>
+
+  <!-- 2) Divas spēlētāju izvēlnes -->
+  <div id="playersRow" class="row hidden">
+    <input list="playersList" id="player1" placeholder="Spēlētājs 1">
+    <input list="playersList" id="player2" placeholder="Spēlētājs 2">
+    <datalist id="playersList"></datalist>
+  </div>
+
+  <!-- 3) Punktu ievades lauki -->
+  <div id="scoresRow" class="row hidden">
+    <input type="number" id="score1" placeholder="Punkti 1" min="0">
+    <input type="number" id="score2" placeholder="Punkti 2" min="0">
+  </div>
+
+  <!-- 4) Nosūtīšanas poga -->
+  <button id="submitBtn" class="hidden">Nosūtīt rezultātus</button>
+
+  <script>
+    const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwQxkmm_Rg3uTi5Fqm4UpXVQIJ6IA6W2cRWWvdNCxm2RT4SIN2S4sknM-u8nff3wYc3/exec';
+
+    let gamesData = [];
+    const gameSelect = document.getElementById('gameSelect');
+    const playersRow = document.getElementById('playersRow');
+    const playerInput1 = document.getElementById('player1');
+    const playerInput2 = document.getElementById('player2');
+    const playersList = document.getElementById('playersList');
+    const scoresRow = document.getElementById('scoresRow');
+    const score1 = document.getElementById('score1');
+    const score2 = document.getElementById('score2');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // 1) Ielādē spēles un spēlētājus no Google Sheets
+    fetch(WEBAPP_URL)
+      .then(res => res.json())
+      .then(data => {
+        gamesData = data;             // sagaidām: [{name: 'Spēle1', players: [...]}, ...]
+        for (const g of gamesData) {
+          const opt = document.createElement('option');
+          opt.value = g.name;
+          opt.textContent = g.name;
+          gameSelect.appendChild(opt);
+        }
+      })
+      .catch(console.error);
+
+    // 2) Kad izvēlas spēli → parāda spēlētāju lauciņus
+    gameSelect.addEventListener('change', () => {
+      const sel = gamesData.find(g => g.name === gameSelect.value);
+      // aizpilda datalist ar spēlētājiem
+      playersList.innerHTML = '';
+      for (const p of sel.players) {
+        const opt = document.createElement('option');
+        opt.value = p;
+        playersList.appendChild(opt);
+      }
+      playersRow.classList.remove('hidden');
+      scoresRow.classList.add('hidden');
+      submitBtn.classList.add('hidden');
+      playerInput1.value = '';
+      playerInput2.value = '';
+    });
+
+    // 3) Kad ievadīti abi spēlētāji → parāda punktu lodziņus
+    function tryShowScores() {
+      if (playerInput1.value && playerInput2.value && playerInput1.value !== playerInput2.value) {
+        scoresRow.classList.remove('hidden');
+      } else {
+        scoresRow.classList.add('hidden');
+        submitBtn.classList.add('hidden');
+      }
+    }
+    playerInput1.addEventListener('input', tryShowScores);
+    playerInput2.addEventListener('input', tryShowScores);
+
+    // 4) Kad abus punktus ievada → parāda pogu
+    function tryShowSubmit() {
+      if (score1.value !== '' && score2.value !== '') {
+        submitBtn.classList.remove('hidden');
+      } else {
+        submitBtn.classList.add('hidden');
+      }
+    }
+    score1.addEventListener('input', tryShowSubmit);
+    score2.addEventListener('input', tryShowSubmit);
+
+    // 5) Nosūta rezultātus uz Google Sheets
+    submitBtn.addEventListener('click', () => {
+      const s1 = parseInt(score1.value, 10);
+      const s2 = parseInt(score2.value, 10);
+      const payload = {
+        game: gameSelect.value,
+        // nosaka uzvarētāju un zaudētāju
+        winner: s1 > s2 ? playerInput1.value : playerInput2.value,
+        loser:  s1 > s2 ? playerInput2.value : playerInput1.value,
+        winnerPoints: Math.max(s1, s2),
+        loserPoints:  Math.min(s1, s2)
+      };
+
+      fetch(WEBAPP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(resp => {
+        if (resp.status === 'success') {
+          alert('Rezultāti saglabāti!');
+          // atiestata lauciņus
+          score1.value = score2.value = '';
+          submitBtn.classList.add('hidden');
+        } else {
+          alert('Kļūda: ' + resp.message);
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert('Neizdevās sazināties ar serveri.');
+      });
+    });
+  </script>
+</body>
+</html>
