@@ -33,7 +33,7 @@
       background:#222; color:#fff; cursor:pointer;
       transition:background .2s; white-space:nowrap;
     }
-    .game-btn:hover{background:#333}
+    .game-btn:hover { background:#333 }
     .players-grid {
       display:grid; grid-template-columns:1fr 1fr;
       gap:12px; margin-bottom:20px;
@@ -50,11 +50,11 @@
       background:#1a1a1a; color:#fff; cursor:pointer;
       transition:background .2s,transform .2s;
     }
-    #submitBtn:hover:not(:disabled){background:#333}
-    #submitBtn:disabled{opacity:.6;cursor:default}
-    @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.1)}100%{transform:scale(1)}}
-    .pulse{animation:pulse 1s ease-out}
-    .hidden{display:none!important}
+    #submitBtn:hover:not(:disabled) { background:#333 }
+    #submitBtn:disabled { opacity:.6; cursor:default }
+    @keyframes pulse {0%{transform:scale(1)}50%{transform:scale(1.1)}100%{transform:scale(1)}}
+    .pulse { animation:pulse 1s ease-out }
+    .hidden { display:none!important }
   </style>
   <script src="https://www.gstatic.com/charts/loader.js"></script>
 </head>
@@ -78,18 +78,18 @@
   <script>
     const SS_ID      = '1KYwqQ4gpwnXuMjNGjET1KnZVh2hmgadAl1rpmCttdnk';
     const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxIUgMyljIg79EVd2vC_BkEW-lOLteOkjjJbjEIaoE632jxUujKkNC3i-MmH7xgChP4/exec';
+    let selectedGame = null;
 
-    let selectedGame = null, confirmSend = false;
-
-    // GET games via Google Charts Query
+    // Load game list
     google.charts.load('current',{packages:['table']});
     google.charts.setOnLoadCallback(()=>{
       const url = `https://docs.google.com/spreadsheets/d/${SS_ID}/gviz/tq?sheet=SOLO&headers=0&range=A1:BB1000&cacheBust=${Date.now()}`;
       const q = new google.visualization.Query(url);
       q.setQuery('SELECT * LIMIT 1');
-      q.send(r=>{
-        const data = r.getDataTable(), list = document.getElementById('gamesList');
-        for(let c=0; c<data.getNumberOfColumns(); c++){
+      q.send(resp=>{
+        const data = resp.getDataTable();
+        const list = document.getElementById('gamesList');
+        for(let c=0;c<data.getNumberOfColumns();c++){
           const name = data.getValue(0,c);
           if(!name) continue;
           const btn = document.createElement('button');
@@ -101,24 +101,27 @@
       });
     });
 
-    function selectGame(col,name){
+    function selectGame(colIndex,name){
       selectedGame = name;
+      // Keep only selected button
       document.querySelectorAll('.game-btn').forEach(btn=>{
-        if(btn.textContent===name) document.getElementById('gamesList').prepend(btn);
-        else btn.remove();
+        btn.textContent===name
+          ? document.getElementById('gamesList').prepend(btn)
+          : btn.remove();
       });
-      const colL = String.fromCharCode(65+col);
+      // Load players
+      const colLetter = String.fromCharCode(65+colIndex);
       const url = `https://docs.google.com/spreadsheets/d/${SS_ID}/gviz/tq?sheet=SOLO&headers=0&range=A1:BB1000&cacheBust=${Date.now()}`;
       const q = new google.visualization.Query(url);
-      q.setQuery(`SELECT ${colL} OFFSET 1`);
-      q.send(r=>{
-        const dt = r.getDataTable();
+      q.setQuery(`SELECT ${colLetter} OFFSET 1`);
+      q.send(resp=>{
+        const dt = resp.getDataTable();
         ['player1','player2'].forEach(id=>{
-          const sel = document.getElementById(id);
+          const sel=document.getElementById(id);
           while(sel.options.length>1) sel.remove(1);
         });
-        for(let i=0;i<dt.getNumberOfRows();i++){
-          const nm=dt.getValue(i,0);
+        for(let r=0;r<dt.getNumberOfRows();r++){
+          const nm=dt.getValue(r,0);
           if(nm) ['player1','player2'].forEach(id=>{
             document.getElementById(id).add(new Option(nm,nm));
           });
@@ -128,25 +131,24 @@
           const inp=document.getElementById(id);
           inp.value=''; inp.disabled=true;
         });
-        confirmSend=false;
         const btn=document.getElementById('submitBtn');
         btn.disabled=true; btn.classList.add('hidden');
-        btn.textContent='Nosūtīt rezultātus';
         document.getElementById('playersGrid').classList.remove('hidden');
       });
     }
 
-    const player1=document.getElementById('player1'),
-          player2=document.getElementById('player2'),
-          score1=document.getElementById('score1'),
-          score2=document.getElementById('score2'),
-          submitBtn=document.getElementById('submitBtn');
+    // Elements
+    const player1  = document.getElementById('player1'),
+          player2  = document.getElementById('player2'),
+          score1   = document.getElementById('score1'),
+          score2   = document.getElementById('score2'),
+          submitBtn= document.getElementById('submitBtn');
 
     function checkPlayers(){
-      if(player1.value&&player2.value&&player1.value!==player2.value){
-        score1.disabled=score2.disabled=false;
+      if(player1.value && player2.value && player1.value!==player2.value){
+        score1.disabled = score2.disabled = false;
       } else {
-        score1.disabled=score2.disabled=true;
+        score1.disabled = score2.disabled = true;
         submitBtn.disabled=true; submitBtn.classList.add('hidden');
       }
     }
@@ -154,7 +156,7 @@
     player2.addEventListener('change',checkPlayers);
 
     function checkScores(){
-      if(score1.value!==''&&score2.value!==''){
+      if(score1.value!=='' && score2.value!==''){
         submitBtn.disabled=false; submitBtn.classList.remove('hidden');
       } else {
         submitBtn.disabled=true; submitBtn.classList.add('hidden');
@@ -163,15 +165,10 @@
     score1.addEventListener('input',checkScores);
     score2.addEventListener('input',checkScores);
 
+    // Send results via fetch()
     async function sendResults(){
-      if(!confirmSend){
-        confirmSend=true;
-        submitBtn.textContent='Nospied vēlreiz, lai apstiprinātu';
-        return;
-      }
-      const s1=+score1.value, s2=+score2.value;
-      submitBtn.disabled=true;
-      // POST via fetch (fast on iOS)
+      submitBtn.disabled = true;
+      const s1 = +score1.value, s2 = +score2.value;
       try {
         const res = await fetch(WEBAPP_URL, {
           method:'POST',
@@ -195,17 +192,16 @@
             submitBtn.textContent='Nosūtīt rezultātus';
             submitBtn.disabled=true;
             submitBtn.classList.add('hidden');
-            confirmSend=false;
           },1000);
         }
       } catch(e){
-        // retry once on failure
-        setTimeout(sendResults, 300);
+        // retry once
+        setTimeout(sendResults,300);
       }
     }
 
-    submitBtn.addEventListener('click', ()=>sendResults());
-    submitBtn.addEventListener('pointerup', ()=>sendResults());
+    submitBtn.addEventListener('click', sendResults);
+    submitBtn.addEventListener('pointerup', sendResults);
   </script>
 </body>
 </html>
