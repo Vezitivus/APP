@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SOLO GAMES</title>
   <style>
-    *, *::before, *::after { box-sizing: border-box; }
+    *, *::before, *::after { box-sizing: border-box }
     body {
       margin:0; padding:16px;
       background:#000; color:#fff;
@@ -23,7 +23,8 @@
       text-align:center;
     }
     .games-list {
-      display:grid; grid-template-columns:repeat(2,1fr);
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
       gap:12px; margin-bottom:24px;
     }
     .game-btn {
@@ -31,12 +32,12 @@
       border:none; border-radius:8px;
       background:#222; color:#fff;
       cursor:pointer; transition:background .2s;
-      white-space:nowrap;
-      -webkit-appearance:none;
+      white-space:nowrap; -webkit-appearance:none;
     }
-    .game-btn:hover { background:#333; }
+    .game-btn:hover { background:#333 }
     .players-grid {
-      display:grid; grid-template-columns:1fr 1fr;
+      display:grid;
+      grid-template-columns:1fr 1fr;
       gap:12px; margin-bottom:20px;
     }
     select, input[type=number] {
@@ -49,23 +50,20 @@
       width:100%; padding:14px; font-size:1.1rem;
       border:none; border-radius:10px;
       background:#1a1a1a; color:#fff;
-      cursor:pointer; transition:background .2s,transform .2s;
+      cursor:pointer; transition:background .2s;
       -webkit-appearance:none;
     }
-    #submitBtn:hover:not(:disabled) { background:#333; }
-    #submitBtn:disabled { opacity:.6; cursor:default; }
-    @keyframes pulse {
-      0%,100%{transform:scale(1)}50%{transform:scale(1.1)}
-    }
-    .pulse { animation:pulse 1s ease-out; }
-    .hidden { display:none!important; }
+    #submitBtn:hover:not(:disabled) { background:#333 }
+    #submitBtn:disabled { opacity:.6; cursor:default }
+    .hidden { display:none!important }
   </style>
+  <script src="https://www.gstatic.com/charts/loader.js"></script>
 </head>
 <body>
   <div class="container">
     <h1>SOLO GAMES</h1>
 
-    <!-- 1) Spēļu saraksts kā pogas -->
+    <!-- 1) Spēļu saraksts -->
     <div id="gamesList" class="games-list"></div>
 
     <!-- 2+3) Spēlētāji un punkti -->
@@ -92,7 +90,7 @@
     const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxIUgMyljIg79EVd2vC_BkEW-lOLteOkjjJbjEIaoE632jxUujKkNC3i-MmH7xgChP4/exec';
     let gamesData = [], selectedGame = null;
 
-    // 1) Ielādē spēļu sarakstu JSONP
+    // 1) JSONP ielādē sarakstu
     function gamesCallback(data) {
       gamesData = data;
       const list = document.getElementById('gamesList');
@@ -105,49 +103,47 @@
         list.appendChild(btn);
       });
     }
-    (function loadGames(){
+    ;(function(){
       const s = document.createElement('script');
       s.src = `${WEBAPP_URL}?callback=gamesCallback`;
       document.body.appendChild(s);
     })();
 
-    // 2) Spēles izvēle → filtrē pogas + parāda spēlētājus
+    // 2) Lietotājs izvēlas spēli
     function selectGame(name) {
       selectedGame = name;
-      document.querySelectorAll('#gamesList .game-btn').forEach(btn => {
-        if (btn.textContent !== name) btn.remove();
+      document.querySelectorAll('#gamesList .game-btn').forEach(btn=>{
+        if (btn.textContent!==name) btn.remove();
       });
-      // lietotāja interfeiss
       const players = gamesData.find(g=>g.name===name).players;
       const p1 = document.getElementById('player1');
       const p2 = document.getElementById('player2');
       [p1,p2].forEach(sel=>{
-        // iztīra
         for(let i=sel.options.length-1;i>0;i--) sel.remove(i);
-        // pievieno
         players.forEach(nm=> sel.add(new Option(nm,nm)));
         sel.selectedIndex=0;
       });
-      [document.getElementById('score1'),document.getElementById('score2')].forEach(i=>{
-        i.value=''; i.disabled=true;
+      ['score1','score2'].forEach(id=>{
+        const inp = document.getElementById(id);
+        inp.value=''; inp.disabled=true;
       });
-      document.getElementById('submitBtn').disabled=true;
-      document.getElementById('submitBtn').classList.add('hidden');
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true; btn.classList.add('hidden');
       document.getElementById('playersGrid').classList.remove('hidden');
     }
 
-    // 3) Aktivē punktu ievades laukus
-    const p1   = document.getElementById('player1');
-    const p2   = document.getElementById('player2');
-    const s1i  = document.getElementById('score1');
-    const s2i  = document.getElementById('score2');
-    const btn  = document.getElementById('submitBtn');
+    // 3) Aktivizē punktu laukus un pogu
+    const p1=document.getElementById('player1'),
+          p2=document.getElementById('player2'),
+          s1=document.getElementById('score1'),
+          s2=document.getElementById('score2'),
+          btn=document.getElementById('submitBtn');
 
     function checkPlayers(){
       if(p1.value&&p2.value&&p1.value!==p2.value){
-        s1i.disabled=s2i.disabled=false;
+        s1.disabled=s2.disabled=false;
       } else {
-        s1i.disabled=s2i.disabled=true;
+        s1.disabled=s2.disabled=true;
         btn.disabled=true; btn.classList.add('hidden');
       }
     }
@@ -155,35 +151,21 @@
     p2.addEventListener('change',checkPlayers);
 
     function checkScores(){
-      if(s1i.value!==''&&s2i.value!==''){
+      if(s1.value!=''&&s2.value!=''){
         btn.disabled=false; btn.classList.remove('hidden');
       } else {
         btn.disabled=true; btn.classList.add('hidden');
       }
     }
-    s1i.addEventListener('input',checkScores);
-    s2i.addEventListener('input',checkScores);
+    s1.addEventListener('input',checkScores);
+    s2.addEventListener('input',checkScores);
 
-    // 4) JSONP ziņa par rezultātiem
-    function postCallback(resp) {
-      if(resp.status==='success'){
-        // poga rāda apstiprinājumu + pulse
-        btn.textContent='Rezultāti saglabāti';
-        btn.classList.add('pulse');
-        // notīra lauciņus
-        p1.selectedIndex=p2.selectedIndex=0;
-        s1i.value=s2i.value='';
-        // pēc 1s atjauno sākotnējo stāvokli
-        setTimeout(()=>{
-          btn.classList.remove('pulse');
-          btn.textContent='Nosūtīt rezultātus';
-          btn.disabled=true; btn.classList.add('hidden');
-        },1000);
-      }
+    // 4) JSONP nosūtīšana
+    function postCallback(resp){
+      // atgriež tikai status; rīkošanās citreiz
     }
-
     function sendResults(){
-      const a1=+s1i.value, a2=+s2i.value;
+      const a1=+s1.value, a2=+s2.value;
       const params=[
         'callback=postCallback',
         'game='+encodeURIComponent(selectedGame),
@@ -192,17 +174,12 @@
         'winnerPoints='+encodeURIComponent(Math.max(a1,a2)),
         'loserPoints='+encodeURIComponent(Math.min(a1,a2))
       ].join('&');
-      const s=document.createElement('script');
-      s.src=`${WEBAPP_URL}?${params}`;
-      document.body.appendChild(s);
+      const sc=document.createElement('script');
+      sc.src=`${WEBAPP_URL}?${params}`;
+      document.body.appendChild(sc);
     }
-
-    // atbalsta gan click, gan touchend iOS
     btn.addEventListener('click',sendResults);
-    btn.addEventListener('touchend',e=>{
-      e.preventDefault();
-      sendResults();
-    });
+    btn.addEventListener('touchend',e=>{ e.preventDefault(); sendResults(); });
   </script>
 </body>
 </html>
