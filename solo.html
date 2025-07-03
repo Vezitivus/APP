@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SOLO GAMES</title>
   <style>
+    /* Box sizing */
     *, *::before, *::after { box-sizing: border-box; }
     body {
       margin: 0; padding: 16px;
@@ -22,23 +23,28 @@
       font-size: 2.5rem; font-weight: bold;
       text-align: center; line-height: 1.2;
     }
+    /* Games grid: 2 buttons per row */
     .games-list {
       display: grid;
-      grid-template-columns: repeat(2, max-content);
+      grid-template-columns: repeat(2, 1fr);
       gap: 12px;
-      justify-content: center;
       margin-bottom: 24px;
+      justify-items: stretch;
     }
     .game-btn {
-      padding: 8px 12px;
-      font-size: 1rem;
+      type: button;
+      padding: 8px 10px;
+      font-size: 0.9rem;
       border: none; border-radius: 8px;
       background: #222; color: #fff;
-      cursor: pointer;
+      cursor: pointer; -webkit-appearance: none;
       transition: background-color .2s;
       white-space: nowrap;
     }
-    .game-btn:hover { background: #333; }
+    .game-btn:hover,
+    .game-btn:active {
+      background: #333;
+    }
     .players-grid {
       display: grid; grid-template-columns: 1fr 1fr;
       gap: 12px; margin-bottom: 20px;
@@ -52,17 +58,23 @@
       margin-bottom: 8px;
     }
     #submitBtn {
+      type: button;
       width: 100%; padding: 14px;
       font-size: 1.1rem; border: none;
       border-radius: 10px; background: #1a1a1a;
-      color: #fff; cursor: pointer;
+      color: #fff; cursor: pointer; -webkit-appearance: none;
       transition: background-color .2s;
     }
-    #submitBtn:hover:not(:disabled) { background: #333; }
-    #submitBtn:disabled { opacity: .6; cursor: default; }
+    #submitBtn:hover,
+    #submitBtn:active:not(:disabled) {
+      background: #333;
+    }
+    #submitBtn:disabled {
+      opacity: .6; cursor: default;
+    }
     .hidden { display: none !important; }
   </style>
-  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script src="https://www.gstatic.com/charts/loader.js"></script>
 </head>
 <body>
   <div class="container">
@@ -88,7 +100,7 @@
     </div>
 
     <!-- 4) Nosūtīšanas poga -->
-    <button id="submitBtn" class="hidden" disabled>Nosūtīt rezultātus</button>
+    <button id="submitBtn" class="hidden" disabled ontouchstart="">Nosūtīt rezultātus</button>
   </div>
 
   <script>
@@ -100,74 +112,66 @@
     google.charts.setOnLoadCallback(loadGames);
 
     function loadGames() {
-      const q = new google.visualization.Query(
-        `https://docs.google.com/spreadsheets/d/${SS_ID}/gviz/tq?sheet=SOLO&headers=0`
-      );
-      q.setQuery('SELECT * LIMIT 1');
-      q.send(handleGames);
-    }
-
-    function handleGames(resp) {
-      if (resp.isError()) {
-        alert('Kļūda ielādējot spēles: ' + resp.getMessage());
-        return;
-      }
-      const data = resp.getDataTable();
-      const list = document.getElementById('gamesList');
-      for (let c = 0; c < data.getNumberOfColumns(); c++) {
-        const name = data.getValue(0, c);
-        if (name) {
-          const btn = document.createElement('button');
-          btn.textContent = name;
-          btn.className = 'game-btn';
-          btn.addEventListener('click', () => selectGame(c, name));
-          list.appendChild(btn);
+      // limit to A1:BB1000 for performance
+      const url = `https://docs.google.com/spreadsheets/d/${SS_ID}/gviz/tq?sheet=SOLO&headers=0&range=A1:BB1000`;
+      const query = new google.visualization.Query(url);
+      query.setQuery('SELECT * LIMIT 1');
+      query.send(resp => {
+        if (resp.isError()) {
+          alert('Kļūda ielādējot spēles: ' + resp.getMessage());
+          return;
         }
-      }
+        const data = resp.getDataTable();
+        const list = document.getElementById('gamesList');
+        for (let c = 0; c < data.getNumberOfColumns(); c++) {
+          const name = data.getValue(0, c);
+          if (name) {
+            const btn = document.createElement('button');
+            btn.textContent = name;
+            btn.className = 'game-btn';
+            btn.type = 'button';
+            btn.ontouchstart = '';
+            btn.addEventListener('click', () => selectGame(c, name));
+            list.appendChild(btn);
+          }
+        }
+      });
     }
 
     function selectGame(colIndex, name) {
       selectedGame = name;
-      // Noņem visas citas pogas
+      // remove other buttons, keep selected on top
       document.querySelectorAll('#gamesList .game-btn').forEach(btn => {
-        if (btn.textContent !== name) btn.remove();
-        else {
-          // pārvieto izvēlētās pogas konteinera sākumā
+        if (btn.textContent === name) {
           document.getElementById('gamesList').prepend(btn);
-        }
+        } else btn.remove();
       });
-      // Ielādē spēlētājus no izvēlētās kolonnas
+      // load players from OFFSET 1, limited to 1000 rows
       const colLetter = String.fromCharCode(65 + colIndex);
-      const q = new google.visualization.Query(
-        `https://docs.google.com/spreadsheets/d/${SS_ID}/gviz/tq?sheet=SOLO&headers=0`
-      );
+      const url = `https://docs.google.com/spreadsheets/d/${SS_ID}/gviz/tq?sheet=SOLO&headers=0&range=A1:BB1000`;
+      const q = new google.visualization.Query(url);
       q.setQuery(`SELECT ${colLetter} OFFSET 1`);
-      q.send(handlePlayers);
-    }
-
-    function handlePlayers(resp) {
-      if (resp.isError()) {
-        alert('Kļūda ielādējot spēlētājus: ' + resp.getMessage());
-        return;
-      }
-      const data = resp.getDataTable();
-      const p1 = document.getElementById('player1');
-      const p2 = document.getElementById('player2');
-      // Notīra iepriekšējās opcijas
-      [p1, p2].forEach(sel => {
-        for (let i = sel.options.length - 1; i > 0; i--) sel.remove(i);
+      q.send(resp => {
+        if (resp.isError()) {
+          alert('Kļūda ielādējot spēlētājus: ' + resp.getMessage());
+          return;
+        }
+        const data = resp.getDataTable();
+        const p1 = document.getElementById('player1');
+        const p2 = document.getElementById('player2');
+        [p1, p2].forEach(sel => {
+          for (let i = sel.options.length - 1; i > 0; i--) sel.remove(i);
+        });
+        for (let r = 0; r < data.getNumberOfRows(); r++) {
+          const nm = data.getValue(r, 0);
+          if (nm) [p1, p2].forEach(sel => sel.add(new Option(nm, nm)));
+        }
+        [p1, p2].forEach(sel => sel.selectedIndex = 0);
+        [score1, score2].forEach(inp => { inp.value = ''; inp.disabled = true; });
+        submitBtn.disabled = true;
+        submitBtn.classList.add('hidden');
+        playersGrid.classList.remove('hidden');
       });
-      // Pievieno jaunos spēlētājus
-      for (let r = 0; r < data.getNumberOfRows(); r++) {
-        const nm = data.getValue(r, 0);
-        if (nm) [p1, p2].forEach(sel => sel.add(new Option(nm, nm)));
-      }
-      // Atiestata punktu lauki un rāda bloku
-      [p1, p2].forEach(sel => sel.selectedIndex = 0);
-      [score1, score2].forEach(inp => { inp.value = ''; inp.disabled = true; });
-      submitBtn.disabled = true;
-      submitBtn.classList.add('hidden');
-      document.getElementById('playersGrid').classList.remove('hidden');
     }
 
     const player1 = document.getElementById('player1');
@@ -175,6 +179,7 @@
     const score1  = document.getElementById('score1');
     const score2  = document.getElementById('score2');
     const submitBtn = document.getElementById('submitBtn');
+    const playersGrid = document.getElementById('playersGrid');
 
     function checkPlayers() {
       if (player1.value && player2.value && player1.value !== player2.value) {
