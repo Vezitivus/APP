@@ -34,53 +34,11 @@
     .pulse{animation:pulse 1s ease-out}
     .hidden{display:none!important}
   </style>
-
-  <script>
-    // Games JSONP callback (defined *before* injection)
-    function gamesCallback(data) {
-      window.gamesData = data;
-      localStorage.setItem('soloGames', JSON.stringify(data));
-      renderGames(data);
-    }
-    function renderGames(data) {
-      const list = document.getElementById('gamesList');
-      list.innerHTML = '';
-      data.forEach(item => {
-        const b = document.createElement('button');
-        b.textContent = item.name;
-        b.className = 'game-btn';
-        b.type = 'button';
-        b.onclick = () => selectGame(item.name);
-        list.appendChild(b);
-      });
-    }
-
-    // On DOM ready, inject JSONP with cache-buster
-    document.addEventListener('DOMContentLoaded', () => {
-      // If cached, render immediately
-      const cached = localStorage.getItem('soloGames');
-      if (cached) {
-        try { renderGames(JSON.parse(cached)); }
-        catch(e){ localStorage.removeItem('soloGames'); }
-      }
-      // Inject JSONP
-      const s = document.createElement('script');
-      s.src = 'https://script.google.com/macros/s/AKfycbxIUgMyljIg79EVd2vC_BkEW-lOLteOkjjJbjEIaoE632jxUujKkNC3i-MmH7xgChP4/exec'
-            + '?callback=gamesCallback'
-            + '&_=' + Date.now();
-      document.body.appendChild(s);
-    });
-  </script>
 </head>
-
 <body>
   <div class="container">
     <h1>SOLO GAMES</h1>
-
-    <!-- 1) Games -->
     <div id="gamesList" class="games-list"></div>
-
-    <!-- 2) Players & scores -->
     <div id="playersGrid" class="players-grid hidden">
       <div>
         <select id="player1">
@@ -95,90 +53,152 @@
         <input id="score2" type="number" min="0" placeholder="Punkti" disabled/>
       </div>
     </div>
-
-    <!-- 3) Submit -->
     <button id="submitBtn" class="hidden" disabled>Nosūtīt rezultātus</button>
   </div>
 
   <script>
-    const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxIUgMyljIg79EVd2vC_BkEW-lOLteOkjjJbjEIaoE632jxUujKkNC3i-MmH7xgChP4/exec';
-    let selectedGame = null;
+  (function(){
+    var WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxIUgMyljIg79EVd2vC_BkEW-lOLteOkjjJbjEIaoE632jxUujKkNC3i-MmH7xgChP4/exec';
 
-    function selectGame(name) {
+    // JSONP callback
+    function gamesCallback(data){
+      window.gamesData = data;
+      try { localStorage.setItem('soloGames', JSON.stringify(data)); } catch(e){}
+      renderGames(data);
+    }
+    window.gamesCallback = gamesCallback;
+
+    function renderGames(data){
+      var list = document.getElementById('gamesList');
+      list.innerHTML = '';
+      for(var i=0; i<data.length; i++){
+        (function(item){
+          var b = document.createElement('button');
+          b.textContent = item.name;
+          b.className = 'game-btn';
+          b.type = 'button';
+          b.addEventListener('click', function(){ selectGame(item.name); });
+          list.appendChild(b);
+        })(data[i]);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function(){
+      // Ja kešots, attēlo uzreiz
+      var cached = localStorage.getItem('soloGames');
+      if(cached){
+        try { renderGames(JSON.parse(cached)); }
+        catch(e){ localStorage.removeItem('soloGames'); }
+      }
+      // Injektē JSONP skriptu
+      var s = document.createElement('script');
+      s.src = WEBAPP_URL + '?callback=gamesCallback&_=' + Date.now();
+      s.onerror = function(){ console.error('JSONP load error'); };
+      document.body.appendChild(s);
+    });
+
+    var selectedGame = null;
+    function selectGame(name){
       selectedGame = name;
-      document.querySelectorAll('.game-btn')
-        .forEach(b => { if (b.textContent !== name) b.remove(); });
-      const players = gamesData.find(g=>g.name===name).players;
-      ['player1','player2'].forEach(id=>{
-        const sel = document.getElementById(id);
-        for (let i=sel.options.length-1; i>0; i--) sel.remove(i);
-        players.forEach(nm=> sel.add(new Option(nm,nm)));
-        sel.selectedIndex = 0;
-      });
-      ['score1','score2'].forEach(id=>{
-        const inp = document.getElementById(id);
-        inp.value=''; inp.disabled=true;
-      });
-      const btn = document.getElementById('submitBtn');
-      btn.disabled=true; btn.classList.add('hidden');
+      // Atstāj tikai izvēlēto pogu
+      var buttons = document.getElementsByClassName('game-btn');
+      while(buttons.length > 1){
+        buttons[1].parentNode.removeChild(buttons[1]);
+      }
+      // Uzstāda spēlētāju izvēlnes
+      var players = [], gd = window.gamesData;
+      for(var i=0; i<gd.length; i++){
+        if(gd[i].name === name) { players = gd[i].players; break; }
+      }
+      var p1sel = document.getElementById('player1'),
+          p2sel = document.getElementById('player2');
+      function reset(sel){
+        for(var j=sel.options.length-1; j>0; j--){
+          sel.remove(j);
+        }
+      }
+      reset(p1sel); reset(p2sel);
+      for(var k=0; k<players.length; k++){
+        p1sel.add(new Option(players[k], players[k]));
+        p2sel.add(new Option(players[k], players[k]));
+      }
+      p1sel.selectedIndex = 0;
+      p2sel.selectedIndex = 0;
+      document.getElementById('score1').value = '';
+      document.getElementById('score2').value = '';
+      document.getElementById('score1').disabled = true;
+      document.getElementById('score2').disabled = true;
+      var btn = document.getElementById('submitBtn');
+      btn.disabled = true; btn.classList.add('hidden');
       document.getElementById('playersGrid').classList.remove('hidden');
     }
 
-    const p1=document.getElementById('player1'),
-          p2=document.getElementById('player2'),
-          s1=document.getElementById('score1'),
-          s2=document.getElementById('score2'),
-          btn=document.getElementById('submitBtn');
+    var p1 = document.getElementById('player1'),
+        p2 = document.getElementById('player2'),
+        s1 = document.getElementById('score1'),
+        s2 = document.getElementById('score2'),
+        btn = document.getElementById('submitBtn');
 
     function checkPlayers(){
-      if (p1.value&&p2.value&&p1.value!==p2.value){
-        s1.disabled=s2.disabled=false;
+      if(p1.value && p2.value && p1.value !== p2.value){
+        s1.disabled = false; s2.disabled = false;
       } else {
-        s1.disabled=s2.disabled=true;
-        btn.disabled=true; btn.classList.add('hidden');
+        s1.disabled = true; s2.disabled = true;
+        btn.disabled = true; btn.classList.add('hidden');
       }
     }
-    p1.onchange = p2.onchange = checkPlayers;
+    p1.addEventListener('change', checkPlayers);
+    p2.addEventListener('change', checkPlayers);
 
     function checkScores(){
-      if (s1.value!==''&&s2.value!==''){
-        btn.disabled=false; btn.classList.remove('hidden');
+      if(s1.value !== '' && s2.value !== ''){
+        btn.disabled = false; btn.classList.remove('hidden');
       } else {
-        btn.disabled=true; btn.classList.add('hidden');
+        btn.disabled = true; btn.classList.add('hidden');
       }
     }
-    s1.oninput = s2.oninput = checkScores;
+    s1.addEventListener('input', checkScores);
+    s1.addEventListener('keyup', checkScores);
+    s2.addEventListener('input', checkScores);
+    s2.addEventListener('keyup', checkScores);
 
-    function postCallback(resp) {
-      if (resp.status==='success') {
-        btn.textContent='Rezultāti saglabāti';
+    // Callback JSONP post rezultātiem
+    function postCallback(resp){
+      if(resp.status === 'success'){
+        btn.textContent = 'Rezultāti saglabāti';
         btn.classList.add('pulse');
-        p1.selectedIndex=p2.selectedIndex=0;
-        s1.value=s2.value='';
-        setTimeout(()=>{
+        p1.selectedIndex = 0; p2.selectedIndex = 0;
+        s1.value = ''; s2.value = '';
+        setTimeout(function(){
           btn.classList.remove('pulse');
-          btn.textContent='Nosūtīt rezultātus';
-          btn.disabled=true; btn.classList.add('hidden');
-        },1000);
+          btn.textContent = 'Nosūtīt rezultātus';
+          btn.disabled = true; btn.classList.add('hidden');
+        }, 1000);
       }
     }
+    window.postCallback = postCallback;
 
     function sendResults(){
-      const v1=+s1.value, v2=+s2.value;
-      const params=[
-        'callback=postCallback',
-        'game='+encodeURIComponent(selectedGame),
-        'winner='+encodeURIComponent(v1>v2?p1.value:p2.value),
-        'loser='+ encodeURIComponent(v1>v2?p2.value:p1.value),
-        'winnerPoints='+encodeURIComponent(Math.max(v1,v2)),
-        'loserPoints='+encodeURIComponent(Math.min(v1,v2))
-      ].join('&');
-      const sc=document.createElement('script');
-      sc.src=WEBAPP_URL+'?'+params+'&_='+Date.now();
+      var v1 = parseInt(s1.value,10), v2 = parseInt(s2.value,10);
+      var params = 'callback=postCallback'
+        + '&game=' + encodeURIComponent(selectedGame)
+        + '&winner=' + encodeURIComponent(v1>v2 ? p1.value : p2.value)
+        + '&loser='  + encodeURIComponent(v1>v2 ? p2.value : p1.value)
+        + '&winnerPoints=' + encodeURIComponent(Math.max(v1,v2))
+        + '&loserPoints='  + encodeURIComponent(Math.min(v1,v2))
+        + '&_=' + Date.now();
+      var sc = document.createElement('script');
+      sc.src = WEBAPP_URL + '?' + params;
+      sc.onerror = function(){ console.error('SendResults error'); };
       document.body.appendChild(sc);
     }
-    btn.onclick    = sendResults;
-    btn.ontouchend = e=>{e.preventDefault();sendResults();};
+    btn.addEventListener('click', sendResults);
+    btn.addEventListener('touchend', function(e){
+      e.preventDefault();
+      sendResults();
+    });
+
+  })();
   </script>
 </body>
 </html>
