@@ -1,214 +1,180 @@
 <!DOCTYPE html>
 <html lang="lv">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SOLO GAMES</title>
-<style>
-*, *::before, *::after { box-sizing: border-box; }
-body {
-margin: 0; padding: 16px;
-background: #000; color: #fff;
-font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
-display: flex; justify-content: center;
-}
-.container {
-width: 100%; max-width: 480px;
-background: #111; border-radius: 12px;
-padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-}
-h1 {
-margin: 0 0 24px;
-font-size: 2.5rem; font-weight: bold;
-text-align: center; line-height: 1.2;
-}
-.row { margin-bottom: 20px; }
-select, input[type="number"] {
-width: 100%; padding: 12px;
-font-size: 1rem; border: none;
-border-radius: 8px; background: #222;
-color: #fff; outline: none;
-}
-.players-grid {
-display: grid; grid-template-columns: 1fr 1fr;
-gap: 12px; margin-bottom: 20px;
-}
-.player-column select,
-.player-column input:first-child {
-margin-bottom: 8px;
-}
-#submitBtn {
-width: 100%; padding: 14px;
-font-size: 1.1rem; border: none;
-border-radius: 10px; background: #1a1a1a;
-color: #fff; cursor: pointer;
-transition: background-color .2s;
-}
-#submitBtn:hover:not(:disabled) { background: #333; }
-#submitBtn:disabled { opacity: 0.6; cursor: default; }
-.hidden { display: none !important; }
-</style>
-</head>
-<body>
-<div class="container">
-<h1>SOLO GAMES</h1>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>SOLO GAMES</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box}
+    body{margin:0;padding:16px;
+      background:#000;color:#fff;
+      font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+      display:flex;justify-content:center}
+    .container{width:100%;max-width:480px;
+      background:#111;border-radius:12px;
+      padding:24px;box-shadow:0 4px 20px rgba(0,0,0,0.5)}
+    h1{margin:0 0 24px;font-size:2.5rem;font-weight:bold;text-align:center}
+    .games-list{display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:12px;margin-bottom:24px}
+    .game-btn{padding:8px;font-size:1rem;
+      border:none;border-radius:8px;
+      background:#222;color:#fff;
+      cursor:pointer;transition:background .2s;
+      -webkit-appearance:none;white-space:nowrap}
+    .game-btn:hover{background:#333}
+    .players-grid{display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;margin-bottom:20px}
+    select,input[type=number]{width:100%;padding:12px;
+      font-size:1rem;border:none;border-radius:8px;
+      background:#222;color:#fff;outline:none;margin-bottom:8px}
+    #submitBtn{width:100%;padding:14px;font-size:1.1rem;
+      border:none;border-radius:10px;
+      background:#1a1a1a;color:#fff;
+      cursor:pointer;transition:background .2s,transform .2s;
+      -webkit-appearance:none}
+    #submitBtn:hover:not(:disabled){background:#333}
+    #submitBtn:disabled{opacity:.6;cursor:default}
+    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+    .pulse{animation:pulse 1s ease-out}
+    .hidden{display:none!important}
+  </style>
 
-<!-- 1) Spēļu izvēle -->
-<div class="row">
-<select id="gameSelect" disabled>
-        <option value="">Loading…</option>
-        <option value="">Ļauj ielādēt spēles…</option>
-</select>
-</div>
-
-<!-- 2+3) Spēlētāji un viņu punkti -->
-<div id="playersGrid" class="players-grid hidden">
-<div class="player-column">
-<select id="player1">
-<option value="" disabled selected>Spēlētājs 1</option>
-</select>
-<input type="number" id="score1" placeholder="Punkti" min="0" disabled>
-</div>
-<div class="player-column">
-<select id="player2">
-<option value="" disabled selected>Spēlētājs 2</option>
-</select>
-<input type="number" id="score2" placeholder="Punkti" min="0" disabled>
-</div>
-</div>
-
-<!-- 4) Nosūtīšanas poga -->
-<button id="submitBtn" class="hidden" disabled>Nosūtīt rezultātus</button>
-</div>
-
-<script>
-    // atsevišķais Web App URL
-const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxIUgMyljIg79EVd2vC_BkEW-lOLteOkjjJbjEIaoE632jxUujKkNC3i-MmH7xgChP4/exec';
-
-    let gamesData = [];  // šeit glabāsim visu sheet (game+players) kešā
-
-    // 1) JSONP ielāde – jau uz lapas ielādes iemetam <script>
+  <script>
+    // 1) JSONP callback + localStorage cache
     function gamesCallback(data) {
-      gamesData = data;          // A1:AA1000 parsēts serverī, šeit tikai filtrēts
-    // 1) Ielādē tikai A1:AA1 → spēļu saraksts
-    function headerCallback(games) {
-const sel = document.getElementById('gameSelect');
-sel.innerHTML = '<option value="" disabled selected>Izvēlies spēli</option>';
-      data.forEach(({name}) => {
-        const o = new Option(name, name);
-        sel.appendChild(o);
+      try { localStorage.soloGames = JSON.stringify(data); } catch(e){}
+      initGames(data);
+    }
+    function initGames(data) {
+      const list = document.getElementById('gamesList');
+      list.innerHTML = '';
+      data.forEach(item => {
+        const b = document.createElement('button');
+        b.textContent = item.name;
+        b.className = 'game-btn';
+        b.type = 'button';
+        b.onclick = () => selectGame(item.name);
+        list.appendChild(b);
       });
-      sel.disabled = false;      // iespējam izvēli
-      games.forEach(name => sel.appendChild(new Option(name, name)));
-      sel.disabled = false;
-}
-    ;(function loadAll() {
-    function loadHeaders() {
-const s = document.createElement('script');
-      s.src = `${WEBAPP_URL}?callback=gamesCallback`;
-      s.src = `${WEBAPP_URL}?callback=headerCallback&action=getHeaders`;
-document.body.appendChild(s);
-    })();
-
     }
-    document.addEventListener('DOMContentLoaded', loadHeaders);
-
-    // 2) Elementu refs
-    // references
-const gameSelect  = document.getElementById('gameSelect');
-const playersGrid = document.getElementById('playersGrid');
-const player1     = document.getElementById('player1');
-const player2     = document.getElementById('player2');
-const score1      = document.getElementById('score1');
-const score2      = document.getElementById('score2');
-const submitBtn   = document.getElementById('submitBtn');
-
-    // 3) Kad izvēlas spēli → no gamesData pildām abas player <select>
-    gameSelect.addEventListener('change', () => {
-      const selObj = gamesData.find(g => g.name === gameSelect.value);
-    // 2) Kad izvēlas spēli → ielādē tās spēlētājus no A2:A1000
-    function playersCallback(players) {
-[player1, player2].forEach(sel => {
-sel.innerHTML = '<option value="" disabled selected>Spēlētājs</option>';
-        selObj.players.forEach(p => sel.appendChild(new Option(p, p)));
-        players.forEach(p => sel.appendChild(new Option(p, p)));
-sel.selectedIndex = 0;
-});
-      // resetējam punktus un pogu
-      [score1, score2].forEach(i => { i.value = ''; i.disabled = true; });
-      submitBtn.disabled = true;
-      submitBtn.classList.add('hidden');
-      [score1, score2].forEach(i => { i.value=''; i.disabled=true; });
-      submitBtn.disabled = true; submitBtn.classList.add('hidden');
-playersGrid.classList.remove('hidden');
+    // if cached, load immediately
+    if (localStorage.soloGames) {
+      try { initGames(JSON.parse(localStorage.soloGames)); }
+      catch(e){ localStorage.removeItem('soloGames'); }
     }
-    gameSelect.addEventListener('change', () => {
-      const game = encodeURIComponent(gameSelect.value);
-      const s = document.createElement('script');
-      s.src = `${WEBAPP_URL}?callback=playersCallback&action=getPlayers&game=${game}`;
-      document.body.appendChild(s);
-});
+  </script>
+  <!-- static JSONP load, no dynamic injection -->
+  <script defer src="https://script.google.com/macros/s/AKfycbxIUgMyljIg79EVd2vC_BkEW-lOLteOkjjJbjEIaoE632jxUujKkNC3i-MmH7xgChP4/exec?callback=gamesCallback"></script>
+</head>
 
-    // 4) Aktivizē punktu ievadi, kad abi izvēlēti
-    // 3) Aktivizē punktu ievadi
-function checkPlayers() {
-if (player1.value && player2.value && player1.value !== player2.value) {
-score1.disabled = score2.disabled = false;
-} else {
-score1.disabled = score2.disabled = true;
-        submitBtn.disabled = true;
-        submitBtn.classList.add('hidden');
-        submitBtn.disabled = true; submitBtn.classList.add('hidden');
-}
-}
-player1.addEventListener('change', checkPlayers);
-player2.addEventListener('change', checkPlayers);
+<body>
+  <div class="container">
+    <h1>SOLO GAMES</h1>
+    <div id="gamesList" class="games-list"></div>
+    <div id="playersGrid" class="players-grid hidden">
+      <div>
+        <select id="player1">
+          <option disabled selected>Spēlētājs 1</option>
+        </select>
+        <input id="score1" type="number" min="0" placeholder="Punkti" disabled/>
+      </div>
+      <div>
+        <select id="player2">
+          <option disabled selected>Spēlētājs 2</option>
+        </select>
+        <input id="score2" type="number" min="0" placeholder="Punkti" disabled/>
+      </div>
+    </div>
+    <button id="submitBtn" class="hidden" disabled>Nosūtīt rezultātus</button>
+  </div>
 
-    // 5) Parāda pogu, kad abi punkti ir ievadīti
-    // 4) Parāda pogu, kad abi punkti ienesti
-function checkScores() {
-      if (score1.value !== '' && score2.value !== '') {
-      if (score1.value!=='' && score2.value!=='') {
-submitBtn.classList.remove('hidden');
-submitBtn.disabled = false;
-} else {
-submitBtn.classList.add('hidden');
-submitBtn.disabled = true;
-}
-}
-score1.addEventListener('input', checkScores);
-score2.addEventListener('input', checkScores);
+  <script>
+    const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxIUgMyljIg79EVd2vC_BkEW-lOLteOkjjJbjEIaoE632jxUujKkNC3i-MmH7xgChP4/exec';
+    let gamesData = [], selectedGame = null;
 
-    // 6) Iesūtām rezultātu JSONP veidā
-    // 5) Iesūta rezultātus
-function submitCallback(resp) {
-if (resp.status === 'success') {
-alert('Rezultāti saglabāti!');
-        [score1, score2].forEach(i => i.value = '');
-        submitBtn.disabled = true;
-        submitBtn.classList.add('hidden');
-        [score1, score2].forEach(i=>i.value='');
-        submitBtn.disabled = true; submitBtn.classList.add('hidden');
-} else {
-        alert('Kļūda: ' + resp.message);
-        alert('Kļūda: '+resp.message);
-}
-}
-submitBtn.addEventListener('click', () => {
-const s1 = +score1.value, s2 = +score2.value;
-const params = [
-'callback=submitCallback',
-        'action=submit',
-'game='         + encodeURIComponent(gameSelect.value),
-'winner='       + encodeURIComponent(s1 > s2 ? player1.value : player2.value),
-'loser='        + encodeURIComponent(s1 > s2 ? player2.value : player1.value),
-'winnerPoints=' + encodeURIComponent(Math.max(s1, s2)),
-'loserPoints='  + encodeURIComponent(Math.min(s1, s2))
-].join('&');
-const s = document.createElement('script');
-s.src = `${WEBAPP_URL}?${params}`;
-document.body.appendChild(s);
-});
-</script>
+    function selectGame(name) {
+      selectedGame = name;
+      // remove other buttons
+      document.querySelectorAll('.game-btn')
+        .forEach(b=>{ if(b.textContent!==name) b.remove() });
+      // show players
+      const players = JSON.parse(localStorage.soloGames)
+        .find(g=>g.name===name).players;
+      ['player1','player2'].forEach(id=>{
+        const sel = document.getElementById(id);
+        for(let i=sel.options.length-1;i>0;i--) sel.remove(i);
+        players.forEach(nm=>sel.add(new Option(nm,nm)));
+        sel.selectedIndex = 0;
+      });
+      ['score1','score2'].forEach(id=>{
+        const inp = document.getElementById(id);
+        inp.value=''; inp.disabled=true;
+      });
+      const btn = document.getElementById('submitBtn');
+      btn.disabled=true; btn.classList.add('hidden');
+      document.getElementById('playersGrid').classList.remove('hidden');
+    }
+
+    // enable fields & button
+    const p1=document.getElementById('player1'),
+          p2=document.getElementById('player2'),
+          s1=document.getElementById('score1'),
+          s2=document.getElementById('score2'),
+          btn=document.getElementById('submitBtn');
+
+    function checkPlayers(){
+      if(p1.value && p2.value && p1.value!==p2.value){
+        s1.disabled=s2.disabled=false;
+      } else {
+        s1.disabled=s2.disabled=true;
+        btn.disabled=true; btn.classList.add('hidden');
+      }
+    }
+    p1.onchange = p2.onchange = checkPlayers;
+
+    function checkScores(){
+      if(s1.value!=='' && s2.value!==''){
+        btn.disabled=false; btn.classList.remove('hidden');
+      } else {
+        btn.disabled=true; btn.classList.add('hidden');
+      }
+    }
+    s1.oninput = s2.oninput = checkScores;
+
+    // JSONP POST
+    function postCallback(resp){
+      if(resp.status==='success'){
+        btn.textContent='Rezultāti saglabāti';
+        btn.classList.add('pulse');
+        p1.selectedIndex=p2.selectedIndex=0;
+        s1.value=s2.value='';
+        setTimeout(()=>{
+          btn.classList.remove('pulse');
+          btn.textContent='Nosūtīt rezultātus';
+          btn.disabled=true; btn.classList.add('hidden');
+        },1000);
+      }
+    }
+    function sendResults(){
+      const v1=+s1.value, v2=+s2.value;
+      const params=[
+        'callback=postCallback',
+        'game='+encodeURIComponent(selectedGame),
+        'winner='+encodeURIComponent(v1>v2?p1.value:p2.value),
+        'loser='+ encodeURIComponent(v1>v2?p2.value:p1.value),
+        'winnerPoints='+encodeURIComponent(Math.max(v1,v2)),
+        'loserPoints='+encodeURIComponent(Math.min(v1,v2))
+      ].join('&');
+      const sc = document.createElement('script');
+      sc.src = WEBAPP_URL+'?'+params;
+      document.body.appendChild(sc);
+    }
+    btn.onclick = btn.ontouchend = e=>{
+      if(e.type==='touchend') e.preventDefault();
+      sendResults();
+    };
+  </script>
 </body>
 </html>
