@@ -1,498 +1,563 @@
 <!doctype html>
 <html lang="lv">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Playoff Bracket — Quarterfinals</title>
-  <meta name="color-scheme" content="light dark" />
-  <style>
-    /* ===== Design Tokens (tikai dizains, nekas par datu loģiku) ===== */
-    :root {
-      --bg:        #0b0f14;
-      --bg-soft:   #0f1520;
-      --card:      #121826cc; /* ar nelielu caurspīdību stikla efektam */
-      --card-solid:#121826;
-      --text:      #e6e9ef;
-      --muted:     #9aa4b2;
-      --accent:    #7c5cff;   /* var nomainīt uz zīmola krāsu */
-      --ok:        #19c37d;
-      --danger:    #ff5d5d;
-      --ring:      #2a3250;
-      --shadow:    0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
-      --radius:    14px;
-      --gap:       clamp(16px, 2vw, 24px);
-      --font: ui-sans-serif, system-ui, -apple-system, "SF Pro Text", "Inter", "Segoe UI", Roboto, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
-    }
-    @media (prefers-color-scheme: light) {
-      :root {
-        --bg:        #f7f8fb;
-        --bg-soft:   #eef1f7;
-        --card:      #ffffffcc;
-        --card-solid:#ffffff;
-        --text:      #0f172a;
-        --muted:     #51607a;
-        --ring:      #dfe6f2;
-        --shadow:    0 10px 30px rgba(10,20,40,.08), inset 0 1px 0 rgba(255,255,255,.8);
-      }
-    }
-
-    /* ===== Page chrome ===== */
-    html, body { height: 100%; background: radial-gradient(1200px 600px at 80% -10%, #1a2140 0%, var(--bg) 50%) fixed; }
-    body {
-      margin: 0; font-family: var(--font); color: var(--text);
-      background-color: var(--bg);
-      -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
-    }
-
-    .app {
-      min-height: 100%;
-      display: grid;
-      grid-template-rows: auto 1fr;
-    }
-
-    header.appbar {
-      position: sticky; top: 0; z-index: 5;
-      backdrop-filter: saturate(120%) blur(10px);
-      background: linear-gradient(180deg, color-mix(in oklab, var(--card) 86%, transparent), transparent);
-      border-bottom: 1px solid var(--ring);
-    }
-    .appbar__inner {
-      max-width: 1200px; margin: 0 auto; padding: 14px max(16px, 4vw);
-      display: flex; align-items: center; gap: 14px; justify-content: space-between;
-    }
-    .brand {
-      display: flex; align-items: center; gap: 12px; font-weight: 700; letter-spacing: .2px;
-    }
-    .brand__dot {
-      width: 14px; height: 14px; border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, #fff8, #fff0), linear-gradient(135deg, var(--accent), #45a2ff);
-      box-shadow: 0 0 20px color-mix(in oklab, var(--accent) 40%, transparent);
-    }
-    .brand__title { font-size: 15px; opacity: .9 }
-    .actions { display: flex; align-items: center; gap: 8px; }
-    .btn {
-      appearance: none; border: 0; border-radius: 999px; padding: 10px 14px;
-      font: inherit; color: var(--text); background: var(--card-solid);
-      box-shadow: var(--shadow); cursor: pointer; transition: transform .2s ease, background .2s ease;
-      border: 1px solid var(--ring);
-    }
-    .btn:hover { transform: translateY(-1px) }
-    .btn--accent { background: linear-gradient(135deg, var(--accent), color-mix(in oklab, var(--accent) 60%, #45a2ff)); color: white; border: none; }
-    .btn--ghost { background: transparent; border: 1px solid var(--ring); }
-
-    /* ===== Bracket layout (sākot no Quarterfinals) ===== */
-    .stage {
-      max-width: 1200px; margin: 28px auto; padding: 0 max(16px, 4vw) 64px;
-    }
-    .stage__head {
-      display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px;
-    }
-    .stage__title { font-size: clamp(18px, 2.6vw, 22px); font-weight: 700; letter-spacing: .2px; }
-    .stage__subtitle { color: var(--muted); font-size: 13px; }
-
-    .bracket {
-      position: relative;
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr; /* QF | SF | F */
-      gap: var(--gap);
-      align-items: start;
-    }
-    /* kolonnām nosaukumi */
-    .col { display: grid; gap: var(--gap); align-content: start; }
-    .col--qf  { grid-column: 1; }
-    .col--sf  { grid-column: 2; }
-    .col--fin { grid-column: 3; }
-
-    /* ===== Match card ===== */
-    .match {
-      position: relative;
-      border-radius: var(--radius);
-      background: var(--card);
-      box-shadow: var(--shadow);
-      border: 1px solid var(--ring);
-      padding: 14px;
-      display: grid;
-      gap: 10px;
-      transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
-      will-change: transform;
-    }
-    .match:hover { transform: translateY(-2px); }
-    .match__meta {
-      display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 12px; color: var(--muted);
-    }
-    .badge {
-      display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; padding: 6px 10px;
-      background: color-mix(in oklab, var(--card-solid) 70%, transparent); border: 1px solid var(--ring);
-    }
-    .status { text-transform: uppercase; letter-spacing: .12em; font-weight: 600; }
-    .status--live { color: var(--danger); }
-    .status--final { color: var(--ok); }
-
-    .team {
-      display: grid; grid-template-columns: 1fr auto; align-items: center;
-      gap: 10px; padding: 10px 12px; border-radius: 10px; border: 1px solid transparent;
-      background: linear-gradient(180deg, transparent, color-mix(in oklab, var(--card-solid) 8%, transparent));
-    }
-    .team__left {
-      display: flex; align-items: center; gap: 10px; min-width: 0;
-    }
-    .seed {
-      width: 26px; height: 26px; border-radius: 50%;
-      display: grid; place-items: center; font-weight: 700; font-size: 12px;
-      background: color-mix(in oklab, var(--accent) 16%, var(--card-solid));
-      border: 1px solid var(--ring);
-      box-shadow: inset 0 0 0 1px color-mix(in oklab, white 6%, transparent);
-    }
-    .name {
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; letter-spacing: .2px;
-    }
-    .score {
-      font-feature-settings: "tnum" 1, "ss01" 1;
-      font-variant-numeric: tabular-nums; font-weight: 800;
-      padding: 4px 8px; border-radius: 8px; border: 1px solid var(--ring);
-      background: color-mix(in oklab, var(--card-solid) 60%, transparent);
-    }
-    .team--winner .score { background: color-mix(in oklab, var(--ok) 24%, var(--card-solid)); border-color: color-mix(in oklab, var(--ok) 40%, var(--ring)); }
-    .team--winner { outline: 2px solid color-mix(in oklab, var(--ok) 40%, transparent); outline-offset: -2px; }
-    .team--loser .score { opacity: .7; }
-
-    /* ===== Round titles ===== */
-    .roundtitle {
-      font-size: 12px; text-transform: uppercase; letter-spacing: .14em; color: var(--muted);
-      margin-bottom: 6px; padding-left: 4px;
-    }
-
-    /* ===== SVG savienojumi starp raundiem ===== */
-    .links {
-      position: absolute; inset: 0; pointer-events: none; /* tikai vizuāli, nekas klik. */
-    }
-    .linkPath {
-      fill: none; stroke: color-mix(in oklab, var(--ring) 70%, transparent); stroke-width: 2;
-    }
-    .linkPath--active { stroke: color-mix(in oklab, var(--accent) 55%, var(--ring)); stroke-width: 2.5; }
-
-    /* ===== Responsīvs skats ===== */
-    @media (max-width: 980px) {
-      .bracket { overflow-x: auto; grid-auto-flow: column; grid-template-columns: repeat(3, min(85vw, 420px)); padding-bottom: 4px; }
-    }
-    @media (max-width: 560px) {
-      .match { padding: 12px }
-      .seed { width: 22px; height: 22px; font-size: 11px; }
-      .score { padding: 3px 7px }
-      .appbar__inner { padding: 12px 16px }
-    }
-
-    /* ===== Accessibility tweaks ===== */
-    .match:focus-within { outline: 2px solid color-mix(in oklab, var(--accent) 50%, transparent); outline-offset: 2px; }
-    @media (prefers-reduced-motion: reduce) {
-      * { transition: none !important; animation: none !important; }
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Turnīru Aplikācija — Grupas + Playoff</title>
+<meta name="color-scheme" content="light dark" />
+<style>
+  :root{
+    --bg:#0b0f14; --card:#121826ee; --text:#e6e9ef; --muted:#9aa4b2; --ring:#2a3250;
+    --accent:#7c5cff; --ok:#19c37d; --danger:#ff5d5d; --radius:14px; --gap:18px;
+    --shadow:0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
+    --font:ui-sans-serif,-apple-system,"SF Pro Text","Inter","Segoe UI",Roboto,Arial;
+  }
+  @media(prefers-color-scheme:light){
+    :root{ --bg:#f7f8fb; --card:#ffffff; --text:#0f172a; --muted:#51607a; --ring:#dfe2f2; --shadow:0 10px 30px rgba(10,20,40,.08) }
+  }
+  html,body{height:100%} body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font)}
+  header{position:sticky;top:0;z-index:5;background:linear-gradient(180deg,#0000, #0000), var(--card);
+    border-bottom:1px solid var(--ring); backdrop-filter:saturate(120%) blur(8px)}
+  .bar{max-width:1200px;margin:0 auto;padding:12px 20px;display:flex;gap:12px;align-items:center;justify-content:space-between}
+  .brand{display:flex;gap:10px;align-items:center;font-weight:800}
+  .dot{width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#45a2ff)}
+  .btn{appearance:none;border:1px solid var(--ring);background:var(--card);box-shadow:var(--shadow);
+    color:var(--text);border-radius:999px;padding:9px 14px;cursor:pointer}
+  .btn--accent{border:none;background:linear-gradient(135deg,var(--accent),#45a2ff);color:#fff}
+  .wrap{max-width:1200px;margin:20px auto;padding:0 20px 60px}
+  .panel{background:var(--card);border:1px solid var(--ring);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
+  .grid{display:grid;gap:var(--gap)}
+  .grid.cols-2{grid-template-columns:1.2fr .8fr}
+  .grid.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  input,textarea,select{width:100%;background:transparent;color:var(--text);border:1px solid var(--ring);
+    border-radius:10px;padding:10px}
+  .muted{color:var(--muted);font-size:13px}
+  h2{margin:0 0 8px;font-size:18px}
+  h3{margin:6px 0 6px;font-size:15px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+  .pill{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border:1px solid var(--ring);border-radius:999px}
+  /* Tables */
+  table{width:100%;border-collapse:separate;border-spacing:0 8px}
+  th,td{text-align:left;padding:10px 12px}
+  thead th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+  tbody tr{background:linear-gradient(180deg,transparent, color-mix(in oklab, var(--card) 85%, transparent));}
+  tbody td:first-child{border-radius:10px 0 0 10px}
+  tbody td:last-child{border-radius:0 10px 10px 0}
+  .score-in{width:52px;text-align:center}
+  /* Bracket */
+  .bracket{position:relative;display:grid;gap:var(--gap);grid-template-columns:1fr 1fr 1fr}
+  .round{display:grid;gap:var(--gap)}
+  .match{border:1px solid var(--ring);border-radius:12px;padding:12px;background:color-mix(in oklab, var(--card) 94%, transparent)}
+  .team{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:8px;border-radius:8px}
+  .team.win{outline:2px solid color-mix(in oklab, var(--ok) 40%, transparent);outline-offset:-2px}
+  .team .name{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .team .seed{font-weight:800;font-size:12px;padding:3px 8px;border:1px solid var(--ring);border-radius:999px}
+  .team .score{font-weight:800;border:1px solid var(--ring);border-radius:8px;padding:4px 8px;min-width:36px;text-align:center}
+  .status{font-size:12px;color:var(--muted)}
+  .links{position:absolute;inset:0;pointer-events:none}
+  @media(max-width:980px){.grid.cols-2{grid-template-columns:1fr}.bracket{grid-template-columns:repeat(3,min(86vw,420px));overflow:auto}}
+</style>
 </head>
 <body>
-  <div class="app">
-    <header class="appbar" role="banner">
-      <div class="appbar__inner">
-        <div class="brand" aria-label="Playoff aplikācija">
-          <span class="brand__dot" aria-hidden="true"></span>
-          <span class="brand__title">Playoff Bracket</span>
-        </div>
-        <div class="actions">
-          <button class="btn btn--ghost" id="themeToggle" aria-pressed="false" aria-label="Pārslēgt tēmu">Tēma</button>
-          <button class="btn btn--accent">Eksports</button>
-        </div>
-      </div>
-    </header>
-
-    <main class="stage" role="main">
-      <div class="stage__head">
-        <div>
-          <div class="stage__title">Izslēgšanas spēles</div>
-          <div class="stage__subtitle">Sākot no ceturtdaļfināliem (QF → SF → Final)</div>
-        </div>
-      </div>
-
-      <section class="bracket" aria-label="Playoff izkārtojums">
-        <!-- SVG savienojumu slānis (tikai dizains) -->
-        <svg class="links" id="links" xmlns="http://www.w3.org/2000/svg"></svg>
-
-        <!-- Quarterfinals -->
-        <div class="col col--qf" aria-label="Ceturtdaļfināli">
-          <div class="roundtitle">Quarterfinals</div>
-
-          <article class="match" id="qf1" tabindex="0" aria-label="QF-1">
-            <div class="match__meta">
-              <span class="badge">QF-1 • 20:00</span>
-              <span class="status status--final">FT</span>
-            </div>
-            <div class="team team--winner">
-              <div class="team__left">
-                <span class="seed">1</span>
-                <span class="name" data-name>Riga Hawks</span>
-              </div>
-              <span class="score" data-score>87</span>
-            </div>
-            <div class="team team--loser">
-              <div class="team__left">
-                <span class="seed">8</span>
-                <span class="name" data-name>Jurmala Tide</span>
-              </div>
-              <span class="score" data-score>72</span>
-            </div>
-          </article>
-
-          <article class="match" id="qf2" tabindex="0" aria-label="QF-2">
-            <div class="match__meta">
-              <span class="badge">QF-2 • 20:00</span>
-              <span class="status status--final">FT</span>
-            </div>
-            <div class="team team--loser">
-              <div class="team__left">
-                <span class="seed">4</span>
-                <span class="name" data-name>Liepaja North</span>
-              </div>
-              <span class="score" data-score>65</span>
-            </div>
-            <div class="team team--winner">
-              <div class="team__left">
-                <span class="seed">5</span>
-                <span class="name" data-name>Ventspils Wave</span>
-              </div>
-              <span class="score" data-score>76</span>
-            </div>
-          </article>
-
-          <article class="match" id="qf3" tabindex="0" aria-label="QF-3">
-            <div class="match__meta">
-              <span class="badge">QF-3 • 20:00</span>
-              <span class="status">Scheduled</span>
-            </div>
-            <div class="team">
-              <div class="team__left">
-                <span class="seed">2</span>
-                <span class="name" data-name>Valmiera Green</span>
-              </div>
-              <span class="score" data-score>–</span>
-            </div>
-            <div class="team">
-              <div class="team__left">
-                <span class="seed">7</span>
-                <span class="name" data-name>Daugavpils Steel</span>
-              </div>
-              <span class="score" data-score>–</span>
-            </div>
-          </article>
-
-          <article class="match" id="qf4" tabindex="0" aria-label="QF-4">
-            <div class="match__meta">
-              <span class="badge">QF-4 • 20:00</span>
-              <span class="status status--live">Live</span>
-            </div>
-            <div class="team team--winner">
-              <div class="team__left">
-                <span class="seed">3</span>
-                <span class="name" data-name>Jelgava Forge</span>
-              </div>
-              <span class="score" data-score>54</span>
-            </div>
-            <div class="team team--loser">
-              <div class="team__left">
-                <span class="seed">6</span>
-                <span class="name" data-name>Ogre Storm</span>
-              </div>
-              <span class="score" data-score>49</span>
-            </div>
-          </article>
-        </div>
-
-        <!-- Semifinals -->
-        <div class="col col--sf" aria-label="Pusfināli">
-          <div class="roundtitle">Semifinals</div>
-
-          <article class="match" id="sf1" tabindex="0" aria-label="SF-1">
-            <div class="match__meta">
-              <span class="badge">SF-1 • 21:00</span>
-              <span class="status">Scheduled</span>
-            </div>
-            <div class="team">
-              <div class="team__left">
-                <span class="seed">?</span>
-                <span class="name" data-name>Winner QF-1</span>
-              </div>
-              <span class="score" data-score>–</span>
-            </div>
-            <div class="team">
-              <div class="team__left">
-                <span class="seed">?</span>
-                <span class="name" data-name>Winner QF-2</span>
-              </div>
-              <span class="score" data-score>–</span>
-            </div>
-          </article>
-
-          <article class="match" id="sf2" tabindex="0" aria-label="SF-2">
-            <div class="match__meta">
-              <span class="badge">SF-2 • 21:00</span>
-              <span class="status">Scheduled</span>
-            </div>
-            <div class="team">
-              <div class="team__left">
-                <span class="seed">?</span>
-                <span class="name" data-name>Winner QF-3</span>
-              </div>
-              <span class="score" data-score>–</span>
-            </div>
-            <div class="team">
-              <div class="team__left">
-                <span class="seed">?</span>
-                <span class="name" data-name>Winner QF-4</span>
-              </div>
-              <span class="score" data-score>–</span>
-            </div>
-          </article>
-        </div>
-
-        <!-- Final -->
-        <div class="col col--fin" aria-label="Fināls">
-          <div class="roundtitle">Final</div>
-
-          <article class="match" id="final" tabindex="0" aria-label="Final">
-            <div class="match__meta">
-              <span class="badge">Final • 22:00</span>
-              <span class="status">Scheduled</span>
-            </div>
-            <div class="team">
-              <div class="team__left">
-                <span class="seed">?</span>
-                <span class="name" data-name>Winner SF-1</span>
-              </div>
-              <span class="score" data-score>–</span>
-            </div>
-            <div class="team">
-              <div class="team__left">
-                <span class="seed">?</span>
-                <span class="name" data-name>Winner SF-2</span>
-              </div>
-              <span class="score" data-score>–</span>
-            </div>
-          </article>
-
-          <!-- (Neobligāts) spēle par 3. vietu -->
-          <div class="roundtitle" style="margin-top: var(--gap);">Third Place</div>
-          <article class="match" id="third" tabindex="0" aria-label="Third Place">
-            <div class="match__meta">
-              <span class="badge">3rd • 20:30</span>
-              <span class="status">Scheduled</span>
-            </div>
-            <div class="team">
-              <div class="team__left">
-                <span class="seed">?</span>
-                <span class="name" data-name>Loser SF-1</span>
-              </div>
-              <span class="score" data-score>–</span>
-            </div>
-            <div class="team">
-              <div class="team__left">
-                <span class="seed">?</span>
-                <span class="name" data-name>Loser SF-2</span>
-              </div>
-              <span class="score" data-score>–</span>
-            </div>
-          </article>
-        </div>
-      </section>
-    </main>
+<header>
+  <div class="bar">
+    <div class="brand"><span class="dot"></span>Turnīru Aplikācija</div>
+    <div class="row">
+      <label class="pill"><input type="checkbox" id="useCookies" /> <span class="muted">Saglabāt cepumos</span></label>
+      <button class="btn" id="exportBtn">Eksportēt</button>
+      <button class="btn" id="importBtn">Importēt</button>
+      <button class="btn" id="resetBtn">Notīrīt</button>
+    </div>
   </div>
+</header>
 
-  <!-- Neliels, neinvazīvs JS: 1) tēmas pārslēgšana 2) SVG savienojumu zīmēšana starp raundiem -->
-  <script>
-    // ===== 1) Tēmas pārslēgšana (tikai UI) =====
-    (function themeToggle(){
-      const btn = document.getElementById('themeToggle');
-      if(!btn) return;
-      const root = document.documentElement;
-      let forced = null;
-      btn.addEventListener('click', () => {
-        forced = forced === 'light' ? 'dark' : forced === 'dark' ? null : 'light';
-        btn.setAttribute('aria-pressed', String(!!forced));
-        root.dataset.theme = forced || '';
-        if (forced === 'light') document.documentElement.style.colorScheme = 'light';
-        else if (forced === 'dark') document.documentElement.style.colorScheme = 'dark';
-        else document.documentElement.style.colorScheme = '';
-      });
-    })();
+<main class="wrap grid cols-2">
+  <!-- SETUP -->
+  <section class="panel grid" id="setupPanel">
+    <div class="grid">
+      <h2>1) Ievadi komandas</h2>
+      <div class="row">
+        <input id="tName" placeholder="Turnīra nosaukums (neobligāts)" />
+      </div>
+      <div class="row">
+        <textarea id="teamsInput" rows="10" placeholder="Katru komandu jaunā rindā..."></textarea>
+      </div>
+      <div class="row">
+        <select id="groupStrategy">
+          <option value="auto" selected>Automātiski: ~4 komandas grupā</option>
+          <option value="n2">2 grupas</option>
+          <option value="n3">3 grupas</option>
+          <option value="n4">4 grupas</option>
+          <option value="n5">5 grupas</option>
+          <option value="n6">6 grupas</option>
+          <option value="n7">7 grupas</option>
+          <option value="n8">8 grupas</option>
+        </select>
+        <button class="btn btn--accent" id="genGroups">Ģenerēt grupas</button>
+      </div>
+      <p class="muted">Piezīme: dati glabāsies lokāli (localStorage) vai cepumos (ja ieslēgsi slēdzi).</p>
+    </div>
 
-    // ===== 2) SVG savienojumu zīmēšana (QF → SF → Final) =====
-    // Šis tikai "uzvelk līnijas" starp jau esošiem match elementiem pēc ID.
-    // Ja tev jau ir sava loģika, pietiek saglabāt šos ID (qf1..qf4, sf1..sf2, final).
-    (function bracketLinks(){
-      const pairs = [
-        ['qf1','sf1'], ['qf2','sf1'],
-        ['qf3','sf2'], ['qf4','sf2'],
-        ['sf1','final'], ['sf2','final'],
-      ];
-      const svg = document.getElementById('links');
-      if (!svg) return;
+    <div id="groupsPanel" class="grid" hidden>
+      <h2>2) Grupas & kalendārs</h2>
+      <div id="groupsHost" class="grid cols-3"></div>
+    </div>
 
-      const draw = () => {
-        const root = svg.closest('.bracket');
-        const r = root.getBoundingClientRect();
-        svg.setAttribute('viewBox', `0 0 ${r.width} ${r.height}`);
-        svg.setAttribute('width', r.width);
-        svg.setAttribute('height', r.height);
-        svg.innerHTML = '';
+    <div id="standingsPanel" class="grid" hidden>
+      <h2>3) Stāvējumus (Standings)</h2>
+      <div id="standingsHost" class="grid cols-3"></div>
+    </div>
 
-        const pathFor = (fromEl, toEl) => {
-          const a = fromEl.getBoundingClientRect();
-          const b = toEl.getBoundingClientRect();
-          const startX = (a.right - r.left);
-          const startY = (a.top + a.height/2 - r.top);
-          const endX   = (b.left - r.left);
-          const endY   = (b.top + b.height/2 - r.top);
-          const midX   = (startX + endX) / 2;
+    <div id="playoffPanel" class="grid" hidden>
+      <div class="row" style="justify-content:space-between">
+        <h2>4) Playoff (no Quarterfinals)</h2>
+        <button class="btn btn--accent" id="buildBracket">Ģenerēt Bracket</button>
+      </div>
+      <div class="bracket">
+        <div class="round" id="qfCol"><h3>Ceturtdaļfināli</h3></div>
+        <div class="round" id="sfCol"><h3>Pusfināli</h3></div>
+        <div class="round" id="finCol"><h3>Fināls</h3></div>
+        <svg class="links" id="linkLayer"></svg>
+      </div>
+    </div>
+  </section>
 
-          // Gluds S-curve (Bezier) savienojums
-          return `M ${startX} ${startY} C ${midX} ${startY}, ${midX} ${endY}, ${endX} ${endY}`;
-        };
+  <!-- INFO / NOTE -->
+  <aside class="panel">
+    <h2>Noteikumi & Parametri</h2>
+    <ul>
+      <li>Grupu spēles: pilns <b>round-robin</b> katrā grupā.</li>
+      <li>Punkti: uzvara 3p, neizšķirts 1p, zaudējums 0p.</li>
+      <li>Ranga kritēriji: Punkti → Vārtu starpība (GD) → Gūti (GF) → Alfabēts.</li>
+      <li>Playoff: atlasām <b>8 labākās</b> komandas pēc ranga (vispirms 1. vietas, tad 2., u.t.t.). Ja nepietiek, pievieno <i>BYE</i>.</li>
+      <li>Bracketa pāri: top4 sēklas vs bottom4 (1–8, 2–7, 3–6, 4–5).</li>
+    </ul>
+    <p class="muted">Ja gribi citu punktu skaitu vai kvalifikācijas loģiku, pasaki — pārtaisīšu bez backenda.</p>
+  </aside>
+</main>
 
-        for (const [fromId, toId] of pairs) {
-          const fromEl = document.getElementById(fromId);
-          const toEl   = document.getElementById(toId);
-          if (!fromEl || !toEl) continue;
-          const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-          p.setAttribute('d', pathFor(fromEl, toEl));
-          p.setAttribute('class', 'linkPath');
-          // ja abi ir “finalizēti”, atzīmē kā aktīvu
-          const isActive =
-            fromEl.querySelector('.status--final') ||
-            toEl.querySelector('.status--final');
-          if (isActive) p.classList.add('linkPath--active');
-          svg.appendChild(p);
-        }
-      };
+<script>
+/* ======================= UTIL ======================= */
+const $ = (sel, root=document)=>root.querySelector(sel);
+const $$ = (sel, root=document)=>Array.from(root.querySelectorAll(sel));
+const uid = ()=>Math.random().toString(36).slice(2,9);
 
-      const ro = new ResizeObserver(draw);
-      ro.observe(document.querySelector('.bracket'));
-      window.addEventListener('load', draw);
-      window.addEventListener('resize', draw);
-      // Mazs “raf” delays, lai layout nostabilizējas
-      requestAnimationFrame(draw);
-    })();
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]] } return a }
 
-    // ===== 3) (Neobligāti) automātiski iezīmē uzvarētāju pēc skaita =====
-    // Šis NEMAINA argumentus – tikai vizuāli salīdzina .score un piešķir klases.
-    (function autowin(){
-      document.querySelectorAll('.match').forEach(match => {
-        const teams = match.querySelectorAll('.team');
-        if (teams.length !== 2) return;
-        const s = [...teams].map(t => parseInt((t.querySelector('[data-score]')?.textContent||'').trim(),10));
-        if (!Number.isFinite(s[0]) || !Number.isFinite(s[1])) return;
-        teams[0].classList.toggle('team--winner', s[0] > s[1]);
-        teams[0].classList.toggle('team--loser',  s[0] < s[1]);
-        teams[1].classList.toggle('team--winner', s[1] > s[0]);
-        teams[1].classList.toggle('team--loser',  s[1] < s[0]);
-      });
-    })();
-  </script>
+function deepClone(x){ return JSON.parse(JSON.stringify(x)); }
+
+/* ======================= STORAGE ======================= */
+const STORAGE_KEY='tournament_state_v1';
+function saveState(state){
+  const useCookies = $('#useCookies')?.checked;
+  const json = JSON.stringify(state);
+  if(useCookies){
+    // Brīdinu par 4KB limitu, tomēr mēģinām kompaktu stāvokli
+    document.cookie = `${STORAGE_KEY}=${encodeURIComponent(json)}; path=/; max-age=${60*60*24*365}`;
+  }else{
+    localStorage.setItem(STORAGE_KEY, json);
+  }
+}
+function loadState(){
+  const fromLS = localStorage.getItem(STORAGE_KEY);
+  const fromCookie = document.cookie.split('; ').find(r=>r.startsWith(STORAGE_KEY+'='));
+  let state = null;
+  if(fromLS){ try{ state = JSON.parse(fromLS) }catch{} }
+  if(!state && fromCookie){ try{ state = JSON.parse(decodeURIComponent(fromCookie.split('=')[1])) }catch{} }
+  return state;
+}
+function clearState(){
+  localStorage.removeItem(STORAGE_KEY);
+  document.cookie = `${STORAGE_KEY}=; path=/; max-age=0`;
+}
+
+/* ======================= STATE ======================= */
+let state = {
+  name: '',
+  teams: [],           // [{id,name}]
+  groups: [],          // [{id:'A', teams:[ids], matches:[{id,round,home,away,hs,as}]}]
+  standings: {},       // { A:[{teamId,pts,gd,gf,ga,played,w,d,l}], ... }
+  bracket: null        // { qf:[{home,away,hs,as}], sf:[...], fin:[...] }
+};
+
+/* ======================= GROUPING ======================= */
+function deriveGroupCount(n, strategy){
+  if(strategy==='auto'){
+    const guess = Math.max(2, Math.round(n/4)); // ~4 kom./grupa
+    return Math.min(8, Math.max(1, Math.min(guess, n))); // neaiziet virs komandu skaita
+  }
+  const fixed = Number(strategy.slice(1));
+  return Math.min(fixed, n) || 2;
+}
+
+function makeGroups(teams, strategy='auto'){
+  const n = teams.length;
+  if(n<2) return [];
+  const gCount = deriveGroupCount(n, strategy);
+  const shuffled = shuffle([...teams]);
+  const groups = Array.from({length:gCount}, (_,i)=>({ id:String.fromCharCode(65+i), teams:[], matches:[] }));
+  // Distribute round-robin style
+  shuffled.forEach((t,i)=> groups[i%gCount].teams.push(t.id));
+  // Generate round-robin fixtures for each group
+  groups.forEach(g=>{
+    g.matches = generateRoundRobin(g.teams).map((m,idx)=>({
+      id: uid(), round: m.round, home:m.home, away:m.away, hs:null, as:null
+    }));
+  });
+  return groups;
+}
+
+// Berger tables rotation
+function generateRoundRobin(teamIds){
+  const teams = [...teamIds];
+  const isOdd = teams.length%2===1;
+  if(isOdd) teams.push(null); // BYE
+  const n = teams.length;
+  const rounds = n-1;
+  const half = n/2;
+  const fixtures = [];
+  for(let r=0;r<rounds;r++){
+    for(let i=0;i<half;i++){
+      const t1 = teams[i], t2 = teams[n-1-i];
+      if(t1!==null && t2!==null){
+        // Maiņam mājas/viesi, lai balansētos
+        const homeAwaySwap = (r%2===0) === (i%2===0);
+        fixtures.push({ round:r+1, home:homeAwaySwap?t1:t2, away:homeAwaySwap?t2:t1 });
+      }
+    }
+    // Rotācija
+    const fixed = teams[0];
+    const rest = teams.slice(1);
+    rest.unshift(rest.pop());
+    teams.splice(0,teams.length, fixed, ...rest);
+  }
+  return fixtures;
+}
+
+/* ======================= STANDINGS ======================= */
+function computeStandings(groups, teamsMap){
+  const standings = {};
+  for(const g of groups){
+    const table = g.teams.map(id=>({
+      teamId:id, name:teamsMap[id].name, played:0, w:0,d:0,l:0, gf:0,ga:0, gd:0, pts:0
+    }));
+    const idx = Object.fromEntries(table.map((r,i)=>[r.teamId,i]));
+    for(const m of g.matches){
+      if(m.hs==null || m.as==null) continue;
+      const A = table[idx[m.home]], B = table[idx[m.away]];
+      A.played++; B.played++;
+      A.gf += m.hs; A.ga += m.as; A.gd = A.gf - A.ga;
+      B.gf += m.as; B.ga += m.hs; B.gd = B.gf - B.ga;
+      if(m.hs>m.as){ A.w++; B.l++; A.pts+=3 }
+      else if(m.hs<m.as){ B.w++; A.l++; B.pts+=3 }
+      else { A.d++; B.d++; A.pts+=1; B.pts+=1 }
+    }
+    table.sort((a,b)=>{
+      if(b.pts!==a.pts) return b.pts-a.pts;
+      if(b.gd!==a.gd) return b.gd-a.gd;
+      if(b.gf!==a.gf) return b.gf-a.gf;
+      return a.name.localeCompare(b.name);
+    });
+    standings[g.id]=table;
+  }
+  return standings;
+}
+
+/* ======================= BRACKET ======================= */
+function buildBracketFromStandings(standings){
+  // Savāc rank1, rank2, rank3... līdz 8 kom., pēc ranga
+  const ranks = [];
+  const groups = Object.keys(standings).sort();
+  let layer=0; // 0 => 1.vietas, 1 => 2.vietas, ...
+  while(ranks.length<8){
+    let added=false;
+    for(const gid of groups){
+      const row = standings[gid][layer];
+      if(row){ ranks.push({ ...row, group:gid, rank:layer+1 }); added=true; if(ranks.length===8) break; }
+    }
+    if(!added) break;
+    layer++;
+  }
+  // Ja mazāk par 8 — pievieno BYE
+  while(ranks.length<8){
+    ranks.push({ teamId:null, name:'BYE', pts:0, gd:0, gf:0, group:'-', rank:99 });
+  }
+  // Sējumi pēc (rank -> pts -> gd -> gf)
+  ranks.sort((a,b)=>{
+    if(a.teamId===null && b.teamId!==null) return 1;
+    if(b.teamId===null && a.teamId!==null) return -1;
+    if(a.rank!==b.rank) return a.rank-b.rank;
+    if(b.pts!==a.pts) return b.pts-a.pts;
+    if(b.gd!==a.gd) return b.gd-a.gd;
+    if(b.gf!==a.gf) return b.gf-a.gf;
+    return a.name.localeCompare(b.name);
+  });
+  // top4 vs bottom4
+  const seedsTop = ranks.slice(0,4);
+  const seedsBot = ranks.slice(4,8).reverse(); // 8,7,6,5
+  const qf = [];
+  for(let i=0;i<4;i++){
+    const h = seedsTop[i]||{name:'BYE'};
+    const a = seedsBot[i]||{name:'BYE'};
+    qf.push({ id:uid(), home:h.teamId, away:a.teamId, hs:null, as:null, hName:h.name, aName:a.name });
+  }
+  return { qf, sf:[{id:uid(),home:null,away:null,hs:null,as:null},{id:uid(),home:null,away:null,hs:null,as:null}], fin:[{id:uid(),home:null,away:null,hs:null,as:null}] };
+}
+
+function nameOf(id, teamsMap){ return id ? teamsMap[id]?.name||'?' : 'BYE' }
+
+function propagateBracket(br, teamsMap){
+  // Uzvarētāji no QF -> SF; no SF -> FIN
+  const winnersQF = br.qf.map(m=> pickWinner(m,teamsMap) );
+  br.sf[0].home = winnersQF[0]; br.sf[0].away = winnersQF[3];
+  br.sf[1].home = winnersQF[1]; br.sf[1].away = winnersQF[2];
+  const winnersSF = br.sf.map(m=> pickWinner(m,teamsMap));
+  br.fin[0].home = winnersSF[0]; br.fin[0].away = winnersSF[1];
+}
+
+function pickWinner(m, teamsMap){
+  // BYE loģika
+  if(!m) return null;
+  if(m.home && !m.away) return m.home;
+  if(!m.home && m.away) return m.away;
+  if(!m.home && !m.away) return null;
+  // Ja rezultāti ievadīti:
+  if(Number.isFinite(m.hs) && Number.isFinite(m.as)){
+    if(m.hs>m.as) return m.home;
+    if(m.as>m.hs) return m.away;
+    // neizšķirts playoffā -> izvēlamies augstāk sēto (home)
+    return m.home;
+  }
+  return null;
+}
+
+/* ======================= RENDER ======================= */
+function renderGroups(){
+  const host = $('#groupsHost'); host.innerHTML='';
+  const teamsMap = Object.fromEntries(state.teams.map(t=>[t.id,t]));
+  state.groups.forEach(g=>{
+    const wrap = document.createElement('div'); wrap.className='panel';
+    wrap.innerHTML = `<h3>Grupa ${g.id}</h3><div class="muted">${g.teams.length} komandas • ${new Set(g.matches.map(m=>m.round)).size} kārtas</div>`;
+    const tbl = document.createElement('table');
+    tbl.innerHTML = `
+      <thead><tr><th>R</th><th>Mājinieki</th><th></th><th>Viesi</th><th>Rez.</th></tr></thead>
+      <tbody></tbody>
+    `;
+    const body = $('tbody', tbl);
+    g.matches.forEach((m,i)=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML = `
+        <td>${m.round}</td>
+        <td>${teamsMap[m.home].name}</td>
+        <td class="muted">vs</td>
+        <td>${teamsMap[m.away].name}</td>
+        <td>
+          <input class="score-in" type="number" min="0" inputmode="numeric" value="${m.hs??''}" data-g="${g.id}" data-mid="${m.id}" data-side="hs" />
+          :
+          <input class="score-in" type="number" min="0" inputmode="numeric" value="${m.as??''}" data-g="${g.id}" data-mid="${m.id}" data-side="as" />
+        </td>`;
+      body.appendChild(tr);
+    });
+    wrap.appendChild(tbl);
+    host.appendChild(wrap);
+  });
+  $('#groupsPanel').hidden = state.groups.length===0;
+  // Input handlers
+  $$('#groupsHost .score-in').forEach(inp=>{
+    inp.addEventListener('change', e=>{
+      const gId = inp.dataset.g, mId=inp.dataset.mid, side=inp.dataset.side;
+      const g = state.groups.find(x=>x.id===gId);
+      const m = g.matches.find(x=>x.id===mId);
+      const val = inp.value==='' ? null : Math.max(0, parseInt(inp.value,10));
+      m[side] = Number.isFinite(val) ? val : null;
+      state.standings = computeStandings(state.groups, Object.fromEntries(state.teams.map(t=>[t.id,t])));
+      saveState(state);
+      renderStandings();
+    });
+  });
+}
+
+function renderStandings(){
+  const host = $('#standingsHost'); host.innerHTML='';
+  const st = state.standings || {};
+  const groups = Object.keys(st).sort();
+  groups.forEach(gid=>{
+    const wrap = document.createElement('div'); wrap.className='panel';
+    wrap.innerHTML = `<h3>Grupa ${gid} — Stāvējums</h3>`;
+    const tbl = document.createElement('table');
+    tbl.innerHTML = `
+      <thead><tr><th>#</th><th>Komanda</th><th>Sp</th><th>U</th><th>N</th><th>Z</th><th>GF</th><th>GA</th><th>GD</th><th>P</th></tr></thead>
+      <tbody></tbody>`;
+    const body = $('tbody', tbl);
+    st[gid].forEach((r,i)=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML = `<td>${i+1}</td><td>${r.name}</td><td>${r.played}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td><td>${r.gf}</td><td>${r.ga}</td><td>${r.gd}</td><td><b>${r.pts}</b></td>`;
+      body.appendChild(tr);
+    });
+    wrap.appendChild(tbl);
+    host.appendChild(wrap);
+  });
+  $('#standingsPanel').hidden = groups.length===0;
+}
+
+function renderBracket(){
+  const teamsMap = Object.fromEntries(state.teams.map(t=>[t.id,t]));
+  const br = state.bracket;
+  $('#qfCol').innerHTML = '<h3>Ceturtdaļfināli</h3>';
+  $('#sfCol').innerHTML = '<h3>Pusfināli</h3>';
+  $('#finCol').innerHTML = '<h3>Fināls</h3>';
+
+  const mkMatch = (m, stage, idx) => {
+    const el = document.createElement('div'); el.className='match';
+    const hName = nameOf(m.home, teamsMap);
+    const aName = nameOf(m.away, teamsMap);
+    el.innerHTML = `
+      <div class="status">${stage} ${idx!=null?('• '+(idx+1)):""}</div>
+      <div class="team ${winnerClass(m,'home')}">
+        <div class="row"><span class="seed">H</span><span class="name">${hName}</span></div>
+        <input class="score-in" type="number" min="0" value="${m.hs??''}" data-stage="${stage}" data-id="${m.id}" data-side="hs" />
+      </div>
+      <div class="team ${winnerClass(m,'away')}">
+        <div class="row"><span class="seed">A</span><span class="name">${aName}</span></div>
+        <input class="score-in" type="number" min="0" value="${m.as??''}" data-stage="${stage}" data-id="${m.id}" data-side="as" />
+      </div>
+    `;
+    return el;
+  };
+
+  state.bracket.qf.forEach((m,i)=> $('#qfCol').appendChild(mkMatch(m,'QF',i)));
+  state.bracket.sf.forEach((m,i)=> $('#sfCol').appendChild(mkMatch(m,'SF',i)));
+  state.bracket.fin.forEach((m)=> $('#finCol').appendChild(mkMatch(m,'Final')));
+
+  // Handleri
+  $$('.bracket .score-in').forEach(inp=>{
+    inp.addEventListener('change', ()=>{
+      const stage=inp.dataset.stage, id=inp.dataset.id, side=inp.dataset.side;
+      const col = stage==='QF'?'qf':stage==='SF'?'sf':'fin';
+      const m = state.bracket[col].find(x=>x.id===id);
+      const val = inp.value==='' ? null : Math.max(0, parseInt(inp.value,10));
+      m[side] = Number.isFinite(val)?val:null;
+      // izpludinām uzvarētājus augstāk
+      propagateBracket(state.bracket, Object.fromEntries(state.teams.map(t=>[t.id,t])));
+      saveState(state);
+      renderBracket(); // pār-zīmē, lai atjaunotu vārdus & win klases
+    });
+  });
+
+  // Savienojumu līnijas (vienkāršotas)
+  drawLinks();
+}
+
+function winnerClass(m, side){
+  if(m.home && !m.away) return side==='home'?'win':'';
+  if(!m.home && m.away) return side==='away'?'win':'';
+  if(Number.isFinite(m.hs) && Number.isFinite(m.as)){
+    if(m.hs>m.as && side==='home') return 'win';
+    if(m.as>m.hs && side==='away') return 'win';
+  }
+  return '';
+}
+
+function drawLinks(){
+  const svg = $('#linkLayer'); if(!svg) return;
+  const br = $('.bracket'); const r = br.getBoundingClientRect();
+  svg.setAttribute('viewBox', `0 0 ${r.width} ${r.height}`);
+  svg.setAttribute('width', r.width); svg.setAttribute('height', r.height);
+  svg.innerHTML='';
+  const boxes = $$('.round .match').map(el=>({el, rect:el.getBoundingClientRect()}));
+  // QF -> SF (0->0 home, 1->0 away, 2->1 home, 3->1 away). SF -> FIN
+  function pathBetween(a,b){
+    const startX=a.rect.right - r.left, startY=a.rect.top + a.rect.height/2 - r.top;
+    const endX=b.rect.left - r.left, endY=b.rect.top + b.rect.height/2 - r.top;
+    const mid=(startX+endX)/2;
+    return `M ${startX} ${startY} C ${mid} ${startY}, ${mid} ${endY}, ${endX} ${endY}`;
+  }
+  const qfEls = $$('#qfCol .match'), sfEls=$$('#sfCol .match'), finEl=$$('#finCol .match')[0];
+  const paths=[];
+  if(sfEls[0]){ if(qfEls[0]) paths.push(pathBetween(qfEls[0], sfEls[0])); if(qfEls[3]) paths.push(pathBetween(qfEls[3], sfEls[0])); }
+  if(sfEls[1]){ if(qfEls[1]) paths.push(pathBetween(qfEls[1], sfEls[1])); if(qfEls[2]) paths.push(pathBetween(qfEls[2], sfEls[1])); }
+  if(finEl){ if(sfEls[0]) paths.push(pathBetween(sfEls[0], finEl)); if(sfEls[1]) paths.push(pathBetween(sfEls[1], finEl)); }
+  for(const d of paths){
+    const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d', d); p.setAttribute('fill','none'); p.setAttribute('stroke','var(--ring)'); p.setAttribute('stroke-width','2');
+    svg.appendChild(p);
+  }
+}
+
+/* ======================= HOOK UP UI ======================= */
+$('#genGroups').addEventListener('click', ()=>{
+  const name = $('#tName').value.trim();
+  const teams = $('#teamsInput').value.split('\n').map(s=>s.trim()).filter(Boolean).map(n=>({id:uid(), name:n}));
+  if(teams.length<2){ alert('Ievadi vismaz 2 komandas.'); return }
+  state.name = name; state.teams = teams;
+  state.groups = makeGroups(teams, $('#groupStrategy').value);
+  state.standings = computeStandings(state.groups, Object.fromEntries(teams.map(t=>[t.id,t])));
+  state.bracket = null;
+  saveState(state);
+  renderGroups(); renderStandings();
+  $('#playoffPanel').hidden=false;
+  $('#groupsPanel').hidden=false;
+  $('#standingsPanel').hidden=false;
+});
+
+$('#buildBracket').addEventListener('click', ()=>{
+  if(!state.groups.length){ alert('Vispirms jāizspēlē / jāievada grupu dati.'); return }
+  state.standings = computeStandings(state.groups, Object.fromEntries(state.teams.map(t=>[t.id,t])));
+  state.bracket = buildBracketFromStandings(state.standings);
+  propagateBracket(state.bracket, Object.fromEntries(state.teams.map(t=>[t.id,t])));
+  saveState(state);
+  renderBracket();
+});
+
+$('#exportBtn').addEventListener('click', ()=>{
+  const data = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(state, null, 2));
+  const a=document.createElement('a'); a.href=data; a.download=(state.name||'tournament')+'.json'; a.click();
+});
+
+$('#importBtn').addEventListener('click', async ()=>{
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json';
+  inp.onchange = async ()=>{
+    const file=inp.files[0]; if(!file) return;
+    try{
+      const text=await file.text(); const obj=JSON.parse(text);
+      state = Object.assign({name:'',teams:[],groups:[],standings:{},bracket:null}, obj);
+      saveState(state);
+      // re-render
+      $('#tName').value = state.name || '';
+      $('#teamsInput').value = state.teams.map(t=>t.name).join('\n');
+      if(state.groups?.length){ renderGroups(); $('#groupsPanel').hidden=false }
+      if(state.standings && Object.keys(state.standings).length){ renderStandings(); $('#standingsPanel').hidden=false }
+      if(state.bracket){ renderBracket(); $('#playoffPanel').hidden=false }
+    }catch(e){ alert('Neizdevās importēt failu.'); }
+  };
+  inp.click();
+});
+
+$('#resetBtn').addEventListener('click', ()=>{
+  if(!confirm('Tiešām notīrīt turnīru?')) return;
+  clearState();
+  state={name:'',teams:[],groups:[],standings:{},bracket:null};
+  $('#tName').value=''; $('#teamsInput').value='';
+  $('#groupsHost').innerHTML=''; $('#standingsHost').innerHTML='';
+  $('#qfCol').innerHTML='<h3>Ceturtdaļfināli</h3>'; $('#sfCol').innerHTML='<h3>Pusfināli</h3>'; $('#finCol').innerHTML='<h3>Fināls</h3>';
+  $('#groupsPanel').hidden=true; $('#standingsPanel').hidden=true; $('#playoffPanel').hidden=true;
+});
+
+/* ======================= RESTORE ======================= */
+(function boot(){
+  const saved = loadState();
+  if(saved){
+    state = Object.assign(state, saved);
+    $('#tName').value = state.name || '';
+    $('#teamsInput').value = (state.teams||[]).map(t=>t.name).join('\n');
+    if(state.groups?.length){ renderGroups(); $('#groupsPanel').hidden=false }
+    if(state.standings && Object.keys(state.standings).length){ renderStandings(); $('#standingsPanel').hidden=false }
+    if(state.bracket){ renderBracket(); $('#playoffPanel').hidden=false }
+  }
+  // redraw links on resize
+  const ro=new ResizeObserver(()=>drawLinks());
+  ro.observe($('.bracket'));
+})();
+</script>
 </body>
 </html>
