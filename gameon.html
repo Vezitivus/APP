@@ -2,60 +2,157 @@
 <html lang="lv">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Turnīru Aplikācija — Grupas + Playoff + OT + Sheets Sync</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Turnīru Aplikācija — Liquid UI</title>
 <meta name="color-scheme" content="light dark" />
 <style>
+  /* ================= Liquid + Glass Theme ================= */
   :root{
-    --bg:#0b0f14; --card:#121826ee; --text:#e6e9ef; --muted:#9aa4b2; --ring:#2a3250;
-    --accent:#7c5cff; --ok:#19c37d; --danger:#ff5d5d; --radius:14px; --gap:18px;
-    --shadow:0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
+    --bg:#0b0f14;         /* canvas */
+    --text:#e6e9ef;       /* main text */
+    --muted:#9aa4b2;      /* secondary text */
+    --card:rgba(18,24,38,.55); /* glass body */
+    --border:rgba(255,255,255,.08);
+    --ring:#6f7dd62b;     /* focus ring / outlines */
+    --accent:#7c5cff;     /* gradient start */
+    --accent2:#45a2ff;    /* gradient end */
+    --ok:#19c37d;
+    --danger:#ff5d5d;
+    --radius:16px;
+    --shadow:0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05);
     --font:ui-sans-serif,-apple-system,"SF Pro Text","Inter","Segoe UI",Roboto,Arial;
+    --space:clamp(10px,2vw,18px);
   }
-  @media(prefers-color-scheme:light){
-    :root{ --bg:#f7f8fb; --card:#ffffff; --text:#0f172a; --muted:#51607a; --ring:#dfe2f2; --shadow:0 10px 30px rgba(10,20,40,.08) }
+  @media (prefers-color-scheme:light){
+    :root{
+      --bg:#f7f8fc;
+      --text:#0f172a;
+      --muted:#4b5568;
+      --card:rgba(255,255,255,.8);
+      --border:rgba(15,23,42,.08);
+      --ring:#7c8dd41c;
+      --shadow:0 12px 30px rgba(18,20,40,.08), inset 0 1px 0 rgba(255,255,255,.5);
+    }
   }
-  html,body{height:100%} body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font)}
-  header{position:sticky;top:0;z-index:5;background:var(--card);border-bottom:1px solid var(--ring);backdrop-filter:saturate(120%) blur(8px)}
-  .bar{max-width:1200px;margin:0 auto;padding:12px 20px;display:flex;gap:12px;align-items:center;justify-content:space-between}
-  .brand{display:flex;gap:10px;align-items:center;font-weight:800}
-  .dot{width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#45a2ff)}
-  .btn{appearance:none;border:1px solid var(--ring);background:var(--card);box-shadow:var(--shadow);
-    color:var(--text);border-radius:999px;padding:9px 14px;cursor:pointer}
-  .btn--accent{border:none;background:linear-gradient(135deg,var(--accent),#45a2ff);color:#fff}
-  .btn[disabled]{opacity:.5;cursor:not-allowed}
-  .wrap{max-width:1200px;margin:20px auto;padding:0 20px 60px}
-  .panel{background:var(--card);border:1px solid var(--ring);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
-  .grid{display:grid;gap:var(--gap)}
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;color:var(--text);font-family:var(--font);background:var(--bg);
+    /* liquid background blobs */
+    background:
+      radial-gradient(1200px 800px at 120% -10%, color-mix(in oklab, var(--accent) 35%, transparent), transparent 60%),
+      radial-gradient(900px 600px at -30% 20%, color-mix(in oklab, var(--accent2) 35%, transparent), transparent 60%),
+      radial-gradient(600px 500px at 80% 110%, color-mix(in oklab, #19c37d 35%, transparent), transparent 60%);
+  }
+  /* subtle animated overlay blob */
+  body::after{
+    content:"";position:fixed;inset:-20vmax;z-index:-1;filter:blur(90px) saturate(120%);
+    background:
+      radial-gradient(45vmax 35vmax at 30% 20%, color-mix(in oklab, var(--accent) 25%, transparent), transparent 60%),
+      radial-gradient(50vmax 40vmax at 70% 80%, color-mix(in oklab, var(--accent2) 25%, transparent), transparent 60%);
+    animation:float 18s ease-in-out infinite alternate;
+  }
+  @keyframes float{ from{transform:translate3d(-2%,0,0)} to{transform:translate3d(2%,1%,0)} }
+
+  /* ================= Layout ================= */
+  header{
+    position:sticky;top:0;z-index:10;
+    backdrop-filter:saturate(140%) blur(12px);
+    background:linear-gradient(180deg, rgba(0,0,0,.0), rgba(0,0,0,.04)), var(--card);
+    border-bottom:1px solid var(--border);
+  }
+  .bar{
+    max-width:1200px;margin:0 auto;padding:12px clamp(14px,3vw,24px);
+    display:flex;gap:12px;align-items:center;justify-content:space-between;
+  }
+  .brand{display:flex;gap:10px;align-items:center;font-weight:800;letter-spacing:.2px}
+  .dot{width:14px;height:14px;border-radius:50%;
+       background:radial-gradient(12px 12px at 20% 20%, #fff8, #0000),
+                  linear-gradient(135deg,var(--accent),var(--accent2)); box-shadow:0 0 16px color-mix(in oklab, var(--accent) 45%, transparent)}
+  .wrap{max-width:1200px;margin:clamp(10px,2vw,20px) auto clamp(60px,7vw,96px);
+        padding:0 clamp(14px,3vw,24px); display:grid; gap:var(--space)}
+
+  .panel{
+    background:var(--card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow);
+    padding:clamp(12px,2.6vw,20px);
+  }
+
+  h1,h2,h3{margin:0 0 8px}
+  h1{font-size:clamp(20px,3.2vw,28px)}
+  h2{font-size:clamp(18px,2.6vw,22px)}
+  h3{font-size:clamp(12px,1.8vw,14px);color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  input,textarea,select{width:100%;background:transparent;color:var(--text);border:1px solid var(--ring);
-    border-radius:10px;padding:10px}
+  .controls{display:grid; gap:var(--space)}
+  .controls .row{justify-content:space-between}
+
+  /* Inputs / Buttons */
+  input,textarea,select{
+    width:100%;background:rgba(255,255,255,.02);color:var(--text);
+    border:1px solid var(--border);border-radius:12px;padding:12px 12px;
+    transition:border .2s ease, box-shadow .2s ease, background-color .2s ease;
+  }
+  textarea{min-height:160px; resize:vertical}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:color-mix(in oklab, var(--accent) 45%, var(--border));
+    box-shadow:0 0 0 6px var(--ring)}
+  ::placeholder{color:color-mix(in oklab, var(--muted) 80%, transparent)}
+
+  .btn{
+    appearance:none;border:1px solid var(--border);background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,.06));
+    color:var(--text);border-radius:999px;padding:11px 16px;cursor:pointer;box-shadow:var(--shadow);
+    transition:transform .06s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease
+  }
+  .btn:hover{transform:translateY(-1px)}
+  .btn:active{transform:translateY(0)}
+  .btn--accent{
+    border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;
+  }
+  .btn[disabled]{opacity:.6;cursor:not-allowed;filter:grayscale(.2)}
+
   .muted{color:var(--muted);font-size:13px}
-  h2{margin:0 0 8px;font-size:18px}
-  h3{margin:6px 0 6px;font-size:15px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
-  /* Tables */
-  table{width:100%;border-collapse:separate;border-spacing:0 8px}
-  th,td{text-align:left;padding:10px 12px}
-  thead th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
-  tbody tr{background:linear-gradient(180deg,transparent, color-mix(in oklab, var(--card) 85%, transparent));}
+
+  /* ================= Tables ================= */
+  .table-scroll{overflow:auto; -webkit-overflow-scrolling:touch}
+  table{width:100%; border-collapse:separate; border-spacing:0 10px; min-width:520px}
+  th,td{padding:clamp(8px,1.8vw,12px) clamp(10px,2vw,14px); text-align:left}
+  thead th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;position:sticky;top:0;background:transparent;backdrop-filter:blur(0)}
+  tbody tr{background:linear-gradient(180deg,transparent, color-mix(in oklab, var(--card) 88%, transparent))}
   tbody td:first-child{border-radius:10px 0 0 10px}
   tbody td:last-child{border-radius:0 10px 10px 0}
-  .score-in{width:52px;text-align:center}
-  .chip{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border:1px solid var(--ring);border-radius:999px;font-size:12px}
-  /* Bracket */
-  .bracket{position:relative;display:grid;gap:var(--gap);grid-template-columns:1fr 1fr 1fr}
-  .round{display:grid;gap:var(--gap)}
-  .match{border:1px solid var(--ring);border-radius:12px;padding:12px;background:color-mix(in oklab, var(--card) 94%, transparent)}
-  .team{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:8px;border-radius:8px}
-  .team.win{outline:2px solid color-mix(in oklab, var(--ok) 40%, transparent);outline-offset:-2px}
-  .team .name{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .team .seed{font-weight:800;font-size:12px;padding:3px 8px;border:1px solid var(--ring);border-radius:999px}
-  .team .score{font-weight:800;border:1px solid var(--ring);border-radius:8px;padding:4px 8px;min-width:36px;text-align:center}
-  .status{font-size:12px;color:var(--muted)}
-  /* Stats block */
+  .score-in{width:52px; text-align:center; padding:10px}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--border);border-radius:999px;font-size:12px;background:rgba(255,255,255,.02)}
+
+  /* ================= Bracket ================= */
+  .bracket{display:grid; gap:var(--space); grid-template-columns:repeat(3, minmax(260px,1fr))}
+  .round{display:grid; gap:var(--space)}
+  .match{
+    border:1px solid var(--border); border-radius:14px; padding:12px; background:color-mix(in oklab, var(--card) 94%, transparent);
+    box-shadow:var(--shadow)
+  }
+  .team{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:8px;border-radius:10px}
+  .team.win{outline:2px solid color-mix(in oklab, var(--ok) 45%, transparent); outline-offset:-2px}
+  .team .seed{font-weight:800;font-size:12px;padding:4px 8px;border:1px solid var(--border);border-radius:999px}
+  .team .name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .status{font-size:12px;color:var(--muted);margin-bottom:6px}
+
+  /* Awards / Stats */
   .awards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
-  .card{border:1px solid var(--ring);border-radius:12px;padding:12px;background:color-mix(in oklab, var(--card) 96%, transparent)}
-  @media(max-width:980px){.bracket{grid-template-columns:repeat(3,min(86vw,420px));overflow:auto}}
+  .card{border:1px solid var(--border);border-radius:12px;padding:12px;background:color-mix(in oklab, var(--card) 96%, transparent);box-shadow:var(--shadow)}
+
+  /* ================= Responsive ================= */
+  @media (max-width: 980px){
+    .bracket{grid-template-columns:repeat(3, minmax(220px,1fr))}
+  }
+  @media (max-width: 720px){
+    .wrap{gap:12px}
+    .bracket{grid-template-columns:1fr} /* stack rounds under each other on phones */
+    .score-in{width:46px}
+  }
+
+  /* Motion respectful */
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none!important;transition:none!important}
+  }
 </style>
 </head>
 <body>
@@ -70,79 +167,84 @@
   </div>
 </header>
 
-<main class="wrap grid">
+<main class="wrap">
   <!-- SETUP -->
-  <section class="panel grid" id="setupPanel">
-    <div class="grid">
+  <section class="panel controls" id="setupPanel">
+    <div class="row" style="justify-content:space-between">
       <h2>1) Ievadi komandas</h2>
-      <div class="row">
+      <div class="muted" id="saveHint">Dati tiek glabāti lokāli (localStorage)</div>
+    </div>
+    <div class="row" style="gap:var(--space); align-items:flex-start">
+      <div style="flex:2; min-width:260px">
         <input id="tName" placeholder="Turnīra nosaukums (neobligāts)" />
+        <div style="height:var(--space)"></div>
+        <textarea id="teamsInput" placeholder="Katru komandu jaunā rindā..."></textarea>
       </div>
-      <div class="row">
-        <textarea id="teamsInput" rows="10" placeholder="Katru komandu jaunā rindā..."></textarea>
-      </div>
-      <div class="row">
-        <select id="groupStrategy" title="Grupu skaits">
+      <div style="flex:1; min-width:240px">
+        <label class="muted" for="groupStrategy">Grupu skaits</label>
+        <select id="groupStrategy">
           <option value="auto" selected>Automātiski (2/4/6; ≤6 → 1 grupa)</option>
           <option value="n1">1 grupa (ja ≤6 kom.)</option>
           <option value="n2">2 grupas</option>
           <option value="n4">4 grupas</option>
           <option value="n6">6 grupas</option>
         </select>
-        <button class="btn btn--accent" id="genGroups">Ģenerēt grupas</button>
+        <div style="height:var(--space)"></div>
+        <button class="btn btn--accent" id="genGroups" style="width:100%">Ģenerēt grupas</button>
       </div>
-      <p class="muted">Dati glabājas lokāli (localStorage). Ja iestatīsi <code>SYNC_ENDPOINT</code>, notikumi fonā tiks dublēti uz Google Sheets.</p>
+    </div>
+  </section>
+
+  <!-- GROUPS -->
+  <section class="panel" id="groupsPanel" hidden>
+    <h2>2) Grupas & kalendārs</h2>
+    <div id="groupsHost" class="grid" style="display:grid; gap:var(--space); grid-template-columns:repeat(auto-fit,minmax(300px,1fr))"></div>
+  </section>
+
+  <!-- STANDINGS -->
+  <section class="panel" id="standingsPanel" hidden>
+    <h2>3) Stāvējumus (Standings)</h2>
+    <div id="standingsHost" class="grid" style="display:grid; gap:var(--space); grid-template-columns:repeat(auto-fit,minmax(300px,1fr))"></div>
+  </section>
+
+  <!-- PLAYOFF -->
+  <section class="panel" id="playoffPanel" hidden>
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <h2>4) Playoff (no Quarterfinals)</h2>
+      <button class="btn" id="buildBracket">Ģenerēt Bracket</button>
     </div>
 
-    <div id="groupsPanel" class="grid" hidden>
-      <h2>2) Grupas & kalendārs</h2>
-      <div id="groupsHost" class="grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr))"></div>
+    <div class="bracket" style="margin-top:var(--space)">
+      <div class="round" id="qfCol"><h3>Ceturtdaļfināli</h3></div>
+      <div class="round" id="sfCol"><h3>Pusfināli</h3></div>
+      <div class="round" id="finCol"><h3>Fināls & 3. vieta</h3></div>
     </div>
 
-    <div id="standingsPanel" class="grid" hidden>
-      <h2>3) Stāvējumus (Standings)</h2>
-      <div id="standingsHost" class="grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr))"></div>
+    <!-- Buttons under bracket -->
+    <div class="row" style="margin-top:12px">
+      <button class="btn btn--accent" id="overallBtn" disabled title="Pieejams, kad pabeigts fināls un 3. vieta">Kopsavilkums</button>
+      <button class="btn" id="downloadPdfBtn" disabled>Lejupielādēt PDF</button>
     </div>
 
-    <div id="playoffPanel" class="grid" hidden>
-      <div class="row" style="justify-content:space-between;align-items:center">
-        <h2>4) Playoff (no Quarterfinals)</h2>
-        <div class="row">
-          <button class="btn" id="buildBracket">Ģenerēt Bracket</button>
-        </div>
-      </div>
-
-      <div class="bracket">
-        <div class="round" id="qfCol"><h3>Ceturtdaļfināli</h3></div>
-        <div class="round" id="sfCol"><h3>Pusfināli</h3></div>
-        <div class="round" id="finCol"><h3>Fināls & 3. vieta</h3></div>
-      </div>
-
-      <!-- POGAS ZEM BRACKETES -->
-      <div class="row" style="margin-top:12px">
-        <button class="btn btn--accent" id="overallBtn" disabled title="Pieejams, kad pabeigts fināls un 3. vieta">Kopsavilkums</button>
-        <button class="btn" id="downloadPdfBtn" disabled>Lejupielādēt PDF</button>
-      </div>
-
-      <div id="statsPanel" class="grid" hidden>
-        <h2>5) Turnīra kopsavilkums & apbalvojumi</h2>
-        <div id="awards" class="awards"></div>
-        <div class="panel" id="teamStatsPanel">
-          <h3>Komandu kopstatistika</h3>
-          <div id="teamStatsHost"></div>
-        </div>
+    <!-- OVERALL -->
+    <div id="statsPanel" class="grid" hidden style="margin-top:var(--space)">
+      <h2>5) Turnīra kopsavilkums & apbalvojumi</h2>
+      <div id="awards" class="awards"></div>
+      <div class="panel" id="teamStatsPanel">
+        <h3>Komandu kopstatistika</h3>
+        <div id="teamStatsHost"></div>
       </div>
     </div>
   </section>
 </main>
 
-<!-- PDF bibliotēkas (CDN) -->
+<!-- PDF libs -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <script>
 /* ======================= SYNC CONFIG ======================= */
-const SYNC_ENDPOINT = ''; // piem.: 'https://script.google.com/macros/s/AKfycb.../exec'
+const SYNC_ENDPOINT = ''; // ja lietosi Sheets, ieliec GAS Web App URL
 const SYNC_ENABLED  = !!SYNC_ENDPOINT;
 
 /* ======================= UTIL ======================= */
@@ -151,158 +253,115 @@ const $$ = (sel, root=document)=>Array.from(root.querySelectorAll(sel));
 const uid = ()=>Math.random().toString(36).slice(2,9);
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]] } return a }
 
-/* ======================= STORAGE (localStorage only) ======================= */
-const STORAGE_KEY='tournament_state_v4';
+/* ======================= STORAGE ======================= */
+const STORAGE_KEY='tournament_state_v5';
 function saveState(state){
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  Sync.push({type:'STATE_SAVE', summary: {
-    name: state.name,
-    teamCount: state.teams.length,
-    groupCount: state.groups.length,
-    hasBracket: !!state.bracket
-  }});
+  Sync.push({type:'STATE_SAVE', summary:{name:state.name, teamCount:state.teams.length, groupCount:state.groups.length, hasBracket:!!state.bracket}});
 }
-function loadState(){
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)||'null') } catch { return null }
-}
+function loadState(){ try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'null')}catch{return null} }
 function clearState(){ localStorage.removeItem(STORAGE_KEY); }
 
-/* ======================= CLIENT ID & SYNC ======================= */
-function getClientId(){
-  let id = localStorage.getItem('tournament_client_id');
-  if(!id){ id = (crypto.randomUUID?.() ?? ('c_'+uid())); localStorage.setItem('tournament_client_id', id); }
-  return id;
-}
-const Sync = {
-  key: 'tournament_sync_queue_v1', queue: [], timer: null,
-  init(){ try{ this.queue = JSON.parse(localStorage.getItem(this.key)||'[]') }catch{ this.queue=[] }
-    if(SYNC_ENABLED && navigator.onLine) this.schedule(300);
-    window.addEventListener('online', ()=>this.schedule(0));
-    document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') this.flush({beacon:true}); else this.schedule(200); });
-    window.addEventListener('beforeunload', ()=>this.flush({beacon:true}));
+/* ======================= SYNC (optional) ======================= */
+function getClientId(){ let id=localStorage.getItem('tournament_client_id'); if(!id){id=crypto.randomUUID?.()||('c_'+uid()); localStorage.setItem('tournament_client_id',id)} return id; }
+const Sync={
+  key:'tournament_sync_queue_v1',queue:[],timer:null,
+  init(){ try{this.queue=JSON.parse(localStorage.getItem(this.key)||'[]')}catch{this.queue=[]}
+    if(SYNC_ENABLED&&navigator.onLine) this.schedule(300);
+    addEventListener('online',()=>this.schedule(0));
+    addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden') this.flush({beacon:true}); else this.schedule(200); });
+    addEventListener('beforeunload',()=>this.flush({beacon:true}));
   },
   persist(){ localStorage.setItem(this.key, JSON.stringify(this.queue)) },
-  push(event){ if(!SYNC_ENABLED) return; this.queue.push({ t:Date.now(), client:getClientId(), event }); this.persist(); this.schedule(400); },
-  schedule(ms=400){ if(!SYNC_ENABLED) return; clearTimeout(this.timer); this.timer=setTimeout(()=>this.flush().catch(()=>{}), ms); },
+  push(event){ if(!SYNC_ENABLED) return; this.queue.push({t:Date.now(),client:getClientId(),event}); this.persist(); this.schedule(400); },
+  schedule(ms=400){ if(!SYNC_ENABLED) return; clearTimeout(this.timer); this.timer=setTimeout(()=>this.flush().catch(()=>{}),ms) },
   async flush({beacon=false}={}){
-    if(!SYNC_ENABLED || !this.queue.length) return;
-    const batch=this.queue.slice(0,50);
-    const payload=JSON.stringify({ client:getClientId(), ua:navigator.userAgent, batch });
+    if(!SYNC_ENABLED||!this.queue.length) return;
+    const batch=this.queue.slice(0,50), payload=JSON.stringify({client:getClientId(),ua:navigator.userAgent,batch});
     try{
       if(beacon && navigator.sendBeacon){
-        const ok = navigator.sendBeacon(SYNC_ENDPOINT, new Blob([payload], {type:'application/json'}));
-        if(ok){ this.queue.splice(0,batch.length); this.persist(); }
-        return;
+        const ok=navigator.sendBeacon(SYNC_ENDPOINT,new Blob([payload],{type:'application/json'}));
+        if(ok){this.queue.splice(0,batch.length); this.persist();} return;
       }
-      const res = await fetch(SYNC_ENDPOINT, { method:'POST', headers:{'Content-Type':'application/json'}, body:payload, mode:'cors', keepalive:true });
-      if(res.ok){ this.queue.splice(0,batch.length); this.persist(); }
-    }catch(e){
-      try{ await fetch(SYNC_ENDPOINT, { method:'POST', body:payload, mode:'no-cors', keepalive:true }); }catch(_){}
+      const res=await fetch(SYNC_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:payload,mode:'cors',keepalive:true});
+      if(res.ok){this.queue.splice(0,batch.length); this.persist();}
+    }catch(e){ try{await fetch(SYNC_ENDPOINT,{method:'POST',body:payload,mode:'no-cors',keepalive:true})}catch(_){}
     }finally{ if(this.queue.length) this.schedule(1500); }
   }
-};
-Sync.init();
+}; Sync.init();
 
 /* ======================= STATE ======================= */
 let state = {
-  name: '',
-  teams: [],           // [{id,name}]
-  groups: [],          // [{id:'A', teams:[ids], matches:[{id,round,home,away,hs,as,ot:boolean}]}]
-  standings: {},       // { A:[{teamId,pts,gd,gf,ga,played,w,l}], ... }
-  bracket: null,       // { qf:[...], sf:[...], fin:[...], third:[...] }
-  overall: null
+  name:'',
+  teams:[],            // [{id,name}]
+  groups:[],           // [{id:'A', teams:[ids], matches:[{id,round,home,away,hs,as,ot:boolean}]}]
+  standings:{},        // { A:[{teamId,pts,gd,gf,ga,played,w,l}], ... }
+  bracket:null,        // { qf:[...], sf:[...], fin:[...], third:[...] }
+  overall:null
 };
 
 /* ======================= GROUPING ======================= */
-function deriveGroupCount(n, strategy){
-  const allowed = [2,4,6];
-  if (strategy === 'n1') return Math.min(1, n);
-  if (strategy === 'auto' && n <= 6) return Math.min(1, n);
-  if (strategy && strategy.startsWith('n')) {
-    const req = Number(strategy.slice(1));
-    if (req === 1 && n <= 6) return 1;
-    if (allowed.includes(req)) return Math.min(req, n);
+function deriveGroupCount(n,strategy){
+  const allowed=[2,4,6];
+  if(strategy==='n1') return Math.min(1,n);
+  if(strategy==='auto' && n<=6) return Math.min(1,n);
+  if(strategy?.startsWith('n')){
+    const req=Number(strategy.slice(1));
+    if(req===1 && n<=6) return 1;
+    if(allowed.includes(req)) return Math.min(req,n);
   }
-  if (n <= 6) return 1;
-  const target = Math.round(n / 4);
-  let best = 2;
-  for (const k of allowed) {
-    if (k > n) continue;
-    const dK = Math.abs(k - target), dB = Math.abs(best - target);
-    if (dK < dB || (dK === dB && k > best)) best = k;
-  }
+  if(n<=6) return 1;
+  const target=Math.round(n/4); let best=2;
+  for(const k of allowed){ if(k>n) continue; const dK=Math.abs(k-target), dB=Math.abs(best-target); if(dK<dB||(dK===dB&&k>best)) best=k; }
   return best;
 }
 
-function makeGroups(teams, strategy='auto'){
-  const n = teams.length; if(n<2) return [];
-  const gCount = deriveGroupCount(n, strategy);
-  const shuffled = shuffle([...teams]);
-  const groups = Array.from({length:gCount}, (_,i)=>({ id:String.fromCharCode(65+i), teams:[], matches:[] }));
-  shuffled.forEach((t,i)=> groups[i%gCount].teams.push(t.id));
+function makeGroups(teams,strategy='auto'){
+  const n=teams.length; if(n<2) return [];
+  const gCount=deriveGroupCount(n,strategy);
+  const shuffled=shuffle([...teams]);
+  const groups=Array.from({length:gCount},(_,i)=>({id:String.fromCharCode(65+i),teams:[],matches:[]}));
+  shuffled.forEach((t,i)=>groups[i%gCount].teams.push(t.id));
   groups.forEach(g=>{
-    g.matches = generateRoundRobin(g.teams).map(m=>({ id: uid(), round:m.round, home:m.home, away:m.away, hs:null, as:null, ot:false }));
+    g.matches=generateRoundRobin(g.teams).map(m=>({id:uid(),round:m.round,home:m.home,away:m.away,hs:null,as:null,ot:false}));
   });
-  Sync.push({type:'GROUPS_INIT', groups: groups.map(g=>({id:g.id, teamCount:g.teams.length, matchCount:g.matches.length}))});
+  Sync.push({type:'GROUPS_INIT',groups:groups.map(g=>({id:g.id,teamCount:g.teams.length,matchCount:g.matches.length}))});
   return groups;
 }
-
-// Berger rotation
 function generateRoundRobin(teamIds){
-  const teams = [...teamIds];
-  const isOdd = teams.length%2===1;
-  if(isOdd) teams.push(null);
-  const n = teams.length, rounds = n-1, half = n/2, fixtures = [];
+  const teams=[...teamIds];
+  const odd=teams.length%2===1; if(odd) teams.push(null);
+  const n=teams.length, rounds=n-1, half=n/2, fixtures=[];
   for(let r=0;r<rounds;r++){
     for(let i=0;i<half;i++){
-      const t1 = teams[i], t2 = teams[n-1-i];
-      if(t1!==null && t2!==null){
-        const swap = (r%2===0)===(i%2===0);
-        fixtures.push({ round:r+1, home: swap?t1:t2, away: swap?t2:t1 });
+      const a=teams[i], b=teams[n-1-i];
+      if(a!==null && b!==null){
+        const swap=(r%2===0)===(i%2===0);
+        fixtures.push({round:r+1,home:swap?a:b,away:swap?b:a});
       }
     }
-    const fixed = teams[0], rest = teams.slice(1);
-    rest.unshift(rest.pop()); teams.splice(0,teams.length, fixed, ...rest);
+    const fixed=teams[0], rest=teams.slice(1); rest.unshift(rest.pop()); teams.splice(0,teams.length,fixed,...rest);
   }
   return fixtures;
 }
 
 /* ======================= SCORING & STANDINGS ======================= */
-/** Punkti:
- *  RT win = 3p ; RT loss = 0p
- *  OT win = 2p ; OT loss = 1p
- *  (Nav neizšķirtu; ja ievadīts vienāds rezultāts — brīdinām)
- */
-function isMatchScored(m){
-  return Number.isFinite(m.hs) && Number.isFinite(m.as) && m.hs!==m.as;
-}
+function isMatchScored(m){ return Number.isFinite(m.hs)&&Number.isFinite(m.as)&&m.hs!==m.as }
 function computeStandings(groups, teamsMap){
-  const standings = {};
+  const standings={};
   for(const g of groups){
-    const table = g.teams.map(id=>({
-      teamId:id, name:teamsMap[id].name, played:0, w:0, l:0, gf:0, ga:0, gd:0, pts:0
-    }));
-    const idx = Object.fromEntries(table.map((r,i)=>[r.teamId,i]));
+    const table=g.teams.map(id=>({teamId:id,name:teamsMap[id].name,played:0,w:0,l:0,gf:0,ga:0,gd:0,pts:0}));
+    const idx=Object.fromEntries(table.map((r,i)=>[r.teamId,i]));
     for(const m of g.matches){
       if(!isMatchScored(m)) continue;
-      const A = table[idx[m.home]], B = table[idx[m.away]];
+      const A=table[idx[m.home]], B=table[idx[m.away]];
       A.played++; B.played++;
-      A.gf += m.hs; A.ga += m.as; A.gd = A.gf - A.ga;
-      B.gf += m.as; B.ga += m.hs; B.gd = B.gf - B.ga;
-      if (m.hs>m.as){
-        A.w++; B.l++;
-        if (m.ot){ A.pts+=2; B.pts+=1 } else { A.pts+=3; }
-      } else {
-        B.w++; A.l++;
-        if (m.ot){ B.pts+=2; A.pts+=1 } else { B.pts+=3; }
-      }
+      A.gf+=m.hs; A.ga+=m.as; A.gd=A.gf-A.ga;
+      B.gf+=m.as; B.ga+=m.hs; B.gd=B.gf-B.ga;
+      if(m.hs>m.as){ A.w++; B.l++; if(m.ot){A.pts+=2; B.pts+=1}else{A.pts+=3} }
+      else{ B.w++; A.l++; if(m.ot){B.pts+=2; A.pts+=1}else{B.pts+=3} }
     }
-    table.sort((a,b)=>{
-      if(b.pts!==a.pts) return b.pts-a.pts;
-      if(b.gd!==a.gd) return b.gd-a.gd;
-      if(b.gf!==a.gf) return b.gf-a.gf;
-      return a.name.localeCompare(b.name);
-    });
+    table.sort((a,b)=> (b.pts-a.pts)||(b.gd-a.gd)||(b.gf-a.gf)||a.name.localeCompare(b.name));
     standings[g.id]=table;
   }
   return standings;
@@ -310,289 +369,198 @@ function computeStandings(groups, teamsMap){
 
 /* ======================= BRACKET ======================= */
 function buildBracketFromStandings(standings){
-  const gids = Object.keys(standings).sort();
-  const groupCount = gids.length;
+  const gids=Object.keys(standings).sort();
+  const groupCount=gids.length;
 
-  const topN = (gid, n) => {
-    const arr = standings[gid] || []; const out = [];
-    for (let i=0;i<n;i++) out.push(arr[i]?.teamId ?? null);
-    return out;
-  };
-  const padTo = (arr, n) => { const a=[...arr]; while(a.length<n) a.push(null); return a; };
-  const byRank = (a,b) => {
-    if ((b?.pts||0)!==(a?.pts||0)) return (b?.pts||0)-(a?.pts||0);
-    if ((b?.gd||0)!==(a?.gd||0)) return (b?.gd||0)-(a?.gd||0);
-    if ((b?.gf||0)!==(a?.gf||0)) return (b?.gf||0)-(a?.gf||0);
-    const na=(a?.name||''), nb=(b?.name||''); return na.localeCompare(nb);
-  };
+  const topN=(gid,n)=>{ const arr=standings[gid]||[]; const out=[]; for(let i=0;i<n;i++) out.push(arr[i]?.teamId ?? null); return out; }
+  const padTo=(arr,n)=>{ const a=[...arr]; while(a.length<n) a.push(null); return a; }
+  const byRank=(a,b)=> (b?.pts||0)-(a?.pts||0) || (b?.gd||0)-(a?.gd||0) || (b?.gf||0)-(a?.gf||0) || (a?.name||'').localeCompare(b?.name||'');
 
-  const bracketFromPairs = (pairs) => ({
-    qf: pairs.map(p=>({ id:uid(), home:p.home, away:p.away, hs:null, as:null, ot:false })),
-    sf: [{id:uid(),home:null,away:null,hs:null,as:null,ot:false},{id:uid(),home:null,away:null,hs:null,as:null,ot:false}],
+  const bracketFromPairs=(pairs)=>({
+    qf:pairs.map(p=>({id:uid(),home:p.home,away:p.away,hs:null,as:null,ot:false})),
+    sf:[{id:uid(),home:null,away:null,hs:null,as:null,ot:false},{id:uid(),home:null,away:null,hs:null,as:null,ot:false}],
     fin:[{id:uid(),home:null,away:null,hs:null,as:null,ot:false}],
     third:[{id:uid(),home:null,away:null,hs:null,as:null,ot:false}]
   });
 
-  if (groupCount === 2) {
-    const [A,B] = gids;
-    const A4 = padTo(topN(A,4), 4);
-    const B4 = padTo(topN(B,4), 4);
-    const pairs = [
-      { home:A4[0], away:B4[3] },
-      { home:A4[1], away:B4[2] },
-      { home:B4[0], away:A4[3] },
-      { home:B4[1], away:A4[2] },
-    ];
-    return bracketFromPairs(pairs);
+  if(groupCount===2){
+    const [A,B]=gids; const A4=padTo(topN(A,4),4); const B4=padTo(topN(B,4),4);
+    return bracketFromPairs([
+      {home:A4[0],away:B4[3]},{home:A4[1],away:B4[2]},{home:B4[0],away:A4[3]},{home:B4[1],away:A4[2]}
+    ]);
   }
-
-  if (groupCount === 4) {
-    const [A,B,C,D] = gids;
-    const A2 = padTo(topN(A,2), 2);
-    const B2 = padTo(topN(B,2), 2);
-    const C2 = padTo(topN(C,2), 2);
-    const D2 = padTo(topN(D,2), 2);
-    const pairs = [
-      { home:A2[0], away:B2[1] },
-      { home:B2[0], away:A2[1] },
-      { home:C2[0], away:D2[1] },
-      { home:D2[0], away:C2[1] },
-    ];
-    return bracketFromPairs(pairs);
+  if(groupCount===4){
+    const [A,B,C,D]=gids; const A2=padTo(topN(A,2),2), B2=padTo(topN(B,2),2), C2=padTo(topN(C,2),2), D2=padTo(topN(D,2),2);
+    return bracketFromPairs([
+      {home:A2[0],away:B2[1]},{home:B2[0],away:A2[1]},{home:C2[0],away:D2[1]},{home:D2[0],away:C2[1]}
+    ]);
   }
-
-  if (groupCount === 6) {
-    const firsts = gids.map(g=> (standings[g][0] ? { ...standings[g][0], gid:g } : null)).filter(Boolean);
-    const seconds = gids.map(g=> (standings[g][1] ? { ...standings[g][1], gid:g } : null)).filter(Boolean);
-    seconds.sort(byRank);
-    const qualifiers = [...firsts, ...seconds.slice(0,2)];
-    while (qualifiers.length < 8) qualifiers.push({ teamId:null, name:'BYE', pts:0, gd:0, gf:0 });
+  if(groupCount===6){
+    const firsts=gids.map(g=>standings[g][0] ? {...standings[g][0],gid:g}:null).filter(Boolean);
+    const seconds=gids.map(g=>standings[g][1] ? {...standings[g][1],gid:g}:null).filter(Boolean).sort(byRank);
+    const qualifiers=[...firsts, ...seconds.slice(0,2)];
+    while(qualifiers.length<8) qualifiers.push({teamId:null,name:'BYE',pts:0,gd:0,gf:0});
     qualifiers.sort(byRank);
-    const seeds = qualifiers.map(x=>x.teamId ?? null);
-    const pairs = [
-      { home:seeds[0], away:seeds[7] },
-      { home:seeds[1], away:seeds[6] },
-      { home:seeds[2], away:seeds[5] },
-      { home:seeds[3], away:seeds[4] },
-    ];
-    return bracketFromPairs(pairs);
+    const s=qualifiers.map(x=>x.teamId ?? null);
+    return bracketFromPairs([{home:s[0],away:s[7]},{home:s[1],away:s[6]},{home:s[2],away:s[5]},{home:s[3],away:s[4]}]);
   }
-
-  // 1 grupa (vai cits) -> TOP8 pēc kopranga
-  const all = []; for (const gid of gids) all.push(...(standings[gid]||[]));
-  all.sort(byRank);
-  const seeds = padTo(all.slice(0,8).map(x=>x.teamId ?? null), 8);
-  const pairs = [
-    { home:seeds[0], away:seeds[7] },
-    { home:seeds[1], away:seeds[6] },
-    { home:seeds[2], away:seeds[5] },
-    { home:seeds[3], away:seeds[4] },
-  ];
-  return bracketFromPairs(pairs);
+  // 1 grupa / cits => top8 no kopranga
+  const all=[]; for(const gid of gids) all.push(...(standings[gid]||[])); all.sort(byRank);
+  const s=padTo(all.slice(0,8).map(x=>x.teamId ?? null),8);
+  return bracketFromPairs([{home:s[0],away:s[7]},{home:s[1],away:s[6]},{home:s[2],away:s[5]},{home:s[3],away:s[4]}]);
 }
-
-function nameOf(id, teamsMap){ return id ? teamsMap[id]?.name||'?' : 'BYE' }
-function pickWinner(m){
-  if(!m) return null;
-  if(m.home && !m.away) return m.home;
-  if(!m.home && m.away) return m.away;
-  if(!m.home && !m.away) return null;
-  if(Number.isFinite(m.hs) && Number.isFinite(m.as)){
-    if(m.hs>m.as) return m.home;
-    if(m.as>m.hs) return m.away;
-  }
-  return null;
-}
+function nameOf(id,map){ return id ? (map[id]?.name||'?') : 'BYE' }
+function pickWinner(m){ if(!m) return null; if(m.home&&!m.away) return m.home; if(!m.home&&m.away) return m.away; if(!m.home&&!m.away) return null;
+  if(Number.isFinite(m.hs)&&Number.isFinite(m.as)){ if(m.hs>m.as) return m.home; if(m.as>m.hs) return m.away; } return null; }
 function pickLoser(m){ const w=pickWinner(m); if(!w) return null; return w===m.home ? (m.away||null) : (m.home||null); }
 function propagateBracket(br){
-  const wQF = br.qf.map(pickWinner);
-  br.sf[0].home = wQF[0]; br.sf[0].away = wQF[3];
-  br.sf[1].home = wQF[1]; br.sf[1].away = wQF[2];
-  const wSF = br.sf.map(pickWinner), lSF = br.sf.map(pickLoser);
-  br.fin[0].home = wSF[0];   br.fin[0].away = wSF[1];
-  br.third[0].home = lSF[0]; br.third[0].away = lSF[1];
+  const wQF=br.qf.map(pickWinner);
+  br.sf[0].home=wQF[0]; br.sf[0].away=wQF[3];
+  br.sf[1].home=wQF[1]; br.sf[1].away=wQF[2];
+  const wSF=br.sf.map(pickWinner), lSF=br.sf.map(pickLoser);
+  br.fin[0].home=wSF[0]; br.fin[0].away=wSF[1];
+  br.third[0].home=lSF[0]; br.third[0].away=lSF[1];
 }
 
 /* ======================= RENDER: GROUPS ======================= */
 function renderGroups(){
-  const host = $('#groupsHost'); host.innerHTML='';
-  const teamsMap = Object.fromEntries(state.teams.map(t=>[t.id,t]));
+  const host=$('#groupsHost'); host.innerHTML='';
+  const map=Object.fromEntries(state.teams.map(t=>[t.id,t]));
   state.groups.forEach(g=>{
-    const wrap = document.createElement('div'); wrap.className='panel';
-    wrap.innerHTML = `<h3>Grupa ${g.id}</h3><div class="muted">${g.teams.length} komandas • ${new Set(g.matches.map(m=>m.round)).size} kārtas</div>`;
-    const tbl = document.createElement('table');
-    tbl.innerHTML = `
+    const card=document.createElement('div'); card.className='panel';
+    card.innerHTML=`<h3>Grupa ${g.id}</h3><div class="muted" style="margin-bottom:8px">${g.teams.length} komandas • ${new Set(g.matches.map(m=>m.round)).size} kārtas</div>`;
+    const tbl=document.createElement('table');
+    tbl.innerHTML=`
       <thead><tr><th>R</th><th>Mājinieki</th><th></th><th>Viesi</th><th>Rez.</th><th>OT</th></tr></thead>
-      <tbody></tbody>
-    `;
-    const body = $('tbody', tbl);
-    g.matches.forEach((m)=>{
+      <tbody></tbody>`;
+    const body=$('tbody',tbl);
+    g.matches.forEach(m=>{
       const tr=document.createElement('tr');
-      tr.innerHTML = `
+      tr.innerHTML=`
         <td>${m.round}</td>
-        <td>${teamsMap[m.home].name}</td>
+        <td>${map[m.home].name}</td>
         <td class="muted">vs</td>
-        <td>${teamsMap[m.away].name}</td>
+        <td>${map[m.away].name}</td>
         <td>
           <input class="score-in" type="number" min="0" inputmode="numeric" value="${m.hs??''}" data-g="${g.id}" data-mid="${m.id}" data-side="hs" />
           :
           <input class="score-in" type="number" min="0" inputmode="numeric" value="${m.as??''}" data-g="${g.id}" data-mid="${m.id}" data-side="as" />
         </td>
-        <td>
-          <label class="chip">
-            <input type="checkbox" ${m.ot?'checked':''} data-g="${g.id}" data-mid="${m.id}" data-ot="flag" /> OT
-          </label>
-        </td>`;
+        <td><label class="chip"><input type="checkbox" ${m.ot?'checked':''} data-g="${g.id}" data-mid="${m.id}" data-ot="flag" /> OT</label></td>`;
       body.appendChild(tr);
     });
-    wrap.appendChild(tbl);
-    host.appendChild(wrap);
+    const sc=document.createElement('div'); sc.className='table-scroll'; sc.appendChild(tbl);
+    card.appendChild(sc); host.appendChild(card);
   });
   $('#groupsPanel').hidden = state.groups.length===0;
 
-  // Input handlers
+  // handlers
   $$('#groupsHost .score-in').forEach(inp=>{
     inp.addEventListener('change', ()=>{
-      const gId = inp.dataset.g, mId=inp.dataset.mid, side=inp.dataset.side;
-      const g = state.groups.find(x=>x.id===gId);
-      const m = g.matches.find(x=>x.id===mId);
-      const val = inp.value==='' ? null : Math.max(0, parseInt(inp.value,10));
-      m[side] = Number.isFinite(val) ? val : null;
-
-      if (Number.isFinite(m.hs) && Number.isFinite(m.as) && m.hs===m.as){
-        alert('Neizšķirtu nav. Ja bija OT, atzīmē OT un ievadi uzvaras vārtus (vienam jābūt lielākam).');
-      }
-
-      Sync.push({type:'GROUP_SCORE', groupId:gId, matchId:mId, side, value:m[side]});
-      state.standings = computeStandings(state.groups, Object.fromEntries(state.teams.map(t=>[t.id,t])));
-      saveState(state);
-      renderStandings();
+      const gId=inp.dataset.g, mid=inp.dataset.mid, side=inp.dataset.side;
+      const g=state.groups.find(x=>x.id===gId); const m=g.matches.find(x=>x.id===mid);
+      const val=inp.value===''?null:Math.max(0,parseInt(inp.value,10));
+      m[side]=Number.isFinite(val)?val:null;
+      if(Number.isFinite(m.hs)&&Number.isFinite(m.as)&&m.hs===m.as){ alert('Neizšķirtu nav. Ja bija OT, atzīmē OT un ievadi uzvaras vārtus.'); }
+      Sync.push({type:'GROUP_SCORE',groupId:gId,matchId:mid,side,value:m[side]});
+      state.standings=computeStandings(state.groups,Object.fromEntries(state.teams.map(t=>[t.id,t])));
+      saveState(state); renderStandings();
     });
   });
   $$('#groupsHost [data-ot]').forEach(el=>{
     el.addEventListener('change', ()=>{
-      const gId = el.dataset.g, mId=el.dataset.mid;
-      const g = state.groups.find(x=>x.id===gId);
-      const m = g.matches.find(x=>x.id===mId);
-      m.ot = el.checked;
-
-      if (Number.isFinite(m.hs) && Number.isFinite(m.as) && m.hs===m.as){
-        alert('Neizšķirtu nav. Arī OT gadījumā gala rezultātam jābūt ar uzvaras vārtiem.');
-      }
-
-      Sync.push({type:'GROUP_OT', groupId:gId, matchId:mId, ot:m.ot});
-      state.standings = computeStandings(state.groups, Object.fromEntries(state.teams.map(t=>[t.id,t])));
-      saveState(state);
-      renderStandings();
+      const gId=el.dataset.g, mid=el.dataset.mid;
+      const g=state.groups.find(x=>x.id===gId); const m=g.matches.find(x=>x.id===mid);
+      m.ot=el.checked;
+      if(Number.isFinite(m.hs)&&Number.isFinite(m.as)&&m.hs===m.as){ alert('Neizšķirtu nav. OT gadījumā arī jābūt uzvaras vārtiem.'); }
+      Sync.push({type:'GROUP_OT',groupId:gId,matchId:mid,ot:m.ot});
+      state.standings=computeStandings(state.groups,Object.fromEntries(state.teams.map(t=>[t.id,t])));
+      saveState(state); renderStandings();
     });
   });
 }
 
 /* ======================= RENDER: STANDINGS ======================= */
 function renderStandings(){
-  const host = $('#standingsHost'); host.innerHTML='';
-  const st = state.standings || {};
-  const groups = Object.keys(st).sort();
-  groups.forEach(gid=>{
-    const wrap = document.createElement('div'); wrap.className='panel';
-    wrap.innerHTML = `<h3>Grupa ${gid} — Stāvējums</h3>`;
-    const tbl = document.createElement('table');
-    tbl.innerHTML = `
-      <thead><tr><th>#</th><th>Komanda</th><th>Sp</th><th>U</th><th>Z</th><th>GF</th><th>GA</th><th>GD</th><th>P</th></tr></thead>
-      <tbody></tbody>`;
-    const body = $('tbody', tbl);
+  const host=$('#standingsHost'); host.innerHTML='';
+  const st=state.standings||{}; const gids=Object.keys(st).sort();
+  gids.forEach(gid=>{
+    const card=document.createElement('div'); card.className='panel';
+    card.innerHTML=`<h3>Grupa ${gid} — Stāvējums</h3>`;
+    const tbl=document.createElement('table');
+    tbl.innerHTML=`<thead><tr><th>#</th><th>Komanda</th><th>Sp</th><th>U</th><th>Z</th><th>GF</th><th>GA</th><th>GD</th><th>P</th></tr></thead><tbody></tbody>`;
+    const body=$('tbody',tbl);
     st[gid].forEach((r,i)=>{
       const tr=document.createElement('tr');
-      tr.innerHTML = `<td>${i+1}</td><td>${r.name}</td><td>${r.played}</td><td>${r.w}</td><td>${r.l}</td><td>${r.gf}</td><td>${r.ga}</td><td>${r.gd}</td><td><b>${r.pts}</b></td>`;
+      tr.innerHTML=`<td>${i+1}</td><td>${r.name}</td><td>${r.played}</td><td>${r.w}</td><td>${r.l}</td><td>${r.gf}</td><td>${r.ga}</td><td>${r.gd}</td><td><b>${r.pts}</b></td>`;
       body.appendChild(tr);
     });
-    wrap.appendChild(tbl);
-    host.appendChild(wrap);
+    const sc=document.createElement('div'); sc.className='table-scroll'; sc.appendChild(tbl);
+    card.appendChild(sc); host.appendChild(card);
   });
-  $('#standingsPanel').hidden = groups.length===0;
+  $('#standingsPanel').hidden = gids.length===0;
 }
 
 /* ======================= RENDER: BRACKET ======================= */
-function winnerClass(m, side){
+function winnerClass(m,side){
   if(m.home && !m.away) return side==='home'?'win':'';
   if(!m.home && m.away) return side==='away'?'win':'';
-  if(Number.isFinite(m.hs) && Number.isFinite(m.as)){
+  if(Number.isFinite(m.hs)&&Number.isFinite(m.as)){
     if(m.hs>m.as && side==='home') return 'win';
     if(m.as>m.hs && side==='away') return 'win';
-  }
-  return '';
+  } return '';
 }
-
 function renderBracket(){
-  const teamsMap = Object.fromEntries(state.teams.map(t=>[t.id,t]));
-  $('#qfCol').innerHTML = '<h3>Ceturtdaļfināli</h3>';
-  $('#sfCol').innerHTML = '<h3>Pusfināli</h3>';
-  $('#finCol').innerHTML = '<h3>Fināls & 3. vieta</h3>';
+  const map=Object.fromEntries(state.teams.map(t=>[t.id,t]));
+  $('#qfCol').innerHTML='<h3>Ceturtdaļfināli</h3>';
+  $('#sfCol').innerHTML='<h3>Pusfināli</h3>';
+  $('#finCol').innerHTML='<h3>Fināls & 3. vieta</h3>';
 
-  const mkMatch = (m, stage, idx) => {
-    const el = document.createElement('div'); el.className='match';
-    const hName = nameOf(m.home, teamsMap);
-    const aName = nameOf(m.away, teamsMap);
-    el.innerHTML = `
+  const mk=(m,stage,idx)=>{
+    const el=document.createElement('div'); el.className='match';
+    el.innerHTML=`
       <div class="status">${stage} ${idx!=null?('• '+(idx+1)):""}</div>
       <div class="team ${winnerClass(m,'home')}">
-        <div class="row"><span class="seed">H</span><span class="name">${hName}</span></div>
+        <div class="row"><span class="seed">H</span><span class="name">${nameOf(m.home,map)}</span></div>
         <input class="score-in" type="number" min="0" value="${m.hs??''}" data-stage="${stage}" data-id="${m.id}" data-side="hs" />
       </div>
-      <div class="team ${winnerClass(m,'away')}">
-        <div class="row"><span class="seed">A</span><span class="name">${aName}</span></div>
+      <div class="team ${winnerClass(m,'away')}" style="margin-top:8px">
+        <div class="row"><span class="seed">A</span><span class="name">${nameOf(m.away,map)}</span></div>
         <input class="score-in" type="number" min="0" value="${m.as??''}" data-stage="${stage}" data-id="${m.id}" data-side="as" />
       </div>
-      <div class="row">
-        <label class="chip">
-          <input type="checkbox" ${m.ot?'checked':''} data-stage="${stage}" data-id="${m.id}" data-ot="flag" /> OT
-        </label>
-      </div>
-    `;
+      <div class="row" style="margin-top:8px">
+        <label class="chip"><input type="checkbox" ${m.ot?'checked':''} data-stage="${stage}" data-id="${m.id}" data-ot="flag" /> OT</label>
+      </div>`;
     return el;
   };
 
-  state.bracket.qf.forEach((m,i)=> $('#qfCol').appendChild(mkMatch(m,'QF',i)));
-  state.bracket.sf.forEach((m,i)=> $('#sfCol').appendChild(mkMatch(m,'SF',i)));
-  state.bracket.fin.forEach((m)=> $('#finCol').appendChild(mkMatch(m,'Final')));
-  state.bracket.third.forEach((m)=> $('#finCol').appendChild(mkMatch(m,'3rd')));
+  state.bracket.qf.forEach((m,i)=>$('#qfCol').appendChild(mk(m,'QF',i)));
+  state.bracket.sf.forEach((m,i)=>$('#sfCol').appendChild(mk(m,'SF',i)));
+  state.bracket.fin.forEach(m=>$('#finCol').appendChild(mk(m,'Final')));
+  state.bracket.third.forEach(m=>$('#finCol').appendChild(mk(m,'3rd')));
 
-  // Handleri
+  // handlers
   $$('.bracket .score-in').forEach(inp=>{
     inp.addEventListener('change', ()=>{
       const stage=inp.dataset.stage, id=inp.dataset.id, side=inp.dataset.side;
-      const col = stage==='QF'?'qf':stage==='SF'?'sf':stage==='Final'?'fin':'third';
-      const m = state.bracket[col].find(x=>x.id===id);
-      const val = inp.value==='' ? null : Math.max(0, parseInt(inp.value,10));
-      m[side] = Number.isFinite(val)?val:null;
-
-      if (Number.isFinite(m.hs) && Number.isFinite(m.as) && m.hs===m.as){
-        alert('Neizšķirtu nav. Ja bija OT, atzīmē OT un ievadi uzvaras vārtus.');
-      }
-
-      Sync.push({type:'BRACKET_SCORE', stage:col, matchId: id, side, value:m[side]});
-      propagateBracket(state.bracket);
-      saveState(state);
-      renderBracket();
-      refreshOverallButtons();
+      const col=stage==='QF'?'qf':stage==='SF'?'sf':stage==='Final'?'fin':'third';
+      const m=state.bracket[col].find(x=>x.id===id);
+      const val=inp.value===''?null:Math.max(0,parseInt(inp.value,10));
+      m[side]=Number.isFinite(val)?val:null;
+      if(Number.isFinite(m.hs)&&Number.isFinite(m.as)&&m.hs===m.as){ alert('Neizšķirtu nav. Ja bija OT, atzīmē OT un ievadi uzvaras vārtus.'); }
+      Sync.push({type:'BRACKET_SCORE',stage:col,matchId:id,side,value:m[side]});
+      propagateBracket(state.bracket); saveState(state); renderBracket(); refreshOverallButtons();
     });
   });
   $$('.bracket [data-ot]').forEach(el=>{
     el.addEventListener('change', ()=>{
       const stage=el.dataset.stage, id=el.dataset.id;
-      const col = stage==='QF'?'qf':stage==='SF'?'sf':stage==='Final'?'fin':'third';
-      const m = state.bracket[col].find(x=>x.id===id);
-      m.ot = el.checked;
-
-      if (Number.isFinite(m.hs) && Number.isFinite(m.as) && m.hs===m.as){
-        alert('Neizšķirtu nav. OT gadījumā arī jābūt uzvaras vārtiem.');
-      }
-
-      Sync.push({type:'BRACKET_OT', stage:col, matchId: id, ot:m.ot});
-      propagateBracket(state.bracket);
-      saveState(state);
-      renderBracket();
-      refreshOverallButtons();
+      const col=stage==='QF'?'qf':stage==='SF'?'sf':stage==='Final'?'fin':'third';
+      const m=state.bracket[col].find(x=>x.id===id);
+      m.ot=el.checked;
+      if(Number.isFinite(m.hs)&&Number.isFinite(m.as)&&m.hs===m.as){ alert('Neizšķirtu nav. OT gadījumā jābūt uzvaras vārtiem.'); }
+      Sync.push({type:'BRACKET_OT',stage:col,matchId:id,ot:m.ot});
+      propagateBracket(state.bracket); saveState(state); renderBracket(); refreshOverallButtons();
     });
   });
 
@@ -600,77 +568,52 @@ function renderBracket(){
 }
 
 /* ======================= OVERALL STATS ======================= */
-function tournamentFinished(){
-  if(!state.bracket) return false;
-  const fin = state.bracket.fin[0], third = state.bracket.third[0];
-  return !!(pickWinner(fin) && pickWinner(third));
-}
-function refreshOverallButtons(){
-  const ready = tournamentFinished();
-  $('#overallBtn').disabled = !ready;
-  $('#downloadPdfBtn').disabled = !(ready && state.overall);
-}
+function tournamentFinished(){ if(!state.bracket) return false; const fin=state.bracket.fin[0], third=state.bracket.third[0]; return !!(pickWinner(fin)&&pickWinner(third)); }
+function refreshOverallButtons(){ const ready=tournamentFinished(); $('#overallBtn').disabled=!ready; $('#downloadPdfBtn').disabled=!(ready&&state.overall); }
 
 $('#overallBtn').addEventListener('click', ()=>{
   if(!tournamentFinished()) { alert('Kopsavilkums pieejams tikai pēc fināla un 3. vietas spēles.'); return; }
-  state.overall = computeOverallStats();
-  saveState(state);
-  renderOverall(state.overall);
-  $('#statsPanel').hidden = false;
-  $('#downloadPdfBtn').disabled = false;
-  Sync.push({type:'OVERALL_BUILT'});
+  state.overall=computeOverallStats(); saveState(state); renderOverall(state.overall);
+  $('#statsPanel').hidden=false; $('#downloadPdfBtn').disabled=false; Sync.push({type:'OVERALL_BUILT'});
 });
 
 function computeOverallStats(){
-  const teamsMap = Object.fromEntries(state.teams.map(t=>[t.id,t.name]));
-  const teamIds = Object.keys(teamsMap);
-  const stats = Object.fromEntries(teamIds.map(id=>[id, { teamId:id, name:teamsMap[id], played:0, wins:0, losses:0, gf:0, ga:0 }]));
-
-  const apply = (m) => {
-    if(!m || !m.home || !m.away) return;
-    if(!isMatchScored(m)) return;
-    const hs=m.hs, as=m.as;
-    const home = stats[m.home], away = stats[m.away];
-    home.played++; away.played++;
-    home.gf += hs; home.ga += as;
-    away.gf += as; away.ga += hs;
-    if (hs>as){ home.wins++; away.losses++; }
-    else { away.wins++; home.losses++; }
+  const map=Object.fromEntries(state.teams.map(t=>[t.id,t.name]));
+  const ids=Object.keys(map);
+  const stats=Object.fromEntries(ids.map(id=>[id,{teamId:id,name:map[id],played:0,wins:0,losses:0,gf:0,ga:0}]));
+  const apply=(m)=>{ if(!m||!m.home||!m.away) return; if(!isMatchScored(m)) return;
+    const hs=m.hs, as=m.as; const H=stats[m.home], A=stats[m.away];
+    H.played++; A.played++; H.gf+=hs; H.ga+=as; A.gf+=as; A.ga+=hs;
+    if(hs>as){ H.wins++; A.losses++; } else { A.wins++; H.losses++; }
   };
-
   for(const g of state.groups){ for(const m of g.matches) apply(m); }
-  if(state.bracket){ [...state.bracket.qf, ...state.bracket.sf, ...state.bracket.fin, ...state.bracket.third].forEach(apply); }
+  if(state.bracket){ [...state.bracket.qf,...state.bracket.sf,...state.bracket.fin,...state.bracket.third].forEach(apply); }
 
-  const arr = Object.values(stats);
-  const maxGF = Math.max(...arr.map(s=>s.gf));
-  const maxGA = Math.max(...arr.map(s=>s.ga));
-  const topGF = arr.filter(s=>s.gf===maxGF).map(s=>s.name);
-  const topGA = arr.filter(s=>s.ga===maxGA).map(s=>s.name);
-  const winnerId = state.bracket ? pickWinner(state.bracket.fin[0]) : null;
-  const winnerName = winnerId ? teamsMap[winnerId] : '—';
-
-  return { winnerName, topGF, maxGF, topGA, maxGA, teamStats: arr.sort((a,b)=>b.wins-a.wins || (b.gf-b.ga)-(a.gf-a.ga) || b.gf-a.gf || a.name.localeCompare(b.name)) };
+  const arr=Object.values(stats);
+  const maxGF=Math.max(...arr.map(s=>s.gf)), maxGA=Math.max(...arr.map(s=>s.ga));
+  const topGF=arr.filter(s=>s.gf===maxGF).map(s=>s.name);
+  const topGA=arr.filter(s=>s.ga===maxGA).map(s=>s.name);
+  const winId=state.bracket?pickWinner(state.bracket.fin[0]):null, winName=winId?map[winId]:'—';
+  return { winnerName:winName, topGF, maxGF, topGA, maxGA, teamStats: arr.sort((a,b)=> (b.wins-a.wins) || ((b.gf-b.ga)-(a.gf-a.ga)) || (b.gf-a.gf) || a.name.localeCompare(b.name)) };
 }
+function renderOverall(o){
+  const awards=$('#awards'); awards.innerHTML='';
+  const card=(t,c)=>{ const d=document.createElement('div'); d.className='card'; d.innerHTML=`<div class="muted">${t}</div><div style="font-weight:700;font-size:16px;margin-top:6px">${c}</div>`; return d; };
+  awards.appendChild(card('Turnīra uzvarētājs', o.winnerName));
+  awards.appendChild(card('Visvairāk gūtie vārti', `${o.topGF.join(', ')} (${o.maxGF})`));
+  awards.appendChild(card('Visvairāk ielaistie vārti', `${o.topGA.join(', ')} (${o.maxGA})`));
 
-function renderOverall(overall){
-  const awards = $('#awards'); awards.innerHTML = '';
-  const makeCard = (title, content)=>{ const c=document.createElement('div'); c.className='card'; c.innerHTML=`<div class="muted">${title}</div><div style="font-weight:700;font-size:16px;margin-top:6px">${content}</div>`; return c; };
-  awards.appendChild(makeCard('Turnīra uzvarētājs', overall.winnerName));
-  awards.appendChild(makeCard('Visvairāk gūtie vārti', `${overall.topGF.join(', ')} (${overall.maxGF})`));
-  awards.appendChild(makeCard('Visvairāk ielaistie vārti', `${overall.topGA.join(', ')} (${overall.maxGA})`));
-
-  const host = $('#teamStatsHost');
-  const tbl = document.createElement('table');
-  tbl.innerHTML = `<thead><tr>
-    <th>Komanda</th><th>Sp</th><th>U</th><th>Z</th><th>GF</th><th>GA</th><th>GD</th>
-  </tr></thead><tbody></tbody>`;
-  const body = $('tbody', tbl);
-  overall.teamStats.forEach(s=>{
+  const host=$('#teamStatsHost');
+  const tbl=document.createElement('table');
+  tbl.innerHTML=`<thead><tr><th>Komanda</th><th>Sp</th><th>U</th><th>Z</th><th>GF</th><th>GA</th><th>GD</th></tr></thead><tbody></tbody>`;
+  const body=$('tbody',tbl);
+  o.teamStats.forEach(s=>{
     const tr=document.createElement('tr');
-    tr.innerHTML = `<td>${s.name}</td><td>${s.played}</td><td>${s.wins}</td><td>${s.losses}</td><td>${s.gf}</td><td>${s.ga}</td><td>${s.gf-s.ga}</td>`;
+    tr.innerHTML=`<td>${s.name}</td><td>${s.played}</td><td>${s.wins}</td><td>${s.losses}</td><td>${s.gf}</td><td>${s.ga}</td><td>${s.gf-s.ga}</td>`;
     body.appendChild(tr);
   });
-  host.innerHTML=''; host.appendChild(tbl);
+  const sc=document.createElement('div'); sc.className='table-scroll'; sc.appendChild(tbl);
+  host.innerHTML=''; host.appendChild(sc);
 }
 
 $('#downloadPdfBtn').addEventListener('click', ()=>{
@@ -678,19 +621,17 @@ $('#downloadPdfBtn').addEventListener('click', ()=>{
   try{
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit:'pt', format:'a4' });
-    const margin = 36, lineH = 18;
+    const margin=36, lineH=18;
     const title = state.name ? `Turnīra kopsavilkums — ${state.name}` : 'Turnīra kopsavilkums';
     doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.text(title, margin, 48);
     doc.setFont('helvetica','normal'); doc.setFontSize(12);
-
-    const y0 = 72;
+    const y0=72;
     doc.text(`Uzvarētājs: ${state.overall.winnerName}`, margin, y0);
     doc.text(`Visvairāk gūtie vārti: ${state.overall.topGF.join(', ')} (${state.overall.maxGF})`, margin, y0+lineH);
     doc.text(`Visvairāk ielaistie vārti: ${state.overall.topGA.join(', ')} (${state.overall.maxGA})`, margin, y0+lineH*2);
-
-    const rows = state.overall.teamStats.map(s=>[s.name, s.played, s.wins, s.losses, s.gf, s.ga, s.gf-s.ga]);
+    const rows=state.overall.teamStats.map(s=>[s.name,s.played,s.wins,s.losses,s.gf,s.ga,s.gf-s.ga]);
     doc.autoTable({
-      startY: y0 + lineH*3 + 10,
+      startY: y0+lineH*3+10,
       head: [['Komanda','Sp','U','Z','GF','GA','GD']],
       body: rows,
       styles: { font:'helvetica', fontSize:10, cellPadding:4 },
@@ -698,72 +639,60 @@ $('#downloadPdfBtn').addEventListener('click', ()=>{
       alternateRowStyles: { fillColor:[245,245,248] },
       margin: { left: margin, right: margin }
     });
-
-    const fileName = (state.name||'tournament')+'_kopsavilkums.pdf';
+    const fileName=(state.name||'tournament')+'_kopsavilkums.pdf';
     doc.save(fileName);
-    Sync.push({type:'PDF_DOWNLOADED', file:fileName});
-  }catch(e){
-    alert('Neizdevās ģenerēt PDF (vai bloķēts CDN).');
-  }
+    Sync.push({type:'PDF_DOWNLOADED',file:fileName});
+  }catch(e){ alert('Neizdevās ģenerēt PDF (vai bloķēts CDN).'); }
 });
 
 /* ======================= HOOK UP UI ======================= */
 $('#genGroups').addEventListener('click', ()=>{
-  const name = $('#tName').value.trim();
-  const teams = $('#teamsInput').value.split('\n').map(s=>s.trim()).filter(Boolean).map(n=>({id:uid(), name:n}));
+  const name=$('#tName').value.trim();
+  const teams=$('#teamsInput').value.split('\n').map(s=>s.trim()).filter(Boolean).map(n=>({id:uid(),name:n}));
   if(teams.length<2){ alert('Ievadi vismaz 2 komandas.'); return }
-  state.name = name; state.teams = teams;
-  state.groups = makeGroups(teams, $('#groupStrategy').value);
-  state.standings = computeStandings(state.groups, Object.fromEntries(teams.map(t=>[t.id,t])));
-  state.bracket = null; state.overall = null;
+  state.name=name; state.teams=teams;
+  state.groups=makeGroups(teams,$('#groupStrategy').value);
+  state.standings=computeStandings(state.groups,Object.fromEntries(teams.map(t=>[t.id,t])));
+  state.bracket=null; state.overall=null;
   saveState(state);
   renderGroups(); renderStandings();
-  $('#playoffPanel').hidden=false;
-  $('#groupsPanel').hidden=false;
-  $('#standingsPanel').hidden=false;
-  $('#statsPanel').hidden = true;
-  $('#downloadPdfBtn').disabled = true;
-  Sync.push({type:'TOURNAMENT_INIT', name, teams: teams.map(t=>t.name)});
+  $('#playoffPanel').hidden=false; $('#groupsPanel').hidden=false; $('#standingsPanel').hidden=false; $('#statsPanel').hidden=true; $('#downloadPdfBtn').disabled=true;
+  Sync.push({type:'TOURNAMENT_INIT',name,teams:teams.map(t=>t.name)});
 });
 
 $('#buildBracket').addEventListener('click', ()=>{
   if(!state.groups.length){ alert('Vispirms jāizspēlē / jāievada grupu dati.'); return }
-  state.standings = computeStandings(state.groups, Object.fromEntries(state.teams.map(t=>[t.id,t])));
-  state.bracket = buildBracketFromStandings(state.standings);
+  state.standings=computeStandings(state.groups,Object.fromEntries(state.teams.map(t=>[t.id,t])));
+  state.bracket=buildBracketFromStandings(state.standings);
   propagateBracket(state.bracket);
-  state.overall = null;
-  saveState(state);
+  state.overall=null; saveState(state);
   renderBracket();
-  $('#statsPanel').hidden = true;
-  $('#downloadPdfBtn').disabled = true;
+  $('#statsPanel').hidden=true; $('#downloadPdfBtn').disabled=true;
   Sync.push({type:'BRACKET_BUILT'});
 });
 
 $('#exportBtn').addEventListener('click', ()=>{
-  const data = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(state, null, 2));
+  const data='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(state,null,2));
   const a=document.createElement('a'); a.href=data; a.download=(state.name||'tournament')+'.json'; a.click();
 });
-
 $('#importBtn').addEventListener('click', async ()=>{
   const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json';
-  inp.onchange = async ()=>{
+  inp.onchange=async ()=>{
     const file=inp.files[0]; if(!file) return;
     try{
       const text=await file.text(); const obj=JSON.parse(text);
-      state = Object.assign({name:'',teams:[],groups:[],standings:{},bracket:null,overall:null}, obj);
+      state=Object.assign({name:'',teams:[],groups:[],standings:{},bracket:null,overall:null},obj);
       saveState(state);
-      $('#tName').value = state.name || '';
-      $('#teamsInput').value = state.teams.map(t=>t.name).join('\n');
+      $('#tName').value=state.name||''; $('#teamsInput').value=(state.teams||[]).map(t=>t.name).join('\n');
       if(state.groups?.length){ renderGroups(); $('#groupsPanel').hidden=false }
       if(state.standings && Object.keys(state.standings).length){ renderStandings(); $('#standingsPanel').hidden=false }
       if(state.bracket){ renderBracket(); $('#playoffPanel').hidden=false }
       if(state.overall){ renderOverall(state.overall); $('#statsPanel').hidden=false; $('#downloadPdfBtn').disabled=false }
-      Sync.push({type:'IMPORT_OK', teamCount: state.teams.length});
-    }catch(e){ alert('Neizdevās importēt failu.'); Sync.push({type:'IMPORT_FAIL', error:String(e)}) }
+      Sync.push({type:'IMPORT_OK',teamCount:state.teams.length});
+    }catch(e){ alert('Neizdevās importēt failu.'); Sync.push({type:'IMPORT_FAIL',error:String(e)}) }
   };
   inp.click();
 });
-
 $('#resetBtn').addEventListener('click', ()=>{
   if(!confirm('Tiešām notīrīt turnīru?')) return;
   clearState();
@@ -771,18 +700,18 @@ $('#resetBtn').addEventListener('click', ()=>{
   $('#tName').value=''; $('#teamsInput').value='';
   $('#groupsHost').innerHTML=''; $('#standingsHost').innerHTML='';
   $('#qfCol').innerHTML='<h3>Ceturtdaļfināli</h3>'; $('#sfCol').innerHTML='<h3>Pusfināli</h3>'; $('#finCol').innerHTML='<h3>Fināls & 3. vieta</h3>';
-  $('#groupsPanel').hidden=true; $('#standingsPanel').hidden=true; $('#playoffPanel').hidden=true;
-  $('#statsPanel').hidden=true; $('#downloadPdfBtn').disabled=true; $('#overallBtn').disabled=true;
+  $('#groupsPanel').hidden=true; $('#standingsPanel').hidden=true; $('#playoffPanel').hidden=true; $('#statsPanel').hidden=true;
+  $('#downloadPdfBtn').disabled=true; $('#overallBtn').disabled=true;
   Sync.push({type:'RESET'});
 });
 
 /* ======================= RESTORE ======================= */
 (function boot(){
-  const saved = loadState();
+  const saved=loadState();
   if(saved){
-    state = Object.assign(state, saved);
-    $('#tName').value = state.name || '';
-    $('#teamsInput').value = (state.teams||[]).map(t=>t.name).join('\n');
+    state=Object.assign(state,saved);
+    $('#tName').value=state.name||'';
+    $('#teamsInput').value=(state.teams||[]).map(t=>t.name).join('\n');
     if(state.groups?.length){ renderGroups(); $('#groupsPanel').hidden=false }
     if(state.standings && Object.keys(state.standings).length){ renderStandings(); $('#standingsPanel').hidden=false }
     if(state.bracket){ renderBracket(); $('#playoffPanel').hidden=false }
