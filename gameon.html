@@ -119,13 +119,8 @@
   .row-gap{height:var(--space)}
 
   /* ============== Responsive ============== */
-  @media (max-width:980px){
-    .bracket{grid-template-columns:repeat(3, minmax(240px,1fr)); overflow-x:auto; padding-bottom:4px}
-  }
-  @media (max-width:720px){
-    .score-in{width:50px}
-  }
-
+  @media (max-width:980px){ .bracket{grid-template-columns:repeat(3, minmax(240px,1fr)); overflow-x:auto; padding-bottom:4px} }
+  @media (max-width:720px){ .score-in{width:50px} }
   @media (prefers-reduced-motion:reduce){ *{animation:none!important;transition:none!important} }
 </style>
 </head>
@@ -138,6 +133,7 @@
       <span id="brandTitle">Turnīru Aplikācija</span>
     </div>
     <div class="row">
+      <button class="btn" id="imagesToggleBtn" aria-label="Attēlu pievienošana">🖼️ Attēli</button>
       <button class="btn" id="exportBtn" aria-label="Eksportēt">Eksportēt</button>
       <button class="btn" id="importBtn" aria-label="Importēt">Importēt</button>
       <button class="btn" id="resetBtn" aria-label="Notīrīt">Notīrīt</button>
@@ -173,40 +169,50 @@
         <button class="btn btn--accent" id="genGroups" style="width:100%">Ģenerēt grupas</button>
       </div>
     </div>
-
-    <div class="row-gap"></div>
-    <!-- Branding -->
-    <div class="panel" style="padding:12px">
-      <h3>Turnīra logotips (neobligāts)</h3>
-      <div class="row">
-        <input type="file" id="brandLogoInput" accept="image/*" />
-        <button class="btn" id="clearBrandLogo">Noņemt</button>
-      </div>
-    </div>
   </section>
 
-  <!-- LOGOS per team -->
-  <section class="panel" id="logosPanel" hidden>
-    <h2>2) Komandu logotipi (neobligāti)</h2>
+  <!-- HIDDEN IMAGES PANEL (toggle ar “🖼️ Attēli”) -->
+  <section class="panel" id="imagesPanel" hidden>
+    <h2>Attēlu iestatījumi (neobligāti)</h2>
+    <div class="row-gap"></div>
+
+    <!-- Brand Logo -->
+    <div class="panel" style="padding:12px">
+      <h3>Turnīra logotips</h3>
+      <div class="row" style="align-items:center; justify-content:space-between; gap:12px;">
+        <div class="row" style="gap:10px">
+          <img id="brandLogoPreview" class="logo-lg" alt="" style="display:none"/>
+          <div class="muted" id="brandLogoPlaceholder">Nav iestatīts</div>
+        </div>
+        <div class="row">
+          <input type="file" id="brandLogoInput" accept="image/*" />
+          <button class="btn" id="clearBrandLogo">Noņemt</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="row-gap"></div>
+
+    <!-- Team Logos -->
     <div id="logosHost" class="grid" style="display:grid;gap:var(--space);grid-template-columns:repeat(auto-fit,minmax(220px,1fr))"></div>
   </section>
 
   <!-- GROUPS -->
   <section class="panel" id="groupsPanel" hidden>
-    <h2>3) Grupas & kalendārs</h2>
+    <h2>2) Grupas & kalendārs</h2>
     <div id="groupsHost" class="grid" style="display:grid; gap:var(--space); grid-template-columns:repeat(auto-fit,minmax(300px,1fr))"></div>
   </section>
 
   <!-- STANDINGS -->
   <section class="panel" id="standingsPanel" hidden>
-    <h2>4) Stāvējumus (Standings)</h2>
+    <h2>3) Stāvējumus (Standings)</h2>
     <div id="standingsHost" class="grid" style="display:grid; gap:var(--space); grid-template-columns:repeat(auto-fit,minmax(300px,1fr))"></div>
   </section>
 
   <!-- PLAYOFF -->
   <section class="panel" id="playoffPanel" hidden>
     <div class="row" style="justify-content:space-between;align-items:center">
-      <h2>5) Playoff (no Quarterfinals)</h2>
+      <h2>4) Playoff (no Quarterfinals)</h2>
       <button class="btn" id="buildBracket">Ģenerēt Bracket</button>
     </div>
 
@@ -218,13 +224,13 @@
 
     <!-- Buttons under bracket -->
     <div class="row" style="margin-top:12px">
-      <button class="btn btn--gold" id="overallBtn" disabled title="Pieejams, kad pabeigts fināls un 3. vieta">Kopsavilkums</button>
+      <button class="btn btn--gold" id="overallBtn" disabled title="Pieejams, kad pabeigts fināls un 3. vietas spēle">Kopsavilkums</button>
       <button class="btn" id="downloadPdfBtn" disabled>Lejupielādēt PDF</button>
     </div>
 
     <!-- OVERALL -->
     <div id="statsPanel" class="grid" hidden style="margin-top:var(--space)">
-      <h2>6) Turnīra kopsavilkums & apbalvojumi</h2>
+      <h2>5) Turnīra kopsavilkums & apbalvojumi</h2>
       <div id="awards" class="awards"></div>
       <div class="panel" id="teamStatsPanel">
         <h3>Komandu kopstatistika</h3>
@@ -252,7 +258,7 @@ const todayStamp = ()=> new Date().toISOString().slice(0,10);
 const slugify = s => (s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80)||'tournament';
 
 /* ======================= STORAGE ======================= */
-const STORAGE_KEY='tournament_state_pro_v1';
+const STORAGE_KEY='tournament_state_pro_v2';
 function saveState(state){
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   Sync.push({type:'STATE_SAVE', summary:{name:state.name, teamCount:state.teams.length, groupCount:state.groups.length, hasBracket:!!state.bracket}});
@@ -326,7 +332,7 @@ let state = {
   overall:null
 };
 
-/* ======================= GROUPING ======================= */
+/* ======================= GROUPING / FIXTURES ======================= */
 function deriveGroupCount(n,strategy){
   const allowed=[2,4,6];
   if(strategy==='n1') return Math.min(1,n);
@@ -435,16 +441,8 @@ function propagateBracket(br){
 }
 
 /* ======================= RENDER HELPERS ======================= */
-function teamCell(map, id, extra=''){
-  const logo = state.logos?.[id];
-  const img = logo ? `<img class="logo" src="${logo}" alt="">` : '';
-  return `<span class="row" style="gap:8px">${img}${nameOf(id,map)}${extra}</span>`;
-}
-function teamCellLg(map, id){
-  const logo = state.logos?.[id];
-  const img = logo ? `<img class="logo-lg" src="${logo}" alt="">` : '';
-  return `<span class="row" style="gap:8px">${img}<span class="name">${nameOf(id,map)}</span></span>`;
-}
+function teamCell(map, id){ const logo = state.logos?.[id]; const img = logo ? `<img class="logo" src="${logo}" alt="">` : ''; return `<span class="row" style="gap:8px">${img}${nameOf(id,map)}</span>`; }
+function teamCellLg(map, id){ const logo = state.logos?.[id]; const img = logo ? `<img class="logo-lg" src="${logo}" alt="">` : ''; return `<span class="row" style="gap:8px">${img}<span class="name">${nameOf(id,map)}</span></span>`; }
 
 /* ======================= GROUPS RENDER ======================= */
 function renderGroups(){
@@ -488,7 +486,6 @@ function renderGroups(){
         sfx.score();
         if(m.hs===m.as){ alert('Neizšķirtu nav. Ja bija OT, atzīmē OT un ievadi uzvaras vārtus.'); }
       }
-      Sync.push({type:'GROUP_SCORE',groupId:gId,matchId:mid,side,value:m[side]});
       state.standings=computeStandings(state.groups,Object.fromEntries(state.teams.map(t=>[t.id,t])));
       saveState(state); renderStandings();
     });
@@ -499,7 +496,6 @@ function renderGroups(){
       const g=state.groups.find(x=>x.id===gId); const m=g.matches.find(x=>x.id===mid);
       m.ot=el.checked; sfx.click();
       if(Number.isFinite(m.hs)&&Number.isFinite(m.as)&&m.hs===m.as){ alert('Neizšķirtu nav. OT gadījumā arī jābūt uzvaras vārtiem.'); }
-      Sync.push({type:'GROUP_OT',groupId:gId,matchId:mid,ot:m.ot});
       state.standings=computeStandings(state.groups,Object.fromEntries(state.teams.map(t=>[t.id,t])));
       saveState(state); renderStandings();
     });
@@ -580,7 +576,6 @@ function renderBracket(){
       const val=inp.value===''?null:Math.max(0,parseInt(inp.value,10));
       m[side]=Number.isFinite(val)?val:null;
       if(Number.isFinite(m.hs)&&Number.isFinite(m.as)){ sfx.score(); if(m.hs===m.as){ alert('Neizšķirtu nav. Ja bija OT, atzīmē OT un ievadi uzvaras vārtus.'); } }
-      Sync.push({type:'BRACKET_SCORE',stage:col,matchId:id,side,value:m[side]});
       propagateBracket(state.bracket); saveState(state); renderBracket(); refreshOverallButtons();
     });
   });
@@ -591,7 +586,6 @@ function renderBracket(){
       const m=state.bracket[col].find(x=>x.id===id);
       m.ot=el.checked; sfx.click();
       if(Number.isFinite(m.hs)&&Number.isFinite(m.as)&&m.hs===m.as){ alert('Neizšķirtu nav. OT gadījumā jābūt uzvaras vārtiem.'); }
-      Sync.push({type:'BRACKET_OT',stage:col,matchId:id,ot:m.ot});
       propagateBracket(state.bracket); saveState(state); renderBracket(); refreshOverallButtons();
     });
   });
@@ -599,9 +593,23 @@ function renderBracket(){
   refreshOverallButtons();
 }
 
-/* ======================= LOGOS PANEL ======================= */
+/* ======================= IMAGES (toggle panel) ======================= */
+function renderBrandHeader(){
+  const img = $('#brandLogoImg'), dot = $('#brandDot');
+  if(state.brandLogo){ img.src = state.brandLogo; img.style.display='inline-block'; dot.style.display='none'; }
+  else { img.src=''; img.style.display='none'; dot.style.display='inline-block'; }
+  $('#brandTitle').textContent = state.name || 'Turnīru Aplikācija';
+}
+function renderBrandPanel(){
+  const prev = $('#brandLogoPreview'), ph = $('#brandLogoPlaceholder');
+  if(state.brandLogo){ prev.src = state.brandLogo; prev.style.display='inline-block'; ph.style.display='none'; }
+  else { prev.src=''; prev.style.display='none'; ph.style.display='inline-block'; }
+}
+async function fileToDataURL(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); }); }
+
 function renderLogosPanel(){
   const host = $('#logosHost'); host.innerHTML='';
+  if(!state.teams?.length){ host.innerHTML = '<div class="muted">Vispirms ievadi komandas.</div>'; return; }
   state.teams.forEach(t=>{
     const card=document.createElement('div'); card.className='panel';
     card.innerHTML = `
@@ -634,6 +642,22 @@ function renderLogosPanel(){
     });
   });
 }
+
+// Toggle button
+$('#imagesToggleBtn').addEventListener('click', ()=>{
+  const el = $('#imagesPanel');
+  el.hidden = !el.hidden;
+  if(!el.hidden){ renderBrandPanel(); renderLogosPanel(); sfx.click(); }
+});
+
+/* Brand logo handlers */
+$('#brandLogoInput').addEventListener('change', async ()=>{
+  const file = $('#brandLogoInput').files?.[0]; if(!file) return;
+  state.brandLogo = await fileToDataURL(file); saveState(state); renderBrandHeader(); renderBrandPanel(); sfx.success();
+});
+$('#clearBrandLogo').addEventListener('click', ()=>{
+  state.brandLogo=null; saveState(state); renderBrandHeader(); renderBrandPanel(); sfx.click();
+});
 
 /* ======================= OVERALL STATS ======================= */
 function tournamentFinished(){ if(!state.bracket) return false; const fin=state.bracket.fin[0], third=state.bracket.third[0]; return !!(pickWinner(fin)&&pickWinner(third)); }
@@ -697,7 +721,6 @@ $('#downloadPdfBtn').addEventListener('click', ()=>{
     if(state.brandLogo){
       try{ doc.addImage(state.brandLogo,'PNG', margin, 30, 32, 32, undefined, 'FAST'); }catch{}
     }else{
-      // draw gradient badge
       const gX=margin, gY=30, r=16;
       doc.setFillColor(124,92,255); doc.circle(gX+16,gY+16, r, 'F');
     }
@@ -711,7 +734,6 @@ $('#downloadPdfBtn').addEventListener('click', ()=>{
     doc.text(`Visvairāk gūtie vārti: ${state.overall.topGF.join(', ')} (${state.overall.maxGF})`, margin, y0+lineH);
     doc.text(`Visvairāk ielaistie vārti: ${state.overall.topGA.join(', ')} (${state.overall.maxGA})`, margin, y0+lineH*2);
 
-    // Prepare rows with small logos (as text + addImage in drawCell)
     const rows = state.overall.teamStats.map(s=>({
       name:s.name, logo: state.logos?.[s.teamId] || null,
       Sp:s.played, U:s.wins, Z:s.losses, GF:s.gf, GA:s.ga, GD:(s.gf-s.ga)
@@ -725,25 +747,18 @@ $('#downloadPdfBtn').addEventListener('click', ()=>{
       alternateRowStyles: { fillColor:[245,245,248] },
       margin: { left: margin, right: margin },
       didDrawCell: (data)=>{
-        // draw logo in first column if exists
         if(data.section==='body' && data.column.index===0){
-          const rowIdx=data.row.index;
-          const lg = rows[rowIdx].logo;
-          if(lg){
-            const x = data.cell.x + 6, y = data.cell.y + 6, size = 14;
-            try{ doc.addImage(lg, 'PNG', x, y, size, size, undefined, 'FAST'); }catch{}
-          }
+          const rowIdx=data.row.index; const lg = rows[rowIdx].logo;
+          if(lg){ const x = data.cell.x + 6, y = data.cell.y + 6, size = 14;
+            try{ doc.addImage(lg, 'PNG', x, y, size, size, undefined, 'FAST'); }catch{} }
         }
-        // replace empty header of first column
         if(data.section==='head' && data.column.index===0){
-          doc.setFontSize(9);
-          doc.text('Logo', data.cell.x + 6, data.cell.y + 11);
+          doc.setFontSize(9); doc.text('Logo', data.cell.x + 6, data.cell.y + 11);
         }
       },
-      willDrawCell: (data)=>{ /* reserve space */ if(data.column.index===0) data.cell.styles.cellPadding={top:4,right:4,bottom:4,left:24}; }
+      willDrawCell: (data)=>{ if(data.column.index===0) data.cell.styles.cellPadding={top:4,right:4,bottom:4,left:24}; }
     });
 
-    // Footer with page number
     const pageCount = doc.getNumberOfPages();
     for(let i=1;i<=pageCount;i++){
       doc.setPage(i);
@@ -761,25 +776,6 @@ $('#downloadPdfBtn').addEventListener('click', ()=>{
   }
 });
 
-/* ======================= EVENTS: header branding ======================= */
-function renderBrandHeader(){
-  const img = $('#brandLogoImg'), dot = $('#brandDot');
-  if(state.brandLogo){
-    img.src = state.brandLogo; img.style.display = 'inline-block'; dot.style.display='none';
-  } else {
-    img.src=''; img.style.display='none'; dot.style.display='inline-block';
-  }
-  $('#brandTitle').textContent = state.name || 'Turnīru Aplikācija';
-}
-async function fileToDataURL(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); }); }
-$('#brandLogoInput').addEventListener('change', async ()=>{
-  const file = $('#brandLogoInput').files?.[0]; if(!file) return;
-  state.brandLogo = await fileToDataURL(file); saveState(state); renderBrandHeader(); sfx.success();
-});
-$('#clearBrandLogo').addEventListener('click', ()=>{
-  state.brandLogo=null; saveState(state); renderBrandHeader(); sfx.click();
-});
-
 /* ======================= HOOK UP UI ======================= */
 $('#genGroups').addEventListener('click', ()=>{
   const name=$('#tName').value.trim(); const teams=$('#teamsInput').value.split('\n').map(s=>s.trim()).filter(Boolean).map(n=>({id:uid(),name:n}));
@@ -790,7 +786,7 @@ $('#genGroups').addEventListener('click', ()=>{
   state.bracket=null; state.overall=null; state.logos = {};  // jauns turnīrs => notīrām vecos logotipus
   saveState(state);
   renderBrandHeader();
-  renderLogosPanel(); $('#logosPanel').hidden=false;
+  // attēlu iestatījumi paliek slēpti līdz brīdim, kad lietotājs nospiež “🖼️ Attēli”
   renderGroups(); renderStandings();
   $('#playoffPanel').hidden=false; $('#groupsPanel').hidden=false; $('#standingsPanel').hidden=false; $('#statsPanel').hidden=true; $('#downloadPdfBtn').disabled=true;
   sfx.success();
@@ -823,7 +819,8 @@ $('#importBtn').addEventListener('click', async ()=>{
       saveState(state);
       $('#tName').value=state.name||''; $('#teamsInput').value=(state.teams||[]).map(t=>t.name).join('\n');
       renderBrandHeader();
-      if(state.teams?.length){ renderLogosPanel(); $('#logosPanel').hidden=false } else { $('#logosPanel').hidden=true }
+      // images panel paliek slēpts; ja atver, aizpildīsim:
+      if(!$('#imagesPanel').hidden){ renderBrandPanel(); renderLogosPanel(); }
       if(state.groups?.length){ renderGroups(); $('#groupsPanel').hidden=false }
       if(state.standings && Object.keys(state.standings).length){ renderStandings(); $('#standingsPanel').hidden=false }
       if(state.bracket){ renderBracket(); $('#playoffPanel').hidden=false }
@@ -840,7 +837,6 @@ $('#resetBtn').addEventListener('click', ()=>{
   state={name:'',teams:[],logos:{},brandLogo:null,groups:[],standings:{},bracket:null,overall:null};
   $('#tName').value=''; $('#teamsInput').value='';
   renderBrandHeader();
-  $('#logosPanel').hidden=true; $('#logosHost').innerHTML='';
   $('#groupsHost').innerHTML=''; $('#standingsHost').innerHTML='';
   $('#qfCol').innerHTML='<h3>Ceturtdaļfināli</h3>'; $('#sfCol').innerHTML='<h3>Pusfināli</h3>'; $('#finCol').innerHTML='<h3>Fināls & 3. vieta</h3>';
   $('#groupsPanel').hidden=true; $('#standingsPanel').hidden=true; $('#playoffPanel').hidden=true; $('#statsPanel').hidden=true;
@@ -858,11 +854,11 @@ $('#resetBtn').addEventListener('click', ()=>{
     $('#tName').value=state.name||'';
     $('#teamsInput').value=(state.teams||[]).map(t=>t.name).join('\n');
     renderBrandHeader();
-    if(state.teams?.length){ renderLogosPanel(); $('#logosPanel').hidden=false }
     if(state.groups?.length){ renderGroups(); $('#groupsPanel').hidden=false }
     if(state.standings && Object.keys(state.standings).length){ renderStandings(); $('#standingsPanel').hidden=false }
     if(state.bracket){ renderBracket(); $('#playoffPanel').hidden=false }
     if(state.overall){ renderOverall(state.overall); $('#statsPanel').hidden=false; $('#downloadPdfBtn').disabled=false }
+    // images panel paliek slēpts līdz lietotājs spiež “🖼️ Attēli”
   }
 })();
 </script>
