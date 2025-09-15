@@ -28,6 +28,7 @@
       radial-gradient(600px 500px at 80% 110%, color-mix(in oklab, #19c37d 35%, transparent), transparent 60%);
   }
 
+  /* ===== Header ===== */
   header{
     position:sticky;top:0;z-index:20;backdrop-filter:saturate(140%) blur(12px);
     background:linear-gradient(180deg, rgba(0,0,0,.0), rgba(0,0,0,.05)), var(--card);
@@ -40,6 +41,7 @@
        background:radial-gradient(12px 12px at 20% 20%, #fff8, #0000), linear-gradient(135deg,var(--accent),var(--accent2))}
   .wrap{max-width:1200px;margin:clamp(10px,2vw,20px) auto clamp(60px,7vw,96px); padding:0 clamp(14px,3vw,24px);display:grid;gap:var(--space)}
 
+  /* ===== Panels & buttons ===== */
   .panel{
     background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);
     padding:clamp(12px,2.6vw,20px); transition:transform .12s ease, box-shadow .25s ease, border-color .2s ease, background .2s ease;
@@ -49,6 +51,7 @@
   h1,h2,h3{margin:0 0 8px}
   h2{font-size:clamp(18px,2.6vw,22px)} h3{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .muted{color:var(--muted);font-size:13px}
 
   input,textarea,select{
     width:100%;background:rgba(255,255,255,.02);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:12px 12px;
@@ -60,7 +63,6 @@
        color:var(--text);border-radius:999px;padding:11px 16px;cursor:pointer}
   .btn--accent{border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
   .btn--gold{border:none;background:linear-gradient(135deg,var(--gold),#ffd569);color:#1a1a1a}
-  .muted{color:var(--muted);font-size:13px}
 
   /* ===== Tables ===== */
   .table-scroll{overflow:auto; -webkit-overflow-scrolling:touch}
@@ -68,18 +70,18 @@
   th,td{padding:clamp(6px,1.8vw,12px) clamp(8px,2vw,14px);text-align:left}
   thead th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
   tbody tr{background:linear-gradient(180deg,transparent, color-mix(in oklab, var(--card) 88%, transparent))}
-  .score-in{width:56px;text-align:center;padding:10px}
-  .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--border);border-radius:999px;font-size:12px;background:rgba(255,255,255,.02)}
+  .score-in{width:46px;text-align:center;padding:8px 6px}
+  @media (min-width:480px){ .score-in{width:52px} }
 
-  /* ===== Standings: always fit; names never break per letter ===== */
+  /* ===== Standings: fit screen, equal numbers, names not breaking ===== */
   .standings-table{table-layout:fixed}
   .standings-table th:not(:nth-child(2)), .standings-table td:not(:nth-child(2)){width:clamp(38px,7vw,60px); text-align:center}
   .standings-table th:nth-child(2), .standings-table td:nth-child(2){width:auto}
   .name-nowrap{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:inline-block;max-width:65vw}
   @media (min-width:700px){ .name-nowrap{max-width:unset} }
-  @media (max-width:520px){ .standings-table th,.standings-table td{font-size:12px;padding:6px 6px} .score-in{width:50px} }
+  @media (max-width:520px){ .standings-table th,.standings-table td{font-size:12px;padding:6px 6px} }
 
-  /* Logos */
+  /* ===== Logos ===== */
   .logo{width:18px;height:18px;border-radius:50%;object-fit:cover;border:1px solid var(--border)}
   .logo-lg{width:22px;height:22px;border-radius:6px;object-fit:cover;border:1px solid var(--border)}
 
@@ -91,16 +93,32 @@
   .team.win{outline:2px solid color-mix(in oklab, var(--ok) 45%, transparent);outline-offset:-2px}
   .status{font-size:12px;color:var(--muted);margin-bottom:6px}
 
-  /* ===== Groups: summary + inline expand ===== */
+  /* ===== Groups: summary + inline editor ===== */
   .group-card{position:relative; cursor:pointer}
   .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
   .chip-tag{padding:6px 10px;border:1px solid var(--border);border-radius:999px;font-size:12px;background:rgba(255,255,255,.02)}
   .prog{margin-top:6px;font-size:12px;color:var(--muted)}
-  .fixtures{margin-top:8px;display:grid;gap:6px}
-  .fix-row{display:grid;grid-template-columns:36px 1fr auto 1fr auto;gap:8px;align-items:center}
-  .fix-row .vs{color:var(--muted);text-align:center}
-  .fix-row .score{font-weight:700}
-  .fix-row .ot{color:var(--muted);font-size:12px}
+
+  .fixtures{margin-top:10px;display:grid;gap:6px}
+  /* one-line row layouts */
+  .fix-row{display:grid;align-items:center;gap:8px}
+  .fix-row.view-mode{grid-template-columns:32px 1fr min-content 1fr min-content}
+  .fix-row.edit-mode{grid-template-columns:32px 1fr min-content 1fr min-content}
+  @media (min-width:480px){
+    .fix-row.view-mode,.fix-row.edit-mode{grid-template-columns:36px 1fr min-content 1fr min-content}
+  }
+  .fix-row .r{color:var(--muted)}
+  .fix-row .home{min-width:0}
+  .fix-row .away{min-width:0; justify-self:end; text-align:right}
+  .fix-row .score{font-weight:700; white-space:nowrap}
+  .score-wrap{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+
+  /* compact custom checkbox for OT (not iOS switch) */
+  .chk{appearance:none; width:16px; height:16px; border:1px solid var(--border); border-radius:4px;
+       background:rgba(255,255,255,.02); display:inline-block; position:relative; vertical-align:middle}
+  .chk:checked{ background:linear-gradient(135deg,var(--accent),var(--accent2)); border-color:transparent}
+  .chk:checked::after{ content:'✓'; position:absolute; inset:0; font-size:12px; color:#fff; display:flex; align-items:center; justify-content:center }
+  .ot-inline{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
 
   /* edit mode within card */
   .group-card .edit-mode{display:none}
@@ -108,7 +126,6 @@
   .group-card.edit .edit-mode{display:block}
   .group-actions{display:none; margin-top:8px; justify-content:flex-end}
   .group-card.edit .group-actions{display:flex}
-  /* prevent accidental collapse when clicking inputs */
   .stop-prop{pointer-events:auto}
 </style>
 </head>
@@ -240,36 +257,11 @@ const todayStamp = ()=> new Date().toISOString().slice(0,10);
 const slugify = s => (s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80)||'tournament';
 
 /* ===== Storage ===== */
-const STORAGE_KEY='tournament_state_pro_v6';
-function saveState(s){ localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); Sync.push({type:'STATE_SAVE'}); }
+const STORAGE_KEY='tournament_state_pro_v7';
+function saveState(s){ localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
 function loadState(){ try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'null')}catch{return null} }
 function clearState(){ localStorage.removeItem(STORAGE_KEY); }
 const SOUND_PREF_KEY='tournament_sound_on';
-
-/* ===== Optional sync queue ===== */
-function getClientId(){ let id=localStorage.getItem('tournament_client_id'); if(!id){id=crypto.randomUUID?.()||('c_'+uid()); localStorage.setItem('tournament_client_id',id)} return id; }
-const Sync={ key:'tournament_sync_queue_v1',queue:[],timer:null,
-  init(){ try{this.queue=JSON.parse(localStorage.getItem(this.key)||'[]')}catch{this.queue=[]}
-    if(SYNC_ENABLED&&navigator.onLine) this.schedule(300);
-    addEventListener('online',()=>this.schedule(0));
-    addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden') this.flush({beacon:true}); else this.schedule(200); });
-    addEventListener('beforeunload',()=>this.flush({beacon:true}));
-  },
-  persist(){ localStorage.setItem(this.key, JSON.stringify(this.queue)) },
-  push(event){ if(!SYNC_ENABLED) return; this.queue.push({t:Date.now(),client:getClientId(),event}); this.persist(); this.schedule(400); },
-  schedule(ms=400){ if(!SYNC_ENABLED) return; clearTimeout(this.timer); this.timer=setTimeout(()=>this.flush().catch(()=>{}),ms) },
-  async flush({beacon=false}={}){ if(!SYNC_ENABLED||!this.queue.length) return;
-    const batch=this.queue.slice(0,50), payload=JSON.stringify({client:getClientId(),ua:navigator.userAgent,batch});
-    try{
-      if(beacon && navigator.sendBeacon){
-        const ok=navigator.sendBeacon(SYNC_ENDPOINT,new Blob([payload],{type:'application/json'}));
-        if(ok){this.queue.splice(0,batch.length); this.persist();} return;
-      }
-      const res=await fetch(SYNC_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:payload,mode:'cors',keepalive:true});
-      if(res.ok){this.queue.splice(0,batch.length); this.persist();}
-    }catch{} finally{ if(this.queue.length) this.schedule(1500); }
-  }
-}; Sync.init();
 
 /* ===== Sounds ===== */
 let audioCtx=null; let soundOn=(localStorage.getItem(SOUND_PREF_KEY)!=='0');
@@ -391,25 +383,32 @@ function renderGroups(){
     }).join('');
 
     const scored=g.matches.filter(isScored).length;
+
+    // VIEW rows (always visible in card)
     const fixturesView=g.matches.map(m=>{
-      const hs = Number.isFinite(m.hs)?m.hs:'–', as=Number.isFinite(m.as)?m.as:'–', ot = m.ot ? '<span class="ot">OT</span>' : '';
-      return `<div class="fix-row view-mode"><span class="muted">R${m.round}</span>
-        <span class="row" style="gap:6px">${state.logos?.[m.home]?`<img class="logo" src="${state.logos[m.home]}" alt="">`:''}${nameOf(m.home,map)}</span>
+      const hs = Number.isFinite(m.hs)?m.hs:'–', as=Number.isFinite(m.as)?m.as:'–';
+      const ot = m.ot ? 'OT' : '';
+      return `<div class="fix-row view-mode">
+        <span class="r">R${m.round}</span>
+        <span class="home name-nowrap">${nameOf(m.home,map)}</span>
         <span class="score">${hs}:${as}</span>
-        <span class="row" style="gap:6px;justify-self:end">${state.logos?.[m.away]?`<img class="logo" src="${state.logos[m.away]}" alt="">`:''}${nameOf(m.away,map)}</span>
-        ${ot}</div>`;
+        <span class="away name-nowrap">${nameOf(m.away,map)}</span>
+        <span class="muted">${ot}</span>
+      </div>`;
     }).join('');
 
+    // EDIT rows (inline one-line editor)
     const fixturesEdit=g.matches.map(m=>{
-      return `<div class="fix-row edit-mode stop-prop"><span class="muted">R${m.round}</span>
-        <span class="row" style="gap:6px">${state.logos?.[m.home]?`<img class="logo" src="${state.logos[m.home]}" alt="">`:''}${nameOf(m.home,map)}</span>
-        <span class="row" style="gap:6px">
-          <input class="score-in" type="number" min="0" value="${m.hs??''}" data-g="${g.id}" data-mid="${m.id}" data-side="hs"/>
+      return `<div class="fix-row edit-mode stop-prop">
+        <span class="r">R${m.round}</span>
+        <span class="home name-nowrap">${nameOf(m.home,map)}</span>
+        <span class="score-wrap">
+          <input class="score-in" type="number" min="0" inputmode="numeric" value="${m.hs??''}" data-g="${g.id}" data-mid="${m.id}" data-side="hs"/>
           :
-          <input class="score-in" type="number" min="0" value="${m.as??''}" data-g="${g.id}" data-mid="${m.id}" data-side="as"/>
+          <input class="score-in" type="number" min="0" inputmode="numeric" value="${m.as??''}" data-g="${g.id}" data-mid="${m.id}" data-side="as"/>
         </span>
-        <span class="row" style="gap:6px;justify-self:end">${state.logos?.[m.away]?`<img class="logo" src="${state.logos[m.away]}" alt="">`:''}${nameOf(m.away,map)}</span>
-        <label class="chip"><input type="checkbox" ${m.ot?'checked':''} data-g="${g.id}" data-mid="${m.id}" data-ot="1"/> OT</label>
+        <span class="away name-nowrap">${nameOf(m.away,map)}</span>
+        <label class="ot-inline"><input class="chk" type="checkbox" ${m.ot?'checked':''} data-g="${g.id}" data-mid="${m.id}" data-ot="1"/><span>OT</span></label>
       </div>`;
     }).join('');
 
@@ -425,21 +424,16 @@ function renderGroups(){
     host.appendChild(card);
   });
 
-  // Click to toggle expand (edit)
+  // Toggle expand/collapse (edit)
   $$('#groupsHost .group-card').forEach(el=>{
-    el.addEventListener('click', (e)=>{
+    el.addEventListener('click', ()=>{
       const gid=el.dataset.gid;
       if(editingGroupId===gid){ editingGroupId=null; el.classList.remove('edit'); sfx.click(); }
       else { editingGroupId=gid; $$('#groupsHost .group-card.edit').forEach(x=>x.classList.remove('edit')); el.classList.add('edit'); sfx.click(); }
     });
   });
-  // Stop bubbling on inputs
   $$('#groupsHost .stop-prop').forEach(el=> el.addEventListener('click', e=> e.stopPropagation()));
-
-  // Done btn
-  $$('[data-done]').forEach(btn=>{
-    btn.addEventListener('click', (e)=>{ e.stopPropagation(); editingGroupId=null; renderGroups(); sfx.success(); });
-  });
+  $$('[data-done]').forEach(btn=> btn.addEventListener('click', (e)=>{ e.stopPropagation(); editingGroupId=null; renderGroups(); sfx.success(); }));
 
   // Input handlers
   $$('#groupsHost .score-in').forEach(inp=>{
@@ -467,7 +461,7 @@ function renderGroups(){
   $('#groupsPanel').hidden = state.groups.length===0;
 }
 
-/* ===== STANDINGS (fit screen, equal columns, no broken names) ===== */
+/* ===== STANDINGS (fit & neat) ===== */
 function renderStandings(){
   const host=$('#standingsHost'); host.innerHTML='';
   const st=state.standings||{}; const gids=Object.keys(st).sort();
@@ -524,15 +518,15 @@ function renderBracket(){
         <input class="score-in" type="number" min="0" value="${m.as??''}" data-stage="${stage}" data-id="${m.id}" data-side="as" />
       </div>
       <div class="row" style="margin-top:8px">
-        <label class="chip"><input type="checkbox" ${m.ot?'checked':''} data-stage="${stage}" data-id="${m.id}" data-ot="flag" /> OT</label>
+        <label class="ot-inline"><input class="chk" type="checkbox" ${m.ot?'checked':''} data-stage="${stage}" data-id="${m.id}" data-ot="flag" /> <span>OT</span></label>
       </div>`;
     return el;
   };
 
-  state.bracket.qf.forEach((m,i)=>$('#qfCol').appendChild(mk(m,'QF',i)));
-  state.bracket.sf.forEach((m,i)=>$('#sfCol').appendChild(mk(m,'SF',i)));
-  state.bracket.fin.forEach(m=>$('#finCol').appendChild(mk(m,'Final')));
-  state.bracket.third.forEach(m=>$('#finCol').appendChild(mk(m,'3rd')));
+  state.bracket?.qf?.forEach((m,i)=>$('#qfCol').appendChild(mk(m,'QF',i)));
+  state.bracket?.sf?.forEach((m,i)=>$('#sfCol').appendChild(mk(m,'SF',i)));
+  state.bracket?.fin?.forEach(m=>$('#finCol').appendChild(mk(m,'Final')));
+  state.bracket?.third?.forEach(m=>$('#finCol').appendChild(mk(m,'3rd')));
 
   $$('.bracket .score-in').forEach(inp=>{
     inp.addEventListener('change', ()=>{
@@ -590,7 +584,7 @@ $('#imagesToggleBtn').addEventListener('click', ()=>{ const el=$('#imagesPanel')
 $('#brandLogoInput').addEventListener('change', async ()=>{ const f=$('#brandLogoInput').files?.[0]; if(!f) return; state.brandLogo=await fileToDataURL(f); saveState(state); renderBrandHeader(); renderBrandPanel(); sfx.success(); });
 $('#clearBrandLogo').addEventListener('click', ()=>{ state.brandLogo=null; saveState(state); renderBrandHeader(); renderBrandPanel(); sfx.click(); });
 
-/* ===== Overall / Awards (use same non-breaking names) ===== */
+/* ===== Overall / Awards ===== */
 function tournamentFinished(){ if(!state.bracket) return false; const fin=state.bracket.fin[0], third=state.bracket.third[0]; return !!(pickWinner(fin)&&pickWinner(third)); }
 function refreshOverallButtons(){ const ready=tournamentFinished(); $('#overallBtn').disabled=!ready; $('#downloadPdfBtn').disabled=!(ready&&state.overall); }
 $('#overallBtn').addEventListener('click', ()=>{
