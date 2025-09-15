@@ -44,12 +44,10 @@
   /* ===== Panels & buttons ===== */
   .panel{
     background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);
-    padding:clamp(12px,2.6vw,20px); transition:transform .12s ease, box-shadow .25s ease, border-color .2s ease, background .2s ease;
+    padding:clamp(12px,2.6vw,20px); transition:transform .12s ease, box-shadow .25s ease;
   }
   .panel:hover{ transform:translateY(-1px) }
-
-  h1,h2,h3{margin:0 0 8px}
-  h2{font-size:clamp(18px,2.6vw,22px)} h3{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+  h2{margin:0 0 8px;font-size:clamp(18px,2.6vw,22px)} h3{margin:0 0 8px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .muted{color:var(--muted);font-size:13px}
 
@@ -64,14 +62,13 @@
   .btn--accent{border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
   .btn--gold{border:none;background:linear-gradient(135deg,var(--gold),#ffd569);color:#1a1a1a}
 
-  /* ===== Tables ===== */
+  /* ===== Tables & numbers ===== */
   .table-scroll{overflow:auto; -webkit-overflow-scrolling:touch}
   table{width:100%;border-collapse:separate;border-spacing:0 10px}
-  th,td{padding:clamp(6px,1.8vw,12px) clamp(8px,2vw,14px);text-align:left}
+  th,td{padding:clamp(6px,1.8vw,12px) clamp(8px,2vw,14px)}
   thead th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
   tbody tr{background:linear-gradient(180deg,transparent, color-mix(in oklab, var(--card) 88%, transparent))}
-  .score-in{width:46px;text-align:center;padding:8px 6px}
-  @media (min-width:480px){ .score-in{width:52px} }
+  .tnum{font-variant-numeric:tabular-nums}
 
   /* ===== Standings: fit screen, equal numbers, names not breaking ===== */
   .standings-table{table-layout:fixed}
@@ -93,40 +90,53 @@
   .team.win{outline:2px solid color-mix(in oklab, var(--ok) 45%, transparent);outline-offset:-2px}
   .status{font-size:12px;color:var(--muted);margin-bottom:6px}
 
-  /* ===== Groups: summary + inline editor ===== */
+  /* ===== Group cards (preview) ===== */
   .group-card{position:relative; cursor:pointer}
   .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
   .chip-tag{padding:6px 10px;border:1px solid var(--border);border-radius:999px;font-size:12px;background:rgba(255,255,255,.02)}
   .prog{margin-top:6px;font-size:12px;color:var(--muted)}
-
   .fixtures{margin-top:10px;display:grid;gap:6px}
-  /* one-line row layouts */
-  .fix-row{display:grid;align-items:center;gap:8px}
-  .fix-row.view-mode{grid-template-columns:32px 1fr min-content 1fr min-content}
-  .fix-row.edit-mode{grid-template-columns:32px 1fr min-content 1fr min-content}
-  @media (min-width:480px){
-    .fix-row.view-mode,.fix-row.edit-mode{grid-template-columns:36px 1fr min-content 1fr min-content}
+  .fix-row{display:grid;grid-template-columns:36px 1fr min-content 1fr min-content;align-items:center;gap:8px}
+  .fix-row .score{font-weight:700;white-space:nowrap}
+
+  /* ===== Fullscreen Calendar Sheet ===== */
+  .modal-backdrop{
+    position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(10px);
+    opacity:0;pointer-events:none;transition:opacity .18s ease;z-index:60;
   }
-  .fix-row .r{color:var(--muted)}
-  .fix-row .home{min-width:0}
-  .fix-row .away{min-width:0; justify-self:end; text-align:right}
-  .fix-row .score{font-weight:700; white-space:nowrap}
-  .score-wrap{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+  .modal-backdrop.show{opacity:1;pointer-events:auto}
+  .sheet{
+    position:fixed;inset:0;display:grid;grid-template-rows:auto 1fr auto;
+    background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.12)), var(--card);
+    border:0;box-shadow:0 40px 100px rgba(0,0,0,.5);opacity:0;transform:translateY(6px) scale(.99);
+    transition:opacity .18s ease, transform .18s ease; z-index:70;
+  }
+  .sheet.show{opacity:1;transform:none}
+  .sheet-head{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);background:color-mix(in oklab, var(--card) 96%, transparent)}
+  .sheet-title{font-weight:800;letter-spacing:.02em}
+  .sheet-body{min-height:0;overflow:auto;padding:12px 16px}
+  .sheet-foot{display:flex;justify-content:flex-end;gap:10px;padding:12px 16px;border-top:1px solid var(--border);background:color-mix(in oklab, var(--card) 96%, transparent)}
 
-  /* compact custom checkbox for OT (not iOS switch) */
-  .chk{appearance:none; width:16px; height:16px; border:1px solid var(--border); border-radius:4px;
-       background:rgba(255,255,255,.02); display:inline-block; position:relative; vertical-align:middle}
-  .chk:checked{ background:linear-gradient(135deg,var(--accent),var(--accent2)); border-color:transparent}
-  .chk:checked::after{ content:'✓'; position:absolute; inset:0; font-size:12px; color:#fff; display:flex; align-items:center; justify-content:center }
-  .ot-inline{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
-
-  /* edit mode within card */
-  .group-card .edit-mode{display:none}
-  .group-card.edit .view-mode{display:none}
-  .group-card.edit .edit-mode{display:block}
-  .group-actions{display:none; margin-top:8px; justify-content:flex-end}
-  .group-card.edit .group-actions{display:flex}
-  .stop-prop{pointer-events:auto}
+  /* Calendar table (strict & liquid) */
+  .cal-wrap{max-width:1100px;margin:0 auto}
+  .cal{width:100%;border-collapse:separate;border-spacing:0}
+  .cal thead th{position:sticky;top:0;background:color-mix(in oklab, var(--card) 98%, transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--border);z-index:1}
+  .cal tbody tr{background:transparent;border-bottom:1px dashed var(--border)}
+  .cal th,.cal td{padding:10px 12px}
+  .cal th.r,.cal td.r{width:56px;text-align:center}
+  .cal th.home,.cal td.home,.cal th.away,.cal td.away{width:35%;min-width:0}
+  .cal .name-nowrap{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cal th.score,.cal td.score{width:140px;text-align:center}
+  .cal th.ot,.cal td.ot{width:72px;text-align:center}
+  .score-grid{display:inline-grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center}
+  .score-in{width:54px;text-align:center;padding:8px 6px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--text)}
+  @media (max-width:480px){ .score-in{width:46px} .cal th.home,.cal td.home,.cal th.away,.cal td.away{width:auto} }
+  .colon{opacity:.7}
+  .row-done{background:linear-gradient(180deg, color-mix(in oklab, var(--ok) 12%, transparent), transparent)}
+  /* compact checkbox */
+  .chk{appearance:none;width:16px;height:16px;border:1px solid var(--border);border-radius:4px;background:rgba(255,255,255,.02);display:inline-block;position:relative;vertical-align:middle}
+  .chk:checked{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent}
+  .chk:checked::after{content:'✓';position:absolute;inset:0;font-size:12px;color:#fff;display:flex;align-items:center;justify-content:center}
 </style>
 </head>
 <body>
@@ -198,7 +208,7 @@
     <div id="logosHost" class="grid" style="display:grid;gap:var(--space);grid-template-columns:repeat(auto-fit,minmax(220px,1fr))"></div>
   </section>
 
-  <!-- GROUPS -->
+  <!-- GROUPS (preview with results) -->
   <section class="panel" id="groupsPanel" hidden>
     <h2>2) Grupas & kalendārs</h2>
     <div id="groupsHost" class="grid" style="display:grid; gap:var(--space); grid-template-columns:repeat(auto-fit,minmax(300px,1fr))"></div>
@@ -239,14 +249,32 @@
   </section>
 </main>
 
+<!-- FULLSCREEN CALENDAR SHEET -->
+<div id="backdrop" class="modal-backdrop" hidden></div>
+<div id="sheet" class="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="sheet-head">
+    <div class="sheet-title" id="sheetTitle">Kalendārs</div>
+    <div class="row"><button class="btn" id="closeSheetBtn" aria-label="Aizvērt">✕</button></div>
+  </div>
+  <div class="sheet-body">
+    <div class="cal-wrap">
+      <table class="cal tnum" id="calTable">
+        <!-- dynamic -->
+      </table>
+    </div>
+  </div>
+  <div class="sheet-foot">
+    <button class="btn btn--accent" id="sheetDoneBtn">Done</button>
+  </div>
+</div>
+
 <!-- PDF libs -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <script>
-/* ===== Sync config (Sheets optional) ===== */
-const SYNC_ENDPOINT = ''; // ieliec GAS URL, ja vajag dublēt
-const SYNC_ENABLED  = !!SYNC_ENDPOINT;
+/* ===== Config (Sheets optional) ===== */
+const SYNC_ENDPOINT = ''; const SYNC_ENABLED = !!SYNC_ENDPOINT;
 
 /* ===== Util ===== */
 const $ = (s,r=document)=>r.querySelector(s);
@@ -257,7 +285,7 @@ const todayStamp = ()=> new Date().toISOString().slice(0,10);
 const slugify = s => (s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80)||'tournament';
 
 /* ===== Storage ===== */
-const STORAGE_KEY='tournament_state_pro_v7';
+const STORAGE_KEY='tournament_state_pro_v8';
 function saveState(s){ localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
 function loadState(){ try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'null')}catch{return null} }
 function clearState(){ localStorage.removeItem(STORAGE_KEY); }
@@ -366,88 +394,101 @@ function propagate(br){
 function teamCell(map,id){ const lg=state.logos?.[id]; const img=lg?`<img class="logo" src="${lg}" alt="">`:''; return `<span class="row" style="gap:8px">${img}${nameOf(id,map)}</span>`; }
 function teamCellLg(map,id){ const lg=state.logos?.[id]; const img=lg?`<img class="logo-lg" src="${lg}" alt="">`:''; return `<span class="row" style="gap:8px">${img}<span class="name">${nameOf(id,map)}</span></span>`; }
 
-/* ===== GROUPS (summary + inline editor) ===== */
-let editingGroupId=null;
-
+/* ===== GROUP CARDS (preview) ===== */
 function renderGroups(){
   const host=$('#groupsHost'); host.innerHTML='';
   const map=Object.fromEntries(state.teams.map(t=>[t.id,t]));
   state.groups.forEach(g=>{
     const card=document.createElement('div'); card.className='panel group-card'; card.dataset.gid=g.id;
-    if(editingGroupId===g.id) card.classList.add('edit');
-
     const rounds=new Set(g.matches.map(m=>m.round)).size;
     const chips = g.teams.map(id=>{
       const lg=state.logos?.[id]; const nm=nameOf(id,map);
       return `<span class="chip-tag">${lg?`<img class="logo" src="${lg}" alt=""> `:''}${nm}</span>`;
     }).join('');
-
     const scored=g.matches.filter(isScored).length;
-
-    // VIEW rows (always visible in card)
-    const fixturesView=g.matches.map(m=>{
-      const hs = Number.isFinite(m.hs)?m.hs:'–', as=Number.isFinite(m.as)?m.as:'–';
-      const ot = m.ot ? 'OT' : '';
-      return `<div class="fix-row view-mode">
-        <span class="r">R${m.round}</span>
-        <span class="home name-nowrap">${nameOf(m.home,map)}</span>
+    const lines=g.matches.map(m=>{
+      const hs=Number.isFinite(m.hs)?m.hs:'–', as=Number.isFinite(m.as)?m.as:'–', ot=m.ot?'OT':'';
+      return `<div class="fix-row"><span class="muted">R${m.round}</span>
+        <span class="name-nowrap">${nameOf(m.home,map)}</span>
         <span class="score">${hs}:${as}</span>
-        <span class="away name-nowrap">${nameOf(m.away,map)}</span>
-        <span class="muted">${ot}</span>
-      </div>`;
+        <span class="name-nowrap" style="text-align:right">${nameOf(m.away,map)}</span>
+        <span class="muted">${ot}</span></div>`;
     }).join('');
-
-    // EDIT rows (inline one-line editor)
-    const fixturesEdit=g.matches.map(m=>{
-      return `<div class="fix-row edit-mode stop-prop">
-        <span class="r">R${m.round}</span>
-        <span class="home name-nowrap">${nameOf(m.home,map)}</span>
-        <span class="score-wrap">
-          <input class="score-in" type="number" min="0" inputmode="numeric" value="${m.hs??''}" data-g="${g.id}" data-mid="${m.id}" data-side="hs"/>
-          :
-          <input class="score-in" type="number" min="0" inputmode="numeric" value="${m.as??''}" data-g="${g.id}" data-mid="${m.id}" data-side="as"/>
-        </span>
-        <span class="away name-nowrap">${nameOf(m.away,map)}</span>
-        <label class="ot-inline"><input class="chk" type="checkbox" ${m.ot?'checked':''} data-g="${g.id}" data-mid="${m.id}" data-ot="1"/><span>OT</span></label>
-      </div>`;
-    }).join('');
-
     card.innerHTML=`
       <h3>Grupa ${g.id}</h3>
       <div class="muted">${g.teams.length} komandas • ${rounds} kārtas</div>
       <div class="chips">${chips}</div>
       <div class="prog">${scored}/${g.matches.length} spēles ievadītas</div>
-      <div class="fixtures">${fixturesView}${fixturesEdit}</div>
-      <div class="group-actions"><button class="btn btn--accent stop-prop" data-done="${g.id}">Done</button></div>
-      <div class="muted" style="margin-top:6px">Nospied kartīti, lai ievadītu rezultātus</div>
-    `;
+      <div class="fixtures">${lines}</div>
+      <div class="muted" style="margin-top:6px">Nospied, lai atvērtu pilno kalendāru</div>`;
     host.appendChild(card);
   });
+  $('#groupsPanel').hidden = state.groups.length===0;
 
-  // Toggle expand/collapse (edit)
   $$('#groupsHost .group-card').forEach(el=>{
-    el.addEventListener('click', ()=>{
-      const gid=el.dataset.gid;
-      if(editingGroupId===gid){ editingGroupId=null; el.classList.remove('edit'); sfx.click(); }
-      else { editingGroupId=gid; $$('#groupsHost .group-card.edit').forEach(x=>x.classList.remove('edit')); el.classList.add('edit'); sfx.click(); }
-    });
+    el.addEventListener('click', ()=> openGroupSheet(el.dataset.gid));
   });
-  $$('#groupsHost .stop-prop').forEach(el=> el.addEventListener('click', e=> e.stopPropagation()));
-  $$('[data-done]').forEach(btn=> btn.addEventListener('click', (e)=>{ e.stopPropagation(); editingGroupId=null; renderGroups(); sfx.success(); }));
+}
 
-  // Input handlers
-  $$('#groupsHost .score-in').forEach(inp=>{
+/* ===== FULLSCREEN SHEET (calendar) ===== */
+function sheetShow(v){
+  const back=$('#backdrop'), sh=$('#sheet');
+  if(v){ back.hidden=false; sh.hidden=false; requestAnimationFrame(()=>{back.classList.add('show'); sh.classList.add('show');}); }
+  else { back.classList.remove('show'); sh.classList.remove('show'); setTimeout(()=>{back.hidden=true; sh.hidden=true;},160); }
+}
+$('#backdrop').addEventListener('click', ()=>{ sheetShow(false); sfx.click(); });
+$('#closeSheetBtn').addEventListener('click', ()=>{ sheetShow(false); sfx.click(); });
+$('#sheetDoneBtn').addEventListener('click', ()=>{ sheetShow(false); sfx.success(); });
+
+function openGroupSheet(gid){
+  const g=state.groups.find(x=>x.id===gid); if(!g) return;
+  const map=Object.fromEntries(state.teams.map(t=>[t.id,t]));
+  $('#sheetTitle').textContent = `Grupa ${g.id} — Kalendārs`;
+  const cal=$('#calTable');
+  cal.innerHTML='';
+  cal.insertAdjacentHTML('beforeend', `<thead>
+    <tr>
+      <th class="r">R</th>
+      <th class="home">Mājinieki</th>
+      <th class="score">Rezultāts</th>
+      <th class="away">Viesi</th>
+      <th class="ot">OT</th>
+    </tr>
+  </thead><tbody></tbody>`);
+  const body=$('tbody',cal);
+
+  g.matches.forEach(m=>{
+    const tr=document.createElement('tr');
+    const done = Number.isFinite(m.hs)&&Number.isFinite(m.as)&&m.hs!==m.as;
+    if(done) tr.classList.add('row-done');
+    tr.innerHTML=`
+      <td class="r">R${m.round}</td>
+      <td class="home"><span class="name-nowrap">${nameOf(m.home,map)}</span></td>
+      <td class="score">
+        <span class="score-grid">
+          <input class="score-in" type="number" min="0" inputmode="numeric" value="${m.hs??''}" data-g="${g.id}" data-mid="${m.id}" data-side="hs">
+          <span class="colon">:</span>
+          <input class="score-in" type="number" min="0" inputmode="numeric" value="${m.as??''}" data-g="${g.id}" data-mid="${m.id}" data-side="as">
+        </span>
+      </td>
+      <td class="away" style="text-align:right"><span class="name-nowrap">${nameOf(m.away,map)}</span></td>
+      <td class="ot"><input class="chk" type="checkbox" ${m.ot?'checked':''} data-g="${g.id}" data-mid="${m.id}" data-ot="1"></td>`;
+    body.appendChild(tr);
+  });
+
+  // handlers
+  $$('#calTable .score-in').forEach(inp=>{
     inp.addEventListener('change', ()=>{
       const gId=inp.dataset.g, mid=inp.dataset.mid, side=inp.dataset.side;
       const G=state.groups.find(x=>x.id===gId), M=G.matches.find(x=>x.id===mid);
       const v=inp.value===''?null:Math.max(0,parseInt(inp.value,10));
       M[side]=Number.isFinite(v)?v:null;
-      if(Number.isFinite(M.hs)&&Number.isFinite(M.as)){ sfx.score(); if(M.hs===M.as){ alert('Neizšķirtu nav. Ja bija OT, atzīmē OT un ievadi uzvaras vārtus.'); } }
+      if(Number.isFinite(M.hs)&&Number.isFinite(M.as)){ sfx.score(); if(M.hs===M.as){ alert('Neizšķirtu nav. OT gadījumā jāievada uzvaras vārti.'); } }
       state.standings=computeStandings(state.groups,Object.fromEntries(state.teams.map(t=>[t.id,t])));
-      saveState(state); renderGroups(); renderStandings();
+      saveState(state); renderGroups(); renderStandings(); openGroupSheet(gid); // rerender to atjaunotu rindu stāvokli
     });
   });
-  $$('#groupsHost [data-ot]').forEach(box=>{
+  $$('#calTable [data-ot]').forEach(box=>{
     box.addEventListener('change', ()=>{
       const gId=box.dataset.g, mid=box.dataset.mid;
       const G=state.groups.find(x=>x.id===gId), M=G.matches.find(x=>x.id===mid);
@@ -458,23 +499,21 @@ function renderGroups(){
     });
   });
 
-  $('#groupsPanel').hidden = state.groups.length===0;
+  sheetShow(true);
 }
 
-/* ===== STANDINGS (fit & neat) ===== */
+/* ===== STANDINGS ===== */
 function renderStandings(){
   const host=$('#standingsHost'); host.innerHTML='';
   const st=state.standings||{}; const gids=Object.keys(st).sort();
-  const map=Object.fromEntries(state.teams.map(t=>[t.id,t]));
   gids.forEach(gid=>{
     const card=document.createElement('div'); card.className='panel';
     card.innerHTML=`<h3>Grupa ${gid} — Stāvējums</h3>`;
-    const tbl=document.createElement('table'); tbl.className='standings-table';
+    const tbl=document.createElement('table'); tbl.className='standings-table tnum';
     tbl.innerHTML=`<thead><tr><th>#</th><th>Komanda</th><th>Sp</th><th>U</th><th>Z</th><th>GF</th><th>GA</th><th>GD</th><th>P</th></tr></thead><tbody></tbody>`;
     const body=$('tbody',tbl);
     st[gid].forEach((r,i)=>{
-      const logo = state.logos?.[r.teamId];
-      const nameCell = `<span class="row" style="gap:8px"><span>${logo?`<img class="logo" src="${logo}" alt="">`:''}</span><span class="name-nowrap">${r.name}</span></span>`;
+      const nameCell = `<span class="row" style="gap:8px"><span class="name-nowrap">${r.name}</span></span>`;
       const tr=document.createElement('tr');
       tr.innerHTML=`<td style="text-align:center">${i+1}</td>
         <td>${nameCell}</td>
@@ -485,7 +524,7 @@ function renderStandings(){
     });
     card.appendChild(tbl); host.appendChild(card);
   });
-  $('#standingsPanel').hidden = gids.length===0;
+  $('#standingsPanel').hidden = !gids.length;
 }
 
 /* ===== BRACKET ===== */
@@ -518,7 +557,7 @@ function renderBracket(){
         <input class="score-in" type="number" min="0" value="${m.as??''}" data-stage="${stage}" data-id="${m.id}" data-side="as" />
       </div>
       <div class="row" style="margin-top:8px">
-        <label class="ot-inline"><input class="chk" type="checkbox" ${m.ot?'checked':''} data-stage="${stage}" data-id="${m.id}" data-ot="flag" /> <span>OT</span></label>
+        <label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)"><input class="chk" type="checkbox" ${m.ot?'checked':''} data-stage="${stage}" data-id="${m.id}" data-ot="flag" /> OT</label>
       </div>`;
     return el;
   };
@@ -553,7 +592,7 @@ function renderBracket(){
   refreshOverallButtons();
 }
 
-/* ===== IMAGES ===== */
+/* ===== IMAGES & Branding ===== */
 function renderBrandHeader(){ const img=$('#brandLogoImg'), dot=$('#brandDot');
   if(state.brandLogo){ img.src=state.brandLogo; img.style.display='inline-block'; dot.style.display='none'; } else { img.src=''; img.style.display='none'; dot.style.display='inline-block'; }
   $('#brandTitle').textContent = state.name || 'Turnīru Aplikācija';
@@ -612,11 +651,11 @@ function renderOverall(o){
   awards.appendChild(card('Visvairāk gūtie vārti', `${o.topGF.join(', ')} (${o.maxGF})`));
   awards.appendChild(card('Visvairāk ielaistie vārti', `${o.topGA.join(', ')} (${o.maxGA})`));
 
-  const host=$('#teamStatsHost'); const tbl=document.createElement('table'); tbl.className='standings-table';
+  const host=$('#teamStatsHost'); const tbl=document.createElement('table'); tbl.className='standings-table tnum';
   tbl.innerHTML=`<thead><tr><th>Komanda</th><th>Sp</th><th>U</th><th>Z</th><th>GF</th><th>GA</th><th>GD</th></tr></thead><tbody></tbody>`;
   const body=$('tbody',tbl);
   o.teamStats.forEach(s=>{
-    const logo=state.logos?.[s.teamId]; const nameCell=`<span class="row" style="gap:8px">${logo?`<img class="logo" src="${logo}" alt="">`:''}<span class="name-nowrap">${s.name}</span></span>`;
+    const nameCell=`<span class="row" style="gap:8px"><span class="name-nowrap">${s.name}</span></span>`;
     const tr=document.createElement('tr');
     tr.innerHTML=`<td>${nameCell}</td><td style="text-align:center">${s.played}</td><td style="text-align:center">${s.wins}</td><td style="text-align:center">${s.losses}</td>
       <td style="text-align:center">${s.gf}</td><td style="text-align:center">${s.ga}</td><td style="text-align:center">${s.gf-s.ga}</td>`;
@@ -641,38 +680,28 @@ $('#downloadPdfBtn').addEventListener('click', ()=>{
     doc.text(`Visvairāk gūtie vārti: ${state.overall.topGF.join(', ')} (${state.overall.maxGF})`, margin, y0+lineH);
     doc.text(`Visvairāk ielaistie vārti: ${state.overall.topGA.join(', ')} (${state.overall.maxGA})`, margin, y0+lineH*2);
 
-    const rows = state.overall.teamStats.map(s=>({ name:s.name, logo: state.logos?.[s.teamId]||null, Sp:s.played, U:s.wins, Z:s.losses, GF:s.gf, GA:s.ga, GD:(s.gf-s.ga) }));
+    const rows = state.overall.teamStats.map(s=>({ name:s.name, Sp:s.played, U:s.wins, Z:s.losses, GF:s.gf, GA:s.ga, GD:(s.gf-s.ga) }));
     doc.autoTable({
       startY: y0+lineH*3+10,
-      head: [['', 'Komanda','Sp','U','Z','GF','GA','GD']],
-      body: rows.map(r=>['', r.name, r.Sp, r.U, r.Z, r.GF, r.GA, r.GD]),
+      head: [['Komanda','Sp','U','Z','GF','GA','GD']],
+      body: rows.map(r=>[r.name, r.Sp, r.U, r.Z, r.GF, r.GA, r.GD]),
       styles:{font:'helvetica',fontSize:10,cellPadding:4},
       headStyles:{fillColor:[124,92,255],textColor:255},
       alternateRowStyles:{fillColor:[245,245,248]},
-      margin:{left:margin,right:margin},
-      didDrawCell:(data)=>{
-        if(data.section==='body' && data.column.index===0){
-          const rowIdx=data.row.index, lg=rows[rowIdx].logo;
-          if(lg){ const x=data.cell.x+6, y=data.cell.y+6, size=14; try{ doc.addImage(lg,'PNG',x,y,size,size,undefined,'FAST'); }catch{} }
-        }
-        if(data.section==='head' && data.column.index===0){ doc.setFontSize(9); doc.text('Logo', data.cell.x+6, data.cell.y+11); }
-      },
-      willDrawCell:(data)=>{ if(data.column.index===0) data.cell.styles.cellPadding={top:4,right:4,bottom:4,left:24}; }
+      margin:{left:margin,right:margin}
     });
-
     const fname=`${slugify(state.name)}_${todayStamp()}_kopsavilkums.pdf`; doc.save(fname); sfx.success();
   }catch(e){ alert('Neizdevās ģenerēt PDF.'); }
 });
 
-/* ===== UI helpers ===== */
+/* ===== Hook up ===== */
 function updateGroupOptions(){
   const n = ($('#teamsInput').value.split('\n').map(s=>s.trim()).filter(Boolean)).length;
   const optN1=$('#groupStrategy').querySelector('option[value="n1"]');
   if(n>6){ optN1.disabled=true; optN1.title='1 grupa atļauta tikai ja ≤6 komandas'; } else { optN1.disabled=false; optN1.title=''; }
 }
-
-/* ===== Hook up ===== */
 $('#teamsInput').addEventListener('input', updateGroupOptions);
+
 $('#genGroups').addEventListener('click', ()=>{
   const name=$('#tName').value.trim();
   const teamNames=$('#teamsInput').value.split('\n').map(s=>s.trim()).filter(Boolean);
