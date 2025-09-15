@@ -1,469 +1,498 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="lv">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>GameOn Tournament</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Playoff Bracket — Quarterfinals</title>
+  <meta name="color-scheme" content="light dark" />
   <style>
-    /* Mobilajam pielāgots dizains – samazināts fonts un kompaktāki izmeri */
+    /* ===== Design Tokens (tikai dizains, nekas par datu loģiku) ===== */
+    :root {
+      --bg:        #0b0f14;
+      --bg-soft:   #0f1520;
+      --card:      #121826cc; /* ar nelielu caurspīdību stikla efektam */
+      --card-solid:#121826;
+      --text:      #e6e9ef;
+      --muted:     #9aa4b2;
+      --accent:    #7c5cff;   /* var nomainīt uz zīmola krāsu */
+      --ok:        #19c37d;
+      --danger:    #ff5d5d;
+      --ring:      #2a3250;
+      --shadow:    0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
+      --radius:    14px;
+      --gap:       clamp(16px, 2vw, 24px);
+      --font: ui-sans-serif, system-ui, -apple-system, "SF Pro Text", "Inter", "Segoe UI", Roboto, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg:        #f7f8fb;
+        --bg-soft:   #eef1f7;
+        --card:      #ffffffcc;
+        --card-solid:#ffffff;
+        --text:      #0f172a;
+        --muted:     #51607a;
+        --ring:      #dfe6f2;
+        --shadow:    0 10px 30px rgba(10,20,40,.08), inset 0 1px 0 rgba(255,255,255,.8);
+      }
+    }
+
+    /* ===== Page chrome ===== */
+    html, body { height: 100%; background: radial-gradient(1200px 600px at 80% -10%, #1a2140 0%, var(--bg) 50%) fixed; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
-      margin: 0; padding: 0;
-      background-color: #F2F2F7;
-      color: #1C1C1E;
-      font-size: 20px;
+      margin: 0; font-family: var(--font); color: var(--text);
+      background-color: var(--bg);
+      -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
     }
-    .container {
-      width: 95%;
-      max-width: 900px;
-      margin: 20px auto;
-      background: #FFFFFF;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      padding: 10px;
-      box-sizing: border-box;
+
+    .app {
+      min-height: 100%;
+      display: grid;
+      grid-template-rows: auto 1fr;
     }
-    h1, h2 { font-weight: 600; color: #007AFF; margin-bottom: 8px; font-size: 24px; }
-    h3 { font-weight: 600; color: #007AFF; margin: 12px 0 4px; font-size: 22px; }
-    p { font-size: 20px; line-height: 1.4; }
-    input, textarea {
-      width: 100%; padding: 6px; font-size: 20px;
-      border: 1px solid #C7C7CC; border-radius: 6px;
-      margin-bottom: 8px; box-sizing: border-box;
+
+    header.appbar {
+      position: sticky; top: 0; z-index: 5;
+      backdrop-filter: saturate(120%) blur(10px);
+      background: linear-gradient(180deg, color-mix(in oklab, var(--card) 86%, transparent), transparent);
+      border-bottom: 1px solid var(--ring);
     }
-    button {
-      font-size: 20px; padding: 6px 10px;
-      background-color: #007AFF; color: #FFFFFF;
-      border: none; border-radius: 6px;
-      cursor: pointer; transition: background-color 0.2s;
-      width: 100%; box-sizing: border-box; margin-bottom: 8px;
+    .appbar__inner {
+      max-width: 1200px; margin: 0 auto; padding: 14px max(16px, 4vw);
+      display: flex; align-items: center; gap: 14px; justify-content: space-between;
     }
-    button:hover { background-color: #005BBB; }
-    .tab-bar {
-      position: fixed; bottom: 0; left: 0; right: 0;
-      background-color: #FFFFFF; border-top: 1px solid #C7C7CC;
-      display: flex; justify-content: space-around;
-      padding: 6px 0; box-shadow: 0 -2px 5px rgba(0,0,0,0.1); z-index: 1000;
+    .brand {
+      display: flex; align-items: center; gap: 12px; font-weight: 700; letter-spacing: .2px;
     }
-    .tab-bar button {
-      background: none; border: none; font-size: 18px; color: #007AFF;
-      flex-grow: 1; text-align: center; padding: 4px 0;
+    .brand__dot {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #fff8, #fff0), linear-gradient(135deg, var(--accent), #45a2ff);
+      box-shadow: 0 0 20px color-mix(in oklab, var(--accent) 40%, transparent);
     }
-    .tab-bar button.active { font-weight: 600; }
-    .section { display: none; }
-    .section.active { display: block; }
-    table { width: 100%; border-collapse: collapse; font-size: 18px; margin-bottom: 12px; }
-    th, td {
-      padding: 4px; border: 1px solid #C7C7CC; text-align: center; word-wrap: break-word;
+    .brand__title { font-size: 15px; opacity: .9 }
+    .actions { display: flex; align-items: center; gap: 8px; }
+    .btn {
+      appearance: none; border: 0; border-radius: 999px; padding: 10px 14px;
+      font: inherit; color: var(--text); background: var(--card-solid);
+      box-shadow: var(--shadow); cursor: pointer; transition: transform .2s ease, background .2s ease;
+      border: 1px solid var(--ring);
     }
-    th { background-color: #F2F2F7; font-weight: 600; }
+    .btn:hover { transform: translateY(-1px) }
+    .btn--accent { background: linear-gradient(135deg, var(--accent), color-mix(in oklab, var(--accent) 60%, #45a2ff)); color: white; border: none; }
+    .btn--ghost { background: transparent; border: 1px solid var(--ring); }
+
+    /* ===== Bracket layout (sākot no Quarterfinals) ===== */
+    .stage {
+      max-width: 1200px; margin: 28px auto; padding: 0 max(16px, 4vw) 64px;
+    }
+    .stage__head {
+      display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px;
+    }
+    .stage__title { font-size: clamp(18px, 2.6vw, 22px); font-weight: 700; letter-spacing: .2px; }
+    .stage__subtitle { color: var(--muted); font-size: 13px; }
+
+    .bracket {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr; /* QF | SF | F */
+      gap: var(--gap);
+      align-items: start;
+    }
+    /* kolonnām nosaukumi */
+    .col { display: grid; gap: var(--gap); align-content: start; }
+    .col--qf  { grid-column: 1; }
+    .col--sf  { grid-column: 2; }
+    .col--fin { grid-column: 3; }
+
+    /* ===== Match card ===== */
+    .match {
+      position: relative;
+      border-radius: var(--radius);
+      background: var(--card);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--ring);
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+      transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+      will-change: transform;
+    }
+    .match:hover { transform: translateY(-2px); }
+    .match__meta {
+      display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 12px; color: var(--muted);
+    }
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; padding: 6px 10px;
+      background: color-mix(in oklab, var(--card-solid) 70%, transparent); border: 1px solid var(--ring);
+    }
+    .status { text-transform: uppercase; letter-spacing: .12em; font-weight: 600; }
+    .status--live { color: var(--danger); }
+    .status--final { color: var(--ok); }
+
+    .team {
+      display: grid; grid-template-columns: 1fr auto; align-items: center;
+      gap: 10px; padding: 10px 12px; border-radius: 10px; border: 1px solid transparent;
+      background: linear-gradient(180deg, transparent, color-mix(in oklab, var(--card-solid) 8%, transparent));
+    }
+    .team__left {
+      display: flex; align-items: center; gap: 10px; min-width: 0;
+    }
+    .seed {
+      width: 26px; height: 26px; border-radius: 50%;
+      display: grid; place-items: center; font-weight: 700; font-size: 12px;
+      background: color-mix(in oklab, var(--accent) 16%, var(--card-solid));
+      border: 1px solid var(--ring);
+      box-shadow: inset 0 0 0 1px color-mix(in oklab, white 6%, transparent);
+    }
+    .name {
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; letter-spacing: .2px;
+    }
+    .score {
+      font-feature-settings: "tnum" 1, "ss01" 1;
+      font-variant-numeric: tabular-nums; font-weight: 800;
+      padding: 4px 8px; border-radius: 8px; border: 1px solid var(--ring);
+      background: color-mix(in oklab, var(--card-solid) 60%, transparent);
+    }
+    .team--winner .score { background: color-mix(in oklab, var(--ok) 24%, var(--card-solid)); border-color: color-mix(in oklab, var(--ok) 40%, var(--ring)); }
+    .team--winner { outline: 2px solid color-mix(in oklab, var(--ok) 40%, transparent); outline-offset: -2px; }
+    .team--loser .score { opacity: .7; }
+
+    /* ===== Round titles ===== */
+    .roundtitle {
+      font-size: 12px; text-transform: uppercase; letter-spacing: .14em; color: var(--muted);
+      margin-bottom: 6px; padding-left: 4px;
+    }
+
+    /* ===== SVG savienojumi starp raundiem ===== */
+    .links {
+      position: absolute; inset: 0; pointer-events: none; /* tikai vizuāli, nekas klik. */
+    }
+    .linkPath {
+      fill: none; stroke: color-mix(in oklab, var(--ring) 70%, transparent); stroke-width: 2;
+    }
+    .linkPath--active { stroke: color-mix(in oklab, var(--accent) 55%, var(--ring)); stroke-width: 2.5; }
+
+    /* ===== Responsīvs skats ===== */
+    @media (max-width: 980px) {
+      .bracket { overflow-x: auto; grid-auto-flow: column; grid-template-columns: repeat(3, min(85vw, 420px)); padding-bottom: 4px; }
+    }
+    @media (max-width: 560px) {
+      .match { padding: 12px }
+      .seed { width: 22px; height: 22px; font-size: 11px; }
+      .score { padding: 3px 7px }
+      .appbar__inner { padding: 12px 16px }
+    }
+
+    /* ===== Accessibility tweaks ===== */
+    .match:focus-within { outline: 2px solid color-mix(in oklab, var(--accent) 50%, transparent); outline-offset: 2px; }
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; animation: none !important; }
+    }
   </style>
 </head>
 <body>
-  <!-- Sākuma sadaļa -->
-  <div class="container" id="startSection">
-    <h1>GameOn – Turnīra Pārvaldība</h1>
-    <p>Ievadi spēles nosaukumu, lai izveidotu jaunu turnīru vai pievienotos esošam.</p>
-    <label for="gameNameInput">Spēles nosaukums:</label>
-    <input type="text" id="gameNameInput" placeholder="piem. 'Rīga Cup 2025'">
-    <button onclick="newGame()">Jauna Spēle</button>
-    <button onclick="joinGame()">Pievienoties Spēlei</button>
-    <div id="currentGameInfo" style="display:none; margin-top:8px;">
-      <p><strong>Spēles ID:</strong> <span id="gameNameDisplay"></span></p>
-      <button onclick="activateSection('inputSection')">Ievadi Komandas</button>
-    </div>
+  <div class="app">
+    <header class="appbar" role="banner">
+      <div class="appbar__inner">
+        <div class="brand" aria-label="Playoff aplikācija">
+          <span class="brand__dot" aria-hidden="true"></span>
+          <span class="brand__title">Playoff Bracket</span>
+        </div>
+        <div class="actions">
+          <button class="btn btn--ghost" id="themeToggle" aria-pressed="false" aria-label="Pārslēgt tēmu">Tēma</button>
+          <button class="btn btn--accent">Eksports</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="stage" role="main">
+      <div class="stage__head">
+        <div>
+          <div class="stage__title">Izslēgšanas spēles</div>
+          <div class="stage__subtitle">Sākot no ceturtdaļfināliem (QF → SF → Final)</div>
+        </div>
+      </div>
+
+      <section class="bracket" aria-label="Playoff izkārtojums">
+        <!-- SVG savienojumu slānis (tikai dizains) -->
+        <svg class="links" id="links" xmlns="http://www.w3.org/2000/svg"></svg>
+
+        <!-- Quarterfinals -->
+        <div class="col col--qf" aria-label="Ceturtdaļfināli">
+          <div class="roundtitle">Quarterfinals</div>
+
+          <article class="match" id="qf1" tabindex="0" aria-label="QF-1">
+            <div class="match__meta">
+              <span class="badge">QF-1 • 20:00</span>
+              <span class="status status--final">FT</span>
+            </div>
+            <div class="team team--winner">
+              <div class="team__left">
+                <span class="seed">1</span>
+                <span class="name" data-name>Riga Hawks</span>
+              </div>
+              <span class="score" data-score>87</span>
+            </div>
+            <div class="team team--loser">
+              <div class="team__left">
+                <span class="seed">8</span>
+                <span class="name" data-name>Jurmala Tide</span>
+              </div>
+              <span class="score" data-score>72</span>
+            </div>
+          </article>
+
+          <article class="match" id="qf2" tabindex="0" aria-label="QF-2">
+            <div class="match__meta">
+              <span class="badge">QF-2 • 20:00</span>
+              <span class="status status--final">FT</span>
+            </div>
+            <div class="team team--loser">
+              <div class="team__left">
+                <span class="seed">4</span>
+                <span class="name" data-name>Liepaja North</span>
+              </div>
+              <span class="score" data-score>65</span>
+            </div>
+            <div class="team team--winner">
+              <div class="team__left">
+                <span class="seed">5</span>
+                <span class="name" data-name>Ventspils Wave</span>
+              </div>
+              <span class="score" data-score>76</span>
+            </div>
+          </article>
+
+          <article class="match" id="qf3" tabindex="0" aria-label="QF-3">
+            <div class="match__meta">
+              <span class="badge">QF-3 • 20:00</span>
+              <span class="status">Scheduled</span>
+            </div>
+            <div class="team">
+              <div class="team__left">
+                <span class="seed">2</span>
+                <span class="name" data-name>Valmiera Green</span>
+              </div>
+              <span class="score" data-score>–</span>
+            </div>
+            <div class="team">
+              <div class="team__left">
+                <span class="seed">7</span>
+                <span class="name" data-name>Daugavpils Steel</span>
+              </div>
+              <span class="score" data-score>–</span>
+            </div>
+          </article>
+
+          <article class="match" id="qf4" tabindex="0" aria-label="QF-4">
+            <div class="match__meta">
+              <span class="badge">QF-4 • 20:00</span>
+              <span class="status status--live">Live</span>
+            </div>
+            <div class="team team--winner">
+              <div class="team__left">
+                <span class="seed">3</span>
+                <span class="name" data-name>Jelgava Forge</span>
+              </div>
+              <span class="score" data-score>54</span>
+            </div>
+            <div class="team team--loser">
+              <div class="team__left">
+                <span class="seed">6</span>
+                <span class="name" data-name>Ogre Storm</span>
+              </div>
+              <span class="score" data-score>49</span>
+            </div>
+          </article>
+        </div>
+
+        <!-- Semifinals -->
+        <div class="col col--sf" aria-label="Pusfināli">
+          <div class="roundtitle">Semifinals</div>
+
+          <article class="match" id="sf1" tabindex="0" aria-label="SF-1">
+            <div class="match__meta">
+              <span class="badge">SF-1 • 21:00</span>
+              <span class="status">Scheduled</span>
+            </div>
+            <div class="team">
+              <div class="team__left">
+                <span class="seed">?</span>
+                <span class="name" data-name>Winner QF-1</span>
+              </div>
+              <span class="score" data-score>–</span>
+            </div>
+            <div class="team">
+              <div class="team__left">
+                <span class="seed">?</span>
+                <span class="name" data-name>Winner QF-2</span>
+              </div>
+              <span class="score" data-score>–</span>
+            </div>
+          </article>
+
+          <article class="match" id="sf2" tabindex="0" aria-label="SF-2">
+            <div class="match__meta">
+              <span class="badge">SF-2 • 21:00</span>
+              <span class="status">Scheduled</span>
+            </div>
+            <div class="team">
+              <div class="team__left">
+                <span class="seed">?</span>
+                <span class="name" data-name>Winner QF-3</span>
+              </div>
+              <span class="score" data-score>–</span>
+            </div>
+            <div class="team">
+              <div class="team__left">
+                <span class="seed">?</span>
+                <span class="name" data-name>Winner QF-4</span>
+              </div>
+              <span class="score" data-score>–</span>
+            </div>
+          </article>
+        </div>
+
+        <!-- Final -->
+        <div class="col col--fin" aria-label="Fināls">
+          <div class="roundtitle">Final</div>
+
+          <article class="match" id="final" tabindex="0" aria-label="Final">
+            <div class="match__meta">
+              <span class="badge">Final • 22:00</span>
+              <span class="status">Scheduled</span>
+            </div>
+            <div class="team">
+              <div class="team__left">
+                <span class="seed">?</span>
+                <span class="name" data-name>Winner SF-1</span>
+              </div>
+              <span class="score" data-score>–</span>
+            </div>
+            <div class="team">
+              <div class="team__left">
+                <span class="seed">?</span>
+                <span class="name" data-name>Winner SF-2</span>
+              </div>
+              <span class="score" data-score>–</span>
+            </div>
+          </article>
+
+          <!-- (Neobligāts) spēle par 3. vietu -->
+          <div class="roundtitle" style="margin-top: var(--gap);">Third Place</div>
+          <article class="match" id="third" tabindex="0" aria-label="Third Place">
+            <div class="match__meta">
+              <span class="badge">3rd • 20:30</span>
+              <span class="status">Scheduled</span>
+            </div>
+            <div class="team">
+              <div class="team__left">
+                <span class="seed">?</span>
+                <span class="name" data-name>Loser SF-1</span>
+              </div>
+              <span class="score" data-score>–</span>
+            </div>
+            <div class="team">
+              <div class="team__left">
+                <span class="seed">?</span>
+                <span class="name" data-name>Loser SF-2</span>
+              </div>
+              <span class="score" data-score>–</span>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
   </div>
-  
-  <!-- Galvenais saturs -->
-  <div class="container" id="mainContent" style="display:none;">
-    <!-- Komandu Ievade -->
-    <div class="section" id="inputSection">
-      <h2>Komandu Ievade</h2>
-      <p>Ievadi katru komandu jaunā rindā:</p>
-      <textarea id="teamsInput" rows="6" placeholder="Team A&#10;Team B&#10;Team C"></textarea>
-      <button onclick="saveTeams()">Saglabāt Komandas un Ģenerēt Turnīru</button>
-    </div>
-    
-    <!-- Group A Section -->
-    <div class="section" id="groupASection">
-      <h2>Group A Schedule</h2>
-      <div id="groupAContainer"></div>
-    </div>
-    
-    <!-- Group B Section -->
-    <div class="section" id="groupBSection">
-      <h2>Group B Schedule</h2>
-      <div id="groupBContainer"></div>
-    </div>
-    
-    <!-- Standings Section -->
-    <div class="section" id="standingsSection">
-      <h2>Standings</h2>
-      <h3>Group A Standings</h3>
-      <div id="standingsAContainer"></div>
-      <h3>Group B Standings</h3>
-      <div id="standingsBContainer"></div>
-    </div>
-    
-    <!-- Playoffs Section -->
-    <div class="section" id="playoffsSection">
-      <h2>Playoffs Bracket</h2>
-      <div id="playoffsContainer"></div>
-    </div>
-  </div>
-  
-  <!-- Apakšējā navigācijas josla -->
-  <div class="tab-bar" id="tabBar" style="display:none;">
-    <button id="tabInput" onclick="activateSection('inputSection')">Ievade</button>
-    <button id="tabGroupA" onclick="activateSection('groupASection')">Group A</button>
-    <button id="tabGroupB" onclick="activateSection('groupBSection')">Group B</button>
-    <button id="tabStandings" onclick="activateSection('standingsSection')">Standings</button>
-    <button id="tabPlayoffs" onclick="activateSection('playoffsSection')">Playoffs</button>
-  </div>
-  
+
+  <!-- Neliels, neinvazīvs JS: 1) tēmas pārslēgšana 2) SVG savienojumu zīmēšana starp raundiem -->
   <script>
-    const scriptUrl = "https://script.google.com/macros/s/AKfycbzfBFIGVe5RhJh5Kgucv2K3ms2MIUMAd2haR6-WCqUkDEt6KJZMmootY5_R3FP9QSssZA/exec";
-    let currentGameName = "";
-    
-    function newGame() {
-      let userGameName = document.getElementById("gameNameInput").value.trim();
-      const params = new URLSearchParams();
-      params.append("action", "newGame");
-      if (userGameName !== "") {
-        params.append("userGameName", userGameName);
-      }
-      fetch(scriptUrl + "?" + params.toString())
-        .then(res => res.json())
-        .then(data => {
-          if (data.error) {
-            alert("Kļūda: " + data.error);
-          } else {
-            currentGameName = data.gameName;
-            document.getElementById("gameNameDisplay").innerText = currentGameName;
-            document.getElementById("currentGameInfo").style.display = "block";
-            document.getElementById("startSection").style.display = "none";
-            document.getElementById("mainContent").style.display = "block";
-            document.getElementById("tabBar").style.display = "flex";
-            activateSection('inputSection');
-          }
-        })
-        .catch(err => {
-          console.error("Kļūda jaunas spēles izveidē:", err);
-          alert("Kļūda jaunas spēles izveidē");
-        });
-    }
-    
-    function joinGame() {
-      let gameName = document.getElementById("gameNameInput").value.trim();
-      if (gameName === "") {
-        alert("Lūdzu ievadi spēles nosaukumu!");
-        return;
-      }
-      const params = new URLSearchParams();
-      params.append("action", "joinGame");
-      params.append("gameName", gameName);
-      fetch(scriptUrl + "?" + params.toString())
-        .then(res => res.json())
-        .then(data => {
-          if (data.error) {
-            alert("Kļūda: " + data.error);
-          } else {
-            currentGameName = data.gameName;
-            document.getElementById("gameNameDisplay").innerText = currentGameName;
-            document.getElementById("currentGameInfo").style.display = "block";
-            document.getElementById("startSection").style.display = "none";
-            document.getElementById("mainContent").style.display = "block";
-            document.getElementById("tabBar").style.display = "flex";
-            activateSection('inputSection');
-          }
-        })
-        .catch(err => {
-          console.error("Kļūda pievienoties spēlei:", err);
-          alert("Kļūda pievienoties spēlei");
-        });
-    }
-    
-    function activateSection(sectionId) {
-      document.querySelectorAll(".section").forEach(sec => sec.classList.remove("active"));
-      document.getElementById(sectionId).classList.add("active");
-      document.querySelectorAll(".tab-bar button").forEach(btn => btn.classList.remove("active"));
-      if (sectionId === "inputSection")       document.getElementById("tabInput").classList.add("active");
-      if (sectionId === "groupASection")      document.getElementById("tabGroupA").classList.add("active");
-      if (sectionId === "groupBSection")      document.getElementById("tabGroupB").classList.add("active");
-      if (sectionId === "standingsSection")   document.getElementById("tabStandings").classList.add("active");
-      if (sectionId === "playoffsSection")    document.getElementById("tabPlayoffs").classList.add("active");
-      if (sectionId === "groupASection")      loadGroupSchedule("A");
-      if (sectionId === "groupBSection")      loadGroupSchedule("B");
-      if (sectionId === "standingsSection")   loadStandings();
-      if (sectionId === "playoffsSection")    loadPlayoffs();
-    }
-    
-    function saveTeams() {
-      const teamsText = document.getElementById("teamsInput").value;
-      const teamsArray = teamsText.split("\n").map(t => t.trim()).filter(t => t !== "");
-      if (teamsArray.length === 0) {
-        alert("Lūdzu ievadi vismaz vienu komandu!");
-        return;
-      }
-      if (currentGameName === "") {
-        alert("Nav izvēlēta spēle!");
-        return;
-      }
-      const params = new URLSearchParams();
-      params.append("action", "saveTeams");
-      params.append("gameName", currentGameName);
-      params.append("teams", JSON.stringify(teamsArray));
-      
-      fetch(scriptUrl + "?" + params.toString())
-        .then(res => res.json())
-        .then(data => {
-          if (data.error) {
-            alert("Kļūda: " + data.error);
-          } else {
-            alert("Turnīrs izveidots!");
-            activateSection('standingsSection');
-          }
-        })
-        .catch(err => {
-          console.error("Kļūda saglabājot komandas:", err);
-          alert("Kļūda saglabājot komandas");
-        });
-    }
-    
-    function loadGroupSchedule(group) {
-      if (!currentGameName) return;
-      const params = new URLSearchParams();
-      params.append("action", group === "A" ? "getGroupASchedule" : "getGroupBSchedule");
-      params.append("gameName", currentGameName);
-      fetch(`${scriptUrl}?${params}`)
-        .then(res => res.json())
-        .then(data => displayGroupSchedule(group, data))
-        .catch(err => {
-          console.error("Kļūda ielādējot Group " + group, err);
-          alert("Kļūda ielādējot datus");
-        });
-    }
-    
-    function displayGroupSchedule(group, data) {
-      let html = `<table>
-                    <tr>
-                      <th>Match #</th>
-                      <th>Team A</th>
-                      <th>Team B</th>
-                      <th>Score A</th>
-                      <th>Score B</th>
-                      <th>Action</th>
-                    </tr>`;
-      data.rows.forEach(row => {
-        const m = row[0], tA = row[1], tB = row[2], sA = row[3], sB = row[4];
-        const disabled = (sA !== "" && sB !== "") ? "disabled" : "";
-        html += `<tr>
-                   <td>${m}</td>
-                   <td>${tA}</td>
-                   <td>${tB}</td>
-                   <td><input type="number" id="scoreA_${group}_${m}" value="${sA}" ${disabled}></td>
-                   <td><input type="number" id="scoreB_${group}_${m}" value="${sB}" ${disabled}></td>
-                   <td>${disabled
-                     ? "ok"
-                     : `<button onclick="saveGroupScore('${group}', ${m})">ok</button>`}
-                   </td>
-                 </tr>`;
+    // ===== 1) Tēmas pārslēgšana (tikai UI) =====
+    (function themeToggle(){
+      const btn = document.getElementById('themeToggle');
+      if(!btn) return;
+      const root = document.documentElement;
+      let forced = null;
+      btn.addEventListener('click', () => {
+        forced = forced === 'light' ? 'dark' : forced === 'dark' ? null : 'light';
+        btn.setAttribute('aria-pressed', String(!!forced));
+        root.dataset.theme = forced || '';
+        if (forced === 'light') document.documentElement.style.colorScheme = 'light';
+        else if (forced === 'dark') document.documentElement.style.colorScheme = 'dark';
+        else document.documentElement.style.colorScheme = '';
       });
-      html += `</table>`;
-      document.getElementById(group === "A" ? "groupAContainer" : "groupBContainer").innerHTML = html;
-    }
-    
-    // pēc rezultāta saglabāšanas – pārlādē scheduli, standings un playoff
-    function saveGroupScore(group, matchNumber) {
-      const scoreA = document.getElementById(`scoreA_${group}_${matchNumber}`).value;
-      const scoreB = document.getElementById(`scoreB_${group}_${matchNumber}`).value;
-      if (!scoreA || !scoreB) {
-        alert("Lūdzu aizpildi abas punktu vērtības!");
-        return;
-      }
-      const params = new URLSearchParams({
-        action:       "saveGroupScore",
-        gameName:     currentGameName,
-        group:        group,
-        matchNumber:  matchNumber,
-        scoreA:       scoreA,
-        scoreB:       scoreB
+    })();
+
+    // ===== 2) SVG savienojumu zīmēšana (QF → SF → Final) =====
+    // Šis tikai "uzvelk līnijas" starp jau esošiem match elementiem pēc ID.
+    // Ja tev jau ir sava loģika, pietiek saglabāt šos ID (qf1..qf4, sf1..sf2, final).
+    (function bracketLinks(){
+      const pairs = [
+        ['qf1','sf1'], ['qf2','sf1'],
+        ['qf3','sf2'], ['qf4','sf2'],
+        ['sf1','final'], ['sf2','final'],
+      ];
+      const svg = document.getElementById('links');
+      if (!svg) return;
+
+      const draw = () => {
+        const root = svg.closest('.bracket');
+        const r = root.getBoundingClientRect();
+        svg.setAttribute('viewBox', `0 0 ${r.width} ${r.height}`);
+        svg.setAttribute('width', r.width);
+        svg.setAttribute('height', r.height);
+        svg.innerHTML = '';
+
+        const pathFor = (fromEl, toEl) => {
+          const a = fromEl.getBoundingClientRect();
+          const b = toEl.getBoundingClientRect();
+          const startX = (a.right - r.left);
+          const startY = (a.top + a.height/2 - r.top);
+          const endX   = (b.left - r.left);
+          const endY   = (b.top + b.height/2 - r.top);
+          const midX   = (startX + endX) / 2;
+
+          // Gluds S-curve (Bezier) savienojums
+          return `M ${startX} ${startY} C ${midX} ${startY}, ${midX} ${endY}, ${endX} ${endY}`;
+        };
+
+        for (const [fromId, toId] of pairs) {
+          const fromEl = document.getElementById(fromId);
+          const toEl   = document.getElementById(toId);
+          if (!fromEl || !toEl) continue;
+          const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          p.setAttribute('d', pathFor(fromEl, toEl));
+          p.setAttribute('class', 'linkPath');
+          // ja abi ir “finalizēti”, atzīmē kā aktīvu
+          const isActive =
+            fromEl.querySelector('.status--final') ||
+            toEl.querySelector('.status--final');
+          if (isActive) p.classList.add('linkPath--active');
+          svg.appendChild(p);
+        }
+      };
+
+      const ro = new ResizeObserver(draw);
+      ro.observe(document.querySelector('.bracket'));
+      window.addEventListener('load', draw);
+      window.addEventListener('resize', draw);
+      // Mazs “raf” delays, lai layout nostabilizējas
+      requestAnimationFrame(draw);
+    })();
+
+    // ===== 3) (Neobligāti) automātiski iezīmē uzvarētāju pēc skaita =====
+    // Šis NEMAINA argumentus – tikai vizuāli salīdzina .score un piešķir klases.
+    (function autowin(){
+      document.querySelectorAll('.match').forEach(match => {
+        const teams = match.querySelectorAll('.team');
+        if (teams.length !== 2) return;
+        const s = [...teams].map(t => parseInt((t.querySelector('[data-score]')?.textContent||'').trim(),10));
+        if (!Number.isFinite(s[0]) || !Number.isFinite(s[1])) return;
+        teams[0].classList.toggle('team--winner', s[0] > s[1]);
+        teams[0].classList.toggle('team--loser',  s[0] < s[1]);
+        teams[1].classList.toggle('team--winner', s[1] > s[0]);
+        teams[1].classList.toggle('team--loser',  s[1] < s[0]);
       });
-      fetch(`${scriptUrl}?${params}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.error) {
-            alert("Kļūda: " + data.error);
-          } else {
-            alert("Punkti saglabāti!");
-            loadGroupSchedule(group);
-            loadStandings();
-            loadPlayoffs();
-          }
-        })
-        .catch(err => {
-          console.error("Kļūda saglabājot punktus:", err);
-          alert("Kļūda saglabājot punktus");
-        });
-    }
-    
-    function loadStandings() {
-      if (!currentGameName) return;
-      const params = new URLSearchParams({
-        action:   "standings",
-        gameName: currentGameName
-      });
-      fetch(`${scriptUrl}?${params}`)
-        .then(res => res.json())
-        .then(data => {
-          let htmlA = `<table>
-                        <tr>
-                          <th>Team</th><th>Games</th><th>Wins</th>
-                          <th>Losses</th><th>Points For</th><th>Points Against</th>
-                        </tr>`;
-          data.standingsA.forEach(r => {
-            htmlA += `<tr>
-                        <td>${r.Team}</td>
-                        <td>${r.Games}</td>
-                        <td>${r.Wins}</td>
-                        <td>${r.Losses}</td>
-                        <td>${r["Points For"]}</td>
-                        <td>${r["Points Against"]}</td>
-                      </tr>`;
-          });
-          htmlA += `</table>`;
-          document.getElementById("standingsAContainer").innerHTML = htmlA;
-          
-          let htmlB = `<table>
-                        <tr>
-                          <th>Team</th><th>Games</th><th>Wins</th>
-                          <th>Losses</th><th>Points For</th><th>Points Against</th>
-                        </tr>`;
-          data.standingsB.forEach(r => {
-            htmlB += `<tr>
-                        <td>${r.Team}</td>
-                        <td>${r.Games}</td>
-                        <td>${r.Wins}</td>
-                        <td>${r.Losses}</td>
-                        <td>${r["Points For"]}</td>
-                        <td>${r["Points Against"]}</td>
-                      </tr>`;
-          });
-          htmlB += `</table>`;
-          document.getElementById("standingsBContainer").innerHTML = htmlB;
-        })
-        .catch(err => {
-          console.error("Kļūda ielādējot standings:", err);
-          alert("Kļūda ielādējot datus");
-        });
-    }
-    
-    function loadPlayoffs() {
-      if (!currentGameName) return;
-      const params = new URLSearchParams({
-        action:   "getPlayoffSchedule",
-        gameName: currentGameName
-      });
-      fetch(`${scriptUrl}?${params}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.error) {
-            alert("Kļūda ielādējot playoffs: " + data.error);
-          } else {
-            displayPlayoffs(data.rows || []);
-          }
-        })
-        .catch(err => {
-          console.error("Kļūda ielādējot playoffs:", err);
-          alert("Kļūda ielādējot datus");
-        });
-    }
-    
-    // Izveido html tabulu pēc rindām
-    function makeTable(rows) {
-      let html = `<table>
-                    <tr>
-                      <th>Match</th><th>Team 1</th><th>Team 2</th>
-                      <th>Score 1</th><th>Score 2</th>
-                      <th>Winner</th><th>Loser</th><th>Action</th>
-                    </tr>`;
-      rows.forEach(r => {
-        const m = r.match, t1 = r.team1||"", t2 = r.team2||"",
-              s1 = r.score1||"", s2 = r.score2||"",
-              win = r.winner||"", lose = r.loser||"",
-              disabled = (s1 !== "" && s2 !== "") ? "disabled" : "";
-        html += `<tr>
-                   <td>${m}</td>
-                   <td><input type="text" id="pTeam1_${m}" value="${t1}" style="width:100%;font-size:10px;"></td>
-                   <td><input type="text" id="pTeam2_${m}" value="${t2}" style="width:100%;font-size:10px;"></td>
-                   <td><input type="number" id="pScore1_${m}" value="${s1}" ${disabled} style="width:50px;font-size:10px;"></td>
-                   <td><input type="number" id="pScore2_${m}" value="${s2}" ${disabled} style="width:50px;font-size:10px;"></td>
-                   <td>${win}</td>
-                   <td>${lose}</td>
-                   <td>${disabled
-                     ? "ok"
-                     : `<button onclick="savePlayoffScore('${m}')">ok</button>`}
-                   </td>
-                 </tr>`;
-      });
-      html += `</table>`;
-      return html;
-    }
-    
-    // Grupē un ataino QF, SF, Final1 un Final2
-    function displayPlayoffs(allRows) {
-      const qf    = allRows.filter(r => /^QF/i.test(r.match));
-      const sf    = allRows.filter(r => /^SF/i.test(r.match));
-      // final1 = the championship final (match name "Final" or "Final1")
-      const final1 = allRows.filter(r => /^Final$/i.test(r.match) || /^Final1$/i.test(r.match));
-      // final2 = the 3rd-place match (match name "3rd" or "Final2")
-      const final2 = allRows.filter(r => /^3rd/i.test(r.match)    || /^Final2$/i.test(r.match));
-      
-      let html = "";
-      if (qf.length)    { html += `<h3>Quarterfinals</h3>` + makeTable(qf); }
-      if (sf.length)    { html += `<h3>Semifinals</h3>`     + makeTable(sf); }
-      if (final1.length){ html += `<h3>Final1</h3>`         + makeTable(final1); }
-      if (final2.length){ html += `<h3>Final2</h3>`         + makeTable(final2); }
-      if (!qf.length && !sf.length && !final1.length && !final2.length) {
-        html = "<p>Nav Playoff datu</p>";
-      }
-      document.getElementById("playoffsContainer").innerHTML = html;
-    }
-    
-    function savePlayoffScore(matchId) {
-      const t1 = document.getElementById(`pTeam1_${matchId}`).value;
-      const t2 = document.getElementById(`pTeam2_${matchId}`).value;
-      const s1 = document.getElementById(`pScore1_${matchId}`).value;
-      const s2 = document.getElementById(`pScore2_${matchId}`).value;
-      if (s1 === "" || s2 === "") {
-        alert("Lūdzu ievadi abas punktu vērtības!");
-        return;
-      }
-      const params = new URLSearchParams({
-        action:   "savePlayoffScore",
-        gameName: currentGameName,
-        matchId:  matchId,
-        score1:   s1,
-        score2:   s2
-      });
-      fetch(`${scriptUrl}?${params}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.error) {
-            alert("Kļūda: " + data.error);
-          } else {
-            alert("Punkti saglabāti!");
-            loadPlayoffs();
-          }
-        })
-        .catch(err => {
-          console.error("Kļūda saglabājot playoff punktus:", err);
-          alert("Kļūda saglabājot punktus");
-        });
-    }
-    
-    // Automātiska ielāde
-    window.onload = () => { loadPlayoffs(); };
+    })();
   </script>
 </body>
 </html>
