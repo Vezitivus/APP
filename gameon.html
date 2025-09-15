@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Turnīru Aplikācija — Grupas + Playoff</title>
+<title>Turnīru Aplikācija — Grupas + Playoff + Sheets Sync</title>
 <meta name="color-scheme" content="light dark" />
 <style>
   :root{
@@ -16,8 +16,7 @@
     :root{ --bg:#f7f8fb; --card:#ffffff; --text:#0f172a; --muted:#51607a; --ring:#dfe2f2; --shadow:0 10px 30px rgba(10,20,40,.08) }
   }
   html,body{height:100%} body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font)}
-  header{position:sticky;top:0;z-index:5;background:linear-gradient(180deg,#0000, #0000), var(--card);
-    border-bottom:1px solid var(--ring); backdrop-filter:saturate(120%) blur(8px)}
+  header{position:sticky;top:0;z-index:5;background:var(--card);border-bottom:1px solid var(--ring);backdrop-filter:saturate(120%) blur(8px)}
   .bar{max-width:1200px;margin:0 auto;padding:12px 20px;display:flex;gap:12px;align-items:center;justify-content:space-between}
   .brand{display:flex;gap:10px;align-items:center;font-weight:800}
   .dot{width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#45a2ff)}
@@ -63,7 +62,6 @@
   <div class="bar">
     <div class="brand"><span class="dot"></span>Turnīru Aplikācija</div>
     <div class="row">
-      <label class="pill"><input type="checkbox" id="useCookies" /> <span class="muted">Saglabāt cepumos</span></label>
       <button class="btn" id="exportBtn">Eksportēt</button>
       <button class="btn" id="importBtn">Importēt</button>
       <button class="btn" id="resetBtn">Notīrīt</button>
@@ -95,7 +93,7 @@
         </select>
         <button class="btn btn--accent" id="genGroups">Ģenerēt grupas</button>
       </div>
-      <p class="muted">Piezīme: dati glabāsies lokāli (localStorage) vai cepumos (ja ieslēgsi slēdzi).</p>
+      <p class="muted">Dati glabājas lokāli (localStorage) un fonā tiek sūtīti uz Google Sheets (ja iestatīts <code>SYNC_ENDPOINT</code>).</p>
     </div>
 
     <div id="groupsPanel" class="grid" hidden>
@@ -122,7 +120,7 @@
     </div>
   </section>
 
-  <!-- INFO / NOTE -->
+  <!-- INFO -->
   <aside class="panel">
     <h2>Noteikumi & Parametri</h2>
     <ul>
@@ -132,44 +130,117 @@
       <li>Playoff: atlasām <b>8 labākās</b> komandas pēc ranga (vispirms 1. vietas, tad 2., u.t.t.). Ja nepietiek, pievieno <i>BYE</i>.</li>
       <li>Bracketa pāri: top4 sēklas vs bottom4 (1–8, 2–7, 3–6, 4–5).</li>
     </ul>
-    <p class="muted">Ja gribi citu punktu skaitu vai kvalifikācijas loģiku, pasaki — pārtaisīšu bez backenda.</p>
+    <p class="muted">Ievieto savu Google Apps Script Web App URL konstantē <code>SYNC_ENDPOINT</code> zemāk esošajā skriptā.</p>
   </aside>
 </main>
 
 <script>
+/* ======================= SYNC CONFIG ======================= */
+/** ←←← Ievieto šeit savu Google Apps Script / Web App URL (no iepriekšējā koda) */
+const SYNC_ENDPOINT = ''; // piem.: 'https://script.google.com/macros/s/AKfycb.../exec'
+const SYNC_ENABLED  = !!SYNC_ENDPOINT;
+
 /* ======================= UTIL ======================= */
 const $ = (sel, root=document)=>root.querySelector(sel);
 const $$ = (sel, root=document)=>Array.from(root.querySelectorAll(sel));
 const uid = ()=>Math.random().toString(36).slice(2,9);
-
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]] } return a }
-
 function deepClone(x){ return JSON.parse(JSON.stringify(x)); }
 
-/* ======================= STORAGE ======================= */
-const STORAGE_KEY='tournament_state_v1';
+/* ======================= STORAGE (localStorage only) ======================= */
+const STORAGE_KEY='tournament_state_v2';
 function saveState(state){
-  const useCookies = $('#useCookies')?.checked;
-  const json = JSON.stringify(state);
-  if(useCookies){
-    // Brīdinu par 4KB limitu, tomēr mēģinām kompaktu stāvokli
-    document.cookie = `${STORAGE_KEY}=${encodeURIComponent(json)}; path=/; max-age=${60*60*24*365}`;
-  }else{
-    localStorage.setItem(STORAGE_KEY, json);
-  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  // fonā – snapshot minimālai atskaitei
+  Sync.push({type:'STATE_SAVE', summary: {
+    name: state.name,
+    teamCount: state.teams.length,
+    groupCount: state.groups.length,
+    hasBracket: !!state.bracket
+  }});
 }
 function loadState(){
-  const fromLS = localStorage.getItem(STORAGE_KEY);
-  const fromCookie = document.cookie.split('; ').find(r=>r.startsWith(STORAGE_KEY+'='));
-  let state = null;
-  if(fromLS){ try{ state = JSON.parse(fromLS) }catch{} }
-  if(!state && fromCookie){ try{ state = JSON.parse(decodeURIComponent(fromCookie.split('=')[1])) }catch{} }
-  return state;
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(!raw) return null;
+  try { return JSON.parse(raw) } catch { return null }
 }
 function clearState(){
   localStorage.removeItem(STORAGE_KEY);
-  document.cookie = `${STORAGE_KEY}=; path=/; max-age=0`;
 }
+
+/* ======================= CLIENT ID ======================= */
+function getClientId(){
+  let id = localStorage.getItem('tournament_client_id');
+  if(!id){
+    id = (crypto.randomUUID?.() ?? ('c_'+uid()));
+    localStorage.setItem('tournament_client_id', id);
+  }
+  return id;
+}
+
+/* ======================= SYNC QUEUE ======================= */
+const Sync = {
+  key: 'tournament_sync_queue_v1',
+  queue: [],
+  timer: null,
+  busy: false,
+  init(){
+    try{ this.queue = JSON.parse(localStorage.getItem(this.key) || '[]') }catch{ this.queue = [] }
+    // auto flush uzreiz, ja ir savienojums
+    if (SYNC_ENABLED && navigator.onLine) this.schedule(300);
+    // notikumi
+    window.addEventListener('online', ()=>this.schedule(0));
+    document.addEventListener('visibilitychange', ()=>{
+      if(document.visibilityState==='hidden') this.flush({beacon:true});
+      else this.schedule(200);
+    });
+    window.addEventListener('beforeunload', ()=>this.flush({beacon:true}));
+  },
+  persist(){ localStorage.setItem(this.key, JSON.stringify(this.queue)) },
+  push(event){
+    if(!SYNC_ENABLED) return; // ja nav endpointa — neko
+    this.queue.push({ t:Date.now(), client:getClientId(), event });
+    this.persist();
+    this.schedule(400);
+  },
+  schedule(ms=400){
+    if(!SYNC_ENABLED) return;
+    clearTimeout(this.timer);
+    this.timer = setTimeout(()=>this.flush().catch(()=>{}), ms);
+  },
+  async flush({beacon=false}={}){
+    if(!SYNC_ENABLED || !this.queue.length) return;
+    const batch = this.queue.slice(0, 50); // porcijās
+    const payload = JSON.stringify({ client:getClientId(), ua:navigator.userAgent, batch });
+    try{
+      if(beacon && navigator.sendBeacon){
+        const ok = navigator.sendBeacon(SYNC_ENDPOINT, new Blob([payload], {type:'application/json'}));
+        if(ok){ this.queue.splice(0, batch.length); this.persist(); }
+        return;
+      }
+      const res = await fetch(SYNC_ENDPOINT, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: payload,
+        mode:'cors', // ja GAS neatļauj CORS, skat. catch -> no-cors
+        keepalive: true
+      });
+      if(res.ok){
+        this.queue.splice(0, batch.length); this.persist();
+      } else {
+        // neatmetam — mēģināsim vēlāk
+      }
+    }catch(e){
+      // fallback bez CORS atbildes nolasīšanas
+      try{ await fetch(SYNC_ENDPOINT, { method:'POST', body: payload, mode:'no-cors', keepalive:true }); }
+      catch(_){}
+      // neatkarīgi no rezultāta — paturam rindā, mēģināsim vēlreiz
+    }finally{
+      if(this.queue.length) this.schedule(1500);
+    }
+  }
+};
+Sync.init();
 
 /* ======================= STATE ======================= */
 let state = {
@@ -183,8 +254,8 @@ let state = {
 /* ======================= GROUPING ======================= */
 function deriveGroupCount(n, strategy){
   if(strategy==='auto'){
-    const guess = Math.max(2, Math.round(n/4)); // ~4 kom./grupa
-    return Math.min(8, Math.max(1, Math.min(guess, n))); // neaiziet virs komandu skaita
+    const guess = Math.max(2, Math.round(n/4));
+    return Math.min(8, Math.max(1, Math.min(guess, n)));
   }
   const fixed = Number(strategy.slice(1));
   return Math.min(fixed, n) || 2;
@@ -196,40 +267,32 @@ function makeGroups(teams, strategy='auto'){
   const gCount = deriveGroupCount(n, strategy);
   const shuffled = shuffle([...teams]);
   const groups = Array.from({length:gCount}, (_,i)=>({ id:String.fromCharCode(65+i), teams:[], matches:[] }));
-  // Distribute round-robin style
   shuffled.forEach((t,i)=> groups[i%gCount].teams.push(t.id));
-  // Generate round-robin fixtures for each group
   groups.forEach(g=>{
-    g.matches = generateRoundRobin(g.teams).map((m,idx)=>({
-      id: uid(), round: m.round, home:m.home, away:m.away, hs:null, as:null
-    }));
+    g.matches = generateRoundRobin(g.teams).map(m=>({ id: uid(), round:m.round, home:m.home, away:m.away, hs:null, as:null }));
   });
+  // sync: grupu izveide
+  Sync.push({type:'GROUPS_INIT', groups: groups.map(g=>({id:g.id, teamCount:g.teams.length, matchCount:g.matches.length}))});
   return groups;
 }
 
-// Berger tables rotation
+// Berger rotation
 function generateRoundRobin(teamIds){
   const teams = [...teamIds];
   const isOdd = teams.length%2===1;
-  if(isOdd) teams.push(null); // BYE
-  const n = teams.length;
-  const rounds = n-1;
-  const half = n/2;
+  if(isOdd) teams.push(null);
+  const n = teams.length, rounds = n-1, half = n/2;
   const fixtures = [];
   for(let r=0;r<rounds;r++){
     for(let i=0;i<half;i++){
       const t1 = teams[i], t2 = teams[n-1-i];
       if(t1!==null && t2!==null){
-        // Maiņam mājas/viesi, lai balansētos
-        const homeAwaySwap = (r%2===0) === (i%2===0);
-        fixtures.push({ round:r+1, home:homeAwaySwap?t1:t2, away:homeAwaySwap?t2:t1 });
+        const swap = (r%2===0)===(i%2===0);
+        fixtures.push({ round:r+1, home: swap?t1:t2, away: swap?t2:t1 });
       }
     }
-    // Rotācija
-    const fixed = teams[0];
-    const rest = teams.slice(1);
-    rest.unshift(rest.pop());
-    teams.splice(0,teams.length, fixed, ...rest);
+    const fixed = teams[0], rest = teams.slice(1);
+    rest.unshift(rest.pop()); teams.splice(0,teams.length, fixed, ...rest);
   }
   return fixtures;
 }
@@ -265,10 +328,9 @@ function computeStandings(groups, teamsMap){
 
 /* ======================= BRACKET ======================= */
 function buildBracketFromStandings(standings){
-  // Savāc rank1, rank2, rank3... līdz 8 kom., pēc ranga
   const ranks = [];
   const groups = Object.keys(standings).sort();
-  let layer=0; // 0 => 1.vietas, 1 => 2.vietas, ...
+  let layer=0;
   while(ranks.length<8){
     let added=false;
     for(const gid of groups){
@@ -278,11 +340,9 @@ function buildBracketFromStandings(standings){
     if(!added) break;
     layer++;
   }
-  // Ja mazāk par 8 — pievieno BYE
   while(ranks.length<8){
     ranks.push({ teamId:null, name:'BYE', pts:0, gd:0, gf:0, group:'-', rank:99 });
   }
-  // Sējumi pēc (rank -> pts -> gd -> gf)
   ranks.sort((a,b)=>{
     if(a.teamId===null && b.teamId!==null) return 1;
     if(b.teamId===null && a.teamId!==null) return -1;
@@ -292,41 +352,37 @@ function buildBracketFromStandings(standings){
     if(b.gf!==a.gf) return b.gf-a.gf;
     return a.name.localeCompare(b.name);
   });
-  // top4 vs bottom4
   const seedsTop = ranks.slice(0,4);
-  const seedsBot = ranks.slice(4,8).reverse(); // 8,7,6,5
+  const seedsBot = ranks.slice(4,8).reverse();
   const qf = [];
   for(let i=0;i<4;i++){
     const h = seedsTop[i]||{name:'BYE'};
     const a = seedsBot[i]||{name:'BYE'};
     qf.push({ id:uid(), home:h.teamId, away:a.teamId, hs:null, as:null, hName:h.name, aName:a.name });
   }
+  Sync.push({type:'BRACKET_INIT', qfPairs: qf.map(m=>({homeName:hNameOf(m), awayName:aNameOf(m)}))});
   return { qf, sf:[{id:uid(),home:null,away:null,hs:null,as:null},{id:uid(),home:null,away:null,hs:null,as:null}], fin:[{id:uid(),home:null,away:null,hs:null,as:null}] };
 }
-
 function nameOf(id, teamsMap){ return id ? teamsMap[id]?.name||'?' : 'BYE' }
+const hNameOf = m => m.hName ?? 'BYE';
+const aNameOf = m => m.aName ?? 'BYE';
 
 function propagateBracket(br, teamsMap){
-  // Uzvarētāji no QF -> SF; no SF -> FIN
   const winnersQF = br.qf.map(m=> pickWinner(m,teamsMap) );
   br.sf[0].home = winnersQF[0]; br.sf[0].away = winnersQF[3];
   br.sf[1].home = winnersQF[1]; br.sf[1].away = winnersQF[2];
   const winnersSF = br.sf.map(m=> pickWinner(m,teamsMap));
   br.fin[0].home = winnersSF[0]; br.fin[0].away = winnersSF[1];
 }
-
 function pickWinner(m, teamsMap){
-  // BYE loģika
   if(!m) return null;
   if(m.home && !m.away) return m.home;
   if(!m.home && m.away) return m.away;
   if(!m.home && !m.away) return null;
-  // Ja rezultāti ievadīti:
   if(Number.isFinite(m.hs) && Number.isFinite(m.as)){
     if(m.hs>m.as) return m.home;
     if(m.as>m.hs) return m.away;
-    // neizšķirts playoffā -> izvēlamies augstāk sēto (home)
-    return m.home;
+    return m.home; // tie-break: mājinieki
   }
   return null;
 }
@@ -344,7 +400,7 @@ function renderGroups(){
       <tbody></tbody>
     `;
     const body = $('tbody', tbl);
-    g.matches.forEach((m,i)=>{
+    g.matches.forEach((m)=>{
       const tr=document.createElement('tr');
       tr.innerHTML = `
         <td>${m.round}</td>
@@ -362,14 +418,17 @@ function renderGroups(){
     host.appendChild(wrap);
   });
   $('#groupsPanel').hidden = state.groups.length===0;
+
   // Input handlers
   $$('#groupsHost .score-in').forEach(inp=>{
-    inp.addEventListener('change', e=>{
+    inp.addEventListener('change', ()=>{
       const gId = inp.dataset.g, mId=inp.dataset.mid, side=inp.dataset.side;
       const g = state.groups.find(x=>x.id===gId);
       const m = g.matches.find(x=>x.id===mId);
       const val = inp.value==='' ? null : Math.max(0, parseInt(inp.value,10));
       m[side] = Number.isFinite(val) ? val : null;
+      // sync: katra rezultāta ievade
+      Sync.push({type:'GROUP_SCORE', groupId:gId, matchId:mId, side, value:m[side]});
       state.standings = computeStandings(state.groups, Object.fromEntries(state.teams.map(t=>[t.id,t])));
       saveState(state);
       renderStandings();
@@ -400,9 +459,18 @@ function renderStandings(){
   $('#standingsPanel').hidden = groups.length===0;
 }
 
+function winnerClass(m, side){
+  if(m.home && !m.away) return side==='home'?'win':'';
+  if(!m.home && m.away) return side==='away'?'win':'';
+  if(Number.isFinite(m.hs) && Number.isFinite(m.as)){
+    if(m.hs>m.as && side==='home') return 'win';
+    if(m.as>m.hs && side==='away') return 'win';
+  }
+  return '';
+}
+
 function renderBracket(){
   const teamsMap = Object.fromEntries(state.teams.map(t=>[t.id,t]));
-  const br = state.bracket;
   $('#qfCol').innerHTML = '<h3>Ceturtdaļfināli</h3>';
   $('#sfCol').innerHTML = '<h3>Pusfināli</h3>';
   $('#finCol').innerHTML = '<h3>Fināls</h3>';
@@ -437,25 +505,15 @@ function renderBracket(){
       const m = state.bracket[col].find(x=>x.id===id);
       const val = inp.value==='' ? null : Math.max(0, parseInt(inp.value,10));
       m[side] = Number.isFinite(val)?val:null;
-      // izpludinām uzvarētājus augstāk
+      // sync: playoff rezultāts
+      Sync.push({type:'BRACKET_SCORE', stage:col, matchId: id, side, value:m[side]});
       propagateBracket(state.bracket, Object.fromEntries(state.teams.map(t=>[t.id,t])));
       saveState(state);
-      renderBracket(); // pār-zīmē, lai atjaunotu vārdus & win klases
+      renderBracket();
     });
   });
 
-  // Savienojumu līnijas (vienkāršotas)
   drawLinks();
-}
-
-function winnerClass(m, side){
-  if(m.home && !m.away) return side==='home'?'win':'';
-  if(!m.home && m.away) return side==='away'?'win':'';
-  if(Number.isFinite(m.hs) && Number.isFinite(m.as)){
-    if(m.hs>m.as && side==='home') return 'win';
-    if(m.as>m.hs && side==='away') return 'win';
-  }
-  return '';
 }
 
 function drawLinks(){
@@ -464,15 +522,14 @@ function drawLinks(){
   svg.setAttribute('viewBox', `0 0 ${r.width} ${r.height}`);
   svg.setAttribute('width', r.width); svg.setAttribute('height', r.height);
   svg.innerHTML='';
-  const boxes = $$('.round .match').map(el=>({el, rect:el.getBoundingClientRect()}));
-  // QF -> SF (0->0 home, 1->0 away, 2->1 home, 3->1 away). SF -> FIN
-  function pathBetween(a,b){
-    const startX=a.rect.right - r.left, startY=a.rect.top + a.rect.height/2 - r.top;
-    const endX=b.rect.left - r.left, endY=b.rect.top + b.rect.height/2 - r.top;
-    const mid=(startX+endX)/2;
-    return `M ${startX} ${startY} C ${mid} ${startY}, ${mid} ${endY}, ${endX} ${endY}`;
-  }
   const qfEls = $$('#qfCol .match'), sfEls=$$('#sfCol .match'), finEl=$$('#finCol .match')[0];
+  const pathBetween = (a,b)=>{
+    const ra=a.getBoundingClientRect(), rb=b.getBoundingClientRect();
+    const sx=ra.right - r.left, sy=ra.top + ra.height/2 - r.top;
+    const ex=rb.left - r.left, ey=rb.top + rb.height/2 - r.top;
+    const mx=(sx+ex)/2;
+    return `M ${sx} ${sy} C ${mx} ${sy}, ${mx} ${ey}, ${ex} ${ey}`;
+  };
   const paths=[];
   if(sfEls[0]){ if(qfEls[0]) paths.push(pathBetween(qfEls[0], sfEls[0])); if(qfEls[3]) paths.push(pathBetween(qfEls[3], sfEls[0])); }
   if(sfEls[1]){ if(qfEls[1]) paths.push(pathBetween(qfEls[1], sfEls[1])); if(qfEls[2]) paths.push(pathBetween(qfEls[2], sfEls[1])); }
@@ -498,6 +555,8 @@ $('#genGroups').addEventListener('click', ()=>{
   $('#playoffPanel').hidden=false;
   $('#groupsPanel').hidden=false;
   $('#standingsPanel').hidden=false;
+  // sync: turnīra inicializācija
+  Sync.push({type:'TOURNAMENT_INIT', name, teams: teams.map(t=>t.name)});
 });
 
 $('#buildBracket').addEventListener('click', ()=>{
@@ -507,6 +566,7 @@ $('#buildBracket').addEventListener('click', ()=>{
   propagateBracket(state.bracket, Object.fromEntries(state.teams.map(t=>[t.id,t])));
   saveState(state);
   renderBracket();
+  Sync.push({type:'BRACKET_BUILT'});
 });
 
 $('#exportBtn').addEventListener('click', ()=>{
@@ -522,13 +582,13 @@ $('#importBtn').addEventListener('click', async ()=>{
       const text=await file.text(); const obj=JSON.parse(text);
       state = Object.assign({name:'',teams:[],groups:[],standings:{},bracket:null}, obj);
       saveState(state);
-      // re-render
       $('#tName').value = state.name || '';
       $('#teamsInput').value = state.teams.map(t=>t.name).join('\n');
       if(state.groups?.length){ renderGroups(); $('#groupsPanel').hidden=false }
       if(state.standings && Object.keys(state.standings).length){ renderStandings(); $('#standingsPanel').hidden=false }
       if(state.bracket){ renderBracket(); $('#playoffPanel').hidden=false }
-    }catch(e){ alert('Neizdevās importēt failu.'); }
+      Sync.push({type:'IMPORT_OK', teamCount: state.teams.length});
+    }catch(e){ alert('Neizdevās importēt failu.'); Sync.push({type:'IMPORT_FAIL', error:String(e)}) }
   };
   inp.click();
 });
@@ -541,6 +601,7 @@ $('#resetBtn').addEventListener('click', ()=>{
   $('#groupsHost').innerHTML=''; $('#standingsHost').innerHTML='';
   $('#qfCol').innerHTML='<h3>Ceturtdaļfināli</h3>'; $('#sfCol').innerHTML='<h3>Pusfināli</h3>'; $('#finCol').innerHTML='<h3>Fināls</h3>';
   $('#groupsPanel').hidden=true; $('#standingsPanel').hidden=true; $('#playoffPanel').hidden=true;
+  Sync.push({type:'RESET'});
 });
 
 /* ======================= RESTORE ======================= */
@@ -554,7 +615,6 @@ $('#resetBtn').addEventListener('click', ()=>{
     if(state.standings && Object.keys(state.standings).length){ renderStandings(); $('#standingsPanel').hidden=false }
     if(state.bracket){ renderBracket(); $('#playoffPanel').hidden=false }
   }
-  // redraw links on resize
   const ro=new ResizeObserver(()=>drawLinks());
   ro.observe($('.bracket'));
 })();
