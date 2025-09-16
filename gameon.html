@@ -88,6 +88,18 @@
   .name-nowrap{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:inline-block}
   @media (max-width:520px){ .standings-table th,.standings-table td{font-size:12px;padding:6px 6px} }
 
+  /* === FIX: Standings kartes vienmēr stāv SLEJĀ, nepārklājas un komandu kolonna neiet pāri === */
+  #standingsHost{
+    display:grid;
+    grid-template-columns:1fr;     /* viens zem otra */
+    gap:var(--space);
+    align-items:start;
+  }
+  #standingsHost > .panel{ min-width:0 } /* ļauj saturam sašaurināties, lai nerastos pārplūde */
+  /* drošības spilvens pret “izlīšanu” uz nākamo kolonu */
+  .standings-table td:nth-child(2) .name-nowrap{display:block;min-width:0;max-width:100%}
+  .standings-table th,.standings-table td{overflow:hidden}
+
   /* ===== Bracket (NEKĀ nemainīju) ===== */
   .bracket{display:grid;gap:var(--space);grid-template-columns:repeat(3, minmax(260px,1fr))}
   .round{display:grid;gap:var(--space)}
@@ -203,7 +215,8 @@
   <!-- STANDINGS -->
   <section class="panel" id="standingsPanel" hidden>
     <h2>3) Stāvējums (Standings)</h2>
-    <div id="standingsHost" class="grid" style="display:grid; gap:var(--space); grid-template-columns:repeat(auto-fit,minmax(300px,1fr))"></div>
+    <!-- FIX: noņemta inline kolonu definīcija; tagad izmantojam CSS (viens zem otra) -->
+    <div id="standingsHost" class="grid"></div>
   </section>
 
   <!-- PLAYOFF -->
