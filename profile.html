@@ -1,237 +1,100 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="lv">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VEZITIVUS WeekEnd</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+  <title>Profils · Vezitivus</title>
+
+  <!-- Minimālais layout + skeleton (pielāgo vai izmet, ja jau ir globālie stili) -->
   <style>
-    /* Pilnekrāna loading pārklājums */
-    #loading-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(255, 255, 255, 0.8);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
+    :root { --maxw: 960px; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font: 16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif;
+      min-height: 100dvh; display: grid; place-items: start center;
+      background: radial-gradient(1200px 800px at 50% -10%, rgba(255,255,255,.35), transparent 60%),
+                  linear-gradient(180deg, rgba(127,127,127,.08), transparent 40%);
+      padding: 20px;
     }
-    
-    /* Skrejošs aplis */
-    .spinner {
-      border: 8px solid #f3f3f3;
-      border-top: 8px solid #3498db;
-      border-radius: 50%;
-      width: 60px;
-      height: 60px;
-      animation: spin 1s linear infinite;
+    header, footer { width: 100%; max-width: var(--maxw); }
+    main { width: 100%; max-width: var(--maxw); display: grid; gap: 20px; }
+    .wrap { display: grid; gap: 16px; }
+    .profile { display: grid; grid-template-columns: 160px 1fr; gap: 16px; align-items: center; }
+    @media (max-width: 640px) { .profile { grid-template-columns: 1fr; justify-items: center; text-align: center; } }
+
+    /* Skeleton (dinamiskāks “ielādes” izskats līdz datiem) */
+    .skeleton { position: relative; overflow: hidden; background: rgba(255,255,255,.25); border-radius: 12px; }
+    .skeleton::after {
+      content: ""; position: absolute; inset: 0;
+      transform: translateX(-100%);
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.6), transparent);
+      animation: shimmer 1.4s infinite;
     }
-    
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    
-    /* Labās puses dizains – fiksēts platums un minimālas atstarpes info grupām */
-    .profile-right {
-      width: 300px;
-    }
-    .profile-right .info-group {
-      margin-bottom: 0;
-      padding: 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    }
-    .profile-right .info-group:last-child {
-      border-bottom: none;
-    }
-    .profile-right .info-group p {
-      margin: 0;
-      padding: 2px 0;
-    }
-    
-    /* Pogu stils apakšējai sadaļai */
-    .buttons-section {
-      margin-top: 20px;
-    }
-    .buttons-grid {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 10px;
-    }
-    .grid-margin {
-      width: 10px;
-    }
-    .grid-spacer {
-      width: 10px;
-    }
-    .action-button {
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-      background-color: #333;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      transition: background-color 0.3s ease;
-    }
-    .action-button:hover {
-      background-color: #111;
-    }
-    
-    /* "Griezt Ratu" pogas dizains – saglabāts, ja nepieciešams */
-    .spin-wheel-section {
-      display: flex;
-      justify-content: center;
-      margin-top: 20px;
-    }
-    .spin-button {
-      width: 80%;
-      padding: 14px 24px;
-      font-size: 18px;
-      font-weight: bold;
-      text-align: center;
-      color: white;
-      background: linear-gradient(to bottom, #333, #111);
-      border: none;
-      border-radius: 24px;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      transition: all 0.3s ease;
-    }
-    .spin-button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
-    }
+    @media (prefers-reduced-motion: reduce) { .skeleton::after { animation: none; } }
+    @keyframes shimmer { 100% { transform: translateX(100%); } }
+
+    .skeleton-line { height: 14px; border-radius: 8px; }
+    .skeleton-avatar { width: 160px; height: 160px; border-radius: 18px; }
+
+    /* Neliels spacing pogām */
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
   </style>
+
+  <!-- ŠEIT pievieno pilno “liquid glass” CSS no manas iepriekšējās atbildes -->
+  <!-- <link rel="stylesheet" href="glass.css"> -->
 </head>
 <body>
-  <!-- Loading pārklājums -->
-  <div id="loading-overlay">
-    <div class="spinner"></div>
-  </div>
-  
-  <div class="profile-page">
-    <h1 class="main-title">VEZITIVUS WeekEnd</h1>
-    
-    <!-- Profila sadaļa -->
-    <section class="profile-section">
-      <div class="profile-left">
-        <div class="image-container">
-          <input type="file" id="image-input" accept="image/*" style="display:none;">
-          <img id="profile-image" src="" alt="Profilattēls" style="display:none;">
+  <noscript>
+    <p style="padding:12px; background:#fee; border:1px solid #fbb; border-radius:8px;">
+      Lai šī lapa darbotos pilnvērtīgi, lūdzu ieslēdz JavaScript.
+    </p>
+  </noscript>
+
+  <header class="wrap">
+    <h1 class="glass card" style="padding:14px 16px;">Lietotāja profils</h1>
+  </header>
+
+  <main class="wrap">
+    <!-- Profila karte ar liquid-glass efektu -->
+    <section id="profile-card" class="glass card" aria-labelledby="profile-title">
+      <h2 id="profile-title" class="visually-hidden" style="position:absolute;clip:rect(0,0,0,0);">Profila informācija</h2>
+
+      <!-- Kļūdu kaste (JS to izmanto) -->
+      <div id="error-box" class="is-hidden" role="alert" aria-live="polite"></div>
+
+      <div class="profile">
+        <!-- Attēla zonai sākumā skeleton; JS to aizstās ar reālo img -->
+        <div aria-busy="true" id="avatar-wrap">
+          <div class="skeleton skeleton-avatar" id="avatar-skeleton"></div>
+          <img id="profile-image" alt="Profila attēls" class="is-hidden" width="160" height="160" loading="lazy" />
         </div>
-        <button id="change-button" style="margin-top: 10px;">Nomainīt attēlu</button>
+
+        <div class="meta" aria-live="polite">
+          <h2 id="username" class="skeleton skeleton-line" style="width: 40%; height: 22px;"></h2>
+
+          <p>
+            <strong>NFC:</strong>
+            <span id="nfc-id" class="skeleton skeleton-line" style="width: 28%;"></span>
+          </p>
+          <p>
+            <strong>Vieta:</strong>
+            <span id="place" class="skeleton skeleton-line" style="width: 20%;"></span>
+          </p>
+          <p>
+            <strong>Komanda:</strong>
+            <span id="team-name" class="skeleton skeleton-line" style="width: 36%;"></span>
+          </p>
+        </div>
       </div>
-      <div class="profile-right">
-        <div class="info-group">
-          <p class="label">Vārds</p>
-          <p class="value" id="username">Ielādē...</p>
-        </div>
-        <div class="info-group">
-          <p class="label">ID</p>
-          <p class="value" id="nfc-id">Ielādē...</p>
-        </div>
-        <div class="info-group">
-          <p class="label">Kopvērtējuma vieta</p>
-          <p class="large-value" id="place">Ielādē...</p>
-        </div>
-        <!-- Jauna sadaļa "TAVA KOMANDA" -->
-        <div class="info-group">
-          <p class="label">TAVA KOMANDA</p>
-          <p class="value" id="team-name">Ielādē...</p>
-        </div>
-      </div>
-    </section>
-    
-    <!-- CHECK‑IN poga -->
-    <section class="checkin-section">
-      <button id="checkin-button" class="checkin-button">Check‑In priekš aktivitātēm</button>
-    </section>
-    
-    <!-- Apakšējās pogas (divās rindās pa 3 pogām) -->
-    <section class="buttons-section">
-      <div class="buttons-grid">
-        <div class="grid-margin"></div>
-        <button class="action-button" onclick="redirectToActivity()">Vezitivus lenta</button>
-        <div class="grid-spacer"></div>
-        <button class="action-button" onclick="redirectToSimpathy()">Simpatijas balva</button>
-        <div class="grid-spacer"></div>
-        <button class="action-button" onclick="window.location.href='score.html'">Score Board</button>
-        <div class="grid-margin"></div>
-      </div>
-      <div class="buttons-grid">
-        <div class="grid-margin"></div>
-        <button class="action-button" onclick="redirectToOption()">option</button>
-        <div class="grid-spacer"></div>
-        <button class="action-button" onclick="redirectToSpin()">Minigame</button>
-        <div class="grid-spacer"></div>
-        <button class="action-button" onclick="redirectToSuggest()">Ieteikumi</button>
-        <div class="grid-margin"></div>
-      </div>
-    </section>
-    
-    <script>
-      // Noņem loading pārklājumu, kad lapa ir pilnībā ielādēta
-      window.addEventListener("load", function() {
-        document.getElementById("loading-overlay").style.display = "none";
-      });
-      
-      // Funkcija, lai pāradresētu uz "Vezitivus lenta" ar UID no URL
-      function redirectToActivity() {
-        const params = new URLSearchParams(window.location.search);
-        const uid = params.get("uid");
-        if (uid) {
-          window.location.href = `activity.html?uid=${uid}`;
-        } else {
-          alert("UID nav atrasts!");
-        }
-      }
-      
-      // Funkcija, lai pāradresētu uz "Simpatijas balva" ar UID no lapas
-      function redirectToSimpathy() {
-        const uid = document.getElementById("nfc-id").innerText.trim();
-        window.location.href = `https://vezitivus.github.io/APP/simpathy.html?uid=${uid}`;
-      }
-      
-      // Funkcija, lai pāradresētu uz "rats.html" ar UID no URL
-      function redirectToSpin() {
-        const params = new URLSearchParams(window.location.search);
-        const uid = params.get("uid");
-        if (uid) {
-          window.location.href = `rats.html?uid=${uid}`;
-        } else {
-          alert("UID nav atrasts!");
-        }
-      }
-      
-      // Jauna funkcija, lai pāradresētu uz "option.html" ar UID beigās !!!!!@@@@!!!!!!@@!@!@@@!@!!!!@!
-      function redirectToOption() {
-        const params = new URLSearchParams(window.location.search);
-        const uid = params.get("uid");
-        if (uid) {
-          window.location.href = `ch.html?uid=${uid}`;
-        } else {
-          alert("UID nav atrasts!");
-        }
-      }
-      
-      // Jauna funkcija, lai pāradresētu uz "suggest.html" ar UID beigās
-      function redirectToSuggest() {
-        const params = new URLSearchParams(window.location.search);
-        const uid = params.get("uid");
-        if (uid) {
-          window.location.href = `suggest.html?uid=${uid}`;
-        } else {
-          alert("UID nav atrasts!");
-        }
-      }
-    </script>
-    
-  </div>
-  <script src="profile.js"></script>
-</body>
-</html>
+
+      <hr style="border:0;height:1px;background:rgba(255,255,255,.25);margin:16px 0;">
+
+      <!-- Darbību pogas -->
+      <div class="actions">
+        <button id="change-button" class="glass-btn" type="button" aria-controls="image-input" aria-label="Augšupielādēt vai nomainīt profila attēlu">
+          Izvēlēties attēlu
+        </button>
+        <input id="image-input" type="file" accept="image/*" hidden />
+
+        <button id="
