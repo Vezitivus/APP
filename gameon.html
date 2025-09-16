@@ -6,15 +6,20 @@
 <title>Turnīru Aplikācija — Pro Liquid UI</title>
 <meta name="color-scheme" content="light dark" />
 <style>
+  /* ===== Pro Liquid + Glass Theme ===== */
   :root{
     --bg:#0b0f14; --text:#e6e9ef; --muted:#9aa4b2;
     --card:rgba(18,24,38,.55); --border:rgba(255,255,255,.08); --ring:#6f7dd62b;
     --accent:#7c5cff; --accent2:#45a2ff; --gold:#f4c542; --ok:#19c37d;
     --radius:16px; --shadow:0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05);
     --font:ui-sans-serif,-apple-system,"SF Pro Text","Inter","Segoe UI",Roboto,Arial; --space:clamp(10px,2vw,18px);
-    --cal-w-r: clamp(38px, 8vw, 56px);
+
+    /* Calendar responsive widths */
+    --cal-w-r: clamp(36px, 8vw, 56px);
     --cal-w-score: clamp(82px, 18vw, 140px);
-    --cal-w-ot: clamp(34px, 8vw, 56px);
+    --cal-w-ot: clamp(34px, 9vw, 56px);
+
+    /* Standings numeric column width */
     --std-w-num: clamp(30px, 7vw, 56px);
   }
   @media (prefers-color-scheme:light){
@@ -31,6 +36,7 @@
       radial-gradient(600px 500px at 80% 110%, color-mix(in oklab, #19c37d 35%, transparent), transparent 60%);
   }
 
+  /* ===== Header ===== */
   header{
     position:sticky;top:0;z-index:20;backdrop-filter:saturate(140%) blur(12px);
     background:linear-gradient(180deg, rgba(0,0,0,.0), rgba(0,0,0,.05)), var(--card);
@@ -38,11 +44,11 @@
   }
   .bar{max-width:1200px;margin:0 auto;padding:12px clamp(14px,3vw,24px);display:flex;gap:12px;align-items:center;justify-content:space-between}
   .brand{display:flex;gap:12px;align-items:center;font-weight:800;letter-spacing:.2px}
-  .brand img{width:28px;height:28px;border-radius:8px;object-fit:cover;box-shadow:0 0 10px #0003}
   .dot{width:14px;height:14px;border-radius:50%;
        background:radial-gradient(12px 12px at 20% 20%, #fff8, #0000), linear-gradient(135deg,var(--accent),var(--accent2))}
   .wrap{max-width:1200px;margin:clamp(10px,2vw,20px) auto clamp(60px,7vw,96px); padding:0 clamp(14px,3vw,24px);display:grid;gap:var(--space)}
 
+  /* ===== Panels & buttons ===== */
   .panel{
     background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);
     padding:clamp(12px,2.6vw,20px); transition:transform .12s ease, box-shadow .25s ease;
@@ -67,11 +73,14 @@
   }
   .btn--accent{border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
   .btn--gold{border:none;background:linear-gradient(135deg,var(--gold),#ffd569);color:#1a1a1a}
+  .btn:active{transform:translateY(1px)}
 
+  /* ===== Numbers, inputs ===== */
   .tnum{font-variant-numeric:tabular-nums}
   .score-in{width:clamp(36px, 11vw, 54px);text-align:center;padding:8px 6px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--text)}
   .table-scroll{overflow:auto; -webkit-overflow-scrolling:touch}
 
+  /* ===== Standings (no horizontal scroll) ===== */
   .standings-table{table-layout:fixed;width:100%;border-collapse:separate;border-spacing:0 8px}
   .standings-table th,.standings-table td{padding:8px 10px}
   .standings-table thead th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
@@ -79,10 +88,7 @@
   .name-nowrap{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:inline-block}
   @media (max-width:520px){ .standings-table th,.standings-table td{font-size:12px;padding:6px 6px} }
 
-  .logo{width:18px;height:18px;border-radius:50%;object-fit:cover;border:1px solid var(--border)}
-  .logo-lg{width:22px;height:22px;border-radius:6px;object-fit:cover;border:1px solid var(--border)}
-
-  /* Bracket (nemainīts) */
+  /* ===== Bracket (NEKĀ nemainīju) ===== */
   .bracket{display:grid;gap:var(--space);grid-template-columns:repeat(3, minmax(260px,1fr))}
   .round{display:grid;gap:var(--space)}
   .match{border:1px solid var(--border);border-radius:14px;padding:12px;background:color-mix(in oklab, var(--card) 94%, transparent)}
@@ -90,6 +96,7 @@
   .team.win{outline:2px solid color-mix(in oklab, var(--ok) 45%, transparent);outline-offset:-2px}
   .status{font-size:12px;color:var(--muted);margin-bottom:6px}
 
+  /* ===== Group cards (preview) ===== */
   .group-card{position:relative; cursor:pointer; -webkit-tap-highlight-color:transparent; touch-action:manipulation}
   .group-card:active{transform:scale(.998)}
   .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
@@ -99,6 +106,7 @@
   .fix-row{display:grid;grid-template-columns:36px 1fr min-content 1fr min-content;align-items:center;gap:8px}
   .fix-row .score{font-weight:700;white-space:nowrap}
 
+  /* ===== Fullscreen Calendar (plūstoša animācija) ===== */
   .backdrop{
     position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(10px);
     opacity:0;visibility:hidden;pointer-events:none;transition:opacity .22s cubic-bezier(.2,.8,.2,1);z-index:60; will-change:opacity;
@@ -118,6 +126,7 @@
   .sheet-body{min-height:0;overflow:auto;padding:12px 16px; -webkit-overflow-scrolling:touch}
   .sheet-foot{display:flex;justify-content:flex-end;gap:10px;padding:12px 16px;border-top:1px solid var(--border);background:color-mix(in oklab, var(--card) 96%, transparent)}
 
+  /* Calendar table (STRICT + LIQUID, bez horizontāla skrolla) */
   .cal-wrap{max-width:1100px;margin:0 auto}
   .cal{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0}
   .cal col.c-r{width:var(--cal-w-r)}
@@ -133,6 +142,8 @@
   .score-grid{display:inline-grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center}
   .colon{opacity:.7}
   .row-done{background:linear-gradient(180deg, color-mix(in oklab, var(--ok) 12%, transparent), transparent)}
+
+  /* compact checkbox */
   .chk{appearance:none;width:16px;height:16px;border:1px solid var(--border);border-radius:4px;background:rgba(255,255,255,.02);display:inline-block;position:relative;vertical-align:middle}
   .chk:checked{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent}
   .chk:checked::after{content:'✓';position:absolute;inset:0;font-size:12px;color:#fff;display:flex;align-items:center;justify-content:center}
@@ -142,12 +153,10 @@
 <header>
   <div class="bar">
     <div class="brand">
-      <img id="brandLogoImg" alt="" style="display:none"/>
-      <span class="dot" id="brandDot"></span>
+      <span class="dot"></span>
       <span id="brandTitle">Turnīru Aplikācija</span>
     </div>
     <div class="row">
-      <button type="button" class="btn" id="imagesToggleBtn">🖼️ Attēli</button>
       <button type="button" class="btn" id="exportBtn">Eksportēt</button>
       <button type="button" class="btn" id="importBtn">Importēt</button>
       <button type="button" class="btn" id="resetBtn">Notīrīt</button>
@@ -157,6 +166,7 @@
 </header>
 
 <main class="wrap">
+  <!-- SETUP -->
   <section class="panel" id="setupPanel">
     <div class="row" style="justify-content:space-between">
       <h2>1) Ievadi komandas</h2>
@@ -184,36 +194,19 @@
     </div>
   </section>
 
-  <section class="panel" id="imagesPanel" hidden>
-    <h2>Attēlu iestatījumi (neobligāti)</h2>
-    <div style="height:10px"></div>
-    <div class="panel" style="padding:12px">
-      <h3>Turnīra logotips</h3>
-      <div class="row" style="align-items:center; justify-content:space-between; gap:12px;">
-        <div class="row" style="gap:10px">
-          <img id="brandLogoPreview" class="logo-lg" alt="" style="display:none"/>
-          <div class="muted" id="brandLogoPlaceholder">Nav iestatīts</div>
-        </div>
-        <div class="row">
-          <input type="file" id="brandLogoInput" accept="image/*"/>
-          <button type="button" class="btn" id="clearBrandLogo">Noņemt</button>
-        </div>
-      </div>
-    </div>
-    <div style="height:10px"></div>
-    <div id="logosHost" class="grid" style="display:grid;gap:var(--space);grid-template-columns:repeat(auto-fit,minmax(220px,1fr))"></div>
-  </section>
-
+  <!-- GROUPS (preview with results) -->
   <section class="panel" id="groupsPanel" hidden>
     <h2>2) Grupas & kalendārs</h2>
     <div id="groupsHost" class="grid" style="display:grid; gap:var(--space); grid-template-columns:repeat(auto-fit,minmax(300px,1fr))"></div>
   </section>
 
+  <!-- STANDINGS -->
   <section class="panel" id="standingsPanel" hidden>
     <h2>3) Stāvējums (Standings)</h2>
     <div id="standingsHost" class="grid" style="display:grid; gap:var(--space); grid-template-columns:repeat(auto-fit,minmax(300px,1fr))"></div>
   </section>
 
+  <!-- PLAYOFF -->
   <section class="panel" id="playoffPanel" hidden>
     <div class="row" style="justify-content:space-between;align-items:center">
       <h2>4) Playoff (no Quarterfinals)</h2>
@@ -242,6 +235,7 @@
   </section>
 </main>
 
+<!-- FULLSCREEN CALENDAR SHEET -->
 <div id="backdrop" class="backdrop"></div>
 <div id="sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" aria-hidden="true">
   <div class="sheet-head">
@@ -258,22 +252,26 @@
   </div>
 </div>
 
+<!-- PDF libs -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" crossorigin="anonymous"></script>
 
 <script>
+/* ===== Util ===== */
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const uid=()=>Math.random().toString(36).slice(2,9);
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 const todayStamp = ()=> new Date().toISOString().slice(0,10);
 const slugify = s => (s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80)||'tournament';
 
-const STORAGE_KEY='tournament_state_pro_v11';
-function saveState(s){localStorage.setItem(STORAGE_KEY,JSON.stringify(s))}
-function loadState(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'null')}catch{return null}}
-function clearState(){localStorage.removeItem(STORAGE_KEY)}
+/* ===== Storage ===== */
+const STORAGE_KEY='tournament_state_pro_v12';
+function saveState(s){ localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
+function loadState(){ try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'null')}catch{return null} }
+function clearState(){ localStorage.removeItem(STORAGE_KEY); }
 const SOUND_PREF_KEY='tournament_sound_on';
 
+/* ===== Sounds ===== */
 let audioCtx=null; let soundOn=(localStorage.getItem(SOUND_PREF_KEY)!=='0');
 const ensureCtx=()=>{ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)() };
 function beep({freq=440,type='sine',dur=0.08,gain=0.05,a=0.005,r=0.06}={}){ if(!soundOn) return; ensureCtx();
@@ -285,10 +283,14 @@ function beep({freq=440,type='sine',dur=0.08,gain=0.05,a=0.005,r=0.06}={}){ if(!
 const sfx={ click:()=>beep({freq:280,type:'triangle',dur:0.05,gain:0.06}),
             score:()=>{beep({freq:420,type:'square',dur:0.06,gain:0.06}); setTimeout(()=>beep({freq:590,type:'square',dur:0.06,gain:0.05}),70)},
             success:()=>{beep({freq:450,type:'sine',dur:0.07,gain:0.06}); setTimeout(()=>beep({freq:650,type:'sine',dur:0.09,gain:0.05}),90)} };
+$('#soundBtn').addEventListener('click',()=>{ soundOn=!soundOn; localStorage.setItem(SOUND_PREF_KEY,soundOn?'1':'0'); $('#soundIcon').textContent=soundOn?'🔊':'🔇'; sfx.click(); });
 
-let state={ name:'', teams:[], logos:{}, brandLogo:null, groups:[], standings:{}, bracket:null, overall:null };
+/* ===== State ===== */
+let state={ name:'', teams:[], groups:[], standings:{}, bracket:null, overall:null };
 
+/* ===== Grouping / fixtures ===== */
 function deriveGroupCount(n,str){
+  // Atļauts: 2,4,6; ja ≤6 komandas → drīkst 1 grupa
   const allowed=[2,4,6];
   if(str==='n1') return (n<=6)?1:deriveGroupCount(n,'auto');
   if(str==='auto' && n<=6) return Math.min(1,n);
@@ -312,6 +314,8 @@ function generateRR(teamIds){
     const fixed=t[0], rest=t.slice(1); rest.unshift(rest.pop()); t.splice(0,t.length,fixed,...rest);
   } return fx;
 }
+
+/* ===== Scoring & standings ===== */
 function isScored(m){ return Number.isFinite(m.hs)&&Number.isFinite(m.as)&&m.hs!==m.as }
 function computeStandings(groups,map){
   const out={};
@@ -330,6 +334,7 @@ function computeStandings(groups,map){
   } return out;
 }
 
+/* ===== Bracket ===== */
 function buildBracketFromStandings(st){
   const gids=Object.keys(st).sort(), c=gids.length;
   const topN=(gid,n)=>{ const arr=st[gid]||[]; const out=[]; for(let i=0;i<n;i++) out.push(arr[i]?.teamId ?? null); return out; }
@@ -339,16 +344,20 @@ function buildBracketFromStandings(st){
                        fin:[{id:uid(),home:null,away:null,hs:null,as:null,ot:false}],
                        third:[{id:uid(),home:null,away:null,hs:null,as:null,ot:false}] });
   if(c===2){ const [A,B]=gids; const A4=pad(topN(A,4),4), B4=pad(topN(B,4),4);
+    // A1-B4, A2-B3, B1-A4, B2-A3
     return mk([{home:A4[0],away:B4[3]},{home:A4[1],away:B4[2]},{home:B4[0],away:A4[3]},{home:B4[1],away:A4[2]}]); }
   if(c===4){ const [A,B,C,D]=gids; const A2=pad(topN(A,2),2),B2=pad(topN(B,2),2),C2=pad(topN(C,2),2),D2=pad(topN(D,2),2);
+    // A1-B2, B1-A2, C1-D2, D1-C2
     return mk([{home:A2[0],away:B2[1]},{home:B2[0],away:A2[1]},{home:C2[0],away:D2[1]},{home:D2[0],away:C2[1]}]); }
   if(c===6){
+    // 6 grupas: visi 1.vietu uzvarētāji + 2 labākās 2.vietas → 8 komandas; seed pēc Pts, GD, GF, Name
     const rank=(a,b)=> (b?.pts||0)-(a?.pts||0)||(b?.gd||0)-(a?.gd||0)||(b?.gf||0)-(a?.gf||0)||(a?.name||'').localeCompare(b?.name||'');
     const firsts=gids.map(g=>st[g][0]&&{...st[g][0],gid:g}).filter(Boolean);
     const seconds=gids.map(g=>st[g][1]&&{...st[g][1],gid:g}).filter(Boolean).sort(rank);
     const q=[...firsts, ...seconds.slice(0,2)]; while(q.length<8) q.push({teamId:null}); q.sort(rank); const s=q.map(x=>x.teamId??null);
     return mk([{home:s[0],away:s[7]},{home:s[1],away:s[6]},{home:s[2],away:s[5]},{home:s[3],away:s[4]}]);
   }
+  // Citādi: paņem top8 kopvērtējumā
   const all=[]; for(const g of gids) all.push(...(st[g]||[])); all.sort((a,b)=> (b.pts-a.pts)||(b.gd-a.gd)||(b.gf-a.gf));
   const s=pad(all.slice(0,8).map(x=>x.teamId??null),8);
   return mk([{home:s[0],away:s[7]},{home:s[1],away:s[6]},{home:s[2],away:s[5]},{home:s[3],away:s[4]}]);
@@ -366,8 +375,10 @@ function propagate(br){
   br.third[0].home=lSF[0]; br.third[0].away=lSF[1];
 }
 
+/* ===== Render helpers ===== */
 function teamCellLg(map,id){ return `<span class="row" style="gap:8px"><span class="name">${nameOf(id,map)}</span></span>`; }
 
+/* ===== GROUP CARDS (preview) ===== */
 function renderGroups(){
   const host=$('#groupsHost'); host.innerHTML='';
   const map=Object.fromEntries(state.teams.map(t=>[t.id,t]));
@@ -396,11 +407,12 @@ function renderGroups(){
 
     const open=()=>{ openGroupSheet(g.id); sfx.click(); };
     card.addEventListener('click', open);
-    card.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); open(); }});
+    card.addEventListener('keydown', (e)=>{ if(e.key==='Enter'||e.key===' ') {e.preventDefault(); open();}});
   });
   $('#groupsPanel').hidden = state.groups.length===0;
 }
 
+/* ===== FULLSCREEN SHEET (calendar) ===== */
 function sheetOpen(v){
   $('#backdrop').classList.toggle('open', v);
   $('#sheet').classList.toggle('open', v);
@@ -416,6 +428,7 @@ function openGroupSheet(gid){
   $('#sheetTitle').textContent = `Grupa ${g.id} — Kalendārs`;
   const cal=$('#calTable');
   cal.innerHTML='';
+  // === dynamic colgroup (fits width) ===
   cal.insertAdjacentHTML('beforeend', `
     <colgroup>
       <col class="c-r"><col class="c-team"><col class="c-score"><col class="c-team"><col class="c-ot">
@@ -450,6 +463,7 @@ function openGroupSheet(gid){
     body.appendChild(tr);
   });
 
+  // handlers
   $$('#calTable .score-in').forEach(inp=>{
     inp.addEventListener('change', ()=>{
       const gId=inp.dataset.g, mid=inp.dataset.mid, side=inp.dataset.side;
@@ -475,6 +489,7 @@ function openGroupSheet(gid){
   sheetOpen(true);
 }
 
+/* ===== STANDINGS ===== */
 function renderStandings(){
   const host=$('#standingsHost'); host.innerHTML='';
   const st=state.standings||{}; const gids=Object.keys(st).sort();
@@ -503,6 +518,7 @@ function renderStandings(){
   $('#standingsPanel').hidden = !gids.length;
 }
 
+/* ===== BRACKET ===== */
 function winnerClass(m,side){
   if(m.home && !m.away) return side==='home'?'win':'';
   if(!m.home && m.away) return side==='away'?'win':'';
@@ -567,33 +583,7 @@ function renderBracket(){
   refreshOverallButtons();
 }
 
-function renderBrandHeader(){ const img=$('#brandLogoImg'), dot=$('#brandDot');
-  if(state.brandLogo){ img.src=state.brandLogo; img.style.display='inline-block'; dot.style.display='none'; } else { img.src=''; img.style.display='none'; dot.style.display='inline-block'; }
-  $('#brandTitle').textContent = state.name || 'Turnīru Aplikācija';
-}
-function renderBrandPanel(){ const prev=$('#brandLogoPreview'), ph=$('#brandLogoPlaceholder');
-  if(state.brandLogo){ prev.src=state.brandLogo; prev.style.display='inline-block'; ph.style.display='none'; } else { prev.src=''; prev.style.display='none'; ph.style.display='inline-block'; } }
-async function fileToDataURL(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); }); }
-function renderLogosPanel(){
-  const host=$('#logosHost'); host.innerHTML='';
-  if(!state.teams?.length){ host.innerHTML='<div class="muted">Vispirms ievadi komandas.</div>'; return; }
-  state.teams.forEach(t=>{
-    const card=document.createElement('div'); card.className='panel';
-    card.innerHTML=`
-      <div class="row" style="justify-content:space-between;align-items:center">
-        <div class="row" style="gap:10px"><span class="logo-lg" style="background:#0000;border:1px dashed var(--border)"></span>
-          <div style="font-weight:600">${t.name}</div></div>
-        <div class="row"><input type="file" accept="image/*" data-team="${t.id}" class="logoIn"/><button type="button" class="btn" data-clear="${t.id}">Noņemt</button></div>
-      </div>`;
-    host.appendChild(card);
-  });
-  $$('.logoIn').forEach(inp=>inp.addEventListener('change', async ()=>{
-    const f=inp.files?.[0]; if(!f) return; const id=inp.dataset.team; const url=await fileToDataURL(f);
-    state.logos[id]=url; saveState(state); sfx.success(); renderLogosPanel(); renderGroups(); renderStandings(); if(state.bracket) renderBracket();
-  }));
-  $$('[data-clear]').forEach(btn=>btn.addEventListener('click', ()=>{ delete state.logos[btn.dataset.clear]; saveState(state); renderLogosPanel(); renderGroups(); renderStandings(); if(state.bracket) renderBracket(); }));
-}
-
+/* ===== Overall / Awards & PDF ===== */
 function tournamentFinished(){ if(!state.bracket) return false; const fin=state.bracket.fin[0], third=state.bracket.third[0]; return !!(pickWinner(fin)&&pickWinner(third)); }
 function refreshOverallButtons(){ const ready=tournamentFinished(); $('#overallBtn').disabled=!ready; $('#downloadPdfBtn').disabled=!(ready&&state.overall); }
 function computeOverall(){
@@ -641,16 +631,13 @@ $('#downloadPdfBtn').addEventListener('click', ()=>{
   try{
     const { jsPDF } = window.jspdf; const doc=new jsPDF({unit:'pt',format:'a4'});
     const margin=36, lineH=18, pageW=doc.internal.pageSize.getWidth();
-    if(state.brandLogo){ try{ doc.addImage(state.brandLogo,'PNG', margin, 30, 32, 32, undefined, 'FAST'); }catch{} }
     const title = state.name ? `Turnīra kopsavilkums — ${state.name}` : 'Turnīra kopsavilkums';
-    doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.text(title, margin+48, 52);
+    doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.text(title, margin, 52);
     doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.text(`Datums: ${todayStamp()}`, pageW - margin - 140, 52);
-
     const y0=78;
     doc.text(`Uzvarētājs: ${state.overall.winnerName}`, margin, y0);
     doc.text(`Visvairāk gūtie vārti: ${state.overall.topGF.join(', ')} (${state.overall.maxGF})`, margin, y0+lineH);
     doc.text(`Visvairāk ielaistie vārti: ${state.overall.topGA.join(', ')} (${state.overall.maxGA})`, margin, y0+lineH*2);
-
     const rows = state.overall.teamStats.map(s=>({ name:s.name, Sp:s.played, U:s.wins, Z:s.losses, GF:s.gf, GA:s.ga, GD:(s.gf-s.ga) }));
     doc.autoTable({
       startY: y0+lineH*3+10,
@@ -661,4 +648,92 @@ $('#downloadPdfBtn').addEventListener('click', ()=>{
       alternateRowStyles:{fillColor:[245,245,248]},
       margin:{left:margin,right:margin}
     });
-    const fname=`${slugify(state.name)}_${todayStamp()}_kopsavilkums
+    const fname=`${slugify(state.name)}_${todayStamp()}_kopsavilkums.pdf`; doc.save(fname); sfx.success();
+  }catch(e){ alert('Neizdevās ģenerēt PDF.'); }
+});
+
+/* ===== UI helpers & hooks ===== */
+function updateGroupOptions(){
+  const n = ($('#teamsInput').value.split('\n').map(s=>s.trim()).filter(Boolean)).length;
+  const optN1=$('#groupStrategy').querySelector('option[value="n1"]');
+  if(n>6){ optN1.disabled=true; optN1.title='1 grupa atļauta tikai ja ≤6 komandas'; } else { optN1.disabled=false; optN1.title=''; }
+}
+$('#teamsInput').addEventListener('input', updateGroupOptions);
+
+$('#genGroups').addEventListener('click', ()=>{
+  const name=$('#tName').value.trim();
+  const teamNames=$('#teamsInput').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  if(teamNames.length<2){ alert('Ievadi vismaz 2 komandas.'); return; }
+  if($('#groupStrategy').value==='n1' && teamNames.length>6){
+    alert('“1 grupa” atļauta tikai, ja ≤6 komandas. Pārslēdzu uz automātisku (2/4/6).');
+    $('#groupStrategy').value='auto';
+  }
+  const teams=teamNames.map(n=>({id:uid(),name:n}));
+  state={...state,name,teams,groups:makeGroups(teams,$('#groupStrategy').value), standings:{}, bracket:null, overall:null};
+  state.standings=computeStandings(state.groups,Object.fromEntries(teams.map(t=>[t.id,t])));
+  saveState(state); $('#brandTitle').textContent = state.name || 'Turnīru Aplikācija';
+  updateGroupOptions(); renderGroups(); renderStandings();
+  $('#playoffPanel').hidden=false; $('#groupsPanel').hidden=false; $('#standingsPanel').hidden=false; $('#statsPanel').hidden=true; $('#downloadPdfBtn').disabled=true;
+  sfx.success();
+});
+
+$('#buildBracket').addEventListener('click', ()=>{
+  if(!state.groups.length){ alert('Vispirms jāievada grupu dati.'); return; }
+  state.standings=computeStandings(state.groups,Object.fromEntries(state.teams.map(t=>[t.id,t])));
+  state.bracket=buildBracketFromStandings(state.standings); propagate(state.bracket);
+  state.overall=null; saveState(state); renderBracket(); $('#statsPanel').hidden=true; $('#downloadPdfBtn').disabled=true; sfx.success();
+});
+
+$('#exportBtn').addEventListener('click', ()=>{
+  const data='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(state,null,2));
+  const a=document.createElement('a'); a.href=data; a.download=(slugify(state.name)||'tournament')+'.json'; a.click(); sfx.click();
+});
+
+$('#importBtn').addEventListener('click', async ()=>{
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json';
+  inp.onchange=async ()=>{
+    const f=inp.files[0]; if(!f) return;
+    try{
+      const txt=await f.text(); const obj=JSON.parse(txt);
+      state=Object.assign({name:'',teams:[],groups:[],standings:{},bracket:null,overall:null},obj);
+      saveState(state);
+      $('#tName').value=state.name||''; $('#teamsInput').value=(state.teams||[]).map(t=>t.name).join('\n');
+      $('#brandTitle').textContent = state.name || 'Turnīru Aplikācija';
+      if(state.groups?.length){ renderGroups(); $('#groupsPanel').hidden=false }
+      if(state.standings && Object.keys(state.standings).length){ renderStandings(); $('#standingsPanel').hidden=false }
+      if(state.bracket){ renderBracket(); $('#playoffPanel').hidden=false }
+      if(state.overall){ renderOverall(state.overall); $('#statsPanel').hidden=false; $('#downloadPdfBtn').disabled=false }
+      updateGroupOptions(); sfx.success();
+    }catch{ alert('Neizdevās importēt.'); }
+  };
+  inp.click();
+});
+
+$('#resetBtn').addEventListener('click', ()=>{
+  if(!confirm('Tiešām notīrīt turnīru?')) return;
+  clearState(); state={name:'',teams:[],groups:[],standings:{},bracket:null,overall:null};
+  $('#tName').value=''; $('#teamsInput').value=''; $('#brandTitle').textContent='Turnīru Aplikācija';
+  $('#groupsHost').innerHTML=''; $('#standingsHost').innerHTML='';
+  $('#qfCol').innerHTML='<h3>Ceturtdaļfināli</h3>'; $('#sfCol').innerHTML='<h3>Pusfināli</h3>'; $('#finCol').innerHTML='<h3>Fināls & 3. vieta</h3>';
+  $('#groupsPanel').hidden=true; $('#standingsPanel').hidden=true; $('#playoffPanel').hidden=true; $('#statsPanel').hidden=true; $('#downloadPdfBtn').disabled=true; $('#overallBtn').disabled=true;
+  sfx.click();
+});
+
+/* ===== Restore ===== */
+(function boot(){
+  $('#soundIcon').textContent = soundOn ? '🔊' : '🔇';
+  const saved=loadState();
+  if(saved){
+    state=Object.assign(state,saved);
+    $('#tName').value=state.name||''; $('#teamsInput').value=(state.teams||[]).map(t=>t.name).join('\n');
+    $('#brandTitle').textContent = state.name || 'Turnīru Aplikācija';
+    if(state.groups?.length){ renderGroups(); $('#groupsPanel').hidden=false }
+    if(state.standings && Object.keys(state.standings).length){ renderStandings(); $('#standingsPanel').hidden=false }
+    if(state.bracket){ renderBracket(); $('#playoffPanel').hidden=false }
+    if(state.overall){ renderOverall(state.overall); $('#statsPanel').hidden=false; $('#downloadPdfBtn').disabled=false }
+  }
+  updateGroupOptions();
+})();
+</script>
+</body>
+</html>
