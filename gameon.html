@@ -88,24 +88,20 @@
   .name-nowrap{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:inline-block}
   @media (max-width:520px){ .standings-table th,.standings-table td{font-size:12px;padding:6px 6px} }
 
-  /* === FIX no-overlap for standings cards === */
+  /* === FIX: Standings kartes vienmēr stāv SLEJĀ, nepārklājas un komandu kolonna neiet pāri === */
   #standingsHost{
     display:grid;
     grid-template-columns:1fr;     /* viens zem otra */
     gap:var(--space);
     align-items:start;
   }
-  #standingsHost > .panel{ min-width:0 }
+  #standingsHost > .panel{ min-width:0 } /* ļauj saturam sašaurināties, lai nerastos pārplūde */
+  /* drošības spilvens pret “izlīšanu” uz nākamo kolonu */
   .standings-table td:nth-child(2) .name-nowrap{display:block;min-width:0;max-width:100%}
   .standings-table th,.standings-table td{overflow:hidden}
 
-  /* ===== Bracket (DINAMISKS kolonu skaits) ===== */
-  .bracket{
-    --round-cols: 3;
-    display:grid;
-    gap:var(--space);
-    grid-template-columns:repeat(var(--round-cols), minmax(260px,1fr));
-  }
+  /* ===== Bracket (NEKĀ nemainīju) ===== */
+  .bracket{display:grid;gap:var(--space);grid-template-columns:repeat(3, minmax(260px,1fr))}
   .round{display:grid;gap:var(--space)}
   .match{border:1px solid var(--border);border-radius:14px;padding:12px;background:color-mix(in oklab, var(--card) 94%, transparent)}
   .team{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:8px;border-radius:10px}
@@ -219,18 +215,18 @@
   <!-- STANDINGS -->
   <section class="panel" id="standingsPanel" hidden>
     <h2>3) Stāvējums (Standings)</h2>
+    <!-- FIX: noņemta inline kolonu definīcija; tagad izmantojam CSS (viens zem otra) -->
     <div id="standingsHost" class="grid"></div>
   </section>
 
   <!-- PLAYOFF -->
   <section class="panel" id="playoffPanel" hidden>
     <div class="row" style="justify-content:space-between;align-items:center">
-      <h2>4) Playoff</h2>
+      <h2>4) Playoff (no Quarterfinals)</h2>
       <button type="button" class="btn" id="buildBracket">Ģenerēt Bracket</button>
     </div>
 
-    <div class="bracket" id="bracketGrid" style="margin-top:var(--space)">
-      <div class="round" id="r16Col" hidden><h3>Astotdaļfināli</h3></div>
+    <div class="bracket" style="margin-top:var(--space)">
       <div class="round" id="qfCol"><h3>Ceturtdaļfināli</h3></div>
       <div class="round" id="sfCol"><h3>Pusfināli</h3></div>
       <div class="round" id="finCol"><h3>Fināls & 3. vieta</h3></div>
@@ -280,10 +276,9 @@ const uid=()=>Math.random().toString(36).slice(2,9);
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 const todayStamp = ()=> new Date().toISOString().slice(0,10);
 const slugify = s => (s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80)||'tournament';
-const nextPow2 = n => {let p=1; while(p<n) p<<=1; return p;}
 
 /* ===== Storage ===== */
-const STORAGE_KEY='tournament_state_pro_v13';
+const STORAGE_KEY='tournament_state_pro_v12';
 function saveState(s){ localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
 function loadState(){ try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'null')}catch{return null} }
 function clearState(){ localStorage.removeItem(STORAGE_KEY); }
@@ -319,7 +314,7 @@ function deriveGroupCount(n,str){
 function makeGroups(teams,str='auto'){
   const n=teams.length; if(n<2) return [];
   const gCount=deriveGroupCount(n,str), shuffled=shuffle([...teams]);
-  const groups=Array.from({length=gCount},(_,i)=>({id:String.fromCharCode(65+i),teams:[],matches:[]}));
+  const groups=Array.from({length:gCount},(_,i)=>({id:String.fromCharCode(65+i),teams:[],matches:[]}));
   shuffled.forEach((t,i)=>groups[i%gCount].teams.push(t.id));
   groups.forEach(g=>{ g.matches=generateRR(g.teams).map(m=>({id:uid(),round:m.round,home:m.home,away:m.away,hs:null,as:null,ot:false})); });
   return groups;
@@ -352,77 +347,48 @@ function computeStandings(groups,map){
   } return out;
 }
 
-/* ===== PLAYOFF: kvalifikācija + dinamiskais bracket ===== */
-
-/* Globāls salīdzinātājs (Pts → GD → GF → Name) */
-const rankCmp=(a,b)=> (b?.pts||0)-(a?.pts||0) || (b?.gd||0)-(a?.gd||0) || (b?.gf||0)-(a?.gf||0) || (a?.name||'').localeCompare(b?.name||'');
-
-/* Izvēlamies sēklas (līdz 16). Ja komandām > 8 → līdz 16 (R16), citādi līdz 8. */
-function selectSeeds(st, totalTeams){
-  const gids=Object.keys(st).sort();
-  const all=[]; for(const g of gids) for(const r of (st[g]||[])) all.push({...r,gid:g});
-  all.sort(rankCmp);
-  const target = totalTeams>8 ? Math.min(16, all.length) : Math.min(8, all.length);
-  return all.slice(0,target).map(x=>x.teamId);
-}
-
-/* No sēklām uztaisa pirmo raundu atbilstoši S=2^k (ar BYE, ja mazāk par S) */
-function firstRoundMatchesFromSeeds(seeds){
-  const E=seeds.length, S=nextPow2(Math.max(2,E)); // vismaz 2
-  const mCount=S/2, matches=[];
-  for(let i=1;i<=mCount;i++){
-    const sA=i, sB=S-i+1;
-    const tA = (sA<=E) ? seeds[sA-1] : null;
-    const tB = (sB<=E) ? seeds[sB-1] : null;
-    matches.push({id:uid(),home:tA,away:tB,hs:null,as:null,ot:false});
+/* ===== Bracket ===== */
+function buildBracketFromStandings(st){
+  const gids=Object.keys(st).sort(), c=gids.length;
+  const topN=(gid,n)=>{ const arr=st[gid]||[]; const out=[]; for(let i=0;i<n;i++) out.push(arr[i]?.teamId ?? null); return out; }
+  const pad=(a,n)=>{const k=[...a];while(k.length<n)k.push(null);return k}
+  const mk=(pairs)=>({ qf:pairs.map(p=>({id:uid(),home:p.home,away:p.away,hs:null,as:null,ot:false})),
+                       sf:[{id:uid(),home:null,away:null,hs:null,as:null,ot:false},{id:uid(),home:null,away:null,hs:null,as:null,ot:false}],
+                       fin:[{id:uid(),home:null,away:null,hs:null,as:null,ot:false}],
+                       third:[{id:uid(),home:null,away:null,hs:null,as:null,ot:false}] });
+  if(c===2){ const [A,B]=gids; const A4=pad(topN(A,4),4), B4=pad(topN(B,4),4);
+    // A1-B4, A2-B3, B1-A4, B2-A3
+    return mk([{home:A4[0],away:B4[3]},{home:A4[1],away:B4[2]},{home:B4[0],away:A4[3]},{home:B4[1],away:A4[2]}]); }
+  if(c===4){ const [A,B,C,D]=gids; const A2=pad(topN(A,2),2),B2=pad(topN(B,2),2),C2=pad(topN(C,2),2),D2=pad(topN(D,2),2);
+    // A1-B2, B1-A2, C1-D2, D1-C2
+    return mk([{home:A2[0],away:B2[1]},{home:B2[0],away:A2[1]},{home:C2[0],away:D2[1]},{home:D2[0],away:C2[1]}]); }
+  if(c===6){
+    // 6 grupas: visi 1.vietu uzvarētāji + 2 labākās 2.vietas → 8 komandas; seed pēc Pts, GD, GF, Name
+    const rank=(a,b)=> (b?.pts||0)-(a?.pts||0)||(b?.gd||0)-(a?.gd||0)||(b?.gf||0)-(a?.gf||0)||(a?.name||'').localeCompare(b?.name||'');
+    const firsts=gids.map(g=>st[g][0]&&{...st[g][0],gid:g}).filter(Boolean);
+    const seconds=gids.map(g=>st[g][1]&&{...st[g][1],gid:g}).filter(Boolean).sort(rank);
+    const q=[...firsts, ...seconds.slice(0,2)]; while(q.length<8) q.push({teamId:null}); q.sort(rank); const s=q.map(x=>x.teamId??null);
+    return mk([{home:s[0],away:s[7]},{home:s[1],away:s[6]},{home:s[2],away:s[5]},{home:s[3],away:s[4]}]);
   }
-  return {S, matches};
+  // Citādi: paņem top8 kopvērtējumā
+  const all=[]; for(const g of gids) all.push(...(st[g]||[])); all.sort((a,b)=> (b.pts-a.pts)||(b.gd-a.gd)||(b.gf-a.gf));
+  const s=pad(all.slice(0,8).map(x=>x.teamId??null),8);
+  return mk([{home:s[0],away:s[7]},{home:s[1],away:s[6]},{home:s[2],away:s[5]},{home:s[3],away:s[4]}]);
 }
-
-/* Galvenais ģenerators: var atgriezt r16 vai qf/sf/final atkarībā no S */
-function buildBracketFromStandings(st, teams){
-  const seeds = selectSeeds(st, teams.length);
-  const {S, matches} = firstRoundMatchesFromSeeds(seeds);
-
-  const mkEmpty = n => Array.from({length:n},()=>({id:uid(),home:null,away:null,hs:null,as:null,ot:false}));
-
-  const br = { r16:[], qf:[], sf:[], fin:[], third:[] };
-  if(S>=16){ br.r16=matches; br.qf=mkEmpty(8); br.sf=mkEmpty(4); br.fin=mkEmpty(2); }
-  else if(S===8){ br.qf=matches; br.sf=mkEmpty(4); br.fin=mkEmpty(2); }
-  else if(S===4){ br.sf=matches; br.fin=mkEmpty(2); }
-  else { br.fin=matches; } // S==2
-
-  // 3. vieta parādām, ja ir vismaz pusfināli
-  if(br.sf.length){ br.third=[{id:uid(),home:null,away:null,hs:null,as:null,ot:false}] }
-
-  propagate(br);
-  return br;
-}
-
-/* ===== Bracket propagācija (vispārināta) ===== */
+function nameOf(id,map){ return id ? (map[id]?.name||'?') : 'BYE' }
 function pickWinner(m){ if(!m) return null; if(m.home&&!m.away) return m.home; if(!m.home&&m.away) return m.away;
   if(Number.isFinite(m.hs)&&Number.isFinite(m.as)){ if(m.hs>m.as) return m.home; if(m.as>m.hs) return m.away; } return null; }
 function pickLoser(m){ const w=pickWinner(m); if(!w) return null; return w===m.home ? (m.away||null) : (m.home||null); }
-
 function propagate(br){
-  const order=['r16','qf','sf','fin'];
-  for(let i=0;i<order.length-1;i++){
-    const cur=br[order[i]]; const next=br[order[i+1]];
-    if(!cur?.length || !next?.length) continue;
-    for(let j=0;j<next.length;j++){
-      const a=cur[2*j], b=cur[2*j+1];
-      next[j].home = pickWinner(a);
-      next[j].away = pickWinner(b);
-    }
-  }
-  if(br.sf?.length && br.third?.length){
-    br.third[0].home = pickLoser(br.sf[0]);
-    br.third[0].away = pickLoser(br.sf[1]);
-  }
+  const wQF=br.qf.map(pickWinner);
+  br.sf[0].home=wQF[0]; br.sf[0].away=wQF[3];
+  br.sf[1].home=wQF[1]; br.sf[1].away=wQF[2];
+  const wSF=br.sf.map(pickWinner), lSF=br.sf.map(pickLoser);
+  br.fin[0].home=wSF[0]; br.fin[0].away=wSF[1];
+  br.third[0].home=lSF[0]; br.third[0].away=lSF[1];
 }
 
 /* ===== Render helpers ===== */
-function nameOf(id,map){ return id ? (map[id]?.name||'?') : 'BYE' }
 function teamCellLg(map,id){ return `<span class="row" style="gap:8px"><span class="name">${nameOf(id,map)}</span></span>`; }
 
 /* ===== GROUP CARDS (preview) ===== */
@@ -565,7 +531,7 @@ function renderStandings(){
   $('#standingsPanel').hidden = !gids.length;
 }
 
-/* ===== BRACKET RENDER ===== */
+/* ===== BRACKET ===== */
 function winnerClass(m,side){
   if(m.home && !m.away) return side==='home'?'win':'';
   if(!m.home && m.away) return side==='away'?'win':'';
@@ -574,23 +540,11 @@ function winnerClass(m,side){
     if(m.as>m.hs && side==='away') return 'win';
   } return '';
 }
-function stageKeyToProp(stage){
-  return stage==='R16'?'r16':stage==='QF'?'qf':stage==='SF'?'sf':stage==='Final'?'fin':'third';
-}
 function renderBracket(){
   const map=Object.fromEntries(state.teams.map(t=>[t.id,t]));
-  const r16 = state.bracket?.r16?.length || 0;
-  const qf  = state.bracket?.qf?.length  || 0;
-  const sf  = state.bracket?.sf?.length  || 0;
-
-  $('#r16Col').hidden = !r16; $('#qfCol').hidden = !qf && !r16; $('#sfCol').hidden = !sf && !(qf||r16);
-  const cols = (r16?1:0) + ((qf||r16)?1:0) + ((sf||qf||r16)?1:0) + 1; // + Final
-  $('#bracketGrid').style.setProperty('--round-cols', cols);
-
-  $('#r16Col').innerHTML = r16?'<h3>Astotdaļfināli</h3>':'';
-  $('#qfCol').innerHTML  = '<h3>Ceturtdaļfināli</h3>';
-  $('#sfCol').innerHTML  = '<h3>Pusfināli</h3>';
-  $('#finCol').innerHTML = '<h3>Fināls & 3. vieta</h3>';
+  $('#qfCol').innerHTML='<h3>Ceturtdaļfināli</h3>';
+  $('#sfCol').innerHTML='<h3>Pusfināli</h3>';
+  $('#finCol').innerHTML='<h3>Fināls & 3. vieta</h3>';
 
   const mk=(m,stage,idx)=>{
     const el=document.createElement('div'); el.className='match';
@@ -612,16 +566,15 @@ function renderBracket(){
     return el;
   };
 
-  state.bracket?.r16?.forEach((m,i)=>$('#r16Col').appendChild(mk(m,'R16',i)));
   state.bracket?.qf?.forEach((m,i)=>$('#qfCol').appendChild(mk(m,'QF',i)));
   state.bracket?.sf?.forEach((m,i)=>$('#sfCol').appendChild(mk(m,'SF',i)));
-  state.bracket?.fin?.forEach(m=>$('#finCol').appendChild(mk(m,'Final'))); // fin ir garums 2 (SF, Final), šeit rādām tikai fināla 1. spēli
+  state.bracket?.fin?.forEach(m=>$('#finCol').appendChild(mk(m,'Final')));
   state.bracket?.third?.forEach(m=>$('#finCol').appendChild(mk(m,'3rd')));
 
   $$('.bracket .score-in').forEach(inp=>{
     inp.addEventListener('change', ()=>{
       const stage=inp.dataset.stage, id=inp.dataset.id, side=inp.dataset.side;
-      const col=stageKeyToProp(stage);
+      const col=stage==='QF'?'qf':stage==='SF'?'sf':stage==='Final'?'fin':'third';
       const m=state.bracket[col].find(x=>x.id===id);
       const val=inp.value===''?null:Math.max(0,parseInt(inp.value,10));
       m[side]=Number.isFinite(val)?val:null;
@@ -632,7 +585,7 @@ function renderBracket(){
   $$('.bracket [data-ot]').forEach(el=>{
     el.addEventListener('change', ()=>{
       const stage=el.dataset.stage, id=el.dataset.id;
-      const col=stageKeyToProp(stage);
+      const col=stage==='QF'?'qf':stage==='SF'?'sf':stage==='Final'?'fin':'third';
       const m=state.bracket[col].find(x=>x.id===id);
       m.ot=el.checked; sfx.click();
       if(Number.isFinite(m.hs)&&Number.isFinite(m.as)&&m.hs===m.as){ alert('Neizšķirtu nav. OT gadījumā jābūt uzvaras vārtiem.'); }
@@ -644,11 +597,7 @@ function renderBracket(){
 }
 
 /* ===== Overall / Awards & PDF ===== */
-function tournamentFinished(){
-  if(!state.bracket) return false;
-  const fin=state.bracket.fin[0], third=state.bracket.third[0];
-  return !!(pickWinner(fin) && (!state.bracket.third.length || pickWinner(third)));
-}
+function tournamentFinished(){ if(!state.bracket) return false; const fin=state.bracket.fin[0], third=state.bracket.third[0]; return !!(pickWinner(fin)&&pickWinner(third)); }
 function refreshOverallButtons(){ const ready=tournamentFinished(); $('#overallBtn').disabled=!ready; $('#downloadPdfBtn').disabled=!(ready&&state.overall); }
 function computeOverall(){
   const map=Object.fromEntries(state.teams.map(t=>[t.id,t.name])), ids=Object.keys(map);
@@ -657,7 +606,7 @@ function computeOverall(){
     const hs=m.hs, as=m.as, H=stats[m.home], A=stats[m.away];
     H.played++; A.played++; H.gf+=hs; H.ga+=as; A.gf+=as; A.ga+=hs; if(hs>as){H.wins++;A.losses++;} else {A.wins++;H.losses++;} };
   for(const g of state.groups) for(const m of g.matches) apply(m);
-  if(state.bracket) [...(state.bracket.r16||[]),...(state.bracket.qf||[]),...(state.bracket.sf||[]),...(state.bracket.fin||[]),...(state.bracket.third||[])].forEach(apply);
+  if(state.bracket) [...state.bracket.qf,...state.bracket.sf,...state.bracket.fin,...state.bracket.third].forEach(apply);
   const arr=Object.values(stats); const maxGF=Math.max(...arr.map(s=>s.gf)), maxGA=Math.max(...arr.map(s=>s.ga));
   const topGF=arr.filter(s=>s.gf===maxGF).map(s=>s.name), topGA=arr.filter(s=>s.ga===maxGA).map(s=>s.name);
   const winId=state.bracket?pickWinner(state.bracket.fin[0]):null, winName=winId?map[winId]:'—';
@@ -686,7 +635,7 @@ function renderOverall(o){
   host.innerHTML=''; host.appendChild(tbl);
 }
 $('#overallBtn').addEventListener('click', ()=>{
-  if(!tournamentFinished()){ alert('Kopsavilkums pieejams pēc fināla (un 3. vietas spēles, ja tāda ir).'); return; }
+  if(!tournamentFinished()){ alert('Kopsavilkums pieejams pēc fināla un 3. vietas spēles.'); return; }
   state.overall=computeOverall(); saveState(state); renderOverall(state.overall);
   $('#statsPanel').hidden=false; $('#downloadPdfBtn').disabled=false; sfx.success();
 });
@@ -744,9 +693,7 @@ $('#genGroups').addEventListener('click', ()=>{
 $('#buildBracket').addEventListener('click', ()=>{
   if(!state.groups.length){ alert('Vispirms jāievada grupu dati.'); return; }
   state.standings=computeStandings(state.groups,Object.fromEntries(state.teams.map(t=>[t.id,t])));
-  // Dinamisks: R16 parādās tikai tad, ja kvalificējas >8 (pēc selectSeeds loģikas tas notiek, ja kopā komandu >8)
-  state.bracket=buildBracketFromStandings(state.standings, state.teams);
-  propagate(state.bracket);
+  state.bracket=buildBracketFromStandings(state.standings); propagate(state.bracket);
   state.overall=null; saveState(state); renderBracket(); $('#statsPanel').hidden=true; $('#downloadPdfBtn').disabled=true; sfx.success();
 });
 
@@ -780,8 +727,7 @@ $('#resetBtn').addEventListener('click', ()=>{
   clearState(); state={name:'',teams:[],groups:[],standings:{},bracket:null,overall:null};
   $('#tName').value=''; $('#teamsInput').value=''; $('#brandTitle').textContent='Turnīru Aplikācija';
   $('#groupsHost').innerHTML=''; $('#standingsHost').innerHTML='';
-  $('#r16Col').innerHTML='<h3>Astotdaļfināli</h3>'; $('#qfCol').innerHTML='<h3>Ceturtdaļfināli</h3>'; $('#sfCol').innerHTML='<h3>Pusfināli</h3>'; $('#finCol').innerHTML='<h3>Fināls & 3. vieta</h3>';
-  $('#r16Col').hidden=true; $('#bracketGrid').style.setProperty('--round-cols', 3);
+  $('#qfCol').innerHTML='<h3>Ceturtdaļfināli</h3>'; $('#sfCol').innerHTML='<h3>Pusfināli</h3>'; $('#finCol').innerHTML='<h3>Fināls & 3. vieta</h3>';
   $('#groupsPanel').hidden=true; $('#standingsPanel').hidden=true; $('#playoffPanel').hidden=true; $('#statsPanel').hidden=true; $('#downloadPdfBtn').disabled=true; $('#overallBtn').disabled=true;
   sfx.click();
 });
