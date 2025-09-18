@@ -78,7 +78,6 @@
 
         <div style="margin-top:12px;display:flex;gap:10px;align-items:center">
           <button class="ghost" id="resetBtn">Atjaunot inventāru</button>
-          <button class="ghost" id="fillExample">Aizpildīt piemēru</button>
         </div>
 
         <div id="notices"></div>
@@ -119,14 +118,17 @@
   lai pēc paņemšanas būtu pietiekami vērtības pārējiem spēlētājiem.
 */
 
-let chips = [
-  // default example: denom, qty
-  {denom:500, qty:8},
-  {denom:100, qty:20},
-  {denom:25, qty:40},
-  {denom:5, qty:100},
-  {denom:1, qty:200}
+// DEFAULTS (kā bildē): 25×50, 50×50, 100×75, 500×50, 1000×50, 5000×25
+let DEFAULT_CHIPS = [
+  {denom:5000, qty:25},
+  {denom:1000, qty:50},
+  {denom:500,  qty:50},
+  {denom:100,  qty:75},
+  {denom:50,   qty:50},
+  {denom:25,   qty:50}
 ];
+
+let chips = JSON.parse(JSON.stringify(DEFAULT_CHIPS));
 
 const el = {
   inventoryList: document.getElementById('inventoryList'),
@@ -141,8 +143,7 @@ const el = {
   addChip: document.getElementById('addChip'),
   newDenom: document.getElementById('newDenom'),
   newQty: document.getElementById('newQty'),
-  resetBtn: document.getElementById('resetBtn'),
-  fillExample: document.getElementById('fillExample')
+  resetBtn: document.getElementById('resetBtn')
 };
 
 function sortChips(){ chips.sort((a,b)=>b.denom - a.denom); }
@@ -174,6 +175,7 @@ function renderSettings(){
       if(v<0) v=0;
       chips[i].qty = v;
       renderOverview();
+      renderInventory();
     });
   });
   document.querySelectorAll('.removeBtn').forEach(b=>{
@@ -217,34 +219,15 @@ el.addChip.addEventListener('click', ()=>{
   const qty = parseInt(el.newQty.value);
   if(!denom || denom <= 0){ alert('Ievadi derīgu nominālu'); return; }
   if(!Number.isFinite(qty) || qty < 0){ alert('Ievadi derīgu daudzumu'); return; }
-  // if denom exists, add qty
   const ex = chips.find(c=>c.denom === denom);
   if(ex){ ex.qty += qty; } else { chips.push({denom, qty}); }
   el.newDenom.value=''; el.newQty.value='';
   renderSettings();
 });
 
-// reset inventory to default example
+// reset inventory to YOUR defaults
 el.resetBtn.addEventListener('click', ()=>{
-  chips = [
-    {denom:500, qty:8},
-    {denom:100, qty:20},
-    {denom:25, qty:40},
-    {denom:5, qty:100},
-    {denom:1, qty:200}
-  ];
-  renderSettings();
-});
-
-// fill example (smaller)
-el.fillExample.addEventListener('click', ()=>{
-  chips = [
-    {denom:1000, qty:4},
-    {denom:500, qty:8},
-    {denom:100, qty:16},
-    {denom:25, qty:40},
-    {denom:5, qty:80}
-  ];
+  chips = JSON.parse(JSON.stringify(DEFAULT_CHIPS));
   renderSettings();
 });
 
@@ -254,7 +237,6 @@ function showNotice(type, text){
 
 // core distribution algorithm
 function distribute(players, target){
-  // clone inventory
   sortChips();
   let inv = chips.map(c=>({denom:c.denom, qty:c.qty}));
   let total_value = inv.reduce((s,c)=>s + c.denom*c.qty, 0);
@@ -271,22 +253,16 @@ function distribute(players, target){
   }
 
   const results = [];
-  // iterate players
   for(let p=0;p<players;p++){
     let remaining = target;
-    const assigned = {}; // denom -> qty
+    const assigned = {};
     for(let i=0;i<inv.length;i++){
       const denom = inv[i].denom;
       const avail = inv[i].qty;
       if(avail <= 0) continue;
-      const playersLeft = players - (p+1); // remaining players after this one
-      // maximum we can take based on player's need and available
+      const playersLeft = players - (p+1);
       const needMax = Math.floor(remaining / denom);
       if(needMax <= 0) continue;
-
-      // maximum we can take while preserving enough total value for remaining players:
-      // ensure total_value - x*denom >= playersLeft * target
-      // -> x <= floor((total_value - playersLeft*target) / denom)
       const maxAllowedByGlobal = Math.floor((total_value - playersLeft*target) / denom);
       const toTake = Math.min(needMax, avail, Math.max(0, maxAllowedByGlobal));
 
@@ -298,7 +274,6 @@ function distribute(players, target){
       }
     }
 
-    // after trying large-to-small, if still remaining > 0, attempt to fill using smaller denominations more flexibly
     if(remaining > 0){
       for(let i=inv.length-1;i>=0 && remaining>0;i--){
         const denom = inv[i].denom;
@@ -319,30 +294,25 @@ function distribute(players, target){
     }
 
     if(remaining > 0){
-      // if still not zero, distribution failed (shouldn't happen because we checked total_value initially),
-      // but handle gracefully: abort and report which player failed and remaining amount.
-      showNotice('err', `Neizdevās pilnībā izdalīt spēlētājam #${p+1}. Trūkst ${remaining}. Lūdzu pārbaudi inventāru vai mērķa summu.`);
+      showNotice('err', `Neizdevās pilnībā izdalīt spēlētājam #${p+1}. Trūkst ${remaining}.`);
       return null;
     }
 
     results.push(assigned);
   }
 
-  // success: return results and remaining inventory
   return {results, remainingInventory: inv};
 }
 
 function renderResults(output, players, target){
   if(!output){ el.resultArea.innerHTML = ''; return; }
   const {results, remainingInventory} = output;
-  // per-player cards
   const container = document.createElement('div');
 
   const summary = document.createElement('div');
   summary.className = 'result-grid';
-  // compute totals used
   const usedMap = {};
-  results.forEach((r,idx)=>{
+  results.forEach((r)=>{
     Object.entries(r).forEach(([denom,qty])=>{
       usedMap[denom] = (usedMap[denom]||0) + qty;
     });
@@ -355,11 +325,10 @@ function renderResults(output, players, target){
     summary.appendChild(card);
   });
 
-  // players breakdown
   const table = document.createElement('table');
-  let thead = `<thead><tr><th>Spēlētājs</th>`;
-  sortDenomsForTable();
+  chips.sort((a,b)=>b.denom - a.denom);
   const denoms = chips.map(c=>c.denom);
+  let thead = `<thead><tr><th>Spēlētājs</th>`;
   denoms.forEach(d=> thead += `<th>${d}</th>`);
   thead += `<th>Kopā</th></tr></thead>`;
   table.innerHTML = thead;
@@ -379,7 +348,6 @@ function renderResults(output, players, target){
   });
   table.appendChild(tbody);
 
-  // remaining inventory table
   const remTable = document.createElement('table');
   remTable.innerHTML = `<thead><tr><th>Nomināls</th><th>Atlikums</th><th>Vērtība</th></tr></thead>`;
   const remBody = document.createElement('tbody');
@@ -403,11 +371,6 @@ function renderResults(output, players, target){
   el.resultArea.appendChild(container);
 }
 
-function sortDenomsForTable(){
-  chips.sort((a,b)=>b.denom - a.denom);
-}
-
-// attach distribute button
 el.distributeBtn.addEventListener('click', ()=>{
   const players = parseInt(el.players.value) || 0;
   const target = parseInt(el.target.value) || 0;
