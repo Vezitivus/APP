@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="lv">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Poker Chip Dealer — Digitāls</title>
+<style>
+  :root{
+    --bg:#071027;
+    --card:#0b1220;
+    --muted:#94a3b8;
+    --accent:#f59e0b;
+    --glass: rgba(255,255,255,0.04);
+    --success:#16a34a;
+    --danger:#ef4444;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background: linear-gradient(180deg,#041022 0%, #07102a 100%);
+    color:#e6eef8;
+    padding:20px;
+  }
+  .container{max-width:1100px;margin:0 auto;}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+  h1{font-size:18px;margin:0}
+  .grid{display:grid;grid-template-columns:1fr 420px;gap:16px}
+  .card{background:var(--card);border-radius:10px;padding:14px;box-shadow:0 6px 28px rgba(0,0,0,0.6)}
+  label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+  input[type="number"], input[type="text"], select{
+    width:100%;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);
+    background:transparent;color:inherit;
+  }
+  .row{display:flex;gap:10px;align-items:center}
+  .chip-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+  .chip-pill{padding:6px 10px;border-radius:999px;background:var(--glass);font-weight:600}
+  button{background:var(--accent);color:#071127;border:0;padding:8px 12px;border-radius:8px;font-weight:700;cursor:pointer}
+  button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
+  .small{font-size:13px;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin-top:10px}
+  th,td{padding:8px;border-bottom:1px dashed rgba(255,255,255,0.03);text-align:left;font-size:13px}
+  .denom{font-weight:700}
+  .result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:12px}
+  .result-card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:10px;border-radius:8px}
+  .notice{padding:10px;border-radius:8px;margin-top:12px}
+  .notice.warn{background:linear-gradient(90deg, rgba(245,158,11,0.12), rgba(245,158,11,0.04));color:var(--accent)}
+  .notice.err{background:linear-gradient(90deg, rgba(239,68,68,0.09), rgba(239,68,68,0.03));color:var(--danger)}
+  .notice.ok{background:linear-gradient(90deg, rgba(16,185,129,0.06), rgba(16,185,129,0.02));color:var(--success)}
+  pre{white-space:pre-wrap;background:transparent;padding:0;margin:0;color:var(--muted);font-size:13px}
+  footer{margin-top:14px;color:var(--muted);font-size:13px;text-align:center}
+  @media(max-width:880px){ .grid{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Poker Chip Dealer — digitāla čipu dalīšana</h1>
+      <div class="small">Ievadi: spēlētāji un vēlamā summa — app izdalīs čipus pēc iespējas taisnīgāk.</div>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT: Inputs + Results -->
+      <div class="card">
+        <div style="display:flex;gap:10px;align-items:flex-end">
+          <div style="flex:1">
+            <label>Spēlētāju skaits</label>
+            <input id="players" type="number" min="1" value="6" />
+          </div>
+          <div style="width:160px">
+            <label>Summa uz spēlētāju</label>
+            <input id="target" type="number" min="0" value="1500" />
+          </div>
+          <div>
+            <button id="distributeBtn">Distribuēt</button>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;display:flex;gap:10px;align-items:center">
+          <button class="ghost" id="resetBtn">Atjaunot inventāru</button>
+          <button class="ghost" id="fillExample">Aizpildīt piemēru</button>
+        </div>
+
+        <div id="notices"></div>
+
+        <h3 style="margin-top:14px;margin-bottom:6px">Inventārs (nomināls → daudzums)</h3>
+        <div id="inventoryList"></div>
+
+        <h3 style="margin-top:12px;margin-bottom:6px">Rezultāts</h3>
+        <div id="resultArea"></div>
+      </div>
+
+      <!-- RIGHT: Settings -->
+      <div class="card">
+        <h3>Iestatījumi čipiem</h3>
+        <div class="small" style="margin-bottom:8px">Pievieno / rediģē nominālus un to skaitu. Nominālus ievadi kā veselu skaitli (piem., 500, 100, 25, 5, 1).</div>
+
+        <div id="chipsForm"></div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <input id="newDenom" type="number" placeholder="Nomināls (piem. 100)" />
+          <input id="newQty" type="number" placeholder="Daudzums" />
+          <button id="addChip">Pievienot</button>
+        </div>
+        <hr style="margin:12px 0;border:none;border-top:1px dashed rgba(255,255,255,0.03)" />
+        <div class="small">Pārskats:</div>
+        <div style="margin-top:8px">
+          <div class="row"><div class="small">Kopējā pieejamā vērtība:</div><div style="flex:1"></div><div id="totalValue" class="denom"></div></div>
+          <div class="row" style="margin-top:6px"><div class="small">Kopējais čipu skaits:</div><div style="flex:1"></div><div id="totalChips" class="denom"></div></div>
+        </div>
+        <footer>Ja neesi apmierināts ar rezultātu, maini inventāru vai summu un nospied <strong>Distribuēt</strong>.</footer>
+      </div>
+    </div>
+  </div>
+
+<script>
+/*
+  Poker Chip Dealer - vienkāršs, bet robusts izdalīšanas skripts.
+  Algoritms: greedily izdala katram spēlētājam, taču limitē paņēmienu tā,
+  lai pēc paņemšanas būtu pietiekami vērtības pārējiem spēlētājiem.
+*/
+
+let chips = [
+  // default example: denom, qty
+  {denom:500, qty:8},
+  {denom:100, qty:20},
+  {denom:25, qty:40},
+  {denom:5, qty:100},
+  {denom:1, qty:200}
+];
+
+const el = {
+  inventoryList: document.getElementById('inventoryList'),
+  chipsForm: document.getElementById('chipsForm'),
+  players: document.getElementById('players'),
+  target: document.getElementById('target'),
+  distributeBtn: document.getElementById('distributeBtn'),
+  resultArea: document.getElementById('resultArea'),
+  totalValue: document.getElementById('totalValue'),
+  totalChips: document.getElementById('totalChips'),
+  notices: document.getElementById('notices'),
+  addChip: document.getElementById('addChip'),
+  newDenom: document.getElementById('newDenom'),
+  newQty: document.getElementById('newQty'),
+  resetBtn: document.getElementById('resetBtn'),
+  fillExample: document.getElementById('fillExample')
+};
+
+function sortChips(){ chips.sort((a,b)=>b.denom - a.denom); }
+
+function renderSettings(){
+  sortChips();
+  el.chipsForm.innerHTML = '';
+  chips.forEach((c,idx)=>{
+    const row = document.createElement('div');
+    row.className = 'chip-row';
+    row.style.justifyContent = 'space-between';
+    row.innerHTML = `
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="chip-pill">${c.denom}</div>
+        <div class="small">x <input data-idx="${idx}" class="qtyInput" type="number" min="0" value="${c.qty}" style="width:80px;padding:6px;border-radius:6px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:inherit"></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="ghost removeBtn" data-idx="${idx}">Noņemt</button>
+      </div>
+    `;
+    el.chipsForm.appendChild(row);
+  });
+
+  // attach events
+  document.querySelectorAll('.qtyInput').forEach(inp=>{
+    inp.addEventListener('change', (e)=>{
+      const i = +e.target.dataset.idx;
+      let v = parseInt(e.target.value) || 0;
+      if(v<0) v=0;
+      chips[i].qty = v;
+      renderOverview();
+    });
+  });
+  document.querySelectorAll('.removeBtn').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const i = +b.dataset.idx;
+      chips.splice(i,1);
+      renderSettings();
+      renderInventory();
+      renderOverview();
+    });
+  });
+
+  renderInventory();
+  renderOverview();
+}
+
+function renderInventory(){
+  el.inventoryList.innerHTML = '';
+  const table = document.createElement('table');
+  table.innerHTML = `<thead><tr><th>Nomināls</th><th>Daudzums</th><th>Vērtība</th></tr></thead>`;
+  const tbody = document.createElement('tbody');
+  chips.forEach(c=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="denom">${c.denom}</td><td>${c.qty}</td><td>${c.denom * c.qty}</td>`;
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  el.inventoryList.appendChild(table);
+}
+
+function renderOverview(){
+  const totalValue = chips.reduce((s,c)=>s + c.denom*c.qty, 0);
+  const totalChips = chips.reduce((s,c)=>s + c.qty, 0);
+  el.totalValue.textContent = totalValue;
+  el.totalChips.textContent = totalChips;
+}
+
+// add new chip
+el.addChip.addEventListener('click', ()=>{
+  const denom = parseInt(el.newDenom.value);
+  const qty = parseInt(el.newQty.value);
+  if(!denom || denom <= 0){ alert('Ievadi derīgu nominālu'); return; }
+  if(!Number.isFinite(qty) || qty < 0){ alert('Ievadi derīgu daudzumu'); return; }
+  // if denom exists, add qty
+  const ex = chips.find(c=>c.denom === denom);
+  if(ex){ ex.qty += qty; } else { chips.push({denom, qty}); }
+  el.newDenom.value=''; el.newQty.value='';
+  renderSettings();
+});
+
+// reset inventory to default example
+el.resetBtn.addEventListener('click', ()=>{
+  chips = [
+    {denom:500, qty:8},
+    {denom:100, qty:20},
+    {denom:25, qty:40},
+    {denom:5, qty:100},
+    {denom:1, qty:200}
+  ];
+  renderSettings();
+});
+
+// fill example (smaller)
+el.fillExample.addEventListener('click', ()=>{
+  chips = [
+    {denom:1000, qty:4},
+    {denom:500, qty:8},
+    {denom:100, qty:16},
+    {denom:25, qty:40},
+    {denom:5, qty:80}
+  ];
+  renderSettings();
+});
+
+function showNotice(type, text){
+  el.notices.innerHTML = `<div class="notice ${type}">${text}</div>`;
+}
+
+// core distribution algorithm
+function distribute(players, target){
+  // clone inventory
+  sortChips();
+  let inv = chips.map(c=>({denom:c.denom, qty:c.qty}));
+  let total_value = inv.reduce((s,c)=>s + c.denom*c.qty, 0);
+  const total_needed = players * target;
+
+  el.resultArea.innerHTML = '';
+
+  if(total_value < total_needed){
+    const deficit = total_needed - total_value;
+    showNotice('err', `Nepietiek vērtības. Nepieciešams vēl ${deficit} vienību (kopā nepieciešams ${total_needed}, pieejams ${total_value}).`);
+    return null;
+  } else {
+    showNotice('ok', `Kopīgi nepieciešams ${total_needed}. Pieejamā vērtība: ${total_value}.`);
+  }
+
+  const results = [];
+  // iterate players
+  for(let p=0;p<players;p++){
+    let remaining = target;
+    const assigned = {}; // denom -> qty
+    for(let i=0;i<inv.length;i++){
+      const denom = inv[i].denom;
+      const avail = inv[i].qty;
+      if(avail <= 0) continue;
+      const playersLeft = players - (p+1); // remaining players after this one
+      // maximum we can take based on player's need and available
+      const needMax = Math.floor(remaining / denom);
+      if(needMax <= 0) continue;
+
+      // maximum we can take while preserving enough total value for remaining players:
+      // ensure total_value - x*denom >= playersLeft * target
+      // -> x <= floor((total_value - playersLeft*target) / denom)
+      const maxAllowedByGlobal = Math.floor((total_value - playersLeft*target) / denom);
+      const toTake = Math.min(needMax, avail, Math.max(0, maxAllowedByGlobal));
+
+      if(toTake > 0){
+        assigned[denom] = toTake;
+        inv[i].qty -= toTake;
+        remaining -= denom * toTake;
+        total_value -= denom * toTake;
+      }
+    }
+
+    // after trying large-to-small, if still remaining > 0, attempt to fill using smaller denominations more flexibly
+    if(remaining > 0){
+      for(let i=inv.length-1;i>=0 && remaining>0;i--){
+        const denom = inv[i].denom;
+        const avail = inv[i].qty;
+        if(avail<=0) continue;
+        const playersLeft = players - (p+1);
+        const needMax = Math.floor(remaining / denom);
+        if(needMax <= 0) continue;
+        const maxAllowedByGlobal = Math.floor((total_value - playersLeft*target) / denom);
+        const toTake = Math.min(needMax, avail, Math.max(0, maxAllowedByGlobal));
+        if(toTake > 0){
+          assigned[denom] = (assigned[denom]||0) + toTake;
+          inv[i].qty -= toTake;
+          remaining -= denom * toTake;
+          total_value -= denom * toTake;
+        }
+      }
+    }
+
+    if(remaining > 0){
+      // if still not zero, distribution failed (shouldn't happen because we checked total_value initially),
+      // but handle gracefully: abort and report which player failed and remaining amount.
+      showNotice('err', `Neizdevās pilnībā izdalīt spēlētājam #${p+1}. Trūkst ${remaining}. Lūdzu pārbaudi inventāru vai mērķa summu.`);
+      return null;
+    }
+
+    results.push(assigned);
+  }
+
+  // success: return results and remaining inventory
+  return {results, remainingInventory: inv};
+}
+
+function renderResults(output, players, target){
+  if(!output){ el.resultArea.innerHTML = ''; return; }
+  const {results, remainingInventory} = output;
+  // per-player cards
+  const container = document.createElement('div');
+
+  const summary = document.createElement('div');
+  summary.className = 'result-grid';
+  // compute totals used
+  const usedMap = {};
+  results.forEach((r,idx)=>{
+    Object.entries(r).forEach(([denom,qty])=>{
+      usedMap[denom] = (usedMap[denom]||0) + qty;
+    });
+  });
+
+  Object.keys(usedMap).sort((a,b)=>b-a).forEach(denom=>{
+    const card = document.createElement('div');
+    card.className = 'result-card';
+    card.innerHTML = `<div style="font-weight:800">${denom} × ${usedMap[denom]}</div><div class="small">Vērtība: ${denom * usedMap[denom]}</div>`;
+    summary.appendChild(card);
+  });
+
+  // players breakdown
+  const table = document.createElement('table');
+  let thead = `<thead><tr><th>Spēlētājs</th>`;
+  sortDenomsForTable();
+  const denoms = chips.map(c=>c.denom);
+  denoms.forEach(d=> thead += `<th>${d}</th>`);
+  thead += `<th>Kopā</th></tr></thead>`;
+  table.innerHTML = thead;
+  const tbody = document.createElement('tbody');
+  results.forEach((r,idx)=>{
+    let total = 0;
+    const tr = document.createElement('tr');
+    let row = `<td>#${idx+1}</td>`;
+    denoms.forEach(d=>{
+      const q = r[d] || 0;
+      row += `<td>${q}</td>`;
+      total += q * d;
+    });
+    row += `<td class="denom">${total}</td>`;
+    tr.innerHTML = row;
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+
+  // remaining inventory table
+  const remTable = document.createElement('table');
+  remTable.innerHTML = `<thead><tr><th>Nomināls</th><th>Atlikums</th><th>Vērtība</th></tr></thead>`;
+  const remBody = document.createElement('tbody');
+  remainingInventory.forEach(r=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="denom">${r.denom}</td><td>${r.qty}</td><td>${r.denom * r.qty}</td>`;
+    remBody.appendChild(tr);
+  });
+  remTable.appendChild(remBody);
+
+  container.appendChild(summary);
+  container.appendChild(document.createElement('hr'));
+  container.appendChild(table);
+  container.appendChild(document.createElement('hr'));
+  const remH = document.createElement('div');
+  remH.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Atlikušais inventārs</div>`;
+  container.appendChild(remH);
+  container.appendChild(remTable);
+
+  el.resultArea.innerHTML = '';
+  el.resultArea.appendChild(container);
+}
+
+function sortDenomsForTable(){
+  chips.sort((a,b)=>b.denom - a.denom);
+}
+
+// attach distribute button
+el.distributeBtn.addEventListener('click', ()=>{
+  const players = parseInt(el.players.value) || 0;
+  const target = parseInt(el.target.value) || 0;
+  if(players <= 0 || target < 0){ alert('Ievadi derīgus spēlētājus un summu'); return; }
+  const out = distribute(players, target);
+  if(out) renderResults(out, players, target);
+});
+
+// initial render
+renderSettings();
+renderInventory();
+renderOverview();
+</script>
+</body>
+</html>
