@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="lv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Teikuma izvēle — koplietošana (Sheets)</title>
+  <meta name="color-scheme" content="dark light" />
+  <style>
+    :root{
+      --bg:#0b0f14; --card:#0f1520; --line:#1d2635; --muted:#9fb0c7; --text:#e8eef6;
+      --brand:#6ea8fe; --brand2:#8a5cf6; --ok:#34d399; --err:#fca5a5; --radius:14px;
+      --shadow:0 12px 40px rgba(0,0,0,.35); --t:220ms cubic-bezier(.22,.61,.36,1);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
+      color:var(--text);
+      background:radial-gradient(1200px 600px at 70% -10%, rgba(108,99,255,.18), transparent),
+                 radial-gradient(1000px 500px at -10% 20%, rgba(49,130,206,.15), transparent),
+                 var(--bg);
+      min-height:100svh; display:grid; place-items:start center; padding:24px;
+    }
+    .shell{ width:min(1080px,100%); }
+    .card{ background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,0)), var(--card);
+      border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow);
+      overflow:clip; backdrop-filter:saturate(130%) blur(8px); animation:rise .6s ease both; }
+    @keyframes rise{ from{transform:translateY(10px); opacity:0} to{transform:none; opacity:1} }
+    header{ padding:22px; border-bottom:1px solid var(--line); }
+    header h1{ margin:0 0 6px 0; font-size:22px; letter-spacing:.2px; }
+    header p{ margin:0; color:var(--muted); font-size:13.5px; }
+    main{ padding:22px; display:grid; gap:22px; }
+    .grid{ display:grid; grid-template-columns:1fr; gap:18px; }
+    @media(min-width:920px){ .grid{ grid-template-columns:1.1fr .9fr; align-items:start; } }
+    fieldset{ border:1px solid var(--line); border-radius:var(--radius); padding:16px; margin:0; }
+    legend{ padding:0 10px; color:var(--muted); font-size:12px; letter-spacing:.35px; }
+    .row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .muted{ color:var(--muted); font-size:13.5px; }
+    .pill{ font-size:12px; padding:4px 8px; border:1px solid var(--line); border-radius:999px; color:var(--muted); }
+    .help{ color:var(--muted); font-size:12.5px; }
+    .hide{ display:none !important; }
+    .sentences{ display:grid; gap:10px; max-height:420px; overflow:auto; padding-right:6px; }
+    .option{
+      display:grid; grid-template-columns:auto 1fr; gap:12px; align-items:start;
+      padding:12px; border:1px solid var(--line); border-radius:12px; background:rgba(255,255,255,.02);
+      transition: transform var(--t), border-color var(--t), background var(--t);
+    }
+    .option:hover{ transform:translateY(-2px); border-color:#2b3a52; background:rgba(255,255,255,.04); }
+    .option input[type="radio"]{ transform:translateY(2px); }
+    label.block{ display:block; font-weight:600; margin-bottom:8px; }
+    input[type="text"], textarea{
+      width:100%; padding:12px; border-radius:12px; border:1px solid #243046;
+      background:#0a111b; color:var(--text); outline:none; transition:border-color var(--t), box-shadow var(--t);
+    }
+    input[type="text"]:focus, textarea:focus{ border-color:#3656ff; box-shadow:0 0 0 4px rgba(86,120,255,.15); }
+    textarea{ min-height:90px; resize:vertical; }
+    button{
+      border:0; padding:10px 14px; border-radius:12px; font-weight:700; cursor:pointer;
+      transition: transform var(--t), opacity var(--t), filter var(--t);
+    }
+    button:active{ transform:translateY(1px) scale(.99); }
+    .primary{ background:linear-gradient(135deg, var(--brand), var(--brand2)); color:white; }
+    .ghost{ background:transparent; border:1px solid var(--line); color:#d5dff0; }
+    .danger{ background:#ef4444; color:white; }
+    .success{ color:var(--ok); } .error{ color:var(--err); }
+    .list{ display:grid; gap:10px; }
+    .claim{ display:grid; grid-template-columns:1fr auto; align-items:center; gap:12px;
+      padding:12px; border:1px solid var(--line); border-radius:12px; background:rgba(255,255,255,.02); }
+    .link{ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12.5px; }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="card" role="application">
+      <header>
+        <h1>Teikuma izvēle — koplietošana</h1>
+        <p>Dati glabājas Google Sheets. Kad kāds paņem teikumu, tas pazūd visiem.</p>
+      </header>
+      <main>
+        <div class="grid">
+          <!-- KREISĀ -->
+          <section>
+            <fieldset id="hostPanel" class="hide">
+              <legend>Izveidot sesiju</legend>
+              <label class="block" for="bulkArea">Teikumi (līdz 200; katrs jaunā rindā)</label>
+              <textarea id="bulkArea" placeholder="Ielīmē teikumus…"></textarea>
+              <div class="row" style="margin-top:10px">
+                <button id="createBtn" class="primary" type="button">Izveidot sesiju</button>
+                <span class="help">Pēc izveides saņemsi saiti <code>?s=ID</code></span>
+              </div>
+            </fieldset>
+
+            <fieldset id="joinPanel" class="hide">
+              <legend>Izvēle</legend>
+              <div class="row" style="justify-content:space-between; margin-bottom:10px">
+                <span class="pill"><span id="leftCount">0</span> pieejami</span>
+                <button id="customToggle" class="ghost" type="button">+ Cits teikums…</button>
+              </div>
+
+              <div id="customBox" class="hide" style="margin-bottom:12px">
+                <label class="block" for="customSentence">Tavs teikums</label>
+                <textarea id="customSentence" placeholder="Ieraksti savu teikumu…"></textarea>
+                <div class="row" style="margin-top:10px">
+                  <button id="useCustom" class="primary" type="button">Izmantot šo</button>
+                  <button id="cancelCustom" class="ghost" type="button">Atcelt</button>
+                  <span class="help">“Cits” neietekmē sarakstu — tikai ieraksts rezultātos.</span>
+                </div>
+              </div>
+
+              <div id="sentences" class="sentences" role="radiogroup" aria-label="Teikumu saraksts"></div>
+            </fieldset>
+
+            <fieldset id="identifyPanel" class="hide">
+              <legend>Identifikācija</legend>
+              <label class="block" for="nameInput">Vārds</label>
+              <input id="nameInput" type="text" placeholder="Ieraksti savu vārdu" autocomplete="name" />
+              <div class="row" style="margin-top:10px">
+                <button id="submitBtn" class="primary" type="button">Apstiprināt izvēli</button>
+                <span id="feedback" class="muted" aria-live="polite"></span>
+              </div>
+            </fieldset>
+          </section>
+
+          <!-- LABĀ -->
+          <section>
+            <fieldset>
+              <legend>Sesijas informācija</legend>
+              <div class="row" style="justify-content:space-between">
+                <div>
+                  <div class="muted">Sesijas ID</div>
+                  <div id="sessionIdLabel" class="link">—</div>
+                </div>
+                <div class="row">
+                  <button id="copyLinkBtn" class="ghost" type="button">Kopēt saiti</button>
+                  <button id="resetBtn" class="danger hide" type="button">Notīrīt sesiju</button>
+                </div>
+              </div>
+              <div class="muted" style="margin-top:8px">Atver šo pašu saiti, lai skatītu rezultātus dzīvajā.</div>
+            </fieldset>
+
+            <fieldset>
+              <legend>Rezultāti (visi dalībnieki)</legend>
+              <div id="claims" class="list"></div>
+            </fieldset>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script type="module">
+    // ===== KONFIGURĀCIJA =====
+    const API_BASE = "https://script.google.com/macros/s/AKfycbwFGXqmO6Ja9t6AT97a6cwQlxaJUhPbXC7t5lmc-mW1McdeeVmBc_sUvvicjOZ3YJlK/exec";
+
+    // ===== PALĪGUMI =====
+    const $ = s => document.querySelector(s);
+    const el = (t, a={}, kids=[]) => { const n=document.createElement(t);
+      for (const [k,v] of Object.entries(a)){
+        if(k==="class") n.className=v;
+        else if(k.startsWith("on")&&typeof v==="function") n.addEventListener(k.slice(2), v);
+        else if(k==="html") n.innerHTML=v;
+        else n.setAttribute(k,v);
+      }
+      for(const c of [].concat(kids)) n.appendChild(typeof c==="string"?document.createTextNode(c):c);
+      return n;
+    };
+    const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+    const sidFromUrl = () => new URL(location.href).searchParams.get("s");
+    const setSidInUrl = id => { const u=new URL(location.href); u.searchParams.set("s",id); history.replaceState(null,"",u.toString()); };
+
+    // ===== API (CORS-friendly: text/plain izvairās no preflight) =====
+    async function apiGET(params){
+      const url = new URL(API_BASE);
+      Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, typeof v==='string'?v:JSON.stringify(v)));
+      const r = await fetch(url.toString(), { method:'GET', credentials:'omit' });
+      if(!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.json();
+    }
+    async function apiPOST(body){
+      const r = await fetch(API_BASE, {
+        method:'POST',
+        headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+        body: JSON.stringify(body),
+        credentials:'omit'
+      });
+      if(!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.json();
+    }
+
+    // ===== STĀVOKLIS =====
+    let sessionId = sidFromUrl();
+    let selectedSentence = null; // {id,text} vai {custom:true,text}
+    let pollTimer = null;
+
+    // ===== UI =====
+    function show(n){ n.classList.remove("hide"); }
+    function hide(n){ n.classList.add("hide"); }
+
+    function renderSentences(list){
+      const box = $("#sentences"); box.innerHTML="";
+      const available = list.filter(s => !s.claimedBy);
+      $("#leftCount").textContent = available.length;
+      if(!available.length){ box.appendChild(el("div",{class:"muted"},"Visi teikumi ir izvēlēti.")); return; }
+      available.forEach((s, idx) => {
+        const id = "s_"+idx;
+        const opt = el("label",{class:"option"});
+        const radio = el("input",{type:"radio",name:"sentence",id});
+        radio.checked = (selectedSentence && selectedSentence.id===s.id);
+        radio.onchange = () => { selectedSentence={id:s.id,text:s.text}; show($("#identifyPanel")); $("#nameInput").focus(); renderSentences(list); };
+        opt.appendChild(radio);
+        opt.appendChild(el("div",{},[ el("div",{},s.text), el("small",{class:"muted"},"Teikums • "+(s.index+1)) ]));
+        box.appendChild(opt);
+      });
+    }
+
+    function renderClaims(claims){
+      const list = $("#claims"); list.innerHTML="";
+      if(!claims.length){ list.appendChild(el("div",{class:"muted"},"Pagaidām nav neviena ieraksta.")); return; }
+      claims.forEach(c => {
+        const row = el("div",{class:"claim"});
+        row.appendChild(el("div",{},[
+          el("div",{html:`<strong>${esc(c.name)}</strong> → ${esc(c.sentence || "(cits teikums)")}`}),
+          el("small",{}, c.createdAt || "—")
+        ]));
+        list.appendChild(row);
+      });
+    }
+
+    function setUiBySession(){
+      $("#sessionIdLabel").textContent = sessionId || "—";
+      if(sessionId){ hide($("#hostPanel")); show($("#joinPanel")); show($("#identifyPanel")); show($("#resetBtn")); }
+      else { show($("#hostPanel")); hide($("#joinPanel")); hide($("#identifyPanel")); hide($("#resetBtn")); }
+    }
+
+    // ===== DARBĪBAS =====
+    async function refreshState(){
+      if(!sessionId) return;
+      try{
+        const res = await apiGET({ action:"state", sessionId });
+        renderSentences(res.sentences || []);
+        renderClaims(res.claims || []);
+      }catch(e){ console.error(e); }
+    }
+    function startPolling(){ if(pollTimer) clearInterval(pollTimer); pollTimer=setInterval(refreshState, 2000); refreshState(); }
+
+    $("#customToggle").addEventListener("click", () => $("#customBox").classList.toggle("hide"));
+    $("#cancelCustom").addEventListener("click", () => { $("#customBox").classList.add("hide"); $("#customSentence").value=""; });
+    $("#useCustom").addEventListener("click", () => {
+      const t=$("#customSentence").value.trim(); if(!t) return;
+      selectedSentence={custom:true,text:t}; show($("#identifyPanel")); $("#nameInput").focus();
+    });
+
+    $("#submitBtn").addEventListener("click", async () => {
+      const fb=$("#feedback"); const name=$("#nameInput").value.trim();
+      if(!selectedSentence){ fb.textContent="Vispirms izvēlies teikumu vai ievadi savu."; fb.className="error"; return; }
+      if(!name){ fb.textContent="Lūdzu, ieraksti vārdu."; fb.className="error"; $("#nameInput").focus(); return; }
+      try{
+        fb.textContent="Saglabāju…"; fb.className="muted";
+        if(selectedSentence.custom){
+          await apiPOST({ action:"claimCustom", sessionId, name, text:selectedSentence.text });
+        }else{
+          await apiPOST({ action:"claim", sessionId, name, sentenceId:selectedSentence.id });
+        }
+        fb.textContent="Saglabāts!"; fb.className="success";
+        selectedSentence=null; $("#nameInput").value=""; $("#customSentence").value=""; $("#customBox").classList.add("hide");
+        refreshState();
+      }catch(e){
+        const msg=String(e);
+        let t="Kļūda: "+msg;
+        if(msg.includes("name_used")) t="Šis vārds jau ir iesniedzis izvēli.";
+        if(msg.includes("already_taken")) t="Šo teikumu tikko paņēma kāds cits.";
+        if(msg.includes("not_found")) t="Teikums vairs nav pieejams.";
+        $("#feedback").textContent=t; $("#feedback").className="error";
+      }
+    });
+
+    $("#copyLinkBtn").addEventListener("click", async () => {
+      try{ await navigator.clipboard.writeText(location.href); alert("Saite nokopēta!"); }
+      catch{ alert("Nesanāca nokopēt — izmanto adreses joslu."); }
+    });
+
+    $("#createBtn").addEventListener("click", async () => {
+      const lines=$("#bulkArea").value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean).slice(0,200);
+      if(!lines.length){ alert("Ievadi vismaz vienu teikumu."); return; }
+      const res=await apiPOST({ action:"createSession", sentences:lines });
+      setSidInUrl(res.sessionId); sessionId=res.sessionId; setUiBySession(); startPolling();
+    });
+
+    $("#resetBtn").addEventListener("click", async () => {
+      if(!confirm("Tiešām notīrīt sesiju?")) return;
+      await apiPOST({ action:"resetSession", sessionId }); refreshState();
+    });
+
+    // Start
+    setUiBySession(); if(sessionId) startPolling();
+  </script>
+</body>
+</html>
