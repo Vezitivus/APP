@@ -7,7 +7,6 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <style>
-    /* iOS light / neutral */
     :root{
       --bg:#f2f2f7; --card:#ffffff; --text:#111827; --muted:#6c6c70;
       --accent:#007aff; --ok:#34c759; --err:#ff3b30; --ring:#d1d1d6; --border:#e5e5ea;
@@ -39,13 +38,14 @@
     .btn-err{background:var(--err);color:#fff}
     .btn-ghost{background:#fff;border:1px solid var(--ring);color:var(--text)}
     .list{display:grid;gap:10px}
-    .task{display:flex;flex-direction:column;gap:8px}
+    .task{display:flex;flex-direction:column;gap:8px;transition:opacity .15s ease, filter .15s ease}
     .badge{display:inline-block;padding:4px 8px;border:1px solid var(--ring);border-radius:10px;font-size:12px;margin-right:6px;background:#fff}
     .b-idle{background:#fff}
     .b-pending{background:#e7f0ff;border-color:#bcd3ff}
     .b-approved{background:#e7f9ee;border-color:#bfeccf}
     .b-rejected{background:#ffe9ea;border-color:#ffd0d3}
-    /* Overlay (paziņojumiem) */
+    .dim{opacity:.45; filter:grayscale(.25)}
+    /* Pārklājums paziņojumiem */
     .overlay{position:fixed;inset:0;background:rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
     .sheet{max-width:520px;width:100%;background:var(--card);border:1px solid var(--border);border-radius:18px;box-shadow:0 24px 48px rgba(0,0,0,.18);padding:16px;transform:scale(.94);opacity:0;animation:pop .16s cubic-bezier(.2,.7,.2,1) forwards}
     @keyframes pop{to{transform:scale(1);opacity:1}}
@@ -133,7 +133,7 @@ async function api(action, payload={}) {
   const txt = await res.text(); try { return JSON.parse(txt); } catch { return {ok:false,error:'Bad JSON',raw:txt}; }
 }
 
-/* ---------- 1) Vārds -> uzreiz uz formu ---------- */
+/* ---------- 1) Vārds ---------- */
 async function onName() {
   const name = $('name').value.trim(); if (!name) { $('name').focus(); return; }
   const r = await api('upsertPlayer', { playerId:S.id, name });
@@ -162,15 +162,12 @@ $('btn-ready').onclick = async ()=>{
 
 /* ---------- Lobby ---------- */
 $('btn-edit').onclick = ()=>{ show('v-form'); };
-
 async function pollLobby(){
   const res = await api('getLobby');
   if (!res.ok) return setTimeout(pollLobby, 2000);
   $('lobby-info').textContent = `Dalībnieki: ${res.total} • Aizpildījuši: ${res.filled}`;
-  if (res.allReady) {
-    await api('ensureAssignments', {});
-    await openGame();
-  } else setTimeout(pollLobby, 1800);
+  if (res.allReady) { await api('ensureAssignments', {}); await openGame(); }
+  else setTimeout(pollLobby, 1800);
 }
 
 /* ---------- Spēle ---------- */
@@ -180,19 +177,13 @@ async function openGame(){
   await refreshRuleRecipient();
   ensureGlobalPolling();
 }
-
-function badge(st){
-  return `badge ${st==='approved'?'b-approved':st==='pending'?'b-pending':st==='rejected'?'b-rejected':'b-idle'}`;
-}
+function badge(st){ return `badge ${st==='approved'?'b-approved':st==='pending'?'b-pending':st==='rejected'?'b-rejected':'b-idle'}`; }
 function label(f){ return ({1:'Asociācija',2:'Labs darbs',3:'Privātais',4:'Likums'})[f]||('#'+f); }
 function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m])); }
 
 async function refreshTasks(){
   let r = await api('getMyTasks', { playerId:S.id });
-  if (r.ok && (!r.tasks || !r.tasks.length)) {
-    await api('ensureAssignments', {});
-    r = await api('getMyTasks', { playerId:S.id });
-  }
+  if (r.ok && (!r.tasks || !r.tasks.length)) { await api('ensureAssignments', {}); r = await api('getMyTasks', { playerId:S.id }); }
   if (!r.ok) return;
 
   const tasks = (r.tasks||[]).sort((a,b)=>a.field-b.field);
@@ -200,19 +191,23 @@ async function refreshTasks(){
   tasks.forEach(t=>{
     let foot = '';
     if (t.status==='rejected' && t.decisionReady && t.rejectedCount>0) foot = `<div class="muted">Noraidīja: ${t.rejectedCount}</div>`;
+    const isDim = (t.status==='approved' || t.status==='pending'); // pending arī blāvs
     const el = document.createElement('div');
-    el.className='card task';
+    el.className='card task' + (isDim ? ' dim' : '');
     el.innerHTML = `
-      <div><span class="${badge(t.status)}">${t.status}</span> <span class="muted">${label(t.field)} · autors: ${t.authorName||''}</span></div>
+      <div><span class="${badge(t.status)}">${t.status}</span> <span class="muted">${label(t.field)}</span></div>
       <div class="title" style="font-size:18px">${escapeHtml(t.text)}</div>
       ${
         t.field===4
           ? `<div class="muted">❤️ ${t.likes||0}</div>`
-          : `<div style="display:flex;justify-content:flex-end">
-               <button data-f="${t.field}" class="btn btn-primary btn-send" ${t.status==='pending'?'disabled':''}>
-                 ${t.status==='pending'?'Gaida apstiprinājumu':'Sūtīt uz apstiprinājumu'}
-               </button>
-             </div>`
+          : (t.status==='approved'
+              ? `<div class="muted">✔ Apstiprināts</div>`
+              : `<div style="display:flex;justify-content:flex-end">
+                   <button data-f="${t.field}" class="btn btn-primary btn-send" ${t.status==='pending'?'disabled':''}>
+                     ${t.status==='pending'?'Gaida apstiprinājumu':'Sūtīt uz apstiprinājumu'}
+                   </button>
+                 </div>`
+            )
       }
       ${foot}
     `;
@@ -223,14 +218,13 @@ async function refreshTasks(){
     b.onclick = async ()=>{
       const f = Number(b.getAttribute('data-f'));
       b.disabled = true; b.textContent = 'Gaida apstiprinājumu';
-      const r = await api('submitAttempt', { playerId:S.id, field:f });
-      if (!r.ok){ alert(r.error||'Kļūda'); }
+      await api('submitAttempt', { playerId:S.id, field:f });
       await refreshTasks();
     }
   });
 }
 
-/* ---- Autora “Like” zona (spēles ekrānā) ---- */
+/* ---- Autora “Like” zona ---- */
 async function refreshRuleRecipient(){
   const r = await api('getInboxAndAuthored', { playerId:S.id });
   if (!r.ok) return;
@@ -244,15 +238,12 @@ async function refreshRuleRecipient(){
 $('btn-like').onclick = async ()=>{
   if (!S.ruleRecipient) return;
   const r = await api('likeRule', { playerId:S.id, toPlayerId:S.ruleRecipient.id });
-  if (!r.ok) return alert(r.error||'Kļūda');
+  if (!r.ok) alert(r.error||'Kļūda');
   await refreshTasks(); await refreshRuleRecipient();
 };
 
 /* ---- Paziņojumu pārklājums (globāls) ---- */
-function ensureGlobalPolling(){
-  if (S.pollTimer) return;
-  S.pollTimer = setInterval(checkInbox, 2500);
-}
+function ensureGlobalPolling(){ if (S.pollTimer) return; S.pollTimer = setInterval(checkInbox, 2500); }
 async function checkInbox(){
   if (!S.id) return;
   const r = await api('getInboxAndAuthored', { playerId:S.id });
@@ -265,20 +256,16 @@ async function checkInbox(){
   $('notif-text').textContent = it.text;
   $('notify').classList.remove('hidden');
 }
-$('btn-accept').onclick = async ()=>{
-  if (!S.currentTaskId) return $('notify').classList.add('hidden');
-  const r = await api('approve', { playerId:S.id, taskId:S.currentTaskId });
+async function handleDecision(type){
+  if (!S.currentTaskId) { $('notify').classList.add('hidden'); return; }
+  $('btn-accept').disabled = true; $('btn-reject').disabled = true;
+  await api(type, { playerId:S.id, taskId:S.currentTaskId }); // idempotenti
+  $('btn-accept').disabled = false; $('btn-reject').disabled = false;
   $('notify').classList.add('hidden'); S.currentTaskId=null;
-  if (!r.ok) return alert(r.error||'Kļūda');
   await refreshTasks(); await refreshRuleRecipient();
-};
-$('btn-reject').onclick = async ()=>{
-  if (!S.currentTaskId) return $('notify').classList.add('hidden');
-  const r = await api('reject',  { playerId:S.id, taskId:S.currentTaskId });
-  $('notify').classList.add('hidden'); S.currentTaskId=null;
-  if (!r.ok) return alert(r.error||'Kļūda');
-  await refreshTasks();
-};
+}
+$('btn-accept').onclick = ()=>handleDecision('approve');
+$('btn-reject').onclick = ()=>handleDecision('reject');
 
 /* ---- Boot ---- */
 (async function boot(){
