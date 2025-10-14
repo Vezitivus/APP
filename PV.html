@@ -3,408 +3,265 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>PV — Kursa saliedēšanās spēle</title>
+  <title>PV</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Crect width='256' height='256' rx='56' fill='%230066ff'/%3E%3Ctext x='50%' y='54%' dominant-baseline='middle' text-anchor='middle' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,Roboto' font-size='140' fill='white'%3EPV%3C/text%3E%3C/svg%3E">
   <style>
-    :root {
-      --bg: #0b0c10;
-      --card: #11131a;
-      --muted: #98a2b3;
-      --text: #f8fafc;
-      --accent: #0ea5e9;
-      --ok: #22c55e;
-      --warn: #f59e0b;
-      --err: #ef4444;
-      --ring: #1f2937;
-      --border: #1f2937;
-      --shadow: 0 8px 30px rgba(0,0,0,.35);
-      --radius: 16px;
+    :root{
+      --bg:#0f1115; --card:#171a20; --muted:#9aa3af; --text:#e5e7eb;
+      --accent:#3b82f6; --ok:#22c55e; --err:#ef4444; --ring:#262b36; --border:#20232b;
+      --radius:14px; --shadow:0 8px 24px rgba(0,0,0,.35);
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body {
-      margin: 0; background: radial-gradient(1200px 700px at 80% -10%, rgba(14,165,233,.15), transparent 60%),
-                           radial-gradient(900px 600px at 10% 110%, rgba(34,197,94,.12), transparent 55%),
-                           var(--bg);
-      color: var(--text); font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-      -webkit-font-smoothing: antialiased; line-height: 1.35;
-      padding-bottom: 70px;
-    }
-    .container{max-width:820px;margin:0 auto;padding:16px 16px 24px}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
-    .title{font-size:28px;font-weight:800;letter-spacing:.2px;margin:6px 0 2px}
-    .subtitle{color:var(--muted);margin:0 0 14px}
-    .hero{
-      border-radius:24px;overflow:hidden;border:1px solid var(--border);
-      background: linear-gradient(135deg, rgba(14,165,233,.25), rgba(34,197,94,.25));
-      display:flex;align-items:center;justify-content:center;min-height:160px;
-    }
-    .hero h1{font-size:40px;margin:0;padding:30px 10px;text-align:center}
-    .row{display:flex;gap:12px;flex-wrap:wrap}
-    .col{flex:1 1 260px}
-    input, textarea, button, select{
-      width:100%;border-radius:12px;border:1px solid var(--border);
-      background:#0c0f17;color:var(--text);padding:12px 14px;font-size:16px;outline:none;
-    }
-    textarea{min-height:88px;resize:vertical}
-    input::placeholder, textarea::placeholder{color:#6b7280}
-    button{cursor:pointer;background:var(--accent);border:none;font-weight:700}
-    button.ghost{background:transparent;border:1px solid var(--ring);color:var(--text)}
-    button.ok{background:var(--ok)}
-    button.warn{background:var(--warn)}
-    button.err{background:var(--err)}
+    *{box-sizing:border-box} html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;padding-bottom:24px}
+    .wrap{max-width:760px;margin:0 auto;padding:16px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
+    .title{font-size:24px;font-weight:800;margin:0 0 8px}
     .muted{color:var(--muted)}
-    .spacer{height:12px}
-    .list{display:grid;gap:10px}
-    .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--ring);border-radius:20px}
-    .center{display:flex;align-items:center;justify-content:center;text-align:center}
     .hidden{display:none !important}
-    .spinner{
-      width:120px;height:120px;border:7px solid rgba(255,255,255,.1);border-top-color:var(--accent);border-radius:50%;
-      animation:spin 1s linear infinite;margin:20px auto 10px;
-    }
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    input,textarea,button{width:100%;border-radius:12px;border:1px solid var(--ring);background:#10131a;color:var(--text);padding:12px 14px;font-size:16px;outline:none}
+    textarea{min-height:84px;resize:vertical}
+    button{cursor:pointer;background:var(--accent);border:none;font-weight:700}
+    button.ok{background:var(--ok)} button.err{background:var(--err)}
+    .topbar{position:sticky;top:0;background:rgba(15,17,21,.8);backdrop-filter:blur(8px);border-bottom:1px solid var(--ring);padding:10px;margin:-8px 0 12px}
+    .center{display:flex;align-items:center;justify-content:center;text-align:center}
+    .spinner{width:96px;height:96px;border:6px solid rgba(255,255,255,.08);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin:18px auto}
     @keyframes spin{to{transform:rotate(360deg)}}
-    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .list{display:grid;gap:10px}
     .task{display:flex;flex-direction:column;gap:8px}
-    .task .meta{display:flex;gap:8px;flex-wrap:wrap}
-    .badge{padding:4px 8px;border-radius:10px;border:1px solid var(--ring);font-size:12px}
-    .status-idle{background:#0b1324}
-    .status-pending{background:#182235;border-color:#22314d}
-    .status-approved{background:#0f2a1b;border-color:#104226}
-    .status-rejected{background:#2a1719;border-color:#4d2226}
-    nav.bottom{
-      position:fixed;left:0;right:0;bottom:0;background:rgba(10,12,18,.75);backdrop-filter:blur(10px);
-      border-top:1px solid var(--ring);display:flex;gap:8px;justify-content:space-around;padding:10px env(safe-area-inset-right) calc(10px + env(safe-area-inset-bottom)) env(safe-area-inset-left);
-    }
-    nav.bottom button{flex:1}
-    .kicker{font-size:12px;letter-spacing:.3px;text-transform:uppercase;color:#93a3b8}
-    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size:12px}
-    .note{font-size:13px;color:#9aa5b6}
-    .sep{height:1px;background:var(--ring);margin:10px 0}
-    .right{display:flex;justify-content:flex-end}
-    .topbar{position:sticky;top:0;background:linear-gradient(180deg, rgba(11,12,16,.95), rgba(11,12,16,.7));backdrop-filter: blur(8px);padding:10px 0 6px;margin: -8px 0 12px;z-index:10;border-bottom:1px solid var(--ring)}
-    .btn-inline{display:inline-flex;gap:6px;align-items:center;padding:6px 10px;border-radius:10px;border:1px solid var(--ring);background:#0c0f17}
-    a { color: #93c5fd; text-decoration: none; }
+    .badge{display:inline-block;padding:4px 8px;border:1px solid var(--ring);border-radius:10px;font-size:12px;margin-right:6px}
+    .b-idle{background:#121520} .b-pending{background:#1a2438} .b-approved{background:#122116} .b-rejected{background:#2a1618}
+    /* overlay */
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+    .sheet{max-width:520px;width:100%;background:var(--card);border:1px solid var(--ring);border-radius:18px;box-shadow:var(--shadow);padding:16px}
+    .sheet .row2{display:flex;gap:10px}
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- START -->
-    <section id="view-start" class="">
+  <div class="wrap">
+    <!-- 1) Vārds -->
+    <section id="v-start" class="">
       <div class="card">
-        <div class="hero"><h1 id="event-title">PV — Iepazišanās</h1></div>
-        <p class="subtitle">Ātra, smieklīga un droša saliedēšanās spēle. Ievadi vārdu, aizpildi 4 laukus, nospied “Gatavs vakaram” un sāc medības!</p>
-        <div class="row">
-          <div class="col">
-            <label class="kicker">Tavs vārds</label>
-            <input id="name-input" placeholder="Ievadi vārdu" autocomplete="off" />
-            <div class="spacer"></div>
-            <button id="btn-continue">Turpināt</button>
-            <div class="spacer"></div>
-            <div class="note">Pēc vārda ievades mēs piedāvāsim pievienot šo lietotni sākuma ekrānam (PWA), lai ātra piekļuve visu vakaru.</div>
-          </div>
-          <div class="col">
-            <div class="card">
-              <div class="kicker">Moto ilustrācija</div>
-              <div class="spacer"></div>
-              <div class="hero" style="min-height:140px">
-                <div>
-                  <div class="title" style="font-size:22px">“Satiec. Atpazīsti. Izpildi. Smaidam.”</div>
-                  <div class="subtitle">#mix #humors #komanda</div>
-                </div>
-              </div>
-              <div class="spacer"></div>
-              <a id="sheet-link" class="btn-inline" target="_blank" rel="noopener">Atvērt koplapu (admin)</a>
-            </div>
-          </div>
-        </div>
+        <div class="title">Ievadi vārdu</div>
+        <input id="name" placeholder="Vārds" autocomplete="off" />
+        <div style="height:10px"></div>
+        <button id="btn-name">Turpināt</button>
       </div>
     </section>
 
-    <!-- FORM -->
-    <section id="view-form" class="hidden">
-      <div class="topbar"><div class="container"><div class="kicker">1. Aizpildi 4 laukus</div></div></div>
+    <!-- 2) “Pievienot uz sākumekrāna” piedāvājums (vienkāršs info) -->
+    <div id="install" class="overlay hidden">
+      <div class="sheet">
+        <div class="title">Pievieno uz sākumekrāna</div>
+        <div class="muted">
+          Šai spēlei ir tavs ID. Lai ērtāk atvērt, pievieno īsceļu.
+          <div style="height:6px"></div>
+          iOS: Share → Add to Home Screen. <br/>
+          Android/Chrome: izvēlne → Add to Home Screen.
+        </div>
+        <div style="height:12px"></div>
+        <div class="row2">
+          <button id="btn-install-done" class="ok">Gatavs</button>
+          <button id="btn-install-skip" class="">Izlaist</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3) 4 lauki -->
+    <section id="v-form" class="hidden">
+      <div class="topbar"><b>4 lauki</b></div>
       <div class="card">
         <div class="list">
-          <div>
-            <label class="kicker">Asociācija (lai tevi atpazītu)</label>
-            <textarea id="field-association" placeholder="Piem., 'cilvēks ar zilu šalli' vai 'kurš čukst 'psss' pirms katras frāzes'"></textarea>
-          </div>
-          <div>
-            <label class="kicker">Labs darbs (pirms vai spēles laikā)</label>
-            <textarea id="field-gooddeed" placeholder="Piem., 'pasaki 3 labus vārdus 2 cilvēkiem'"></textarea>
-          </div>
-          <div>
-            <label class="kicker">Privātais uzdevums pret mani</label>
-            <textarea id="field-private" placeholder="Piem., 'atnāc pie [Tavs vārds] un pajautā: 'kas ir tavas superspējas?''"></textarea>
-          </div>
-          <div>
-            <label class="kicker">Likums (ko jāievēro tev piešķirtajam)</label>
-            <textarea id="field-rule" placeholder="Piem., 'kad stāvu, vienmēr pasaki 'čau' ar plaukstas pieskārienu'"></textarea>
-          </div>
-          <div class="sep"></div>
-          <div class="right"><button id="btn-ready" class="ok">Gatavs vakaram</button></div>
+          <textarea id="f1" placeholder="Asociācija (kā tevi atpazīt)"></textarea>
+          <textarea id="f2" placeholder="Labs darbs (pirms/vai laikā)"></textarea>
+          <textarea id="f3" placeholder="Privātais uzdevums pret mani"></textarea>
+          <textarea id="f4" placeholder="Likums (mazs noteikums)"></textarea>
+          <button id="btn-ready" class="ok">Gatavs spēlei</button>
         </div>
       </div>
     </section>
 
-    <!-- LOBBY -->
-    <section id="view-lobby" class="hidden">
+    <!-- 4) Lobby -->
+    <section id="v-lobby" class="hidden">
       <div class="card center">
         <div class="spinner"></div>
-        <div>
-          <div class="title">Gaidām pārējos…</div>
-          <p class="subtitle">Kad visi, kas ievadījuši vārdu, aizpildīs 4 laukus, izlozēsim uzdevumus.</p>
-          <div class="note" id="lobby-status"></div>
-        </div>
+        <div>Gaidām pārējos…</div>
+        <div class="muted" id="lobby-info"></div>
+        <div style="height:10px"></div>
+        <button id="btn-edit" class="">Labot laukus</button>
       </div>
     </section>
 
-    <!-- GAME -->
-    <section id="view-game" class="hidden">
-      <div class="topbar"><div class="container"><div class="kicker">2. Tavi 4 uzdevumi</div></div></div>
-      <div class="list" id="tasks-list"></div>
-      <div class="spacer"></div>
+    <!-- 5) Spēle -->
+    <section id="v-game" class="hidden">
+      <div class="topbar"><b>Spēle</b></div>
+      <div id="tasks" class="list"></div>
     </section>
 
-    <!-- INBOX / AUTHORED -->
-    <section id="view-inbox" class="hidden">
-      <div class="topbar"><div class="container">
-        <div class="row">
-          <div style="flex:1"><div class="kicker">3. Iesūtne (apstiprinājumi) & Autora panelis</div></div>
-          <div><button id="btn-refresh-inbox" class="ghost">Atsvaidzināt</button></div>
-        </div>
-      </div></div>
-      <div class="row">
-        <div class="col">
-          <div class="card">
-            <div class="title" style="font-size:20px">Iesūtne</div>
-            <div id="inbox-list" class="list"></div>
-          </div>
-        </div>
-        <div class="col">
-          <div class="card">
-            <div class="title" style="font-size:20px">Autora skats</div>
-            <div class="note">Šeit redzi, kam piešķirti tavi lauki. 4. laukam dod “❤️ Like”, kad cilvēks ievēro likumu.</div>
-            <div class="spacer"></div>
-            <div id="authored-list" class="list"></div>
-          </div>
+    <!-- Paziņojumu pārklājums (apstiprinājumi) -->
+    <div id="notify" class="overlay hidden">
+      <div class="sheet">
+        <div id="notif-title" class="title">Apstiprini uzdevumu</div>
+        <div id="notif-text" style="margin:6px 0 12px"></div>
+        <div class="row2">
+          <button id="btn-accept" class="ok">Apstiprināt</button>
+          <button id="btn-reject" class="err">Noraidīt</button>
         </div>
       </div>
-    </section>
+    </div>
   </div>
-
-  <nav class="bottom">
-    <button id="nav-start">Sākums</button>
-    <button id="nav-form">Forma</button>
-    <button id="nav-lobby">Lobby</button>
-    <button id="nav-game">Spēle</button>
-    <button id="nav-inbox">Iesūtne</button>
-  </nav>
 
 <script>
 const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbw1GPyBtm3ujuSLjkv_OcQbqzD6r7j6EUrHf-4t6JF8ppOqLaWAfkJIJjdKy44RMppI/exec";
-const SHEET_URL  = "https://docs.google.com/spreadsheets/d/1718jMwfQrBVwtZ0ZfjoaY8FKRFq4-0iE9zUawaxFjZ4/edit?usp=drivesdk";
-document.getElementById('sheet-link').href = SHEET_URL;
 
-const state = {
-  playerId: localStorage.getItem('pv_playerId') || null,
+const S = {
+  id: localStorage.getItem('pv_playerId') || null,
   name: localStorage.getItem('pv_name') || '',
-  tasks: [],
-  inbox: [],
-  authored: []
+  currentTaskId: null,
+  pollInboxTimer: null,
+};
+const $ = id => document.getElementById(id);
+const show = id => {
+  ['v-start','v-form','v-lobby','v-game'].forEach(v => $(v).classList.add('hidden'));
+  $(id).classList.remove('hidden');
 };
 
-const $ = (id)=>document.getElementById(id);
-const show = (id)=>{ for (let s of ['view-start','view-form','view-lobby','view-game','view-inbox']) $(s).classList.add('hidden'); $(id).classList.remove('hidden'); };
-
-$('name-input').value = state.name || '';
+$('name').value = S.name || '';
 
 async function api(action, payload={}) {
-  const body = JSON.stringify({action, ...payload});
   const res = await fetch(WEBAPP_URL, {
-    method: 'POST',
-    headers: {'Content-Type': 'text/plain'}, // simple request (no preflight)
-    body
+    method:'POST',
+    headers:{'Content-Type':'text/plain'},
+    body: JSON.stringify({action, ...payload})
   });
   const txt = await res.text();
-  try { return JSON.parse(txt); } catch(e){ console.warn('Non-JSON response', txt); return {}; }
+  try { return JSON.parse(txt); } catch(e){ alert('Servera atbilde nav JSON'); return {ok:false}; }
 }
 
-function toastOk(msg){ alert(msg); }
-
-async function ensurePlayer() {
-  const name = $('name-input').value.trim();
-  if (!name) { alert('Ievadi vārdu'); return; }
-  const r = await api('upsertPlayer', { playerId: state.playerId, name });
-  if (!r.ok) return alert(r.error || 'Neizdevās reģistrēt spēlētāju');
-  state.playerId = r.player.id; state.name = r.player.name;
-  localStorage.setItem('pv_playerId', state.playerId);
-  localStorage.setItem('pv_name', state.name);
-  $('field-private').placeholder = `Piem., "atnāc pie ${state.name} un pajautā: 'kas ir tavas superspējas?'"`;
-  show('view-form');
+/* 1) Vārds → piedāvā instalēt → 2) 4 lauki */
+async function onName() {
+  const name = $('name').value.trim();
+  if (!name) { $('name').focus(); return; }
+  const r = await api('upsertPlayer', { playerId:S.id, name });
+  if (!r.ok) { alert(r.error||'Kļūda'); return; }
+  S.id = r.player.id; S.name = r.player.name;
+  localStorage.setItem('pv_playerId', S.id);
+  localStorage.setItem('pv_name', S.name);
+  // Parādi piedāvājumu pievienot uz sākumekrāna
+  $('install').classList.remove('hidden');
 }
+$('btn-name').onclick = onName;
+$('name').addEventListener('keydown', e=>{ if(e.key==='Enter') onName(); });
 
-$('btn-continue').onclick = ensurePlayer;
+['btn-install-done','btn-install-skip'].forEach(id=>{
+  $(id).onclick = ()=>{
+    $('install').classList.add('hidden');
+    // Rādi 4 laukus
+    $('f3').placeholder = `Privātais uzdevums pret ${S.name}`;
+    show('v-form');
+  };
+});
 
-$('btn-ready').onclick = async () => {
-  const association = $('field-association').value.trim();
-  const goodDeed   = $('field-gooddeed').value.trim();
-  const privateT   = $('field-private').value.trim();
-  const rule       = $('field-rule').value.trim();
-  if (!association || !goodDeed || !privateT || !rule) return alert('Aizpildi visus 4 laukus');
-  let r = await api('saveEntriesAndReady', { playerId: state.playerId, association, goodDeed, privateTask: privateT, rule });
-  if (!r.ok) return alert(r.error || 'Neizdevās saglabāt');
-  show('view-lobby');
+/* 3) Saglabā 4 laukus un ej uz lobby */
+$('btn-ready').onclick = async ()=>{
+  const association = $('f1').value.trim();
+  const goodDeed   = $('f2').value.trim();
+  const privateT   = $('f3').value.trim();
+  const rule       = $('f4').value.trim();
+  if (!association || !goodDeed || !privateT || !rule) { alert('Aizpildi visus 4 laukus'); return; }
+  const r = await api('saveEntriesAndReady', { playerId:S.id, association, goodDeed, privateTask:privateT, rule });
+  if (!r.ok) { alert(r.error||'Kļūda'); return; }
+  show('v-lobby');
   pollLobby();
 };
 
-async function pollLobby() {
+/* Lobby ar iespēju labot laukus (līdz spēle sākta) */
+$('btn-edit').onclick = ()=>{ show('v-form'); };
+
+/* Pollējam lobby statusu līdz startam */
+async function pollLobby(){
   const res = await api('getLobby');
-  if (!res.ok) { setTimeout(pollLobby, 2500); return; }
-  $('lobby-status').textContent = `Ievadījuši vārdu: ${res.total}. Aizpildījuši 4 laukus: ${res.filled}.`;
+  if (!res.ok) { setTimeout(pollLobby, 2000); return; }
+  $('lobby-info').textContent = `Dalībnieki: ${res.total} • Aizpildījuši: ${res.filled}`;
   if (res.allReady) {
     await api('ensureAssignments', {});
-    await refreshTasks();
-    show('view-game');
+    await openGame();
   } else {
     setTimeout(pollLobby, 2000);
   }
 }
 
-async function refreshTasks() {
-  await api('ensureAssignments', {}); // ja pievienojies vēlīni, pār-randomizēs ne-locked slotus
-  const r = await api('getMyTasks', { playerId: state.playerId });
+/* 5) Spēle — bez atpakaļceļa */
+async function openGame(){
+  show('v-game');
+  await refreshTasks();
+  startInboxPolling();
+}
+
+async function refreshTasks(){
+  const r = await api('getMyTasks', { playerId:S.id });
   if (!r.ok) return;
-  state.tasks = r.tasks || [];
-  renderTasks();
-  await refreshInbox();
-}
-
-function statusBadge(st){
-  if (st==='approved') return `<span class="badge status-approved">apstiprināts</span>`;
-  if (st==='pending')  return `<span class="badge status-pending">gaida</span>`;
-  if (st==='rejected') return `<span class="badge status-rejected">noraidīts</span>`;
-  return `<span class="badge status-idle">neuzsākts</span>`;
-}
-
-function fieldName(f){
-  return {1:'Asociācija',2:'Labs darbs',3:'Privātais',4:'Likums'}[f] || `#${f}`;
-}
-
-function renderTasks(){
-  const box = $('tasks-list'); box.innerHTML='';
-  state.tasks.forEach(t=>{
-    const canSubmit = (t.field!==4);
-    const status = statusBadge(t.status);
-    const extra = (t.field===3 && t.authorName) ? `<div class="note">Privāts pret: <b>${t.authorName}</b></div>` : '';
-    const like = (t.field===4) ? `<div class="note">Sirsniņas no autora: <b>${t.likes||0}</b></div>` : '';
+  const box = $('tasks'); box.innerHTML = '';
+  (r.tasks||[]).forEach(t=>{
+    const st = t.status || 'idle';
+    const badgeCls = st==='approved'?'b-approved':st==='pending'?'b-pending':st==='rejected'?'b-rejected':'b-idle';
     const el = document.createElement('div');
     el.className='card task';
     el.innerHTML = `
-      <div class="kicker">${fieldName(t.field)}, autors: ${t.authorName||'—'}</div>
-      <div class="title" style="font-size:18px">${t.text}</div>
-      ${extra}
-      <div class="meta">${status} <span class="badge">no: ${t.authorName||'—'}</span></div>
-      ${like}
-      ${canSubmit ? `<div class="right"><button data-field="${t.field}" class="ok btn-submit">Sūtīt uz apstiprināšanu</button></div>` : ``}
+      <div><span class="badge ${badgeCls}">${st}</span> <span class="muted">${label(t.field)} · autors: ${t.authorName||''}</span></div>
+      <div class="title" style="font-size:18px">${escapeHtml(t.text)}</div>
+      ${t.field===4 ? `<div class="muted">❤️ ${t.likes||0}</div>` : `<div class="right"><button data-f="${t.field}" class="ok btn-send">Sūtīt uz apstiprināšanu</button></div>`}
     `;
     box.appendChild(el);
   });
-  document.querySelectorAll('.btn-submit').forEach(b=>{
+  document.querySelectorAll('.btn-send').forEach(b=>{
     b.onclick = async ()=>{
-      const field = Number(b.getAttribute('data-field'));
-      const r = await api('submitAttempt', { playerId: state.playerId, field });
-      if (!r.ok) return alert(r.error || 'Neizdevās iesniegt');
+      const f = Number(b.getAttribute('data-f'));
+      const r = await api('submitAttempt', { playerId:S.id, field:f });
+      if (!r.ok){ alert(r.error||'Kļūda'); return; }
       await refreshTasks();
-    };
-  });
-}
-
-$('btn-refresh-inbox').onclick = async()=>{ await refreshInbox(); };
-
-async function refreshInbox(){
-  await api('ensureAssignments', {});
-  const r = await api('getInboxAndAuthored', { playerId: state.playerId });
-  if (!r.ok) return;
-  const inbox = r.inbox || []; const authored = r.authored || [];
-  state.inbox = inbox; state.authored = authored;
-
-  // Inbox
-  const ib = $('inbox-list'); ib.innerHTML='';
-  if (!inbox.length) ib.innerHTML = `<div class="note">Nav iesniegumu. Kad kāds pieteiks tavu 1. vai 3. lauku, vai 2. lauka apstiprinājumu, tas parādīsies te.</div>`;
-  inbox.forEach(item=>{
-    const el = document.createElement('div');
-    el.className='card';
-    const who = item.fromName ? `no <b>${item.fromName}</b>` : '';
-    el.innerHTML = `
-      <div class="kicker">${fieldName(item.field)} — ${who}</div>
-      <div class="title" style="font-size:18px">${item.text}</div>
-      <div class="spacer"></div>
-      <div class="grid-2">
-        <button class="ok btn-approve" data-id="${item.taskId}">Apstiprināt</button>
-        <button class="err btn-reject" data-id="${item.taskId}">Noraidīt</button>
-      </div>
-      <div class="note">Uzdevuma saņēmējs: <b>${item.toName}</b></div>
-    `;
-    ib.appendChild(el);
-  });
-  document.querySelectorAll('.btn-approve').forEach(b=>{
-    b.onclick = async ()=>{
-      const r = await api('approve', { playerId: state.playerId, taskId: b.getAttribute('data-id') });
-      if (!r.ok) return alert(r.error||'Neizdevās');
-      await refreshTasks();
-    };
-  });
-  document.querySelectorAll('.btn-reject').forEach(b=>{
-    b.onclick = async ()=>{
-      const r = await api('reject', { playerId: state.playerId, taskId: b.getAttribute('data-id') });
-      if (!r.ok) return alert(r.error||'Neizdevās');
-      await refreshTasks();
-    };
-  });
-
-  // Authored
-  const au = $('authored-list'); au.innerHTML='';
-  if (!authored.length) au.innerHTML = `<div class="note">Te parādīsies cilvēki, kuriem piešķirti TAVI 1., 3. un 4. lauki. 4. lauka atskaitēs vari dot ❤️.</div>`;
-  authored.forEach(a=>{
-    const el = document.createElement('div');
-    el.className='card';
-    let likeBtn = '';
-    if (a.field===4) {
-      likeBtn = `<button class="btn-like" data-to="${a.recipientId}" data-field="4">❤️ Like (${a.likes||0})</button>`;
     }
-    el.innerHTML = `
-      <div class="kicker">Tavs ${fieldName(a.field)}</div>
-      <div class="title" style="font-size:18px">${a.text}</div>
-      <div class="note">Piešķirts: <b>${a.recipientName}</b></div>
-      <div class="spacer"></div>
-      ${likeBtn}
-    `;
-    au.appendChild(el);
-  });
-  document.querySelectorAll('.btn-like').forEach(b=>{
-    b.onclick = async ()=>{
-      const to = b.getAttribute('data-to');
-      const r = await api('likeRule', { playerId: state.playerId, toPlayerId: to });
-      if (!r.ok) return alert(r.error||'Neizdevās');
-      await refreshTasks();
-    };
   });
 }
+function label(f){ return ({1:'Asociācija',2:'Labs darbs',3:'Privātais',4:'Likums'})[f]||('#'+f); }
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m])); }
 
-$('nav-start').onclick = ()=>show('view-start');
-$('nav-form').onclick = ()=>show('view-form');
-$('nav-lobby').onclick = ()=>show('view-lobby');
-$('nav-game').onclick = async ()=>{ await refreshTasks(); show('view-game'); };
-$('nav-inbox').onclick = async ()=>{ await refreshInbox(); show('view-inbox'); };
+/* Paziņojumi virs spēles: ik 3s */
+function startInboxPolling(){
+  if (S.pollInboxTimer) clearInterval(S.pollInboxTimer);
+  S.pollInboxTimer = setInterval(checkInbox, 3000);
+}
+async function checkInbox(){
+  const r = await api('getInboxAndAuthored', { playerId:S.id });
+  if (!r.ok) return;
+  const inbox = r.inbox||[];
+  if (!inbox.length) return;
+  // paņem pirmo un parādi
+  const it = inbox[0];
+  S.currentTaskId = it.taskId;
+  $('notif-title').textContent = 'Kāds izpildīja uzdevumu — apstiprini';
+  $('notif-text').textContent = it.text;
+  $('notify').classList.remove('hidden');
+}
+$('btn-accept').onclick = async ()=>{
+  if (!S.currentTaskId) { $('notify').classList.add('hidden'); return; }
+  const r = await api('approve', { playerId:S.id, taskId:S.currentTaskId });
+  $('notify').classList.add('hidden'); S.currentTaskId=null;
+  if (!r.ok){ alert(r.error||'Kļūda'); return; }
+  await refreshTasks();
+};
+$('btn-reject').onclick = async ()=>{
+  if (!S.currentTaskId) { $('notify').classList.add('hidden'); return; }
+  const r = await api('reject', { playerId:S.id, taskId:S.currentTaskId });
+  $('notify').classList.add('hidden'); S.currentTaskId=null;
+  if (!r.ok){ alert(r.error||'Kļūda'); return; }
+  await refreshTasks();
+};
 
-// Auto start view
-if (state.playerId && state.name) { $('name-input').value = state.name; show('view-form'); }
-else { show('view-start'); }
-
+/* Ja jau ir spēlētājs – rādām 4 laukus uzreiz */
+if (S.id && S.name) { show('v-form'); }
+else { show('v-start'); }
 </script>
 </body>
 </html>
