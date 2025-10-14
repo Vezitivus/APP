@@ -32,7 +32,6 @@
     .task{display:flex;flex-direction:column;gap:8px}
     .badge{display:inline-block;padding:4px 8px;border:1px solid var(--ring);border-radius:10px;font-size:12px;margin-right:6px}
     .b-idle{background:#121520} .b-pending{background:#1a2438} .b-approved{background:#122116} .b-rejected{background:#2a1618}
-    /* overlay */
     .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
     .sheet{max-width:520px;width:100%;background:var(--card);border:1px solid var(--ring);border-radius:18px;box-shadow:var(--shadow);padding:16px}
     .sheet .row2{display:flex;gap:10px}
@@ -50,15 +49,13 @@
       </div>
     </section>
 
-    <!-- 2) “Pievienot uz sākumekrāna” piedāvājums (vienkāršs info) -->
+    <!-- 2) Pievienot sākumekrānam -->
     <div id="install" class="overlay hidden">
       <div class="sheet">
-        <div class="title">Pievieno uz sākumekrāna</div>
+        <div class="title">Pievieno sākumekrānam</div>
         <div class="muted">
-          Šai spēlei ir tavs ID. Lai ērtāk atvērt, pievieno īsceļu.
-          <div style="height:6px"></div>
-          iOS: Share → Add to Home Screen. <br/>
-          Android/Chrome: izvēlne → Add to Home Screen.
+          Šai spēlei ir tavs ID. Lai ērti atvērtu, izveido īsceļu.<br/>
+          iOS: Share → Add to Home Screen. Android/Chrome: izvēlne → Add to Home Screen.
         </div>
         <div style="height:12px"></div>
         <div class="row2">
@@ -74,7 +71,7 @@
       <div class="card">
         <div class="list">
           <textarea id="f1" placeholder="Asociācija (kā tevi atpazīt)"></textarea>
-          <textarea id="f2" placeholder="Labs darbs (pirms/vai laikā)"></textarea>
+          <textarea id="f2" placeholder="Labs darbs (pirms / laikā)"></textarea>
           <textarea id="f3" placeholder="Privātais uzdevums pret mani"></textarea>
           <textarea id="f4" placeholder="Likums (mazs noteikums)"></textarea>
           <button id="btn-ready" class="ok">Gatavs spēlei</button>
@@ -99,7 +96,7 @@
       <div id="tasks" class="list"></div>
     </section>
 
-    <!-- Paziņojumu pārklājums (apstiprinājumi) -->
+    <!-- Paziņojumu pārklājums -->
     <div id="notify" class="overlay hidden">
       <div class="sheet">
         <div id="notif-title" class="title">Apstiprini uzdevumu</div>
@@ -113,7 +110,7 @@
   </div>
 
 <script>
-const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbw1GPyBtm3ujuSLjkv_OcQbqzD6r7j6EUrHf-4t6JF8ppOqLaWAfkJIJjdKy44RMppI/exec";
+const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxRDcK7IfOIwDdbPZ9WWxPjmGzC7bE6Arj4BP6VdFXuoQh4sihgwChnMFvt0BHMNV-i/exec";
 
 const S = {
   id: localStorage.getItem('pv_playerId') || null,
@@ -122,19 +119,11 @@ const S = {
   pollInboxTimer: null,
 };
 const $ = id => document.getElementById(id);
-const show = id => {
-  ['v-start','v-form','v-lobby','v-game'].forEach(v => $(v).classList.add('hidden'));
-  $(id).classList.remove('hidden');
-};
-
+const show = id => { ['v-start','v-form','v-lobby','v-game'].forEach(v => $(v).classList.add('hidden')); $(id).classList.remove('hidden'); };
 $('name').value = S.name || '';
 
 async function api(action, payload={}) {
-  const res = await fetch(WEBAPP_URL, {
-    method:'POST',
-    headers:{'Content-Type':'text/plain'},
-    body: JSON.stringify({action, ...payload})
-  });
+  const res = await fetch(WEBAPP_URL, { method:'POST', headers:{'Content-Type':'text/plain'}, body: JSON.stringify({action, ...payload}) });
   const txt = await res.text();
   try { return JSON.parse(txt); } catch(e){ alert('Servera atbilde nav JSON'); return {ok:false}; }
 }
@@ -148,8 +137,7 @@ async function onName() {
   S.id = r.player.id; S.name = r.player.name;
   localStorage.setItem('pv_playerId', S.id);
   localStorage.setItem('pv_name', S.name);
-  // Parādi piedāvājumu pievienot uz sākumekrāna
-  $('install').classList.remove('hidden');
+  $('install').classList.remove('hidden'); // piedāvājums pievienot sākumekrānam
 }
 $('btn-name').onclick = onName;
 $('name').addEventListener('keydown', e=>{ if(e.key==='Enter') onName(); });
@@ -157,7 +145,6 @@ $('name').addEventListener('keydown', e=>{ if(e.key==='Enter') onName(); });
 ['btn-install-done','btn-install-skip'].forEach(id=>{
   $(id).onclick = ()=>{
     $('install').classList.add('hidden');
-    // Rādi 4 laukus
     $('f3').placeholder = `Privātais uzdevums pret ${S.name}`;
     show('v-form');
   };
@@ -176,7 +163,7 @@ $('btn-ready').onclick = async ()=>{
   pollLobby();
 };
 
-/* Lobby ar iespēju labot laukus (līdz spēle sākta) */
+/* Lobby (līdz startam var labot laukus) */
 $('btn-edit').onclick = ()=>{ show('v-form'); };
 
 /* Pollējam lobby statusu līdz startam */
@@ -237,7 +224,6 @@ async function checkInbox(){
   if (!r.ok) return;
   const inbox = r.inbox||[];
   if (!inbox.length) return;
-  // paņem pirmo un parādi
   const it = inbox[0];
   S.currentTaskId = it.taskId;
   $('notif-title').textContent = 'Kāds izpildīja uzdevumu — apstiprini';
