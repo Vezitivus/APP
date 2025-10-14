@@ -7,110 +7,106 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <style>
+    /* iOS light / neutral */
     :root{
-      --bg:#0f1115; --card:#171a20; --muted:#9aa3af; --text:#e5e7eb;
-      --accent:#3b82f6; --ok:#22c55e; --err:#ef4444; --ring:#262b36; --border:#20232b;
-      --radius:14px; --shadow:0 8px 24px rgba(0,0,0,.35);
+      --bg:#f2f2f7; --card:#ffffff; --text:#111827; --muted:#6c6c70;
+      --accent:#007aff; --ok:#34c759; --err:#ff3b30; --ring:#d1d1d6; --border:#e5e5ea;
+      --radius:14px; --shadow:0 8px 28px rgba(17,24,39,.08);
     }
     *{box-sizing:border-box} html,body{height:100%}
-    body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;padding-bottom:24px}
-    .wrap{max-width:760px;margin:0 auto;padding:16px}
+    body{margin:0;background:var(--bg);color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      -webkit-font-smoothing:antialiased;}
+    .wrap{max-width:720px;margin:0 auto;padding:16px 16px calc(24px + env(safe-area-inset-bottom))}
     .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
-    .title{font-size:24px;font-weight:800;margin:0 0 8px}
+    .title{font-size:28px;font-weight:800;margin:0 0 10px}
     .muted{color:var(--muted)}
     .hidden{display:none !important}
-    .row{display:flex;gap:12px;flex-wrap:wrap}
-    input,textarea,button{width:100%;border-radius:12px;border:1px solid var(--ring);background:#10131a;color:var(--text);padding:12px 14px;font-size:16px;outline:none}
+    .topbar{
+      position:sticky;top:0;z-index:5;
+      background:rgba(242,242,247,.86);backdrop-filter:saturate(180%) blur(14px);
+      border-bottom:1px solid var(--border); padding:12px 8px;margin:-8px 0 12px;
+    }
+    .topbar .big{font-size:22px;font-weight:800}
+    input,textarea,button{
+      width:100%;border-radius:12px;border:1px solid var(--ring);
+      background:#fff;color:var(--text);padding:12px 14px;font-size:16px;outline:none;
+    }
     textarea{min-height:84px;resize:vertical}
-    button{cursor:pointer;background:var(--accent);border:none;font-weight:700}
-    button.ok{background:var(--ok)} button.err{background:var(--err')}
-    .topbar{position:sticky;top:0;background:rgba(15,17,21,.8);backdrop-filter:blur(8px);border-bottom:1px solid var(--ring);padding:10px;margin:-8px 0 12px}
-    .center{display:flex;align-items:center;justify-content:center;text-align:center}
-    .spinner{width:96px;height:96px;border:6px solid rgba(255,255,255,.08);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin:18px auto}
-    @keyframes spin{to{transform:rotate(360deg)}}
+    .btn{cursor:pointer;border:none;font-weight:700;border-radius:12px;padding:12px 14px}
+    .btn-primary{background:var(--accent);color:#fff}
+    .btn-ok{background:var(--ok);color:#fff}
+    .btn-err{background:var(--err);color:#fff}
+    .btn-ghost{background:#fff;border:1px solid var(--ring);color:var(--text)}
     .list{display:grid;gap:10px}
     .task{display:flex;flex-direction:column;gap:8px}
-    .badge{display:inline-block;padding:4px 8px;border:1px solid var(--ring);border-radius:10px;font-size:12px;margin-right:6px}
-    .b-idle{background:#121520} .b-pending{background:#1a2438} .b-approved{background:#122116} .b-rejected{background:#2a1618}
-    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
-    .sheet{max-width:520px;width:100%;background:var(--card);border:1px solid var(--ring);border-radius:18px;box-shadow:var(--shadow);padding:16px}
-    .sheet .row2{display:flex;gap:10px}
-    .hint{font-size:12px;color:#9aa3af}
+    .badge{display:inline-block;padding:4px 8px;border:1px solid var(--ring);border-radius:10px;font-size:12px;margin-right:6px;background:#fff}
+    .b-idle{background:#fff}
+    .b-pending{background:#e7f0ff;border-color:#bcd3ff}
+    .b-approved{background:#e7f9ee;border-color:#bfeccf}
+    .b-rejected{background:#ffe9ea;border-color:#ffd0d3}
+    /* Overlay (paziņojumiem) */
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+    .sheet{max-width:520px;width:100%;background:var(--card);border:1px solid var(--border);border-radius:18px;box-shadow:0 24px 48px rgba(0,0,0,.18);padding:16px;transform:scale(.94);opacity:0;animation:pop .16s cubic-bezier(.2,.7,.2,1) forwards}
+    @keyframes pop{to{transform:scale(1);opacity:1}}
   </style>
 </head>
 <body>
   <div class="wrap">
     <!-- 1) Vārds -->
-    <section id="v-start" class="">
+    <section id="v-start">
       <div class="card">
         <div class="title">Ievadi vārdu</div>
         <input id="name" placeholder="Vārds" autocomplete="off" />
         <div style="height:10px"></div>
-        <button id="btn-name">Turpināt</button>
+        <button id="btn-name" class="btn btn-primary">Turpināt</button>
       </div>
     </section>
 
-    <!-- 2) Pievienot sākumekrānam -->
-    <div id="install" class="overlay hidden">
-      <div class="sheet">
-        <div class="title">Pievieno sākumekrānam</div>
-        <div class="muted">Share → Add to Home Screen</div>
-        <div style="height:12px"></div>
-        <div class="row2">
-          <button id="btn-install-done" class="ok">Gatavs</button>
-          <button id="btn-install-skip">Izlaist</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 3) 4 lauki -->
+    <!-- 2) 4 lauki -->
     <section id="v-form" class="hidden">
-      <div class="topbar"><b>4 lauki</b></div>
+      <div class="topbar"><div class="big">4 lauki</div></div>
       <div class="card">
         <div class="list">
           <textarea id="f1" placeholder="Asociācija (kā tevi atpazīt)"></textarea>
           <textarea id="f2" placeholder="Labs darbs (pirms / laikā)"></textarea>
           <textarea id="f3" placeholder="Privātais uzdevums pret mani"></textarea>
           <textarea id="f4" placeholder="Likums (mazs noteikums)"></textarea>
-          <button id="btn-ready" class="ok">Gatavs spēlei</button>
-          <div class="hint" id="form-hint"></div>
+          <button id="btn-ready" class="btn btn-ok">Gatavs spēlei</button>
         </div>
       </div>
     </section>
 
-    <!-- 4) Lobby -->
+    <!-- 3) Lobby -->
     <section id="v-lobby" class="hidden">
-      <div class="card center">
-        <div class="spinner"></div>
-        <div>Gaidām pārējos…</div>
-        <div class="muted" id="lobby-info"></div>
-        <div style="height:10px"></div>
-        <button id="btn-edit" class="">Labot laukus</button>
+      <div class="card" style="text-align:center">
+        <div class="title" style="font-size:22px;margin-bottom:6px">Gaidām pārējos…</div>
+        <div class="muted" id="lobby-info">—</div>
+        <div style="height:12px"></div>
+        <button id="btn-edit" class="btn btn-ghost">Labot laukus</button>
       </div>
     </section>
 
-    <!-- 5) Spēle -->
+    <!-- 4) Spēle -->
     <section id="v-game" class="hidden">
-      <div class="topbar"><b>Spēle</b></div>
+      <div class="topbar"><div class="big">Spēle</div></div>
       <div id="tasks" class="list"></div>
-
-      <!-- Autora skats likuma “Like” (minimāls, spēles ekrānā) -->
       <div id="author-like" class="card hidden">
         <div class="title" style="font-size:18px">Like savam likuma pildītājam</div>
         <div id="author-like-body" class="muted"></div>
         <div style="height:8px"></div>
-        <button id="btn-like" class="">❤️ Like</button>
+        <button id="btn-like" class="btn btn-ghost">❤️ Like</button>
       </div>
     </section>
 
-    <!-- Paziņojumu pārklājums -->
-    <div id="notify" class="overlay hidden">
+    <!-- Paziņojumu pārklājums (apstiprināšana) -->
+    <div id="notify" class="overlay hidden" role="dialog" aria-modal="true">
       <div class="sheet">
-        <div id="notif-title" class="title">Apstiprini uzdevumu</div>
+        <div class="title" id="notif-title" style="font-size:22px">Apstiprini uzdevumu</div>
         <div id="notif-text" style="margin:6px 0 12px"></div>
-        <div class="row2">
-          <button id="btn-accept" class="ok">Apstiprināt</button>
-          <button id="btn-reject" class="err">Noraidīt</button>
+        <div style="display:flex;gap:10px">
+          <button id="btn-accept" class="btn btn-ok">Apstiprināt</button>
+          <button id="btn-reject" class="btn btn-err">Noraidīt</button>
         </div>
       </div>
     </div>
@@ -119,121 +115,113 @@
 <script>
 const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxRDcK7IfOIwDdbPZ9WWxPjmGzC7bE6Arj4BP6VdFXuoQh4sihgwChnMFvt0BHMNV-i/exec";
 
-// ——— Klienta stāvoklis
+/* ---------- Klienta stāvoklis ---------- */
 const S = {
   id: localStorage.getItem('pv_playerId') || null,
   name: localStorage.getItem('pv_name') || '',
   currentTaskId: null,
-  pollInboxTimer: null,
-  ruleRecipient: null // {recipientId, recipientName, likes}
+  pollTimer: null,
+  ruleRecipient: null
 };
+
 const $ = id => document.getElementById(id);
 const show = id => { ['v-start','v-form','v-lobby','v-game'].forEach(v => $(v).classList.add('hidden')); $(id).classList.remove('hidden'); };
 $('name').value = S.name || '';
 
 async function api(action, payload={}) {
   const res = await fetch(WEBAPP_URL, { method:'POST', headers:{'Content-Type':'text/plain'}, body: JSON.stringify({action, ...payload}) });
-  const txt = await res.text();
-  try { return JSON.parse(txt); } catch(e){ alert('Servera atbilde nav JSON'); return {ok:false}; }
+  const txt = await res.text(); try { return JSON.parse(txt); } catch { return {ok:false,error:'Bad JSON',raw:txt}; }
 }
 
-// ——— 1) Vārds
+/* ---------- 1) Vārds -> uzreiz uz formu ---------- */
 async function onName() {
-  const name = $('name').value.trim();
-  if (!name) { $('name').focus(); return; }
+  const name = $('name').value.trim(); if (!name) { $('name').focus(); return; }
   const r = await api('upsertPlayer', { playerId:S.id, name });
-  if (!r.ok) { alert(r.error||'Kļūda'); return; }
+  if (!r.ok) return alert(r.error||'Kļūda');
   S.id = r.player.id; S.name = r.player.name;
   localStorage.setItem('pv_playerId', S.id);
   localStorage.setItem('pv_name', S.name);
-  $('install').classList.remove('hidden');
+  $('f3').placeholder = `Privātais uzdevums pret ${S.name}`;
+  show('v-form');
+  ensureGlobalPolling();
 }
 $('btn-name').onclick = onName;
 $('name').addEventListener('keydown', e=>{ if(e.key==='Enter') onName(); });
 
-// ——— 2) Add to Home Screen → Forma
-['btn-install-done','btn-install-skip'].forEach(id=>{
-  $(id).onclick = ()=>{
-    $('install').classList.add('hidden');
-    $('f3').placeholder = `Privātais uzdevums pret ${S.name}`;
-    show('v-form');
-  };
-});
-
-// ——— 3) Saglabā 4 laukus
+/* ---------- 2) Saglabā 4 laukus ---------- */
 $('btn-ready').onclick = async ()=>{
   const association = $('f1').value.trim();
   const goodDeed   = $('f2').value.trim();
   const privateT   = $('f3').value.trim();
   const rule       = $('f4').value.trim();
-  if (!association || !goodDeed || !privateT || !rule) { alert('Aizpildi visus 4 laukus'); return; }
+  if (!association || !goodDeed || !privateT || !rule) return alert('Aizpildi visus 4 laukus');
   const r = await api('saveEntriesAndReady', { playerId:S.id, association, goodDeed, privateTask:privateT, rule });
-  if (!r.ok) { alert(r.error||'Kļūda'); return; }
-  show('v-lobby');
-  pollLobby();
+  if (!r.ok) return alert(r.error||'Kļūda');
+  show('v-lobby'); pollLobby();
 };
 
-// ——— Lobby
+/* ---------- Lobby ---------- */
 $('btn-edit').onclick = ()=>{ show('v-form'); };
 
 async function pollLobby(){
   const res = await api('getLobby');
-  if (!res.ok) { setTimeout(pollLobby, 2000); return; }
+  if (!res.ok) return setTimeout(pollLobby, 2000);
   $('lobby-info').textContent = `Dalībnieki: ${res.total} • Aizpildījuši: ${res.filled}`;
   if (res.allReady) {
     await api('ensureAssignments', {});
     await openGame();
-  } else {
-    setTimeout(pollLobby, 2000);
-  }
+  } else setTimeout(pollLobby, 1800);
 }
 
-// ——— Spēle
+/* ---------- Spēle ---------- */
 async function openGame(){
   show('v-game');
   await refreshTasks();
-  await refreshRuleRecipient(); // autora like sekcija
-  startInboxPolling();
+  await refreshRuleRecipient();
+  ensureGlobalPolling();
 }
 
-function statusBadge(st){
-  const cls = st==='approved'?'b-approved':st==='pending'?'b-pending':st==='rejected'?'b-rejected':'b-idle';
-  return `<span class="badge ${cls}">${st}</span>`;
+function badge(st){
+  return `badge ${st==='approved'?'b-approved':st==='pending'?'b-pending':st==='rejected'?'b-rejected':'b-idle'}`;
 }
 function label(f){ return ({1:'Asociācija',2:'Labs darbs',3:'Privātais',4:'Likums'})[f]||('#'+f); }
 function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m])); }
 
 async function refreshTasks(){
-  const r = await api('getMyTasks', { playerId:S.id });
+  let r = await api('getMyTasks', { playerId:S.id });
+  if (r.ok && (!r.tasks || !r.tasks.length)) {
+    await api('ensureAssignments', {});
+    r = await api('getMyTasks', { playerId:S.id });
+  }
   if (!r.ok) return;
-  const box = $('tasks'); box.innerHTML = '';
-  (r.tasks||[]).forEach(t=>{
-    // Teksts zem statusa: ja rejected & decisionReady, rādi noraidītāju skaitu
+
+  const tasks = (r.tasks||[]).sort((a,b)=>a.field-b.field);
+  const box = $('tasks'); box.innerHTML='';
+  tasks.forEach(t=>{
     let foot = '';
-    if (t.status==='rejected' && t.decisionReady && t.rejectedCount>0) {
-      foot = `<div class="muted">Noraidīja: ${t.rejectedCount}</div>`;
-    }
+    if (t.status==='rejected' && t.decisionReady && t.rejectedCount>0) foot = `<div class="muted">Noraidīja: ${t.rejectedCount}</div>`;
     const el = document.createElement('div');
     el.className='card task';
     el.innerHTML = `
-      <div><span class="badge ${t.status==='approved'?'b-approved':t.status==='pending'?'b-pending':t.status==='rejected'?'b-rejected':'b-idle'}">${t.status}</span> <span class="muted">${label(t.field)} · autors: ${t.authorName||''}</span></div>
+      <div><span class="${badge(t.status)}">${t.status}</span> <span class="muted">${label(t.field)} · autors: ${t.authorName||''}</span></div>
       <div class="title" style="font-size:18px">${escapeHtml(t.text)}</div>
-      ${t.field===4 ? `<div class="muted">❤️ ${t.likes||0}</div>` :
-        `<div class="right">
-           <button data-f="${t.field}" class="ok btn-send" ${t.status==='pending'?'disabled':''}>
-             ${t.status==='pending'?'Gaida apstiprinājumu':'Sūtīt uz apstiprināšanu'}
-           </button>
-         </div>`
+      ${
+        t.field===4
+          ? `<div class="muted">❤️ ${t.likes||0}</div>`
+          : `<div style="display:flex;justify-content:flex-end">
+               <button data-f="${t.field}" class="btn btn-primary btn-send" ${t.status==='pending'?'disabled':''}>
+                 ${t.status==='pending'?'Gaida apstiprinājumu':'Sūtīt uz apstiprinājumu'}
+               </button>
+             </div>`
       }
       ${foot}
     `;
     box.appendChild(el);
   });
-  // send handlers
+
   document.querySelectorAll('.btn-send').forEach(b=>{
     b.onclick = async ()=>{
       const f = Number(b.getAttribute('data-f'));
-      // Optimistiski parādi "pending"
       b.disabled = true; b.textContent = 'Gaida apstiprinājumu';
       const r = await api('submitAttempt', { playerId:S.id, field:f });
       if (!r.ok){ alert(r.error||'Kļūda'); }
@@ -242,7 +230,7 @@ async function refreshTasks(){
   });
 }
 
-// ——— Autora “Like” (spēles ekrānā)
+/* ---- Autora “Like” zona (spēles ekrānā) ---- */
 async function refreshRuleRecipient(){
   const r = await api('getInboxAndAuthored', { playerId:S.id });
   if (!r.ok) return;
@@ -255,17 +243,18 @@ async function refreshRuleRecipient(){
 }
 $('btn-like').onclick = async ()=>{
   if (!S.ruleRecipient) return;
-  const r = await api('likeRule', { playerId:S.id, toPlayerId: S.ruleRecipient.id });
-  if (r.ok){ await refreshTasks(); await refreshRuleRecipient(); }
-  else alert(r.error||'Kļūda');
+  const r = await api('likeRule', { playerId:S.id, toPlayerId:S.ruleRecipient.id });
+  if (!r.ok) return alert(r.error||'Kļūda');
+  await refreshTasks(); await refreshRuleRecipient();
 };
 
-// ——— Paziņojumu pārklājums (ik 3s)
-function startInboxPolling(){
-  if (S.pollInboxTimer) clearInterval(S.pollInboxTimer);
-  S.pollInboxTimer = setInterval(checkInbox, 3000);
+/* ---- Paziņojumu pārklājums (globāls) ---- */
+function ensureGlobalPolling(){
+  if (S.pollTimer) return;
+  S.pollTimer = setInterval(checkInbox, 2500);
 }
 async function checkInbox(){
+  if (!S.id) return;
   const r = await api('getInboxAndAuthored', { playerId:S.id });
   if (!r.ok) return;
   const inbox = r.inbox||[];
@@ -277,28 +266,31 @@ async function checkInbox(){
   $('notify').classList.remove('hidden');
 }
 $('btn-accept').onclick = async ()=>{
-  if (!S.currentTaskId) { $('notify').classList.add('hidden'); return; }
+  if (!S.currentTaskId) return $('notify').classList.add('hidden');
   const r = await api('approve', { playerId:S.id, taskId:S.currentTaskId });
   $('notify').classList.add('hidden'); S.currentTaskId=null;
-  if (!r.ok){ alert(r.error||'Kļūda'); return; }
+  if (!r.ok) return alert(r.error||'Kļūda');
   await refreshTasks(); await refreshRuleRecipient();
 };
 $('btn-reject').onclick = async ()=>{
-  if (!S.currentTaskId) { $('notify').classList.add('hidden'); return; }
-  const r = await api('reject', { playerId:S.id, taskId:S.currentTaskId });
+  if (!S.currentTaskId) return $('notify').classList.add('hidden');
+  const r = await api('reject',  { playerId:S.id, taskId:S.currentTaskId });
   $('notify').classList.add('hidden'); S.currentTaskId=null;
-  if (!r.ok){ alert(r.error||'Kļūda'); return; }
+  if (!r.ok) return alert(r.error||'Kļūda');
   await refreshTasks();
 };
 
-// ——— Palaišana pēc refresh: automātiska atjaunošana
+/* ---- Boot ---- */
 (async function boot(){
   if (!S.id || !S.name) { show('v-start'); return; }
-  // Pārbaudi, kādā stadijā esi
+  ensureGlobalPolling();
   const lobby = await api('getLobby');
-  const myTasks = await api('getMyTasks', { playerId:S.id });
-  if ((myTasks.ok && (myTasks.tasks||[]).length)) { await openGame(); return; }
-  if (lobby.ok && lobby.total>0 && lobby.filled<lobby.total) { show('v-lobby'); pollLobby(); return; }
+  let my = await api('getMyTasks', { playerId:S.id });
+  if (my.ok && (!my.tasks || !my.tasks.length) && lobby.ok && lobby.allReady) {
+    await api('ensureAssignments', {}); my = await api('getMyTasks', { playerId:S.id });
+  }
+  if (my.ok && (my.tasks||[]).length) return openGame();
+  if (lobby.ok && lobby.total>0 && lobby.filled<lobby.total) { show('v-lobby'); return pollLobby(); }
   show('v-form');
 })();
 </script>
