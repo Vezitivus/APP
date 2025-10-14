@@ -45,10 +45,51 @@
     .b-approved{background:#e7f9ee;border-color:#bfeccf}
     .b-rejected{background:#ffe9ea;border-color:#ffd0d3}
     .dim{opacity:.45; filter:grayscale(.25)}
-    /* Pārklājums paziņojumiem */
+    /* Lobby indikators */
+    .dots{display:inline-flex;gap:6px;align-items:center;justify-content:center;margin:10px 0}
+    .dot{width:8px;height:8px;border-radius:50%;background:#c7c7cc;animation:jump 1s infinite}
+    .dot:nth-child(2){animation-delay:.15s}.dot:nth-child(3){animation-delay:.3s}
+    @keyframes jump{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
+    /* Overlay paziņojumiem */
     .overlay{position:fixed;inset:0;background:rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
     .sheet{max-width:520px;width:100%;background:var(--card);border:1px solid var(--border);border-radius:18px;box-shadow:0 24px 48px rgba(0,0,0,.18);padding:16px;transform:scale(.94);opacity:0;animation:pop .16s cubic-bezier(.2,.7,.2,1) forwards}
     @keyframes pop{to{transform:scale(1);opacity:1}}
+
+    /* === MEDAĻU pārklājums === */
+    #medal-overlay{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.35);padding:16px}
+    .coin-wrap{position:relative;width:min(90vw,520px);height:min(90vw,520px);display:flex;align-items:center;justify-content:center;perspective:1200px}
+    .coin{
+      width:70%; height:70%; border-radius:50%;
+      position:relative; transform-style:preserve-3d; animation:spin 2.2s linear infinite;
+      box-shadow:0 20px 60px rgba(0,0,0,.3);
+    }
+    /* cilindriskā biezuma imitācija */
+    .edge{
+      position:absolute; inset:0; border-radius:50%;
+      background:repeating-linear-gradient(90deg, rgba(0,0,0,.12) 0 2px, rgba(255,255,255,.12) 2px 4px);
+      transform:translateZ(-12px);
+      filter:blur(.2px) contrast(1.1);
+    }
+    .face{
+      position:absolute; inset:0; border-radius:50%; display:flex;align-items:center;justify-content:center;
+      font-weight:900; text-align:center; padding:24px; transform:translateZ(12px);
+      -webkit-backface-visibility:hidden; backface-visibility:hidden;
+      text-shadow:0 2px 6px rgba(0,0,0,.25);
+    }
+    .face.back{ transform:rotateY(180deg) translateZ(12px);}
+    /* krāsas */
+    .gold{ background:radial-gradient(circle at 30% 30%, #fff7ba 0%, #f1c40f 35%, #b8860b 75%); }
+    .silver{ background:radial-gradient(circle at 30% 30%, #ffffff 0%, #d7dee3 35%, #9aa4ad 75%); }
+    .bronze{ background:radial-gradient(circle at 30% 30%, #ffdcb3 0%, #cd7f32 35%, #8a4b1f 75%); }
+    .coin.gold .edge{ background:repeating-linear-gradient(90deg, rgba(120,90,0,.25) 0 2px, rgba(255,230,140,.25) 2px 4px); }
+    .coin.silver .edge{ background:repeating-linear-gradient(90deg, rgba(60,60,60,.25) 0 2px, rgba(240,240,240,.25) 2px 4px); }
+    .coin.bronze .edge{ background:repeating-linear-gradient(90deg, rgba(100,50,0,.25) 0 2px, rgba(255,200,140,.25) 2px 4px); }
+    @keyframes spin{ from{ transform:rotateY(0deg); } to{ transform:rotateY(360deg);} }
+
+    /* Vienkāršs “pabeigts” paziņojums (bez medaļas) */
+    #plain-done{position:fixed; left:50%; bottom:24px; transform:translateX(-50%);
+      background:#111827; color:#fff; padding:10px 14px; border-radius:12px; z-index:61; display:none;
+      box-shadow:0 10px 30px rgba(0,0,0,.3)}
   </style>
 </head>
 <body>
@@ -68,10 +109,10 @@
       <div class="topbar"><div class="big">4 lauki</div></div>
       <div class="card">
         <div class="list">
-          <textarea id="f1" placeholder="Asociācija (kā tevi atpazīt)"></textarea>
-          <textarea id="f2" placeholder="Labs darbs (pirms / laikā)"></textarea>
-          <textarea id="f3" placeholder="Privātais uzdevums pret mani"></textarea>
-          <textarea id="f4" placeholder="Likums (mazs noteikums)"></textarea>
+          <textarea id="f1" placeholder="Asociācija ar kuru kursa biedram tevi atpazīt."></textarea>
+          <textarea id="f2" placeholder="Labs darbs ko izdarīt visam kursam pidžamballītes laikā."></textarea>
+          <textarea id="f3" placeholder="Uzdevums pret mani"></textarea>
+          <textarea id="f4" placeholder="Visa vakara likums"></textarea>
           <button id="btn-ready" class="btn btn-ok">Gatavs spēlei</button>
         </div>
       </div>
@@ -81,6 +122,7 @@
     <section id="v-lobby" class="hidden">
       <div class="card" style="text-align:center">
         <div class="title" style="font-size:22px;margin-bottom:6px">Gaidām pārējos…</div>
+        <div class="dots" aria-hidden="true"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
         <div class="muted" id="lobby-info">—</div>
         <div style="height:12px"></div>
         <button id="btn-edit" class="btn btn-ghost">Labot laukus</button>
@@ -99,7 +141,7 @@
       </div>
     </section>
 
-    <!-- Paziņojumu pārklājums (apstiprināšana) -->
+    <!-- Paziņojums apstiprināšanai -->
     <div id="notify" class="overlay hidden" role="dialog" aria-modal="true">
       <div class="sheet">
         <div class="title" id="notif-title" style="font-size:22px">Apstiprini uzdevumu</div>
@@ -110,6 +152,20 @@
         </div>
       </div>
     </div>
+
+    <!-- MEDAĻU pārklājums -->
+    <div id="medal-overlay">
+      <div class="coin-wrap">
+        <div id="coin" class="coin gold">
+          <div class="edge"></div>
+          <div class="face front"><span id="coin-text-front">Tu pirmais pabeidzi uzdevumu!</span></div>
+          <div class="face back"><span id="coin-text-back">Tu pirmais pabeidzi uzdevumu!</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vienkāršs “pabeigts” paziņojums -->
+    <div id="plain-done">Uzdevumi pabeigti! 🎉</div>
   </div>
 
 <script>
@@ -120,8 +176,12 @@ const S = {
   id: localStorage.getItem('pv_playerId') || null,
   name: localStorage.getItem('pv_name') || '',
   currentTaskId: null,
-  pollTimer: null,
-  ruleRecipient: null
+  pollTimer: null,      // paziņojumi
+  gameTimer: null,      // spēles versijas/piešķīrumu pārbaude
+  metaVersion: 0,
+  ruleRecipient: null,
+  lastDoneFlag: localStorage.getItem('pv_lastDoneFlag') === '1',
+  lastRank: Number(localStorage.getItem('pv_lastRank') || '0')
 };
 
 const $ = id => document.getElementById(id);
@@ -141,14 +201,14 @@ async function onName() {
   S.id = r.player.id; S.name = r.player.name;
   localStorage.setItem('pv_playerId', S.id);
   localStorage.setItem('pv_name', S.name);
-  $('f3').placeholder = `Privātais uzdevums pret ${S.name}`;
+  $('f3').placeholder = `Uzdevums pret ${S.name}`;
   show('v-form');
   ensureGlobalPolling();
 }
 $('btn-name').onclick = onName;
 $('name').addEventListener('keydown', e=>{ if(e.key==='Enter') onName(); });
 
-/* ---------- 2) Saglabā 4 laukus ---------- */
+/* ---------- 2) Saglabā 4 laukus -> Lobby ---------- */
 $('btn-ready').onclick = async ()=>{
   const association = $('f1').value.trim();
   const goodDeed   = $('f2').value.trim();
@@ -165,9 +225,12 @@ $('btn-edit').onclick = ()=>{ show('v-form'); };
 async function pollLobby(){
   const res = await api('getLobby');
   if (!res.ok) return setTimeout(pollLobby, 2000);
-  $('lobby-info').textContent = `Dalībnieki: ${res.total} • Aizpildījuši: ${res.filled}`;
-  if (res.allReady) { await api('ensureAssignments', {}); await openGame(); }
-  else setTimeout(pollLobby, 1800);
+  S.metaVersion = res.version || 0;
+  $('lobby-info').textContent = `Dalībnieki ar vārdu: ${res.total} • Pabeiguši 4 laukus: ${res.filled}`;
+  if (res.allReady) {
+    await api('ensureAssignments', {});
+    await openGame();
+  } else setTimeout(pollLobby, 1800);
 }
 
 /* ---------- Spēle ---------- */
@@ -176,7 +239,9 @@ async function openGame(){
   await refreshTasks();
   await refreshRuleRecipient();
   ensureGlobalPolling();
+  ensureGamePolling();
 }
+
 function badge(st){ return `badge ${st==='approved'?'b-approved':st==='pending'?'b-pending':st==='rejected'?'b-rejected':'b-idle'}`; }
 function label(f){ return ({1:'Asociācija',2:'Labs darbs',3:'Privātais',4:'Likums'})[f]||('#'+f); }
 function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m])); }
@@ -186,16 +251,23 @@ async function refreshTasks(){
   if (r.ok && (!r.tasks || !r.tasks.length)) { await api('ensureAssignments', {}); r = await api('getMyTasks', { playerId:S.id }); }
   if (!r.ok) return;
 
+  // medalju loģika – parādam tikai brīdī, kad pirmoreiz sasniedz allDone
+  handleCompletionCue(r.allDone === true, Number(r.rank || 0));
+
   const tasks = (r.tasks||[]).sort((a,b)=>a.field-b.field);
   const box = $('tasks'); box.innerHTML='';
   tasks.forEach(t=>{
     let foot = '';
     if (t.status==='rejected' && t.decisionReady && t.rejectedCount>0) foot = `<div class="muted">Noraidīja: ${t.rejectedCount}</div>`;
     const isDim = (t.status==='approved' || t.status==='pending'); // pending arī blāvs
+
+    // privātajam (3) rādām autoru
+    const meta = t.field===3 ? ` · autors: ${escapeHtml(t.authorName||'')}` : '';
+
     const el = document.createElement('div');
     el.className='card task' + (isDim ? ' dim' : '');
     el.innerHTML = `
-      <div><span class="${badge(t.status)}">${t.status}</span> <span class="muted">${label(t.field)}</span></div>
+      <div><span class="${badge(t.status)}">${t.status}</span> <span class="muted">${label(t.field)}${meta}</span></div>
       <div class="title" style="font-size:18px">${escapeHtml(t.text)}</div>
       ${
         t.field===4
@@ -218,10 +290,38 @@ async function refreshTasks(){
     b.onclick = async ()=>{
       const f = Number(b.getAttribute('data-f'));
       b.disabled = true; b.textContent = 'Gaida apstiprinājumu';
-      await api('submitAttempt', { playerId:S.id, field:f });
+      await api('submitAttempt', { playerId:S.id, field:f }); // idempotents
       await refreshTasks();
     }
   });
+}
+
+/* ---- Medaļu & paziņojumu parādīšana ---- */
+function handleCompletionCue(allDone, rank){
+  const prevDone = S.lastDoneFlag;
+  if (!prevDone && allDone){ // tikko pabeidza
+    S.lastDoneFlag = true; localStorage.setItem('pv_lastDoneFlag','1');
+    S.lastRank = rank || 0; localStorage.setItem('pv_lastRank', String(S.lastRank||0));
+    if (rank===1 || rank===2 || rank===3){
+      const cls = rank===1?'gold':rank===2?'silver':'bronze';
+      const text = rank===1?'Tu pirmais pabeidzi uzdevumu!':rank===2?'Tu otrais pabeidzi uzdevumus!':'Tu trešais pabeidzi uzdevumus!';
+      showMedal(cls, text);
+    } else {
+      showPlainDone();
+    }
+  }
+}
+function showMedal(cls, text){
+  const o = $('medal-overlay'), c=$('coin');
+  c.classList.remove('gold','silver','bronze'); c.classList.add(cls);
+  $('coin-text-front').textContent = text;
+  $('coin-text-back').textContent = text;
+  o.style.display='flex';
+  setTimeout(()=>{ o.style.display='none'; }, 5000);
+}
+function showPlainDone(){
+  const t=$('plain-done'); t.style.display='block';
+  setTimeout(()=>{ t.style.display='none'; }, 5000);
 }
 
 /* ---- Autora “Like” zona ---- */
@@ -242,7 +342,7 @@ $('btn-like').onclick = async ()=>{
   await refreshTasks(); await refreshRuleRecipient();
 };
 
-/* ---- Paziņojumu pārklājums (globāls) ---- */
+/* ---- Paziņojumi (apstiprināšana) ---- */
 function ensureGlobalPolling(){ if (S.pollTimer) return; S.pollTimer = setInterval(checkInbox, 2500); }
 async function checkInbox(){
   if (!S.id) return;
@@ -267,11 +367,26 @@ async function handleDecision(type){
 $('btn-accept').onclick = ()=>handleDecision('approve');
 $('btn-reject').onclick = ()=>handleDecision('reject');
 
+/* ---- Spēles versijas pārbaude (jauni spēlētāji vidū) ---- */
+function ensureGamePolling(){
+  if (S.gameTimer) return;
+  S.gameTimer = setInterval(async ()=>{
+    const lobby = await api('getLobby');
+    if (!lobby.ok) return;
+    if ((lobby.version||0) !== S.metaVersion || lobby.assignmentsReady===false){
+      S.metaVersion = lobby.version||0;
+      await api('ensureAssignments', {});   // pār-randomizē neapstiprinātos, approved paliek
+      await refreshTasks();
+      await refreshRuleRecipient();
+    }
+  }, 4000);
+}
+
 /* ---- Boot ---- */
 (async function boot(){
   if (!S.id || !S.name) { show('v-start'); return; }
+  const lobby = await api('getLobby'); if (lobby.ok) S.metaVersion = lobby.version||0;
   ensureGlobalPolling();
-  const lobby = await api('getLobby');
   let my = await api('getMyTasks', { playerId:S.id });
   if (my.ok && (!my.tasks || !my.tasks.length) && lobby.ok && lobby.allReady) {
     await api('ensureAssignments', {}); my = await api('getMyTasks', { playerId:S.id });
