@@ -45,14 +45,16 @@
     .b-approved{background:#e7f9ee;border-color:#bfeccf}
     .b-rejected{background:#ffe9ea;border-color:#ffd0d3}
     .dim{opacity:.45; filter:grayscale(.25)}
+    /* dots */
     .dots{display:inline-flex;gap:6px;align-items:center;justify-content:center;margin:10px 0}
     .dot{width:8px;height:8px;border-radius:50%;background:#c7c7cc;animation:jump 1s infinite}
     .dot:nth-child(2){animation-delay:.15s}.dot:nth-child(3){animation-delay:.3s}
     @keyframes jump{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
+    /* overlay */
     .overlay{position:fixed;inset:0;background:rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
     .sheet{max-width:520px;width:100%;background:var(--card);border:1px solid var(--border);border-radius:18px;box-shadow:0 24px 48px rgba(0,0,0,.18);padding:16px;transform:scale(.94);opacity:0;animation:pop .16s cubic-bezier(.2,.7,.2,1) forwards}
     @keyframes pop{to{transform:scale(1);opacity:1}}
-    /* Medaļas */
+    /* medals */
     #medal-overlay{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.35);padding:16px}
     .coin-wrap{position:relative;width:min(90vw,520px);height:min(90vw,520px);display:flex;align-items:center;justify-content:center;perspective:1200px}
     .coin{width:70%; height:70%; border-radius:50%; position:relative; transform-style:preserve-3d; animation:spin 2.2s linear infinite; box-shadow:0 20px 60px rgba(0,0,0,.3);}
@@ -156,7 +158,7 @@ const S = {
   id: localStorage.getItem('pv_playerId') || null,
   name: localStorage.getItem('pv_name') || '',
   currentTaskId: null,
-  pulseTimer: null,     // 1s “dzīvais” pulss
+  pulseTimer: null,
   metaVersion: 0,
   ruleRecipient: null,
   lastDoneFlag: localStorage.getItem('pv_lastDoneFlag') === '1',
@@ -181,7 +183,15 @@ async function onName() {
   localStorage.setItem('pv_playerId', S.id);
   localStorage.setItem('pv_name', S.name);
   $('f3').placeholder = `Uzdevums pret ${S.name}`;
-  show('v-form');
+
+  // uzreiz nosakām kur jāiet
+  const st = await api('getPlayerState', { playerId:S.id });
+  if (st.ok){
+    if (st.hasTasks) { await openGame(); return; }
+    if (st.hasEntries) { show('v-lobby'); } else { show('v-form'); }
+  } else {
+    show('v-form');
+  }
   ensurePulse();
 }
 $('btn-name').onclick = onName;
@@ -196,10 +206,10 @@ $('btn-ready').onclick = async ()=>{
   if (!association || !goodDeed || !privateT || !rule) return alert('Aizpildi visus 4 laukus');
   const r = await api('saveEntriesAndReady', { playerId:S.id, association, goodDeed, privateTask:privateT, rule });
   if (!r.ok) return alert(r.error||'Kļūda');
-  show('v-lobby'); // tālāk pulse pats pārswitchos uz spēli, kad allReady
+  show('v-lobby');
 };
 
-/* ---------- Spēle / Lobby atjaunošana ---------- */
+/* ---------- Spēle ---------- */
 async function openGame(){
   show('v-game');
   await refreshTasks();
@@ -209,7 +219,7 @@ async function openGame(){
 
 function badge(st){ return `badge ${st==='approved'?'b-approved':st==='pending'?'b-pending':st==='rejected'?'b-rejected':'b-idle'}`; }
 function label(f){ return ({1:'Asociācija',2:'Labs darbs',3:'Privātais',4:'Likums'})[f]||('#'+f); }
-function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m])); }
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&gt;','&quot;':'&quot;','"':'&quot;',"'":'&#039;' }[m])); }
 
 async function refreshTasks(){
   let r = await api('getMyTasks', { playerId:S.id });
@@ -246,13 +256,12 @@ async function refreshTasks(){
       const f = Number(b.getAttribute('data-f'));
       b.disabled = true; b.textContent = 'Gaida apstiprinājumu';
       await api('submitAttempt', { playerId:S.id, field:f });
-      // optimistiski – uzreiz atzīmējam kā pending
       await refreshTasks();
     }
   });
 }
 
-/* ---- Medaļu & pabeigšanas paziņojumi ---- */
+/* ---- Medaļas/pabeigšana ---- */
 function handleCompletionCue(allDone, rank){
   const prevDone = S.lastDoneFlag;
   if (!prevDone && allDone){
@@ -278,7 +287,7 @@ function showPlainDone(){
   setTimeout(()=>{ t.style.display='none'; }, 5000);
 }
 
-/* ---- Reakcijas (❤️/💔) un autora bloks ---- */
+/* ---- Reakcijas (❤️/💔) ---- */
 async function refreshRuleRecipient(){
   const r = await api('getInboxAndAuthored', { playerId:S.id });
   if (!r.ok) return;
@@ -300,25 +309,38 @@ $('btn-bheart').onclick = async ()=>{
   await refreshTasks(); await refreshRuleRecipient();
 };
 
-/* ---- “Instant” pulss: 1s, salīdzina meta.version ---- */
+/* ---- “Instant” pulss (nekad nepārraksta formu, ja nav iesniegti 4 lauki) ---- */
 function ensurePulse(){
   if (S.pulseTimer) return;
   S.pulseTimer = setInterval(async ()=>{
     if (!S.id) return;
     const p = await api('pulse', { playerId:S.id });
     if (!p.ok) return;
-    // Lobby teksti
+
+    // ja man nav iesniegti 4 lauki – palieku FORMĀ
+    if (!p.hasEntries){
+      if (document.getElementById('v-start').classList.contains('hidden')) show('v-form');
+      return;
+    }
+
+    // ja ir lauki, bet nav piešķīrumu un nav allReady -> esmu lobby
     if (p.stage==='lobby'){
       $('lobby-info').textContent = `Dalībnieki ar vārdu: ${p.total} • Pabeiguši 4 laukus: ${p.filled}`;
       if (p.allReady) { await api('ensureAssignments', {}); await openGame(); return; }
-      show('v-lobby');
+      if (!['v-game','v-form'].some(id=>!document.getElementById(id).classList.contains('hidden'))) show('v-lobby');
     }
-    // Ja versija mainījusies — atjaunojam skatījumus
+
+    // ja versija mainījusies spēles laikā – atjaunojam
     if ((p.version||0) !== S.metaVersion){
       S.metaVersion = p.version||0;
       if (p.stage==='game'){
-        await refreshTasks();
-        await refreshRuleRecipient();
+        // ja man ir piešķirti uzdevumi – uz spēli
+        const st = await api('getPlayerState', { playerId:S.id });
+        if (st.ok && st.hasTasks) {
+          if (document.getElementById('v-game').classList.contains('hidden')) show('v-game');
+          await refreshTasks();
+          await refreshRuleRecipient();
+        }
       }
     }
   }, 1000);
@@ -347,18 +369,18 @@ async function handleDecision(type){
 $('btn-accept').onclick = ()=>handleDecision('approve');
 $('btn-reject').onclick = ()=>handleDecision('reject');
 
-/* ---- Boot ---- */
+/* ---- Boot (atver tieši kur biji) ---- */
 (async function boot(){
   if (!S.id || !S.name) { show('v-start'); return; }
   ensurePulse();
-  // vienreiz pārbaudām inbox, lai paziņojumi negaidītu līdz nākamajam versijas maiņas pulsam
   setTimeout(checkInboxOnce, 600);
-  // pārlēciens uz pareizo skatu atkarībā no stāvokļa
-  const lobby = await api('getLobby');
-  if (lobby.ok && lobby.allReady){ await api('ensureAssignments', {}); return openGame(); }
-  const my = await api('getMyTasks', { playerId:S.id });
-  if (my.ok && (my.tasks||[]).length) return openGame();
-  show('v-lobby');
+  const st = await api('getPlayerState', { playerId:S.id });
+  if (st.ok){
+    if (st.hasTasks) return openGame();
+    if (st.hasEntries) { show('v-lobby'); return; }
+    show('v-form'); return;
+  }
+  show('v-form');
 })();
 </script>
 </body>
