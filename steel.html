@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>STEEL, FIRE & STEAK</title>
 
-  <!-- iOS/PWA noskaņa -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#0b0c10">
@@ -40,19 +39,16 @@
 
     header{ text-align:center; padding:6px 8px 12px; }
     header h1{
-      margin:0; letter-spacing:.14em; font-weight:700; font-size:clamp(18px,3.8vw,28px);
+      margin:0; letter-spacing:.14em; font-weight:700; font-size:clamp(20px,4.2vw,32px);
       text-transform:uppercase; color:#fff;
       text-shadow:0 1px 0 rgba(255,255,255,.05), 0 12px 30px rgba(0,0,0,.35);
     }
-    header .sub{ margin-top:6px; color:var(--muted); font-size:13px; letter-spacing:.08em; }
-
-    .topbar{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
-    .actions{ display:flex; gap:8px; }
-    .chip{
-      border:1px solid var(--border); background:#ffffff10; color:#fff;
-      padding:8px 10px; border-radius:100px; font-size:12px; letter-spacing:.08em; text-transform:uppercase;
-      cursor:pointer; user-select:none;
+    .motto{
+      margin-top:8px; color:#e6e7ec; font-weight:600;
+      font-size:clamp(14px,2.6vw,18px); letter-spacing:.06em;
+      opacity:.95;
     }
+    .sub{ margin-top:6px; color:var(--muted); font-size:13px; letter-spacing:.08em; }
 
     /* Rotējošais PNG */
     .stage{ perspective:1200px; margin:18px auto 10px; width:100%; display:grid; place-items:center; }
@@ -67,6 +63,13 @@
     .value{ font-size:clamp(18px,4.2vw,22px); font-weight:600; color:#fff; }
     .value.monospace{ font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; font-weight:500; color:#d8dde6; font-size:14px; }
     .value.note{ white-space:pre-wrap; color:#e9e9ee; font-weight:500; }
+
+    /* Uzdevuma rindas */
+    .tasks{ display:grid; gap:8px; }
+    .taskline{
+      padding:8px 10px; border:1px solid var(--border);
+      border-radius:12px; background:#ffffff0b; font-weight:600;
+    }
 
     /* skeleton */
     .skeleton{ position:relative; overflow:hidden; background:#ffffff0f; border-radius:12px; height:1.2em; display:inline-block; min-width:120px; }
@@ -104,6 +107,7 @@
     @media (min-width:720px){
       .grid{ grid-template-columns:1fr 1fr; }
       .row.notes{ grid-column:1 / -1; }
+      .row.tasks{ grid-column:1 / -1; }
     }
   </style>
 </head>
@@ -111,13 +115,8 @@
   <div class="wrap">
     <main class="card" id="card">
       <header>
-        <div class="topbar">
-          <h1>STEEL, FIRE &amp; STEAK</h1>
-          <div class="actions">
-            <button class="chip" id="shareBtn" title="Kopēt saiti ar ID">Kopēt saiti</button>
-            <button class="chip" id="switchIdBtn" title="Mainīt ID">Mainīt ID</button>
-          </div>
-        </div>
+        <h1>STEEL, FIRE &amp; STEAK</h1>
+        <div class="motto" id="motto"><span class="skeleton" style="width:60%"></span></div>
         <div class="sub" id="subInfo">Ielāde…</div>
       </header>
 
@@ -134,9 +133,12 @@
           <div id="name" class="value"><span class="skeleton" style="width:40%"></span></div>
         </div>
 
-        <div class="row">
+        <div class="row tasks">
           <div class="label">Uzdevums</div>
-          <div id="task" class="value"><span class="skeleton" style="width:80%"></span></div>
+          <div id="task" class="tasks">
+            <div class="skeleton" style="width:90%"></div>
+            <div class="skeleton" style="width:80%"></div>
+          </div>
         </div>
 
         <div class="row notes">
@@ -154,7 +156,7 @@
 
   <div class="toast" id="toast"></div>
 
-  <!-- ID dialogs -->
+  <!-- ID dialogs (ja nav ?id un nav saglabāts) -->
   <dialog id="idDialog">
     <div class="modal">
       <h3>Ieraksti dalībnieka ID</h3>
@@ -174,57 +176,102 @@
     const qs = new URLSearchParams(location.search);
     const $ = sel => document.querySelector(sel);
 
-    function toast(msg, t=2200){
-      const el = $("#toast"); el.textContent = msg;
-      el.classList.add("show"); setTimeout(()=>el.classList.remove("show"), t);
-    }
+    function toast(msg, t=2200){ const el=$("#toast"); el.textContent=msg; el.classList.add("show"); setTimeout(()=>el.classList.remove("show"), t); }
     function persistId(id){ try{ localStorage.setItem("sfs:id", String(id)); }catch{} }
     function readPersistedId(){ try{ return localStorage.getItem("sfs:id") || ""; }catch{ return ""; } }
-    function buildShareUrl(id){ const u = new URL(location.href); u.searchParams.set("id", id); return u.toString(); }
     function reveal(){ requestAnimationFrame(()=> $("#card").classList.add("reveal")); }
 
-    // JSONP fallback (CORS drošībai)
+    // JSONP fallback (ja CORS)
     function jsonp(url, timeout=6000){
       return new Promise((resolve,reject)=>{
-        const cbName = "__sfs_cb_"+Math.random().toString(36).slice(2);
-        const scr = document.createElement("script");
-        const tm = setTimeout(()=>{ cleanup(); reject(new Error("JSONP timeout")); }, timeout);
-        function cleanup(){
-          clearTimeout(tm);
-          delete window[cbName];
-          scr.remove();
-        }
-        window[cbName] = (data)=>{ cleanup(); resolve(data); };
-        const u = new URL(url);
-        u.searchParams.set("callback", cbName);
-        scr.src = u.toString();
-        scr.onerror = ()=>{ cleanup(); reject(new Error("JSONP load error")); };
+        const cbName="__sfs_cb_"+Math.random().toString(36).slice(2);
+        const scr=document.createElement("script");
+        const tm=setTimeout(()=>{ cleanup(); reject(new Error("JSONP timeout")); }, timeout);
+        function cleanup(){ clearTimeout(tm); delete window[cbName]; scr.remove(); }
+        window[cbName]=(data)=>{ cleanup(); resolve(data); };
+        const u = new URL(url); u.searchParams.set("callback", cbName);
+        scr.src=u.toString(); scr.onerror=()=>{ cleanup(); reject(new Error("JSONP load error")); };
         document.head.appendChild(scr);
       });
     }
 
-    function setSkeleton(on){
-      const ids = ["#name","#task","#notes","#idOut"];
-      for(const sel of ids){
-        const node = document.querySelector(sel);
-        if(on) node.innerHTML = `<span class="skeleton" style="width:${sel==="#idOut"?"120px":"90%"}"></span>`;
+    function setSkeleton(){
+      $("#motto").innerHTML = `<span class="skeleton" style="width:60%"></span>`;
+      $("#name").innerHTML = `<span class="skeleton" style="width:40%"></span>`;
+      $("#task").innerHTML = `<div class="skeleton" style="width:90%"></div><div class="skeleton" style="width:80%"></div>`;
+      $("#notes").innerHTML = `<span class="skeleton" style="width:95%"></span>`;
+      $("#idOut").innerHTML = `<span class="skeleton" style="width:120px"></span>`;
+    }
+
+    // — Attēla kešs: dataURL → localStorage; cookie kā rādītājs (cepumu prasība)
+    function setCookie(name, value, days=365){
+      const d=new Date(); d.setTime(d.getTime()+days*24*60*60*1000);
+      document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)};expires=${d.toUTCString()};path=/;SameSite=Lax`;
+    }
+    function getCookie(name){
+      const m = document.cookie.match(new RegExp('(?:^|; )'+encodeURIComponent(name)+'=([^;]*)'));
+      return m ? decodeURIComponent(m[1]) : "";
+    }
+
+    async function fetchAsDataURL(url){
+      const res = await fetch(url, {cache:"force-cache"});
+      const blob = await res.blob();
+      return await new Promise((resolve,reject)=>{
+        const r=new FileReader();
+        r.onload=()=>resolve(r.result);
+        r.onerror=reject;
+        r.readAsDataURL(blob);
+      });
+    }
+
+    async function getCachedImageForId(id, srcUrl){
+      const key = `sfs:img:${id}`;
+      const cookieKey = `sfs_img_${id}`;
+      // ja jau ir kešs
+      let data = "";
+      try{ data = localStorage.getItem(key) || ""; }catch{}
+      if(data) return data;
+
+      // mēģinam dabūt; ja neizdodas, atgriežam pašu URL
+      try{
+        const dataUrl = await fetchAsDataURL(srcUrl);
+        try{ localStorage.setItem(key, dataUrl); }catch{}
+        setCookie(cookieKey, "1", 365);
+        return dataUrl;
+      }catch{
+        return srcUrl; // fallback
       }
     }
 
-    function fillUI({id, name, image, task, notes}){
-      const fallbackPNG = "data:image/svg+xml;utf8," + encodeURIComponent(`
-        <svg xmlns='http://www.w3.org/2000/svg' width='800' height='800' viewBox='0 0 800 800'>
-          <defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='1'><stop offset='0' stop-color='#f25f3a'/><stop offset='1' stop-color='#7f8c9a'/></linearGradient></defs>
-          <rect width='800' height='800' rx='160' ry='160' fill='url(#g)'/>
-          <text x='50%' y='52%' font-family='SF Pro, system-ui, sans-serif' font-size='70' fill='white' text-anchor='middle' dominant-baseline='middle'>S F S</text>
-        </svg>
-      `);
-      $("#personImage").src = image || fallbackPNG;
-      $("#name").textContent = name || "—";
-      $("#task").textContent = task || "—";
-      $("#notes").textContent = notes || "—";
+    function extractTasks(text){
+      if(!text) return [];
+      const norm = String(text).replace(/\r/g," ").trim();
+      if(!norm) return [];
+      // Dalām pēc . ! ? ; vai jaunas rindas
+      const parts = norm.split(/(?:[.!?;]+|\n)+\s*/).map(s=>s.trim()).filter(Boolean);
+      return parts;
+    }
+
+    function fillUI({id, name, motto, image, task, notes}){
       $("#idOut").textContent = id || "—";
-      $("#subInfo").innerHTML = name ? `Dalībnieks: <strong>${name}</strong>` : "&nbsp;";
+      $("#name").textContent = name || "—";
+      $("#motto").textContent = motto || "—";
+
+      // Uzdevuma rindas
+      const taskEl = $("#task"); taskEl.innerHTML = "";
+      const lines = extractTasks(task);
+      if(lines.length){
+        lines.forEach(t=>{
+          const div=document.createElement("div");
+          div.className="taskline";
+          div.textContent=t;
+          taskEl.appendChild(div);
+        });
+      }else{
+        taskEl.textContent="—";
+      }
+
+      $("#notes").textContent = notes || "—";
     }
 
     function mapPayload(payload){
@@ -236,58 +283,46 @@
       return {
         id:    pick(row, ["id","ID","a","A"], ""),
         name:  pick(row, ["vards","vārds","name","B","b"], ""),
-        image: pick(row, ["attels","attēls","image","img","C","c"], ""),
-        task:  pick(row, ["uzdevums","task","D","d"], ""),
-        notes: pick(row, ["notes","piezimes","piezīmes","E","e"], "")
+        motto: pick(row, ["devize","devīze","motto","C","c"], ""),
+        image: pick(row, ["attels","attēls","image","img","D","d"], ""),
+        task:  pick(row, ["uzdevums","task","E","e"], ""),
+        notes: pick(row, ["notes","piezimes","piezīmes","F","f"], "")
       };
     }
 
     async function fetchRowById(id){
       const base = `${WEBAPP_URL}?sheet=${encodeURIComponent(SHEET_NAME)}&id=${encodeURIComponent(id)}`;
-      // 1) mēģinām JSON
+      // JSON
       try{
         const res = await fetch(base, {cache:"no-store"});
         const data = await res.json();
         if(data?.ok){ const mapped = mapPayload(data); if(mapped) return mapped; }
-      }catch(_){ /* turpinām ar JSONP */ }
-      // 2) JSONP drošais ceļš
+      }catch(_){}
+      // JSONP
       const data = await jsonp(base);
       if(data?.ok){ const mapped = mapPayload(data); if(mapped) return mapped; }
       throw new Error("Dati nav atgriezti");
     }
 
-    function preload(src){
-      return new Promise((resolve)=>{ if(!src) return resolve(); const i = new Image(); i.onload=resolve; i.onerror=resolve; i.src=src; });
-    }
-
-    // UI elementi
-    const dialog = $("#idDialog");
-    const idInput = $("#idInput");
-    $("#saveIdBtn").addEventListener("click", ()=>{
-      const id = idInput.value.trim();
-      if(!id){ toast("Ievadi ID"); return; }
-      persistId(id); dialog.close(); run(id);
-    });
-    $("#switchIdBtn").addEventListener("click", ()=>{ idInput.value=""; dialog.showModal(); setTimeout(()=> idInput.focus(), 50); });
-    $("#shareBtn").addEventListener("click", async ()=>{
-      const id = $("#idOut").textContent.trim();
-      if(!id || id==="—"){ toast("ID nav ielādēts"); return; }
-      const url = buildShareUrl(id);
-      try{ await navigator.clipboard.writeText(url); toast("Saite ar ID nokopēta"); }
-      catch{ toast(url); }
-    });
-
     async function run(id){
-      setSkeleton(true); $("#subInfo").textContent = "Ielāde…";
+      setSkeleton(); $("#subInfo").textContent = "Ielāde…";
       try{
         const row = await fetchRowById(id);
         persistId(row.id || id);
-        await preload(row.image);
+
+        // Uzpildām tekstu
         fillUI(row);
+
+        // Attēla kešs
+        const imgEl = $("#personImage");
+        const safeSrc = await getCachedImageForId(row.id || id, row.image);
+        imgEl.src = safeSrc;
+
         $("#subInfo").textContent = "Gatavs";
       }catch(e){
         console.error(e);
-        fillUI({id, name:"", image:"", task:"", notes:""});
+        fillUI({id, name:"", motto:"", image:"", task:"", notes:""});
+        $("#personImage").src = "";
         $("#subInfo").innerHTML = `Neizdevās ielādēt datus. Pārbaudi ID un GAS webapp.`;
         toast("Datu ielāde neizdevās");
       }finally{ reveal(); }
@@ -295,9 +330,18 @@
 
     // Starta plūsma
     (function init(){
+      const dialog = $("#idDialog");
+      const idInput = $("#idInput");
       const urlId = qs.get("id");
       const saved = readPersistedId();
       const id = urlId || saved;
+
+      document.getElementById("saveIdBtn").addEventListener("click", ()=>{
+        const val = idInput.value.trim();
+        if(!val){ toast("Ievadi ID"); return; }
+        persistId(val); dialog.close(); run(val);
+      });
+
       if(id){ if(urlId && urlId!==saved) persistId(urlId); run(id); }
       else{ reveal(); dialog.showModal(); }
     })();
