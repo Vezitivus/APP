@@ -26,6 +26,7 @@
         linear-gradient(180deg,var(--bg-1),var(--bg-2));
       overflow-x:hidden;
     }
+
     .wrap{ min-height:100dvh; display:flex; align-items:center; justify-content:center; padding:clamp(16px,3vw,32px); }
     .card{
       width:min(920px,100%); border-radius:var(--radius);
@@ -49,22 +50,37 @@
     }
     .sub{ margin-top:6px; color:var(--muted); font-size:13px; letter-spacing:.08em; }
 
-    /* Rotējošais PNG */
+    /* 3D zona */
     .stage{ perspective:1200px; margin:18px auto 10px; width:100%; display:grid; place-items:center; }
     .badge{ position:relative; width:min(340px,68vw); aspect-ratio:1/1; transform-style:preserve-3d; filter:drop-shadow(0 24px 60px rgba(242,95,58,.18)); }
     .halo{ position:absolute; inset:-10%; border-radius:50%; background:radial-gradient(circle at 50% 50%, #f25f3a33, transparent 60%); filter:blur(30px); transform:translateZ(-60px) scale(1.05); pointer-events:none; }
-    .spin{ width:100%; height:100%; display:block; object-fit:contain; transform-origin:50% 50%; animation:spinY 12s linear infinite; will-change:transform; backface-visibility:hidden; }
-    @keyframes spinY{ from{ transform:rotateY(0deg) } to{ transform:rotateY(360deg) } }
+
+    /* Divpusējā rotācija: korpuss + 2 sejas */
+    .spinner{
+      position:relative;
+      width:100%; height:100%;
+      transform-style:preserve-3d;
+      animation:spinY 12s linear infinite;
+      will-change:transform;
+    }
+    .face{
+      position:absolute; inset:0;
+      width:100%; height:100%; display:block; object-fit:contain;
+      backface-visibility:hidden; -webkit-backface-visibility:hidden;
+    }
+    .face.front{ transform:rotateY(0deg); }
+    .face.back { transform:rotateY(180deg); }
+
+    @keyframes spinY{
+      from{ transform:rotateY(0deg) }
+      to  { transform:rotateY(360deg) }
+    }
 
     .grid{ display:grid; gap:14px; margin-top:8px; }
     .row{ border:1px solid var(--border); background:linear-gradient(180deg, #0d0f1311, #0d0f1307); border-radius:calc(var(--radius) - 8px); padding:16px 18px; }
     .label{ font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--steel); margin-bottom:6px; }
     .value{ font-size:clamp(18px,4.2vw,22px); font-weight:600; color:#fff; }
     .value.note{ white-space:pre-wrap; color:#e9e9ee; font-weight:500; }
-
-    /* Uzdevuma rindas */
-    .tasks{ display:grid; gap:8px; }
-    .taskline{ padding:8px 10px; border:1px solid var(--border); border-radius:12px; background:#ffffff0b; font-weight:600; }
 
     /* skeleton */
     .skeleton{ position:relative; overflow:hidden; background:#ffffff0f; border-radius:12px; height:1.2em; display:inline-block; min-width:120px; }
@@ -102,7 +118,6 @@
     @media (min-width:720px){
       .grid{ grid-template-columns:1fr 1fr; }
       .row.notes{ grid-column:1 / -1; }
-      .row.tasks{ grid-column:1 / -1; }
     }
   </style>
 </head>
@@ -115,10 +130,14 @@
         <div class="sub" id="subInfo">Ielāde…</div>
       </header>
 
+      <!-- Divpusējā rotācija -->
       <section class="stage" aria-label="Rotējošais attēls">
         <div class="badge">
           <div class="halo" aria-hidden="true"></div>
-          <img id="personImage" class="spin" alt="Attēls" src="" />
+          <div class="spinner" id="spinner">
+            <img id="imgFront" class="face front" alt="Attēls – priekšpuse" />
+            <img id="imgBack"  class="face back"  alt="Attēls – aizmugure" />
+          </div>
         </div>
       </section>
 
@@ -128,12 +147,9 @@
           <div id="name" class="value"><span class="skeleton" style="width:40%"></span></div>
         </div>
 
-        <div class="row tasks">
+        <div class="row">
           <div class="label">Uzdevums</div>
-          <div id="task" class="tasks">
-            <div class="skeleton" style="width:90%"></div>
-            <div class="skeleton" style="width:80%"></div>
-          </div>
+          <div id="task" class="value note"><span class="skeleton" style="width:95%"></span></div>
         </div>
 
         <div class="row notes">
@@ -196,7 +212,7 @@
     function setSkeleton(){
       $("#motto").innerHTML=`<span class="skeleton" style="width:60%"></span>`;
       $("#name").innerHTML=`<span class="skeleton" style="width:40%"></span>`;
-      $("#task").innerHTML=`<div class="skeleton" style="width:90%"></div><div class="skeleton" style="width:80%"></div>`;
+      $("#task").innerHTML=`<span class="skeleton" style="width:95%"></span>`;
       $("#notes").innerHTML=`<span class="skeleton" style="width:95%"></span>`;
     }
 
@@ -227,19 +243,20 @@
       }
     }
 
-    function extractTasks(t){
-      if(!t) return [];
-      return String(t).replace(/\r/g," ").trim().split(/(?:[.!?;]+|\n)+\s*/).map(s=>s.trim()).filter(Boolean);
+    // Uzdevuma formatēšana: teikumus ieliekam jaunā rindā, vienā laukā
+    function formatTasks(t){
+      if(!t) return "—";
+      const lines = String(t)
+        .replace(/\r/g," ")
+        .split(/(?:[.!?;]+|\n)+\s*/).map(s=>s.trim()).filter(Boolean);
+      return lines.length ? lines.join("\n") : t;
     }
 
     function fillUI({name,motto,task,notes}){
-      $("#name").textContent=name||"—";
-      $("#motto").textContent=motto||"—";
-      const el=$("#task"); el.innerHTML="";
-      const lines=extractTasks(task);
-      if(lines.length){ for(const t of lines){ const d=document.createElement("div"); d.className="taskline"; d.textContent=t; el.appendChild(d);} }
-      else{ el.textContent="—"; }
-      $("#notes").textContent=notes||"—";
+      $("#name").textContent = name || "—";
+      $("#motto").textContent = motto || "—";
+      $("#task").textContent  = formatTasks(task);
+      $("#notes").textContent = notes || "—";
     }
 
     function mapPayload(p){
@@ -281,22 +298,24 @@
       try{
         const row=await fetchRowById(id);
 
-        // kanonizējam ID – saglabājam un ieliekam URL
+        // Kanonizējam ID – saglabājam un ieliekam URL
         const canonicalId = row.id || id;
         persistId(canonicalId);
         ensureUrlHasId(canonicalId);
 
         fillUI(row);
 
-        const img=$("#personImage");
         const src=await resolveImageForId(row);
-        if(src) img.src=src;
+        if(src){
+          $("#imgFront").src = src;
+          $("#imgBack").src  = src;
+        }
 
         $("#subInfo").textContent="Gatavs";
       }catch(e){
         console.error(e);
         fillUI({name:"",motto:"",task:"",notes:""});
-        $("#personImage").src="";
+        $("#imgFront").src = ""; $("#imgBack").src = "";
         $("#subInfo").innerHTML="Neizdevās ielādēt datus. Pārbaudi ID un GAS webapp.";
         toast("Datu ielāde neizdevās");
       }finally{ reveal(); }
@@ -310,13 +329,12 @@
         const v=idInput.value.trim();
         if(!v){toast("Ievadi ID");return;}
         persistId(v);
-        ensureUrlHasId(v);   // uzreiz ieliekam ?id=...
+        ensureUrlHasId(v);
         dialog.close();
         run(v);
       });
 
       if(id){
-        // ja ir saglabāts, bet URL tukšs – uzreiz ieliekam parametru
         if(!urlId) ensureUrlHasId(id);
         persistId(id);
         run(id);
