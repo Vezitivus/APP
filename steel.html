@@ -60,7 +60,6 @@
     .row{ border:1px solid var(--border); background:linear-gradient(180deg, #0d0f1311, #0d0f1307); border-radius:calc(var(--radius) - 8px); padding:16px 18px; }
     .label{ font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--steel); margin-bottom:6px; }
     .value{ font-size:clamp(18px,4.2vw,22px); font-weight:600; color:#fff; }
-    .value.monospace{ font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; font-weight:500; color:#d8dde6; font-size:14px; }
     .value.note{ white-space:pre-wrap; color:#e9e9ee; font-weight:500; }
 
     /* Uzdevuma rindas */
@@ -141,17 +140,13 @@
           <div class="label">Piezīmes</div>
           <div id="notes" class="value note"><span class="skeleton" style="width:95%"></span></div>
         </div>
-
-        <div class="row">
-          <div class="label">ID</div>
-          <div id="idOut" class="value monospace"><span class="skeleton" style="width:120px"></span></div>
-        </div>
       </section>
     </main>
   </div>
 
   <div class="toast" id="toast"></div>
 
+  <!-- ID dialogs -->
   <dialog id="idDialog">
     <div class="modal">
       <h3>Ieraksti dalībnieka ID</h3>
@@ -173,6 +168,17 @@
     function readPersistedId(){try{return localStorage.getItem("sfs:id")||"";}catch{return""}}
     function reveal(){requestAnimationFrame(()=>$("#card").classList.add("reveal"));}
 
+    // Vienmēr ieliekam ?id=... pašreizējā URL (bez pārlādes)
+    function ensureUrlHasId(id){
+      try{
+        const u = new URL(location.href);
+        if (u.searchParams.get("id") !== String(id)) {
+          u.searchParams.set("id", String(id));
+          history.replaceState(null, "", u.toString());
+        }
+      }catch{}
+    }
+
     // JSONP fallback
     function jsonp(url,timeout=6000){
       return new Promise((resolve,reject)=>{
@@ -192,17 +198,15 @@
       $("#name").innerHTML=`<span class="skeleton" style="width:40%"></span>`;
       $("#task").innerHTML=`<div class="skeleton" style="width:90%"></div><div class="skeleton" style="width:80%"></div>`;
       $("#notes").innerHTML=`<span class="skeleton" style="width:95%"></span>`;
-      $("#idOut").innerHTML=`<span class="skeleton" style="width:120px"></span>`;
     }
 
-    // Cloudinary optimizators: ieliek f_auto,q_auto,w_900, ja nav
+    // Cloudinary optimizators
     function optimizeCloudinary(url){
       if(!/res\.cloudinary\.com\/.+\/image\/upload\//.test(url)) return url;
       if(/\/image\/upload\/.*(f_auto|q_auto|w_)/.test(url)) return url;
       return url.replace(/\/image\/upload\//, "/image/upload/f_auto,q_auto,w_900/");
     }
 
-    // Cache → dataURL
     function setCookie(n,v,d=365){const t=new Date();t.setTime(t.getTime()+d*864e5);document.cookie=`${encodeURIComponent(n)}=${encodeURIComponent(v)};expires=${t.toUTCString()};path=/;SameSite=Lax`;}
     async function fetchAsDataURL(url){
       const res=await fetch(url,{cache:"force-cache"});
@@ -212,26 +216,23 @@
     async function getCachedImageForId(id, srcUrl){
       const key=`sfs:img:${id}`, cookieKey=`sfs_img_${id}`;
       try{const cached=localStorage.getItem(key);if(cached) return cached;}catch{}
-      let url=srcUrl;
-      try{ url = optimizeCloudinary(srcUrl); }catch{}
+      let url=optimizeCloudinary(srcUrl);
       try{
         const dataUrl=await fetchAsDataURL(url);
         try{localStorage.setItem(key,dataUrl);}catch{}
         setCookie(cookieKey,"1",365);
         return dataUrl;
       }catch{
-        return srcUrl; // fallback — rādam tiešo URL
+        return srcUrl;
       }
     }
 
     function extractTasks(t){
       if(!t) return [];
-      const parts=String(t).replace(/\r/g," ").trim().split(/(?:[.!?;]+|\n)+\s*/).map(s=>s.trim()).filter(Boolean);
-      return parts;
+      return String(t).replace(/\r/g," ").trim().split(/(?:[.!?;]+|\n)+\s*/).map(s=>s.trim()).filter(Boolean);
     }
 
-    function fillUI({id,name,motto,task,notes}){
-      $("#idOut").textContent=id||"—";
+    function fillUI({name,motto,task,notes}){
       $("#name").textContent=name||"—";
       $("#motto").textContent=motto||"—";
       const el=$("#task"); el.innerHTML="";
@@ -279,15 +280,22 @@
       setSkeleton(); $("#subInfo").textContent="Ielāde…";
       try{
         const row=await fetchRowById(id);
-        persistId(row.id||id);
+
+        // kanonizējam ID – saglabājam un ieliekam URL
+        const canonicalId = row.id || id;
+        persistId(canonicalId);
+        ensureUrlHasId(canonicalId);
+
         fillUI(row);
+
         const img=$("#personImage");
         const src=await resolveImageForId(row);
         if(src) img.src=src;
+
         $("#subInfo").textContent="Gatavs";
       }catch(e){
         console.error(e);
-        fillUI({id,name:"",motto:"",task:"",notes:""});
+        fillUI({name:"",motto:"",task:"",notes:""});
         $("#personImage").src="";
         $("#subInfo").innerHTML="Neizdevās ielādēt datus. Pārbaudi ID un GAS webapp.";
         toast("Datu ielāde neizdevās");
@@ -297,8 +305,24 @@
     (function init(){
       const dialog=$("#idDialog"), idInput=$("#idInput");
       const urlId=qs.get("id"); const saved=readPersistedId(); const id=urlId||saved;
-      $("#saveIdBtn").addEventListener("click",()=>{const v=idInput.value.trim(); if(!v){toast("Ievadi ID");return;} persistId(v); dialog.close(); run(v);});
-      if(id){ if(urlId && urlId!==saved) persistId(urlId); run(id); } else { reveal(); dialog.showModal(); }
+
+      document.getElementById("saveIdBtn").addEventListener("click",()=>{
+        const v=idInput.value.trim();
+        if(!v){toast("Ievadi ID");return;}
+        persistId(v);
+        ensureUrlHasId(v);   // uzreiz ieliekam ?id=...
+        dialog.close();
+        run(v);
+      });
+
+      if(id){
+        // ja ir saglabāts, bet URL tukšs – uzreiz ieliekam parametru
+        if(!urlId) ensureUrlHasId(id);
+        persistId(id);
+        run(id);
+      }else{
+        reveal(); dialog.showModal();
+      }
     })();
   </script>
 </body>
