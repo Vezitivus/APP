@@ -152,7 +152,6 @@
 
   <div class="toast" id="toast"></div>
 
-  <!-- ID dialogs -->
   <dialog id="idDialog">
     <div class="modal">
       <h3>Ieraksti dalībnieka ID</h3>
@@ -164,180 +163,142 @@
   </dialog>
 
   <script>
-    // === KONFIGS ===
     const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxqumDDgdZMnjps9ZBEQIu5s40958y609r4taVT9VYEtlNJTdOJ3fPnDxqHnPl4YQMU/exec";
     const SHEET_NAME = "SFS";
 
-    // === UTIL ===
     const qs = new URLSearchParams(location.search);
-    const $ = sel => document.querySelector(sel);
+    const $ = s => document.querySelector(s);
+    function toast(m,t=2200){const el=$("#toast");el.textContent=m;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),t);}
+    function persistId(id){try{localStorage.setItem("sfs:id",String(id));}catch{}}
+    function readPersistedId(){try{return localStorage.getItem("sfs:id")||"";}catch{return""}}
+    function reveal(){requestAnimationFrame(()=>$("#card").classList.add("reveal"));}
 
-    function toast(msg, t=2200){ const el=$("#toast"); el.textContent=msg; el.classList.add("show"); setTimeout(()=>el.classList.remove("show"), t); }
-    function persistId(id){ try{ localStorage.setItem("sfs:id", String(id)); }catch{} }
-    function readPersistedId(){ try{ return localStorage.getItem("sfs:id") || ""; }catch{ return ""; } }
-    function reveal(){ requestAnimationFrame(()=> $("#card").classList.add("reveal")); }
-
-    // JSONP fallback (ja CORS)
-    function jsonp(url, timeout=6000){
+    // JSONP fallback
+    function jsonp(url,timeout=6000){
       return new Promise((resolve,reject)=>{
-        const cbName="__sfs_cb_"+Math.random().toString(36).slice(2);
-        const scr=document.createElement("script");
-        const tm=setTimeout(()=>{ cleanup(); reject(new Error("JSONP timeout")); }, timeout);
-        function cleanup(){ clearTimeout(tm); delete window[cbName]; scr.remove(); }
-        window[cbName]=(data)=>{ cleanup(); resolve(data); };
-        const u = new URL(url); u.searchParams.set("callback", cbName);
-        scr.src=u.toString(); scr.onerror=()=>{ cleanup(); reject(new Error("JSONP load error")); };
-        document.head.appendChild(scr);
+        const cb="__sfs_cb_"+Math.random().toString(36).slice(2);
+        const s=document.createElement("script");
+        const tm=setTimeout(()=>{cleanup();reject(new Error("JSONP timeout"));},timeout);
+        function cleanup(){clearTimeout(tm);delete window[cb];s.remove();}
+        window[cb]=d=>{cleanup();resolve(d);};
+        const u=new URL(url);u.searchParams.set("callback",cb);
+        s.src=u.toString();s.onerror=()=>{cleanup();reject(new Error("JSONP load error"));};
+        document.head.appendChild(s);
       });
     }
 
     function setSkeleton(){
-      $("#motto").innerHTML = `<span class="skeleton" style="width:60%"></span>`;
-      $("#name").innerHTML = `<span class="skeleton" style="width:40%"></span>`;
-      $("#task").innerHTML = `<div class="skeleton" style="width:90%"></div><div class="skeleton" style="width:80%"></div>`;
-      $("#notes").innerHTML = `<span class="skeleton" style="width:95%"></span>`;
-      $("#idOut").innerHTML = `<span class="skeleton" style="width:120px"></span>`;
+      $("#motto").innerHTML=`<span class="skeleton" style="width:60%"></span>`;
+      $("#name").innerHTML=`<span class="skeleton" style="width:40%"></span>`;
+      $("#task").innerHTML=`<div class="skeleton" style="width:90%"></div><div class="skeleton" style="width:80%"></div>`;
+      $("#notes").innerHTML=`<span class="skeleton" style="width:95%"></span>`;
+      $("#idOut").innerHTML=`<span class="skeleton" style="width:120px"></span>`;
     }
 
-    // “cepumi”
-    function setCookie(name, value, days=365){
-      const d=new Date(); d.setTime(d.getTime()+days*24*60*60*1000);
-      document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)};expires=${d.toUTCString()};path=/;SameSite=Lax`;
+    // Cloudinary optimizators: ieliek f_auto,q_auto,w_900, ja nav
+    function optimizeCloudinary(url){
+      if(!/res\.cloudinary\.com\/.+\/image\/upload\//.test(url)) return url;
+      if(/\/image\/upload\/.*(f_auto|q_auto|w_)/.test(url)) return url;
+      return url.replace(/\/image\/upload\//, "/image/upload/f_auto,q_auto,w_900/");
     }
 
+    // Cache → dataURL
+    function setCookie(n,v,d=365){const t=new Date();t.setTime(t.getTime()+d*864e5);document.cookie=`${encodeURIComponent(n)}=${encodeURIComponent(v)};expires=${t.toUTCString()};path=/;SameSite=Lax`;}
     async function fetchAsDataURL(url){
-      const res = await fetch(url, {cache:"force-cache"});
-      const blob = await res.blob();
-      return await new Promise((resolve,reject)=>{
-        const r=new FileReader();
-        r.onload=()=>resolve(r.result);
-        r.onerror=reject;
-        r.readAsDataURL(blob);
-      });
+      const res=await fetch(url,{cache:"force-cache"});
+      const blob=await res.blob();
+      return await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(blob);});
     }
-
     async function getCachedImageForId(id, srcUrl){
-      const key = `sfs:img:${id}`;
-      const cookieKey = `sfs_img_${id}`;
-      let data = "";
-      try{ data = localStorage.getItem(key) || ""; }catch{}
-      if(data) return data;
+      const key=`sfs:img:${id}`, cookieKey=`sfs_img_${id}`;
+      try{const cached=localStorage.getItem(key);if(cached) return cached;}catch{}
+      let url=srcUrl;
+      try{ url = optimizeCloudinary(srcUrl); }catch{}
       try{
-        const dataUrl = await fetchAsDataURL(srcUrl);
-        try{ localStorage.setItem(key, dataUrl); }catch{}
-        setCookie(cookieKey, "1", 365);
+        const dataUrl=await fetchAsDataURL(url);
+        try{localStorage.setItem(key,dataUrl);}catch{}
+        setCookie(cookieKey,"1",365);
         return dataUrl;
       }catch{
-        return srcUrl; // fallback
+        return srcUrl; // fallback — rādam tiešo URL
       }
     }
 
-    function extractTasks(text){
-      if(!text) return [];
-      const norm = String(text).replace(/\r/g," ").trim();
-      if(!norm) return [];
-      const parts = norm.split(/(?:[.!?;]+|\n)+\s*/).map(s=>s.trim()).filter(Boolean);
+    function extractTasks(t){
+      if(!t) return [];
+      const parts=String(t).replace(/\r/g," ").trim().split(/(?:[.!?;]+|\n)+\s*/).map(s=>s.trim()).filter(Boolean);
       return parts;
     }
 
-    function fillUI({id, name, motto, task, notes}){
-      $("#idOut").textContent = id || "—";
-      $("#name").textContent = name || "—";
-      $("#motto").textContent = motto || "—";
-
-      const taskEl = $("#task"); taskEl.innerHTML = "";
-      const lines = extractTasks(task);
-      if(lines.length){
-        lines.forEach(t=>{
-          const div=document.createElement("div");
-          div.className="taskline";
-          div.textContent=t;
-          taskEl.appendChild(div);
-        });
-      }else{
-        taskEl.textContent="—";
-      }
-      $("#notes").textContent = notes || "—";
+    function fillUI({id,name,motto,task,notes}){
+      $("#idOut").textContent=id||"—";
+      $("#name").textContent=name||"—";
+      $("#motto").textContent=motto||"—";
+      const el=$("#task"); el.innerHTML="";
+      const lines=extractTasks(task);
+      if(lines.length){ for(const t of lines){ const d=document.createElement("div"); d.className="taskline"; d.textContent=t; el.appendChild(d);} }
+      else{ el.textContent="—"; }
+      $("#notes").textContent=notes||"—";
     }
 
-    function mapPayload(payload){
-      const r = payload?.data || payload?.row || payload?.item || payload;
-      const row = Array.isArray(r) ? r[0] : r;
-      if(!row) return null;
-      const pick = (o, keys, fb="") => { for(const k of keys){ if(o?.[k]!=null && o[k]!=="") return String(o[k]); } return fb; };
+    function mapPayload(p){
+      const r=p?.data||p; const row=Array.isArray(r)?r[0]:r; if(!row) return null;
+      const pick=(o,keys,fb="")=>{for(const k of keys){if(o?.[k]!=null && o[k]!=="") return String(o[k]);}return fb;};
       return {
-        id:    pick(row, ["id","ID","a","A"], ""),
-        name:  pick(row, ["vards","vārds","name","B","b"], ""),
-        motto: pick(row, ["devize","devīze","motto","C","c"], ""),
-        image: pick(row, ["image","img","D","d"], ""),
-        imageDataUrl: pick(row, ["imageDataUrl","image_data_url"], ""),
-        task:  pick(row, ["uzdevums","task","E","e"], ""),
-        notes: pick(row, ["notes","piezimes","piezīmes","F","f"], "")
+        id:pick(row,["id","ID","a","A"],""),
+        name:pick(row,["vards","vārds","name","B","b"],""),
+        motto:pick(row,["devize","devīze","motto","C","c"],""),
+        image:pick(row,["image","img","D","d"],""),
+        imageDataUrl:pick(row,["imageDataUrl","image_data_url"],""),
+        task:pick(row,["uzdevums","task","E","e"],""),
+        notes:pick(row,["notes","piezimes","piezīmes","F","f"],"")
       };
     }
 
     async function fetchRowById(id){
-      const base = `${WEBAPP_URL}?sheet=${encodeURIComponent(SHEET_NAME)}&id=${encodeURIComponent(id)}`;
-      try{
-        const res = await fetch(base, {cache:"no-store"});
-        const data = await res.json();
-        if(data?.ok){ const mapped = mapPayload(data); if(mapped) return mapped; }
-      }catch(_){}
-      const data = await jsonp(base);
-      if(data?.ok){ const mapped = mapPayload(data); if(mapped) return mapped; }
+      const base=`${WEBAPP_URL}?sheet=${encodeURIComponent(SHEET_NAME)}&id=${encodeURIComponent(id)}`;
+      try{ const r=await fetch(base,{cache:"no-store"}); const j=await r.json(); if(j?.ok){const m=mapPayload(j); if(m) return m;} }catch(_){}
+      const j=await jsonp(base); if(j?.ok){const m=mapPayload(j); if(m) return m;}
       throw new Error("Dati nav atgriezti");
     }
 
     async function resolveImageForId(row){
-      const id = row.id;
-      if (row.imageDataUrl){
-        try{ localStorage.setItem(`sfs:img:${id}`, row.imageDataUrl); }catch{}
-        try{ document.cookie = `sfs_img_${id}=1;path=/;SameSite=Lax;max-age=${60*60*24*365}`; }catch{}
+      const id=row.id;
+      if(row.imageDataUrl){
+        try{localStorage.setItem(`sfs:img:${id}`,row.imageDataUrl);}catch{}
+        try{document.cookie=`sfs_img_${id}=1;path=/;SameSite=Lax;max-age=${60*60*24*365}`;}catch{}
         return row.imageDataUrl;
       }
-      if (row.image){
-        return await getCachedImageForId(id, row.image);
+      if(row.image){
+        return await getCachedImageForId(id,row.image);
       }
       return "";
     }
 
     async function run(id){
-      setSkeleton(); $("#subInfo").textContent = "Ielāde…";
+      setSkeleton(); $("#subInfo").textContent="Ielāde…";
       try{
-        const row = await fetchRowById(id);
-        persistId(row.id || id);
+        const row=await fetchRowById(id);
+        persistId(row.id||id);
         fillUI(row);
-
-        const imgEl = $("#personImage");
-        const src = await resolveImageForId(row);
-        if (src) imgEl.src = src;
-
-        $("#subInfo").textContent = "Gatavs";
+        const img=$("#personImage");
+        const src=await resolveImageForId(row);
+        if(src) img.src=src;
+        $("#subInfo").textContent="Gatavs";
       }catch(e){
         console.error(e);
-        fillUI({id, name:"", motto:"", task:"", notes:""});
-        $("#personImage").src = "";
-        $("#subInfo").innerHTML = `Neizdevās ielādēt datus. Pārbaudi ID un GAS webapp.`;
+        fillUI({id,name:"",motto:"",task:"",notes:""});
+        $("#personImage").src="";
+        $("#subInfo").innerHTML="Neizdevās ielādēt datus. Pārbaudi ID un GAS webapp.";
         toast("Datu ielāde neizdevās");
       }finally{ reveal(); }
     }
 
-    // Start
     (function init(){
-      const dialog = $("#idDialog");
-      const idInput = $("#idInput");
-      const urlId = qs.get("id");
-      const saved = readPersistedId();
-      const id = urlId || saved;
-
-      document.getElementById("saveIdBtn").addEventListener("click", ()=>{
-        const val = idInput.value.trim();
-        if(!val){ toast("Ievadi ID"); return; }
-        persistId(val); dialog.close(); run(val);
-      });
-
-      if(id){ if(urlId && urlId!==saved) persistId(urlId); run(id); }
-      else{ reveal(); dialog.showModal(); }
+      const dialog=$("#idDialog"), idInput=$("#idInput");
+      const urlId=qs.get("id"); const saved=readPersistedId(); const id=urlId||saved;
+      $("#saveIdBtn").addEventListener("click",()=>{const v=idInput.value.trim(); if(!v){toast("Ievadi ID");return;} persistId(v); dialog.close(); run(v);});
+      if(id){ if(urlId && urlId!==saved) persistId(urlId); run(id); } else { reveal(); dialog.showModal(); }
     })();
   </script>
 </body>
