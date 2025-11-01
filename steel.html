@@ -45,8 +45,7 @@
     }
     .motto{
       margin-top:8px; color:#e6e7ec; font-weight:600;
-      font-size:clamp(14px,2.6vw,18px); letter-spacing:.06em;
-      opacity:.95;
+      font-size:clamp(14px,2.6vw,18px); letter-spacing:.06em; opacity:.95;
     }
     .sub{ margin-top:6px; color:var(--muted); font-size:13px; letter-spacing:.08em; }
 
@@ -66,10 +65,7 @@
 
     /* Uzdevuma rindas */
     .tasks{ display:grid; gap:8px; }
-    .taskline{
-      padding:8px 10px; border:1px solid var(--border);
-      border-radius:12px; background:#ffffff0b; font-weight:600;
-    }
+    .taskline{ padding:8px 10px; border:1px solid var(--border); border-radius:12px; background:#ffffff0b; font-weight:600; }
 
     /* skeleton */
     .skeleton{ position:relative; overflow:hidden; background:#ffffff0f; border-radius:12px; height:1.2em; display:inline-block; min-width:120px; }
@@ -156,7 +152,7 @@
 
   <div class="toast" id="toast"></div>
 
-  <!-- ID dialogs (ja nav ?id un nav saglabāts) -->
+  <!-- ID dialogs -->
   <dialog id="idDialog">
     <div class="modal">
       <h3>Ieraksti dalībnieka ID</h3>
@@ -203,14 +199,10 @@
       $("#idOut").innerHTML = `<span class="skeleton" style="width:120px"></span>`;
     }
 
-    // — Attēla kešs: dataURL → localStorage; cookie kā rādītājs (cepumu prasība)
+    // “cepumi”
     function setCookie(name, value, days=365){
       const d=new Date(); d.setTime(d.getTime()+days*24*60*60*1000);
       document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)};expires=${d.toUTCString()};path=/;SameSite=Lax`;
-    }
-    function getCookie(name){
-      const m = document.cookie.match(new RegExp('(?:^|; )'+encodeURIComponent(name)+'=([^;]*)'));
-      return m ? decodeURIComponent(m[1]) : "";
     }
 
     async function fetchAsDataURL(url){
@@ -227,12 +219,9 @@
     async function getCachedImageForId(id, srcUrl){
       const key = `sfs:img:${id}`;
       const cookieKey = `sfs_img_${id}`;
-      // ja jau ir kešs
       let data = "";
       try{ data = localStorage.getItem(key) || ""; }catch{}
       if(data) return data;
-
-      // mēģinam dabūt; ja neizdodas, atgriežam pašu URL
       try{
         const dataUrl = await fetchAsDataURL(srcUrl);
         try{ localStorage.setItem(key, dataUrl); }catch{}
@@ -247,17 +236,15 @@
       if(!text) return [];
       const norm = String(text).replace(/\r/g," ").trim();
       if(!norm) return [];
-      // Dalām pēc . ! ? ; vai jaunas rindas
       const parts = norm.split(/(?:[.!?;]+|\n)+\s*/).map(s=>s.trim()).filter(Boolean);
       return parts;
     }
 
-    function fillUI({id, name, motto, image, task, notes}){
+    function fillUI({id, name, motto, task, notes}){
       $("#idOut").textContent = id || "—";
       $("#name").textContent = name || "—";
       $("#motto").textContent = motto || "—";
 
-      // Uzdevuma rindas
       const taskEl = $("#task"); taskEl.innerHTML = "";
       const lines = extractTasks(task);
       if(lines.length){
@@ -270,7 +257,6 @@
       }else{
         taskEl.textContent="—";
       }
-
       $("#notes").textContent = notes || "—";
     }
 
@@ -278,13 +264,13 @@
       const r = payload?.data || payload?.row || payload?.item || payload;
       const row = Array.isArray(r) ? r[0] : r;
       if(!row) return null;
-
       const pick = (o, keys, fb="") => { for(const k of keys){ if(o?.[k]!=null && o[k]!=="") return String(o[k]); } return fb; };
       return {
         id:    pick(row, ["id","ID","a","A"], ""),
         name:  pick(row, ["vards","vārds","name","B","b"], ""),
         motto: pick(row, ["devize","devīze","motto","C","c"], ""),
-        image: pick(row, ["attels","attēls","image","img","D","d"], ""),
+        image: pick(row, ["image","img","D","d"], ""),
+        imageDataUrl: pick(row, ["imageDataUrl","image_data_url"], ""),
         task:  pick(row, ["uzdevums","task","E","e"], ""),
         notes: pick(row, ["notes","piezimes","piezīmes","F","f"], "")
       };
@@ -292,16 +278,27 @@
 
     async function fetchRowById(id){
       const base = `${WEBAPP_URL}?sheet=${encodeURIComponent(SHEET_NAME)}&id=${encodeURIComponent(id)}`;
-      // JSON
       try{
         const res = await fetch(base, {cache:"no-store"});
         const data = await res.json();
         if(data?.ok){ const mapped = mapPayload(data); if(mapped) return mapped; }
       }catch(_){}
-      // JSONP
       const data = await jsonp(base);
       if(data?.ok){ const mapped = mapPayload(data); if(mapped) return mapped; }
       throw new Error("Dati nav atgriezti");
+    }
+
+    async function resolveImageForId(row){
+      const id = row.id;
+      if (row.imageDataUrl){
+        try{ localStorage.setItem(`sfs:img:${id}`, row.imageDataUrl); }catch{}
+        try{ document.cookie = `sfs_img_${id}=1;path=/;SameSite=Lax;max-age=${60*60*24*365}`; }catch{}
+        return row.imageDataUrl;
+      }
+      if (row.image){
+        return await getCachedImageForId(id, row.image);
+      }
+      return "";
     }
 
     async function run(id){
@@ -309,26 +306,23 @@
       try{
         const row = await fetchRowById(id);
         persistId(row.id || id);
-
-        // Uzpildām tekstu
         fillUI(row);
 
-        // Attēla kešs
         const imgEl = $("#personImage");
-        const safeSrc = await getCachedImageForId(row.id || id, row.image);
-        imgEl.src = safeSrc;
+        const src = await resolveImageForId(row);
+        if (src) imgEl.src = src;
 
         $("#subInfo").textContent = "Gatavs";
       }catch(e){
         console.error(e);
-        fillUI({id, name:"", motto:"", image:"", task:"", notes:""});
+        fillUI({id, name:"", motto:"", task:"", notes:""});
         $("#personImage").src = "";
         $("#subInfo").innerHTML = `Neizdevās ielādēt datus. Pārbaudi ID un GAS webapp.`;
         toast("Datu ielāde neizdevās");
       }finally{ reveal(); }
     }
 
-    // Starta plūsma
+    // Start
     (function init(){
       const dialog = $("#idDialog");
       const idInput = $("#idInput");
