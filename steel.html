@@ -15,10 +15,9 @@
       --text:#e8e9ef; --muted:#a7adba; --border:#ffffff24; --radius:18px;
       --blur:14px; --shadow:0 10px 30px rgba(0,0,0,.35), 0 1px 0 rgba(255,255,255,.02) inset;
     }
-
     *{box-sizing:border-box}
 
-    /* Fons tagad ir gan html, gan body, lai nosegtu safe-area (iOS) */
+    /* pilns fons arī safe-area zonām */
     html{
       height:100%;
       background:
@@ -39,16 +38,8 @@
       overflow-x:hidden;
     }
 
-    .wrap{
-      min-height:100dvh; /* ja ir, lieto modernās viewport vienības */
-    }
-    @supports (height: 100svh){
-      .wrap{ min-height:100svh; }
-    }
-    .wrap{
-      display:flex; align-items:center; justify-content:center;
-      padding:clamp(16px,3vw,32px);
-    }
+    .wrap{ min-height:100dvh; display:flex; align-items:center; justify-content:center; padding:clamp(16px,3vw,32px); }
+    @supports (height: 100svh){ .wrap{ min-height:100svh; } }
 
     .card{
       width:min(920px,100%); border-radius:var(--radius);
@@ -100,7 +91,23 @@
     .skeleton::after{ content:""; position:absolute; inset:0; background:linear-gradient(90deg, transparent, #ffffff22, transparent); animation:shimmer 1.1s infinite; }
     @keyframes shimmer{ from{ transform:translateX(-100%) } to{ transform:translateX(100%) } }
 
-    /* toast (šobrīd nelietojam, bet paturu) */
+    /* ūdenszīme */
+    .watermark{
+      position:fixed;
+      left:50%;
+      bottom:calc(10px + env(safe-area-inset-bottom));
+      transform:translateX(-50%);
+      display:flex; align-items:center; gap:10px;
+      color:var(--muted); opacity:.55; font-size:12px; letter-spacing:.04em;
+      pointer-events:none; user-select:none; z-index:50;
+      text-shadow:0 1px 0 rgba(0,0,0,.2);
+    }
+    .watermark .copy{ font-weight:700; opacity:.75; }
+    @supports not (bottom: env(safe-area-inset-bottom)){
+      .watermark{ bottom:10px; }
+    }
+
+    /* toast (paturam, ja vajadzēs) */
     .toast{
       position:fixed; left:50%; bottom:20px; transform:translateX(-50%) translateY(20px);
       background:#111418ee; color:#fff; padding:10px 14px; border-radius:12px; border:1px solid #ffffff22;
@@ -172,6 +179,12 @@
     </main>
   </div>
 
+  <!-- ūdenszīme -->
+  <div class="watermark" aria-hidden="true">
+    <span class="copy">©</span>
+    <span>Designed by Mārcis</span>
+  </div>
+
   <div class="toast" id="toast"></div>
 
   <!-- ID dialogs -->
@@ -206,7 +219,6 @@
       }catch{}
     }
 
-    /* JSONP rezerves ceļš */
     function jsonp(url,timeout=6000){
       return new Promise((resolve,reject)=>{
         const cb="__sfs_cb_"+Math.random().toString(36).slice(2);
@@ -227,7 +239,6 @@
       $("#notes").innerHTML=`<span class="skeleton" style="width:95%"></span>`;
     }
 
-    /* Cloudinary optimizācija */
     function optimizeCloudinary(url){
       if(!/res\.cloudinary\.com\/.+\/image\/upload\//.test(url)) return url;
       if(/\/image\/upload\/.*(f_auto|q_auto|w_)/.test(url)) return url;
