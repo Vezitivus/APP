@@ -17,7 +17,6 @@
     }
     *{box-sizing:border-box}
 
-    /* pilns fons arī safe-area zonām */
     html{
       height:100%;
       background:
@@ -86,19 +85,16 @@
     .value{ font-size:clamp(18px,4.2vw,22px); font-weight:600; color:#fff; }
     .value.note{ white-space:pre-wrap; color:#e9e9ee; font-weight:500; }
 
-    /* Notes: atvērts ievades lauks */
+    /* Piezīmes: auto-augš tekstlauks */
     .notesBox{
-      width:100%; min-height:110px; resize:vertical;
+      width:100%; min-height:110px; height:auto;
       padding:12px 14px; border-radius:12px;
       border:1px solid var(--border);
       background:#ffffff10; color:#fff; font-weight:500; line-height:1.35;
-      outline:none;
+      outline:none; overflow:hidden; resize:none;  /* <- svarīgi automātiskai augšanai */
     }
     .notesBox::placeholder{ color:#c7cbd6aa; }
-    .savehint{
-      margin-top:8px; font-size:12px; color:var(--muted); opacity:.85;
-      min-height:1em;
-    }
+    .savehint{ margin-top:8px; font-size:12px; color:var(--muted); opacity:.85; min-height:1em; }
 
     /* ūdenszīme */
     .watermark{
@@ -111,19 +107,13 @@
       text-shadow:0 1px 0 rgba(0,0,0,.2);
     }
     .watermark .copy{ font-weight:700; opacity:.75; }
-    @supports not (bottom: env(safe-area-inset-bottom)){
-      .watermark{ bottom:10px; }
-    }
+    @supports not (bottom: env(safe-area-inset-bottom)){ .watermark{ bottom:10px; } }
 
-    /* toast (ja nu noder) */
-    .toast{
-      position:fixed; left:50%; bottom:20px; transform:translateX(-50%) translateY(20px);
+    .toast{ position:fixed; left:50%; bottom:20px; transform:translateX(-50%) translateY(20px);
       background:#111418ee; color:#fff; padding:10px 14px; border-radius:12px; border:1px solid #ffffff22;
-      box-shadow:0 6px 20px rgba(0,0,0,.35); opacity:0; pointer-events:none; transition:.35s; font-size:14px;
-    }
+      box-shadow:0 6px 20px rgba(0,0,0,.35); opacity:0; pointer-events:none; transition:.35s; font-size:14px; }
     .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
 
-    /* ID modālis */
     dialog{ border:none; padding:0; background:transparent; }
     .modal{
       width:min(540px,92vw); border-radius:16px;
@@ -228,7 +218,6 @@
       }catch{}
     }
 
-    /* JSONP rezerves ceļš */
     function jsonp(url,timeout=6000){
       return new Promise((resolve,reject)=>{
         const cb="__sfs_cb_"+Math.random().toString(36).slice(2);
@@ -246,10 +235,8 @@
       $("#motto").innerHTML=`<span class="skeleton" style="width:60%"></span>`;
       $("#name").innerHTML=`<span class="skeleton" style="width:40%"></span>`;
       $("#task").innerHTML=`<span class="skeleton" style="width:95%"></span>`;
-      // piezīmju lauks ir ievades lauks – skeleton nav vajadzīgs
     }
 
-    /* Cloudinary optimizācija */
     function optimizeCloudinary(url){
       if(!/res\.cloudinary\.com\/.+\/image\/upload\//.test(url)) return url;
       if(/\/image\/upload\/.*(f_auto|q_auto|w_)/.test(url)) return url;
@@ -276,18 +263,14 @@
       }
     }
 
-    // --- Uzdevumu formatēšana: katra frāze jaunā rindā, SAGLABĀJOT punktu/pieturzīmes
+    // Uzdevumi – rindās, saglabājot punktus
     function formatTasksKeepPunct(t){
       if(!t) return "—";
       const paras = String(t).replace(/\r/g,"").split(/\n+/);
       const lines=[];
       for(const p of paras){
-        const re=/[^.!?;]+(?:[.!?;]+|$)/g; // paņem frāzi līdz pieturzīmei (vai rindas beigām)
-        let m;
-        while((m=re.exec(p))!==null){
-          const s=m[0].trim();
-          if(s) lines.push(s);
-        }
+        const re=/[^.!?;]+(?:[.!?;]+|$)/g;
+        let m; while((m=re.exec(p))!==null){ const s=m[0].trim(); if(s) lines.push(s); }
       }
       return lines.join("\n");
     }
@@ -296,7 +279,6 @@
       $("#name").textContent = name || "—";
       $("#motto").textContent = motto || "—";
       $("#task").textContent  = formatTasksKeepPunct(task);
-      // Piezīmes no servera vairs NELASĀM. Tās ir lokālas (skat. run()).
     }
 
     function mapPayload(p){
@@ -309,7 +291,6 @@
         image:pick(row,["image","img","D","d"],""),
         imageDataUrl:pick(row,["imageDataUrl","image_data_url"],""),
         task:pick(row,["uzdevums","task","E","e"],"")
-        // notes no F kolonnas ignorējam
       };
     }
 
@@ -333,28 +314,35 @@
       return "";
     }
 
-    // --- Piezīmju lokālā saglabāšana ---
+    // --- Piezīmes (lokālas) ---
     let currentId = "";
     const notesBox = document.getElementById("notesBox");
     const notesHint = document.getElementById("notesHint");
 
     function notesKey(id){ return `sfs:notes:${id}`; }
-    function loadNotes(id){
-      try{ return localStorage.getItem(notesKey(id)) || ""; }catch{ return ""; }
-    }
+    function loadNotes(id){ try{ return localStorage.getItem(notesKey(id)) || ""; }catch{ return ""; } }
     function saveNotes(id, text){
       try{ localStorage.setItem(notesKey(id), text); }catch{}
       notesHint.textContent = "Saglabāts ✓";
       clearTimeout(saveNotes._t); saveNotes._t = setTimeout(()=>notesHint.textContent="", 1200);
     }
 
+    // auto-augšana
+    function autoResize(el){
+      if(!el) return;
+      el.style.height = 'auto';
+      el.style.height = el.scrollHeight + 'px';
+    }
+
     function bindNotesAutosave(){
       let t;
       notesBox.addEventListener("input", ()=>{
         notesHint.textContent = "Saglabā…";
+        autoResize(notesBox);                // <- pielāgo augstumu katrā ievadē
         clearTimeout(t);
-        t = setTimeout(()=> saveNotes(currentId, notesBox.value), 350);
+        t = setTimeout(()=> saveNotes(currentId, notesBox.value), 300);
       });
+      window.addEventListener("resize", ()=> autoResize(notesBox)); // ja mainās viewport
     }
 
     async function run(id){
@@ -368,20 +356,18 @@
 
         fillUI(row);
 
-        // ielādē lokālās piezīmes šim ID
+        // ielādē un parāda piezīmes; pēc tam pielāgo augstumu
         notesBox.value = loadNotes(canonicalId);
+        autoResize(notesBox);
         notesHint.textContent = notesBox.value ? "Saglabāts ✓" : "";
 
         const src=await resolveImageForId(row);
-        if(src){
-          $("#imgFront").src = src;
-          $("#imgBack").src  = src;
-        }
+        if(src){ $("#imgFront").src = src; $("#imgBack").src = src; }
       }catch(e){
         console.error(e);
         $("#name").textContent="—"; $("#motto").textContent="—"; $("#task").textContent="—";
+        notesBox.value = ""; autoResize(notesBox); notesHint.textContent="";
         $("#imgFront").src = ""; $("#imgBack").src = "";
-        notesBox.value = ""; notesHint.textContent="";
         toast("Datu ielāde neizdevās");
       }finally{ reveal(); }
     }
