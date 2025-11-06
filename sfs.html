@@ -69,10 +69,16 @@
     .success{ color:var(--ok); } .error{ color:var(--err); }
 
     .list{ display:grid; gap:8px; }
+
+    /* Poga-links rindām “Izvēlētie” sarakstā */
     .claim{
       display:grid; grid-template-columns:1fr auto; align-items:center; gap:10px;
-      padding:10px; border:1px solid var(--line); border-radius:10px; background:rgba(255,255,255,.02);
+      padding:10px; border:1px solid var(--line); border-radius:10px;
+      background:rgba(255,255,255,.02);
+      transition: transform var(--t), border-color var(--t), background var(--t);
+      text-decoration:none; color:inherit; cursor:pointer;
     }
+    .claim:hover{ transform:translateY(-1px); border-color:#2b3a52; background:rgba(255,255,255,.04); }
 
     /* Loading ripulītis teikumu zonai */
     .loading {
@@ -253,6 +259,7 @@
       });
     }
 
+    // ——— IZLABOTĀ versija: katra rinda ir <a> poga uz steel.html ar ?s=ysdiof&id=<vārds>
     function renderClaims(claims){
       const list = $("#claims"); list.innerHTML="";
       if(!claims.length){
@@ -260,11 +267,17 @@
         return;
       }
       claims.forEach(c => {
-        const row = el("div",{class:"claim"});
-        row.appendChild(el("div",{},[
-          el("div",{html:`<strong>${esc(c.name)}</strong> → ${esc(c.sentence || "(cits teikums)")}`}),
-          el("small",{}, c.createdAt || "—")
-        ]));
+        const href = `https://vezitivus.github.io/APP/steel.html?s=ysdiof&id=${encodeURIComponent(c.name)}`;
+        const row = el("a", {
+          class: "claim",
+          href,
+          role: "button",
+          "aria-label": `Atvērt ${c.name} lapu`
+        });
+        row.appendChild(el("div", {
+          html: `<strong>${esc(c.name)}</strong> → ${esc(c.sentence || "(cits teikums)")}`
+        }));
+        row.appendChild(el("small", { class:"muted" }, c.createdAt || "—"));
         list.appendChild(row);
       });
     }
