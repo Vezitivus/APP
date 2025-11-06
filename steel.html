@@ -82,44 +82,63 @@
 
     .grid{ display:grid; gap:14px; margin-top:8px; }
     .row{ border:1px solid var(--border); background:linear-gradient(180deg, #0d0f1311, #0d0f1307); border-radius:calc(var(--radius) - 8px); padding:16px 18px; }
-    .row.notes{ grid-column:1 / -1; }
     .label{ font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--steel); margin-bottom:6px; }
     .value{ font-size:clamp(18px,4.2vw,22px); font-weight:600; color:#fff; }
     .value.note{ white-space:pre-wrap; color:#e9e9ee; font-weight:500; }
 
-    /* saraksta pogas */
-    .roster{ border:1px solid var(--border); background:linear-gradient(180deg, #0d0f1311, #0d0f1307); border-radius:calc(var(--radius) - 8px); padding:16px 18px; }
-    .roster .label{ margin-bottom:10px; }
-    .list{ display:grid; gap:10px; }
-    @media (min-width:720px){ .list{ grid-template-columns:1fr 1fr; } }
-    .personbtn{
-      display:block; text-decoration:none; color:#fff;
-      border:1px solid var(--border); border-radius:12px; padding:10px 12px;
-      background:#ffffff0b;
-    }
-    .personbtn .nm{ font-weight:700; font-size:16px; }
-    .personbtn .mo{
-      margin-top:4px; font-size:13px; color:var(--muted);
-      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-    }
+    /* skeleton */
+    .skeleton{ position:relative; overflow:hidden; background:#ffffff0f; border-radius:12px; height:1.2em; display:inline-block; min-width:120px; }
+    .skeleton::after{ content:""; position:absolute; inset:0; background:linear-gradient(90deg, transparent, #ffffff22, transparent); animation:shimmer 1.1s infinite; }
+    @keyframes shimmer{ from{ transform:translateX(-100%) } to{ transform:translateX(100%) } }
 
     /* ūdenszīme */
     .watermark{
-      position:fixed; left:50%;
+      position:fixed;
+      left:50%;
       bottom:calc(10px + env(safe-area-inset-bottom));
       transform:translateX(-50%);
       display:flex; align-items:center; gap:10px;
       color:var(--muted); opacity:.55; font-size:12px; letter-spacing:.04em;
-      pointer-events:none; user-select:none; z-index:50; text-shadow:0 1px 0 rgba(0,0,0,.2);
+      pointer-events:none; user-select:none; z-index:50;
+      text-shadow:0 1px 0 rgba(0,0,0,.2);
     }
-    @supports not (bottom: env(safe-area-inset-bottom)){ .watermark{ bottom:10px; } }
+    .watermark .copy{ font-weight:700; opacity:.75; }
+    @supports not (bottom: env(safe-area-inset-bottom)){
+      .watermark{ bottom:10px; }
+    }
 
-    /* skeleton + toast (paturam) */
-    .skeleton{ position:relative; overflow:hidden; background:#ffffff0f; border-radius:12px; height:1.2em; display:inline-block; min-width:120px; }
-    .skeleton::after{ content:""; position:absolute; inset:0; background:linear-gradient(90deg, transparent, #ffffff22, transparent); animation:shimmer 1.1s infinite; }
-    @keyframes shimmer{ from{ transform:translateX(-100%) } to{ transform:translateX(100%) } }
-    .toast{ position:fixed; left:50%; bottom:20px; transform:translateX(-50%) translateY(20px); background:#111418ee; color:#fff; padding:10px 14px; border-radius:12px; border:1px solid #ffffff22; box-shadow:0 6px 20px rgba(0,0,0,.35); opacity:0; pointer-events:none; transition:.35s; font-size:14px; }
+    /* toast (paturam, ja vajadzēs) */
+    .toast{
+      position:fixed; left:50%; bottom:20px; transform:translateX(-50%) translateY(20px);
+      background:#111418ee; color:#fff; padding:10px 14px; border-radius:12px; border:1px solid #ffffff22;
+      box-shadow:0 6px 20px rgba(0,0,0,.35); opacity:0; pointer-events:none; transition:.35s; font-size:14px;
+    }
     .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+    /* ID modālis */
+    dialog{ border:none; padding:0; background:transparent; }
+    .modal{
+      width:min(540px,92vw); border-radius:16px;
+      background:linear-gradient(180deg, #0f1217ee, #0e1014ee);
+      border:1px solid #ffffff2a; backdrop-filter:blur(16px);
+      padding:18px; color:#fff; box-shadow:0 30px 80px rgba(0,0,0,.55);
+    }
+    .modal h3{ margin:0 0 10px; font-size:18px; letter-spacing:.06em; }
+    .modal .row{ background:transparent; border:none; padding:0; }
+    .modal input{
+      width:100%; font:600 18px/1.2 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+      color:#fff; background:#ffffff10; border:1px solid #ffffff22; border-radius:12px; padding:12px 14px; outline:none;
+    }
+    .modal button{
+      margin-top:12px; width:100%; appearance:none; border:none; cursor:pointer;
+      border-radius:12px; padding:12px 14px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+      background:linear-gradient(180deg, #f66a41, #e35631); color:#fff; box-shadow:0 10px 26px rgba(242,95,58,.35);
+    }
+
+    @media (min-width:720px){
+      .grid{ grid-template-columns:1fr 1fr; }
+      .row.notes{ grid-column:1 / -1; }
+    }
   </style>
 </head>
 <body>
@@ -156,19 +175,14 @@
           <div class="label">Piezīmes</div>
           <div id="notes" class="value note"><span class="skeleton" style="width:95%"></span></div>
         </div>
-
-        <!-- saraksta pogas -->
-        <div class="roster">
-          <div class="label">Dalībnieki &amp; devīzes</div>
-          <div id="people" class="list"></div>
-        </div>
       </section>
     </main>
   </div>
 
   <!-- ūdenszīme -->
   <div class="watermark" aria-hidden="true">
-    <span>©</span><span>Designed by Mārcis</span>
+    <span class="copy">©</span>
+    <span>Designed by Mārcis</span>
   </div>
 
   <div class="toast" id="toast"></div>
@@ -187,7 +201,6 @@
   <script>
     const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxqumDDgdZMnjps9ZBEQIu5s40958y609r4taVT9VYEtlNJTdOJ3fPnDxqHnPl4YQMU/exec";
     const SHEET_NAME = "SFS";
-    const TARGET_BASE = "https://vezitivus.github.io/APP/steel.html?s=ysdiof&id=";
 
     const qs = new URLSearchParams(location.search);
     const $ = s => document.querySelector(s);
@@ -195,9 +208,17 @@
     function persistId(id){try{localStorage.setItem("sfs:id",String(id));}catch{}}
     function readPersistedId(){try{return localStorage.getItem("sfs:id")||"";}catch{return""}}
     function reveal(){requestAnimationFrame(()=>$("#card").classList.add("reveal"));}
-    function ensureUrlHasId(id){ try{ const u=new URL(location.href); if(u.searchParams.get("id")!==String(id)){ u.searchParams.set("id",String(id)); history.replaceState(null,"",u.toString()); } }catch{} }
 
-    /* JSONP fallback */
+    function ensureUrlHasId(id){
+      try{
+        const u = new URL(location.href);
+        if (u.searchParams.get("id") !== String(id)) {
+          u.searchParams.set("id", String(id));
+          history.replaceState(null, "", u.toString());
+        }
+      }catch{}
+    }
+
     function jsonp(url,timeout=6000){
       return new Promise((resolve,reject)=>{
         const cb="__sfs_cb_"+Math.random().toString(36).slice(2);
@@ -218,7 +239,6 @@
       $("#notes").innerHTML=`<span class="skeleton" style="width:95%"></span>`;
     }
 
-    /* Cloudinary optimizācija */
     function optimizeCloudinary(url){
       if(!/res\.cloudinary\.com\/.+\/image\/upload\//.test(url)) return url;
       if(/\/image\/upload\/.*(f_auto|q_auto|w_)/.test(url)) return url;
@@ -245,10 +265,11 @@
       }
     }
 
-    // formatējam uzdevumu vienā laukā (teikumi jaunā rindā)
     function formatTasks(t){
       if(!t) return "—";
-      const lines = String(t).replace(/\r/g," ").split(/(?:[.!?;]+|\n)+\s*/).map(s=>s.trim()).filter(Boolean);
+      const lines = String(t)
+        .replace(/\r/g," ")
+        .split(/(?:[.!?;]+|\n)+\s*/).map(s=>s.trim()).filter(Boolean);
       return lines.length ? lines.join("\n") : t;
     }
 
@@ -280,31 +301,6 @@
       throw new Error("Dati nav atgriezti");
     }
 
-    // === saraksts: vārdi + devīzes ===
-    async function fetchRoster(){
-      const base=`${WEBAPP_URL}?sheet=${encodeURIComponent(SHEET_NAME)}&list=names`;
-      try{ const r=await fetch(base,{cache:"no-store"}); const j=await r.json(); if(j?.ok && Array.isArray(j.list)) return j.list; }catch(_){}
-      const j=await jsonp(base); if(j?.ok && Array.isArray(j.list)) return j.list;
-      return [];
-    }
-    function esc(s){ return String(s).replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])); }
-    function renderRoster(list){
-      const host=$("#people");
-      if(!host) return;
-      host.innerHTML="";
-      if(!list.length){ host.innerHTML='<div class="value note">—</div>'; return; }
-      for(const item of list){
-        const name=(item.name||"").trim();
-        const motto=(item.motto||"").trim();
-        if(!name) continue;
-        const a=document.createElement("a");
-        a.className="personbtn";
-        a.href = TARGET_BASE + encodeURIComponent(name);   // ← vārds linkā kā ID
-        a.innerHTML = `<div class="nm">${esc(name)}</div><div class="mo">${esc(motto)}</div>`;
-        host.appendChild(a);
-      }
-    }
-
     async function resolveImageForId(row){
       const id=row.id;
       if(row.imageDataUrl){
@@ -329,12 +325,9 @@
         fillUI(row);
 
         const src=await resolveImageForId(row);
-        if(src){ $("#imgFront").src = src; $("#imgBack").src  = src; }
-
-        if(!window.__rosterLoaded){
-          window.__rosterLoaded=true;
-          const list = await fetchRoster();
-          renderRoster(list);
+        if(src){
+          $("#imgFront").src = src;
+          $("#imgBack").src  = src;
         }
       }catch(e){
         console.error(e);
