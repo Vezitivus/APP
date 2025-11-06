@@ -2,395 +2,359 @@
 <html lang="lv">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>STEEL, FIRE & STEAK</title>
-
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#0b0c10">
-
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Devīzes izvēle</title>
+  <meta name="color-scheme" content="dark light" />
   <style>
     :root{
-      --bg-1:#0b0c10; --bg-2:#14161d; --ember:#f25f3a; --steel:#7f8c9a;
-      --text:#e8e9ef; --muted:#a7adba; --border:#ffffff24; --radius:18px;
-      --blur:14px; --shadow:0 10px 30px rgba(0,0,0,.35), 0 1px 0 rgba(255,255,255,.02) inset;
+      --bg:#0b0f14; --card:#0f1520; --line:#1d2635; --muted:#9fb0c7; --text:#e8eef6;
+      --brand:#6ea8fe; --brand2:#8a5cf6; --ok:#34d399; --err:#fca5a5; --radius:12px;
+      --shadow:0 10px 32px rgba(0,0,0,.35); --t:200ms cubic-bezier(.22,.61,.36,1);
     }
     *{box-sizing:border-box}
-
-    html{
-      height:100%;
-      background:
-        radial-gradient(1200px 800px at 20% -10%, #f25f3a22 0%, transparent 60%),
-        radial-gradient(900px 700px at 90% 110%, #ffcf6a14 0%, transparent 60%),
-        linear-gradient(180deg,var(--bg-1),var(--bg-2));
-      background-color:var(--bg-1);
-    }
     body{
-      min-height:100dvh;
-      margin:0; color:var(--text);
-      font:16px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,system-ui,sans-serif;
-      background:
-        radial-gradient(1200px 800px at 20% -10%, #f25f3a22 0%, transparent 60%),
-        radial-gradient(900px 700px at 90% 110%, #ffcf6a14 0%, transparent 60%),
-        linear-gradient(180deg,var(--bg-1),var(--bg-2));
-      background-color:var(--bg-1);
-      overflow-x:hidden;
+      margin:0; font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
+      font-size:14px; line-height:1.35; color:var(--text);
+      background:radial-gradient(900px 420px at 70% -10%, rgba(108,99,255,.15), transparent),
+                 radial-gradient(800px 380px at -10% 20%, rgba(49,130,206,.12), transparent),
+                 var(--bg);
+      min-height:100svh; display:grid; place-items:start center; padding:16px;
     }
-
-    .wrap{ min-height:100dvh; display:flex; align-items:center; justify-content:center; padding:clamp(16px,3vw,32px); }
-    @supports (height: 100svh){ .wrap{ min-height:100svh; } }
-
+    .shell{ width:min(980px,100%); }
     .card{
-      width:min(920px,100%); border-radius:var(--radius);
-      background:linear-gradient(180deg, #ffffff12, #ffffff08);
-      border:1px solid var(--border); backdrop-filter:saturate(130%) blur(var(--blur));
-      box-shadow:var(--shadow); padding:clamp(18px,3vw,28px);
-      transform:translateY(-18px); opacity:0;
-      transition:transform .7s cubic-bezier(.2,.75,.2,1), opacity .7s ease;
+      background:linear-gradient(180deg, rgba(255,255,255,.03), transparent), var(--card);
+      border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); overflow:clip;
+      animation:rise .4s ease both;
     }
-    .card.reveal{ transform:translateY(0); opacity:1; }
+    @keyframes rise{ from{transform:translateY(6px); opacity:0} to{transform:none; opacity:1} }
+    header{ padding:14px 16px; border-bottom:1px solid var(--line); }
+    header h1{ margin:0; font-size:16px; letter-spacing:.2px; }
 
-    header{ text-align:center; padding:6px 8px 12px; }
-    header h1{
-      margin:0; letter-spacing:.14em; font-weight:700; font-size:clamp(20px,4.2vw,32px);
-      text-transform:uppercase; color:#fff;
-      text-shadow:0 1px 0 rgba(255,255,255,.05), 0 12px 30px rgba(0,0,0,.35);
-    }
-    .motto{
-      margin-top:8px; color:#e6e7ec; font-weight:600;
-      font-size:clamp(14px,2.6vw,18px); letter-spacing:.06em; opacity:.95;
-    }
+    main{ padding:16px; display:grid; gap:14px; }
+    .grid{ display:grid; grid-template-columns:1fr; gap:14px; }
+    @media(min-width:900px){ .grid{ grid-template-columns: 1.15fr .85fr; align-items:start; } }
 
-    /* 3D zona */
-    .stage{ perspective:1200px; margin:18px auto 10px; width:100%; display:grid; place-items:center; }
-    .badge{ position:relative; width:min(340px,68vw); aspect-ratio:1/1; transform-style:preserve-3d; filter:drop-shadow(0 24px 60px rgba(242,95,58,.18)); }
-    .halo{ position:absolute; inset:-10%; border-radius:50%; background:radial-gradient(circle at 50% 50%, #f25f3a33, transparent 60%); filter:blur(30px); transform:translateZ(-60px) scale(1.05); pointer-events:none; }
+    fieldset{ border:1px solid var(--line); border-radius:var(--radius); padding:12px; margin:0; }
+    legend{ padding:0 8px; color:var(--muted); font-size:11px; letter-spacing:.3px; }
+    .row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .muted{ color:var(--muted); font-size:12.5px; }
+    .pill{ font-size:11px; padding:3px 7px; border:1px solid var(--line); border-radius:999px; color:var(--muted); }
+    .hide{ display:none !important; }
 
-    /* Divpusējā rotācija */
-    .spinner{
-      position:relative; width:100%; height:100%;
-      transform-style:preserve-3d; animation:spinY 12s linear infinite; will-change:transform;
+    .sentences{ display:grid; gap:8px; max-height:380px; overflow:auto; padding-right:4px; }
+    .option{
+      display:grid; grid-template-columns:auto 1fr; gap:10px; align-items:start;
+      padding:10px; border:1px solid var(--line); border-radius:10px; background:rgba(255,255,255,.02);
+      transition: transform var(--t), border-color var(--t), background var(--t);
     }
-    .face{
-      position:absolute; inset:0; width:100%; height:100%;
-      object-fit:contain; backface-visibility:hidden; -webkit-backface-visibility:hidden;
-    }
-    .face.front{ transform:rotateY(0deg); }
-    .face.back { transform:rotateY(180deg); }
-    @keyframes spinY{ from{ transform:rotateY(0deg) } to{ transform:rotateY(360deg) } }
+    .option:hover{ transform:translateY(-1px); border-color:#2b3a52; background:rgba(255,255,255,.04); }
+    .option input[type="radio"]{ transform:translateY(2px); }
 
-    .grid{ display:grid; gap:14px; margin-top:8px; }
-    .row{ border:1px solid var(--border); background:linear-gradient(180deg, #0d0f1311, #0d0f1307); border-radius:calc(var(--radius) - 8px); padding:16px 18px; }
-    .label{ font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--steel); margin-bottom:6px; }
-    .value{ font-size:clamp(18px,4.2vw,22px); font-weight:600; color:#fff; }
-    .value.note{ white-space:pre-wrap; color:#e9e9ee; font-weight:500; }
+    label.block{ display:block; font-weight:600; margin-bottom:6px; font-size:13px; }
+    input[type="text"], textarea{
+      width:100%; padding:10px; border-radius:10px; border:1px solid #243046;
+      background:#0a111b; color:var(--text); outline:none; transition:border-color var(--t), box-shadow var(--t);
+      font-size:14px;
+    }
+    input[type="text"]:focus, textarea:focus{ border-color:#3656ff; box-shadow:0 0 0 3px rgba(86,120,255,.14); }
+    textarea{ min-height:80px; resize:vertical; }
 
-    /* Piezīmes: auto-augš tekstlauks */
-    .notesBox{
-      width:100%; min-height:110px; height:auto;
-      padding:12px 14px; border-radius:12px;
-      border:1px solid var(--border);
-      background:#ffffff10; color:#fff; font-weight:500; line-height:1.35;
-      outline:none; overflow:hidden; resize:none;  /* <- svarīgi automātiskai augšanai */
+    button{
+      border:0; padding:9px 12px; border-radius:10px; font-weight:700; cursor:pointer;
+      transition: transform var(--t), opacity var(--t), filter var(--t); font-size:13px;
     }
-    .notesBox::placeholder{ color:#c7cbd6aa; }
-    .savehint{ margin-top:8px; font-size:12px; color:var(--muted); opacity:.85; min-height:1em; }
+    button:active{ transform:translateY(1px) scale(.99); }
+    .primary{ background:linear-gradient(135deg, var(--brand), var(--brand2)); color:white; }
+    .ghost{ background:transparent; border:1px solid var(--line); color:#d5dff0; }
+    .success{ color:var(--ok); } .error{ color:var(--err); }
 
-    /* ūdenszīme */
-    .watermark{
-      position:fixed; left:50%;
-      bottom:calc(10px + env(safe-area-inset-bottom));
-      transform:translateX(-50%);
-      display:flex; align-items:center; gap:10px;
-      color:var(--muted); opacity:.55; font-size:12px; letter-spacing:.04em;
-      pointer-events:none; user-select:none; z-index:50;
-      text-shadow:0 1px 0 rgba(0,0,0,.2);
-    }
-    .watermark .copy{ font-weight:700; opacity:.75; }
-    @supports not (bottom: env(safe-area-inset-bottom)){ .watermark{ bottom:10px; } }
+    .list{ display:grid; gap:8px; }
 
-    .toast{ position:fixed; left:50%; bottom:20px; transform:translateX(-50%) translateY(20px);
-      background:#111418ee; color:#fff; padding:10px 14px; border-radius:12px; border:1px solid #ffffff22;
-      box-shadow:0 6px 20px rgba(0,0,0,.35); opacity:0; pointer-events:none; transition:.35s; font-size:14px; }
-    .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+    /* Poga-links rindām “Izvēlētie” sarakstā */
+    .claim{
+      display:grid; grid-template-columns:1fr auto; align-items:center; gap:10px;
+      padding:10px; border:1px solid var(--line); border-radius:10px;
+      background:rgba(255,255,255,.02);
+      transition: transform var(--t), border-color var(--t), background var(--t);
+      text-decoration:none; color:inherit; cursor:pointer;
+    }
+    .claim:hover{ transform:translateY(-1px); border-color:#2b3a52; background:rgba(255,255,255,.04); }
 
-    dialog{ border:none; padding:0; background:transparent; }
-    .modal{
-      width:min(540px,92vw); border-radius:16px;
-      background:linear-gradient(180deg, #0f1217ee, #0e1014ee);
-      border:1px solid #ffffff2a; backdrop-filter:blur(16px);
-      padding:18px; color:#fff; box-shadow:0 30px 80px rgba(0,0,0,.55);
+    /* Loading ripulītis teikumu zonai */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 96px;
     }
-    .modal h3{ margin:0 0 10px; font-size:18px; letter-spacing:.06em; }
-    .modal .row{ background:transparent; border:none; padding:0; }
-    .modal input{
-      width:100%; font:600 18px/1.2 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
-      color:#fff; background:#ffffff10; border:1px solid #ffffff22; border-radius:12px; padding:12px 14px; outline:none;
+    .ring {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 3px solid rgba(255,255,255,.15);
+      border-top-color: #8a5cf6;
+      animation: spin 900ms linear infinite;
     }
-    .modal button{
-      margin-top:12px; width:100%; appearance:none; border:none; cursor:pointer;
-      border-radius:12px; padding:12px 14px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
-      background:linear-gradient(180deg, #f66a41, #e35631); color:#fff; box-shadow:0 10px 26px rgba(242,95,58,.35);
-    }
-
-    @media (min-width:720px){
-      .grid{ grid-template-columns:1fr 1fr; }
-      .row.notes{ grid-column:1 / -1; }
-    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <main class="card" id="card">
-      <header>
-        <h1>STEEL, FIRE &amp; STEAK</h1>
-        <div class="motto" id="motto"><span class="skeleton" style="width:60%"></span></div>
-      </header>
+  <div class="shell">
+    <div class="card" role="application">
+      <header><h1>Devīzes izvēle</h1></header>
 
-      <!-- Divpusējā rotācija -->
-      <section class="stage" aria-label="Rotējošais attēls">
-        <div class="badge">
-          <div class="halo" aria-hidden="true"></div>
-          <div class="spinner" id="spinner">
-            <img id="imgFront" class="face front" alt="Attēls – priekšpuse" />
-            <img id="imgBack"  class="face back"  alt="Attēls – aizmugure" />
-          </div>
+      <main>
+        <div class="grid">
+          <!-- KREISĀ kolonna -->
+          <section>
+            <!-- Sesijas izveide (redzama tikai pirms izveides) -->
+            <fieldset id="hostPanel" class="">
+              <legend>Izveidot sesiju</legend>
+              <label class="block" for="bulkArea">Teikumi (katrs jaunā rindā, līdz 200)</label>
+              <textarea id="bulkArea" placeholder="Ielīmē teikumus…"></textarea>
+              <div class="row" style="margin-top:8px">
+                <button id="createBtn" class="primary" type="button">Izveidot sesiju</button>
+                <span class="pill" id="hintCount">0</span>
+              </div>
+            </fieldset>
+
+            <!-- Izvēle (paliek pēc sesijas izveides) -->
+            <fieldset id="joinPanel" class="hide">
+              <legend>Pieejamie teikumi</legend>
+
+              <!-- Loading ripulītis -->
+              <div id="sentencesLoading" class="loading">
+                <div class="ring"></div>
+              </div>
+
+              <!-- Teikumu saraksts -->
+              <div id="sentences" class="sentences hide" role="radiogroup" aria-label="Teikumu saraksts"></div>
+
+              <div class="row" style="justify-content:flex-end; margin-top:8px">
+                <button id="customToggle" class="ghost" type="button">Cits teikums…</button>
+              </div>
+
+              <div id="customBox" class="hide" style="margin-top:8px">
+                <label class="block" for="customSentence">Tavs teikums</label>
+                <textarea id="customSentence" placeholder="Ieraksti savu teikumu…"></textarea>
+                <div class="row" style="margin-top:8px">
+                  <button id="useCustom" class="primary" type="button">Izmantot šo</button>
+                  <button id="cancelCustom" class="ghost" type="button">Atcelt</button>
+                </div>
+              </div>
+            </fieldset>
+
+            <!-- Vārda ievade (paliek pēc sesijas izveides) -->
+            <fieldset id="identifyPanel" class="hide">
+              <legend>Vārds</legend>
+              <label class="block" for="nameInput">Ieraksti savu vārdu</label>
+              <input id="nameInput" type="text" placeholder="Vārds" autocomplete="name" />
+              <div class="row" style="margin-top:8px">
+                <button id="submitBtn" class="primary" type="button">Apstiprināt izvēli</button>
+                <span id="feedback" class="muted" aria-live="polite"></span>
+              </div>
+            </fieldset>
+          </section>
+
+          <!-- LABĀ kolonna -->
+          <section>
+            <fieldset id="resultsPanel" class="hide">
+              <legend>Izvēlētie</legend>
+              <div class="row" style="justify-content:space-between; margin-bottom:8px">
+                <span class="pill"><span id="leftCount">0</span> pieejami</span>
+              </div>
+              <div id="claims" class="list"></div>
+            </fieldset>
+          </section>
         </div>
-      </section>
-
-      <section class="grid">
-        <div class="row">
-          <div class="label">Vārds</div>
-          <div id="name" class="value"><span class="skeleton" style="width:40%"></span></div>
-        </div>
-
-        <div class="row">
-          <div class="label">Uzdevums</div>
-          <div id="task" class="value note"><span class="skeleton" style="width:95%"></span></div>
-        </div>
-
-        <div class="row notes">
-          <div class="label">Piezīmes</div>
-          <textarea id="notesBox" class="notesBox" placeholder="Raksti piezīmes… (glabājas šajā ierīcē)"></textarea>
-          <div id="notesHint" class="savehint"></div>
-        </div>
-      </section>
-    </main>
-  </div>
-
-  <!-- ūdenszīme -->
-  <div class="watermark" aria-hidden="true">
-    <span class="copy">©</span>
-    <span>Designed by Mārcis</span>
-  </div>
-
-  <div class="toast" id="toast"></div>
-
-  <!-- ID dialogs -->
-  <dialog id="idDialog">
-    <div class="modal">
-      <h3>Ieraksti dalībnieka ID</h3>
-      <div class="row">
-        <input id="idInput" type="text" inputmode="numeric" placeholder="piem., 101" autofocus />
-      </div>
-      <button id="saveIdBtn">Apstiprināt</button>
+      </main>
     </div>
-  </dialog>
+  </div>
 
-  <script>
-    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxqumDDgdZMnjps9ZBEQIu5s40958y609r4taVT9VYEtlNJTdOJ3fPnDxqHnPl4YQMU/exec";
-    const SHEET_NAME = "SFS";
+  <script type="module">
+    // ===== KONFIGURĀCIJA =====
+    const API_BASE = "https://script.google.com/macros/s/AKfycbwFGXqmO6Ja9t6AT97a6cwQlxaJUhPbXC7t5lmc-mW1McdeeVmBc_sUvvicjOZ3YJlK/exec";
+    const ENABLE_CUSTOM = true; // ja nevajag "Cits teikums…", uzstādi false
 
-    const qs = new URLSearchParams(location.search);
+    // ===== PALĪGUMI =====
     const $ = s => document.querySelector(s);
-    function toast(m,t=2200){const el=$("#toast");el.textContent=m;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),t);}
-    function persistId(id){try{localStorage.setItem("sfs:id",String(id));}catch{}}
-    function readPersistedId(){try{return localStorage.getItem("sfs:id")||"";}catch{return""}}
-    function reveal(){requestAnimationFrame(()=>$("#card").classList.add("reveal"));}
+    const el = (t, a={}, kids=[]) => { const n=document.createElement(t);
+      for (const [k,v] of Object.entries(a)){
+        if(k==="class") n.className=v;
+        else if(k.startsWith("on")&&typeof v==="function") n.addEventListener(k.slice(2), v);
+        else if(k==="html") n.innerHTML=v;
+        else n.setAttribute(k,v);
+      }
+      for(const c of [].concat(kids)) n.appendChild(typeof c==="string"?document.createTextNode(c):c);
+      return n;
+    };
+    const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+    const sidFromUrl = () => new URL(location.href).searchParams.get("s");
+    const setSidInUrl = id => { const u=new URL(location.href); u.searchParams.set("s",id); history.replaceState(null,"",u.toString()); };
 
-    function ensureUrlHasId(id){
-      try{
-        const u = new URL(location.href);
-        if (u.searchParams.get("id") !== String(id)) {
-          u.searchParams.set("id", String(id));
-          history.replaceState(null, "", u.toString());
-        }
-      }catch{}
+    // ===== API =====
+    async function apiGET(params){
+      const url = new URL(API_BASE);
+      Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, typeof v==='string'?v:JSON.stringify(v)));
+      const r = await fetch(url.toString(), { method:'GET', credentials:'omit' });
+      const j = await r.json();
+      if (!j || j.ok === false) throw new Error((j && j.error) || `HTTP ${r.status}`);
+      return j;
+    }
+    async function apiPOST(body){
+      const r = await fetch(API_BASE, {
+        method:'POST',
+        headers:{ 'Content-Type':'text/plain;charset=utf-8' }, // bez preflight
+        body: JSON.stringify(body),
+        credentials:'omit'
+      });
+      const j = await r.json();
+      if (!j || j.ok === false) throw new Error((j && j.error) || `HTTP ${r.status}`);
+      return j;
     }
 
-    function jsonp(url,timeout=6000){
-      return new Promise((resolve,reject)=>{
-        const cb="__sfs_cb_"+Math.random().toString(36).slice(2);
-        const s=document.createElement("script");
-        const tm=setTimeout(()=>{cleanup();reject(new Error("JSONP timeout"));},timeout);
-        function cleanup(){clearTimeout(tm);delete window[cb];s.remove();}
-        window[cb]=d=>{cleanup();resolve(d);};
-        const u=new URL(url);u.searchParams.set("callback",cb);
-        s.src=u.toString();s.onerror=()=>{cleanup();reject(new Error("JSONP load error"));};
-        document.head.appendChild(s);
+    // ===== STĀVOKLIS =====
+    let sessionId = sidFromUrl();
+    let selectedSentence = null; // {id,text} vai {custom:true,text}
+    let pollTimer = null;
+    let firstLoad = true;
+
+    // ===== UI =====
+    function show(n){ n.classList.remove("hide"); }
+    function hide(n){ n.classList.add("hide"); }
+
+    function setSentencesLoading(on) {
+      const sp = document.getElementById("sentencesLoading");
+      const list = document.getElementById("sentences");
+      if (!sp || !list) return;
+      if (on) { sp.classList.remove("hide"); list.classList.add("hide"); }
+      else { sp.classList.add("hide"); list.classList.remove("hide"); }
+    }
+
+    function renderSentences(list){
+      const box = $("#sentences"); box.innerHTML="";
+      const available = list.filter(s => !s.claimedBy);
+      $("#leftCount").textContent = available.length;
+      if(!available.length){
+        box.appendChild(el("div",{class:"muted"},"Nav pieejamu teikumu."));
+        return;
+      }
+      available.forEach((s, idx) => {
+        const id = "s_"+idx;
+        const opt = el("label",{class:"option"});
+        const radio = el("input",{type:"radio",name:"sentence",id});
+        radio.checked = (selectedSentence && selectedSentence.id===s.id);
+        radio.onchange = () => {
+          selectedSentence={id:s.id,text:s.text};
+          show($("#identifyPanel"));
+          $("#nameInput").focus();
+          renderSentences(list);
+        };
+        opt.appendChild(radio);
+        opt.appendChild(el("div",{},[
+          el("div",{},s.text),
+          el("small",{class:"muted"},"#"+(s.index+1))
+        ]));
+        box.appendChild(opt);
       });
     }
 
-    function setSkeleton(){
-      $("#motto").innerHTML=`<span class="skeleton" style="width:60%"></span>`;
-      $("#name").innerHTML=`<span class="skeleton" style="width:40%"></span>`;
-      $("#task").innerHTML=`<span class="skeleton" style="width:95%"></span>`;
-    }
-
-    function optimizeCloudinary(url){
-      if(!/res\.cloudinary\.com\/.+\/image\/upload\//.test(url)) return url;
-      if(/\/image\/upload\/.*(f_auto|q_auto|w_)/.test(url)) return url;
-      return url.replace(/\/image\/upload\//, "/image/upload/f_auto,q_auto,w_900/");
-    }
-
-    function setCookie(n,v,d=365){const t=new Date();t.setTime(t.getTime()+d*864e5);document.cookie=`${encodeURIComponent(n)}=${encodeURIComponent(v)};expires=${t.toUTCString()};path=/;SameSite=Lax`;}
-    async function fetchAsDataURL(url){
-      const res=await fetch(url,{cache:"force-cache"});
-      const blob=await res.blob();
-      return await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(blob);});
-    }
-    async function getCachedImageForId(id, srcUrl){
-      const key=`sfs:img:${id}`, cookieKey=`sfs_img_${id}`;
-      try{const cached=localStorage.getItem(key);if(cached) return cached;}catch{}
-      let url=optimizeCloudinary(srcUrl);
-      try{
-        const dataUrl=await fetchAsDataURL(url);
-        try{localStorage.setItem(key,dataUrl);}catch{}
-        setCookie(cookieKey,"1",365);
-        return dataUrl;
-      }catch{
-        return srcUrl;
+    // ——— IZLABOTĀ versija: katra rinda ir <a> poga uz steel.html ar ?s=ysdiof&id=<vārds>
+    function renderClaims(claims){
+      const list = $("#claims"); list.innerHTML="";
+      if(!claims.length){
+        list.appendChild(el("div",{class:"muted"},"Pagaidām nav neviena ieraksta."));
+        return;
       }
-    }
-
-    // Uzdevumi – rindās, saglabājot punktus
-    function formatTasksKeepPunct(t){
-      if(!t) return "—";
-      const paras = String(t).replace(/\r/g,"").split(/\n+/);
-      const lines=[];
-      for(const p of paras){
-        const re=/[^.!?;]+(?:[.!?;]+|$)/g;
-        let m; while((m=re.exec(p))!==null){ const s=m[0].trim(); if(s) lines.push(s); }
-      }
-      return lines.join("\n");
-    }
-
-    function fillUI({name,motto,task}){
-      $("#name").textContent = name || "—";
-      $("#motto").textContent = motto || "—";
-      $("#task").textContent  = formatTasksKeepPunct(task);
-    }
-
-    function mapPayload(p){
-      const r=p?.data||p; const row=Array.isArray(r)?r[0]:r; if(!row) return null;
-      const pick=(o,keys,fb="")=>{for(const k of keys){if(o?.[k]!=null && o[k]!=="") return String(o[k]);}return fb;};
-      return {
-        id:pick(row,["id","ID","a","A"],""),
-        name:pick(row,["vards","vārds","name","B","b"],""),
-        motto:pick(row,["devize","devīze","motto","C","c"],""),
-        image:pick(row,["image","img","D","d"],""),
-        imageDataUrl:pick(row,["imageDataUrl","image_data_url"],""),
-        task:pick(row,["uzdevums","task","E","e"],"")
-      };
-    }
-
-    async function fetchRowById(id){
-      const base=`${WEBAPP_URL}?sheet=${encodeURIComponent(SHEET_NAME)}&id=${encodeURIComponent(id)}`;
-      try{ const r=await fetch(base,{cache:"no-store"}); const j=await r.json(); if(j?.ok){const m=mapPayload(j); if(m) return m;} }catch(_){}
-      const j=await jsonp(base); if(j?.ok){const m=mapPayload(j); if(m) return m;}
-      throw new Error("Dati nav atgriezti");
-    }
-
-    async function resolveImageForId(row){
-      const id=row.id;
-      if(row.imageDataUrl){
-        try{localStorage.setItem(`sfs:img:${id}`,row.imageDataUrl);}catch{}
-        try{document.cookie=`sfs_img_${id}=1;path=/;SameSite=Lax;max-age=${60*60*24*365}`;}catch{}
-        return row.imageDataUrl;
-      }
-      if(row.image){
-        return await getCachedImageForId(id,row.image);
-      }
-      return "";
-    }
-
-    // --- Piezīmes (lokālas) ---
-    let currentId = "";
-    const notesBox = document.getElementById("notesBox");
-    const notesHint = document.getElementById("notesHint");
-
-    function notesKey(id){ return `sfs:notes:${id}`; }
-    function loadNotes(id){ try{ return localStorage.getItem(notesKey(id)) || ""; }catch{ return ""; } }
-    function saveNotes(id, text){
-      try{ localStorage.setItem(notesKey(id), text); }catch{}
-      notesHint.textContent = "Saglabāts ✓";
-      clearTimeout(saveNotes._t); saveNotes._t = setTimeout(()=>notesHint.textContent="", 1200);
-    }
-
-    // auto-augšana
-    function autoResize(el){
-      if(!el) return;
-      el.style.height = 'auto';
-      el.style.height = el.scrollHeight + 'px';
-    }
-
-    function bindNotesAutosave(){
-      let t;
-      notesBox.addEventListener("input", ()=>{
-        notesHint.textContent = "Saglabā…";
-        autoResize(notesBox);                // <- pielāgo augstumu katrā ievadē
-        clearTimeout(t);
-        t = setTimeout(()=> saveNotes(currentId, notesBox.value), 300);
+      claims.forEach(c => {
+        const href = `https://vezitivus.github.io/APP/steel.html?s=ysdiof&id=${encodeURIComponent(c.name)}`;
+        const row = el("a", {
+          class: "claim",
+          href,
+          role: "button",
+          "aria-label": `Atvērt ${c.name} lapu`
+        });
+        row.appendChild(el("div", {
+          html: `<strong>${esc(c.name)}</strong> → ${esc(c.sentence || "(cits teikums)")}`
+        }));
+        row.appendChild(el("small", { class:"muted" }, c.createdAt || "—"));
+        list.appendChild(row);
       });
-      window.addEventListener("resize", ()=> autoResize(notesBox)); // ja mainās viewport
     }
 
-    async function run(id){
+    function setUiForSession(){
+      if(sessionId){
+        hide($("#hostPanel"));
+        show($("#joinPanel"));
+        if(!ENABLE_CUSTOM){ $("#customToggle").classList.add("hide"); $("#customBox").classList.add("hide"); }
+        show($("#identifyPanel"));
+        show($("#resultsPanel"));
+        firstLoad = true;
+        setSentencesLoading(true);
+      }else{
+        show($("#hostPanel"));
+        hide($("#joinPanel")); hide($("#identifyPanel")); hide($("#resultsPanel"));
+      }
+    }
+
+    // ===== DARBĪBAS =====
+    async function refreshState(){
+      if(!sessionId) return;
       try{
-        const row=await fetchRowById(id);
-        const canonicalId = row.id || id;
-        currentId = canonicalId;
-
-        persistId(canonicalId);
-        ensureUrlHasId(canonicalId);
-
-        fillUI(row);
-
-        // ielādē un parāda piezīmes; pēc tam pielāgo augstumu
-        notesBox.value = loadNotes(canonicalId);
-        autoResize(notesBox);
-        notesHint.textContent = notesBox.value ? "Saglabāts ✓" : "";
-
-        const src=await resolveImageForId(row);
-        if(src){ $("#imgFront").src = src; $("#imgBack").src = src; }
+        const res = await apiGET({ action:"state", sessionId });
+        renderSentences(res.sentences || []);
+        renderClaims(res.claims || []);
+        if (firstLoad) { setSentencesLoading(false); firstLoad = false; }
       }catch(e){
         console.error(e);
-        $("#name").textContent="—"; $("#motto").textContent="—"; $("#task").textContent="—";
-        notesBox.value = ""; autoResize(notesBox); notesHint.textContent="";
-        $("#imgFront").src = ""; $("#imgBack").src = "";
-        toast("Datu ielāde neizdevās");
-      }finally{ reveal(); }
-    }
-
-    (function init(){
-      bindNotesAutosave();
-
-      const dialog=$("#idDialog"), idInput=$("#idInput");
-      const urlId=qs.get("id"); const saved=readPersistedId(); const id=urlId||saved;
-
-      document.getElementById("saveIdBtn").addEventListener("click",()=>{
-        const v=idInput.value.trim();
-        if(!v){toast("Ievadi ID");return;}
-        persistId(v); ensureUrlHasId(v); dialog.close(); run(v);
-      });
-
-      if(id){
-        if(!urlId) ensureUrlHasId(id);
-        persistId(id); run(id);
-      }else{
-        reveal(); dialog.showModal();
       }
-    })();
+    }
+    function startPolling(){ if(pollTimer) clearInterval(pollTimer); pollTimer=setInterval(refreshState, 2000); refreshState(); }
+
+    // Notikumi
+    $("#customToggle").addEventListener("click", () => $("#customBox").classList.toggle("hide"));
+    $("#cancelCustom").addEventListener("click", () => { $("#customBox").classList.add("hide"); $("#customSentence").value=""; });
+    $("#useCustom").addEventListener("click", () => {
+      const t=$("#customSentence").value.trim(); if(!t) return;
+      selectedSentence={custom:true,text:t}; show($("#identifyPanel")); $("#nameInput").focus();
+    });
+
+    $("#submitBtn").addEventListener("click", async () => {
+      const fb=$("#feedback"); const name=$("#nameInput").value.trim();
+      if(!selectedSentence){ fb.textContent="Vispirms izvēlies teikumu vai ievadi savu."; fb.className="error"; return; }
+      if(!name){ fb.textContent="Lūdzu, ieraksti vārdu."; fb.className="error"; $("#nameInput").focus(); return; }
+      try{
+        fb.textContent="Saglabāju…"; fb.className="muted";
+        if(selectedSentence.custom){
+          await apiPOST({ action:"claimCustom", sessionId, name, text:selectedSentence.text });
+        }else{
+          await apiPOST({ action:"claim", sessionId, name, sentenceId:selectedSentence.id });
+        }
+        fb.textContent="Saglabāts!"; fb.className="success";
+        selectedSentence=null; $("#nameInput").value=""; $("#customSentence").value=""; $("#customBox").classList.add("hide");
+        refreshState();
+      }catch(e){
+        const msg=String(e);
+        let t="Kļūda: "+msg;
+        if(msg.includes("name_used")) t="Šis vārds jau ir iesniedzis izvēli.";
+        if(msg.includes("already_taken")) t="Šo teikumu tikko paņēma kāds cits.";
+        if(msg.includes("not_found")) t="Teikums vairs nav pieejams.";
+        fb.textContent=t; fb.className="error";
+      }
+    });
+
+    $("#createBtn").addEventListener("click", async () => {
+      const raw=$("#bulkArea").value;
+      const lines=raw.split(/\r?\n/).map(s=>s.trim()).filter(Boolean).slice(0,200);
+      $("#hintCount").textContent = lines.length;
+      if(!lines.length){ alert("Ievadi vismaz vienu teikumu."); return; }
+      const res=await apiPOST({ action:"createSession", sentences:lines });
+      sessionId = res.sessionId; setSidInUrl(sessionId);
+      setUiForSession(); startPolling();
+    });
+
+    // Start
+    setUiForSession(); if(sessionId) startPolling();
   </script>
 </body>
 </html>
