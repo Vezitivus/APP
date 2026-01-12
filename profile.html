@@ -6,44 +6,102 @@
   <meta name="color-scheme" content="light dark" />
   <title>Profils · Vezitivus</title>
 
-  <!-- Minimālais layout + skeleton (pielāgo vai izmet, ja jau ir globālie stili) -->
+  <!-- Pamata layout + skeleton -->
   <style>
-    :root { --maxw: 960px; }
+    :root { --maxw: 960px; --r: 16px; }
     * { box-sizing: border-box; }
-    body {
-      margin: 0; font: 16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif;
-      min-height: 100dvh; display: grid; place-items: start center;
-      background: radial-gradient(1200px 800px at 50% -10%, rgba(255,255,255,.35), transparent 60%),
-                  linear-gradient(180deg, rgba(127,127,127,.08), transparent 40%);
-      padding: 20px;
+    body{
+      margin:0; font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif;
+      min-height:100dvh; display:grid; place-items:start center;
+      background:
+        radial-gradient(1200px 800px at 50% -10%, rgba(255,255,255,.35), transparent 60%),
+        linear-gradient(180deg, rgba(127,127,127,.08), transparent 40%);
+      padding:20px;
     }
-    header, footer { width: 100%; max-width: var(--maxw); }
-    main { width: 100%; max-width: var(--maxw); display: grid; gap: 20px; }
-    .wrap { display: grid; gap: 16px; }
-    .profile { display: grid; grid-template-columns: 160px 1fr; gap: 16px; align-items: center; }
-    @media (max-width: 640px) { .profile { grid-template-columns: 1fr; justify-items: center; text-align: center; } }
+    header, footer, main { width:100%; max-width:var(--maxw); }
+    main { display:grid; gap:20px; }
+    .wrap { display:grid; gap:16px; }
 
-    /* Skeleton (dinamiskāks “ielādes” izskats līdz datiem) */
-    .skeleton { position: relative; overflow: hidden; background: rgba(255,255,255,.25); border-radius: 12px; }
-    .skeleton::after {
-      content: ""; position: absolute; inset: 0;
-      transform: translateX(-100%);
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,.6), transparent);
-      animation: shimmer 1.4s infinite;
+    .profile{ display:grid; grid-template-columns:160px 1fr; gap:16px; align-items:center; }
+    @media (max-width:640px){
+      .profile{ grid-template-columns:1fr; justify-items:center; text-align:center; }
     }
-    @media (prefers-reduced-motion: reduce) { .skeleton::after { animation: none; } }
-    @keyframes shimmer { 100% { transform: translateX(100%); } }
 
-    .skeleton-line { height: 14px; border-radius: 8px; }
-    .skeleton-avatar { width: 160px; height: 160px; border-radius: 18px; }
+    /* util */
+    .is-hidden{ display:none !important; }
+    .visually-hidden{
+      position:absolute !important; width:1px; height:1px;
+      padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0);
+      white-space:nowrap; border:0;
+    }
 
-    /* Neliels spacing pogām */
-    .actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    /* Skeleton */
+    .skeleton{ position:relative; overflow:hidden; background:rgba(255,255,255,.18); border-radius:12px; }
+    .skeleton::after{
+      content:""; position:absolute; inset:0; transform:translateX(-100%);
+      background:linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent);
+      animation:shimmer 1.4s infinite;
+    }
+    @media (prefers-reduced-motion: reduce){ .skeleton::after{ animation:none; } }
+    @keyframes shimmer{ 100%{ transform:translateX(100%); } }
+    .skeleton-line{ height:14px; border-radius:8px; display:inline-block; }
+    .skeleton-avatar{ width:160px; height:160px; border-radius:18px; }
+
+    /* Actions */
+    .actions{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
+
+    /* Fallback glass (ja tev vēl nav pilnā liquid-glass css) */
+    .glass.card{
+      border-radius: var(--r);
+      padding:16px;
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.22);
+      box-shadow: 0 10px 30px rgba(0,0,0,.12);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .glass-btn{
+      border-radius: 999px;
+      padding: 10px 14px;
+      border: 1px solid rgba(255,255,255,.25);
+      background: rgba(255,255,255,.14);
+      color: inherit;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .glass-btn:focus{ outline:2px solid rgba(255,255,255,.55); outline-offset:2px; }
+    .glass-btn[disabled]{ opacity:.55; cursor:not-allowed; }
+
+    /* Error box */
+    #error-box{
+      margin-bottom:12px;
+      padding:12px 12px;
+      border-radius:12px;
+      border:1px solid rgba(255,80,80,.35);
+      background: rgba(255,80,80,.12);
+    }
+
+    /* Avatar */
+    #profile-image{
+      width:160px; height:160px;
+      object-fit: cover;
+      border-radius:18px;
+      display:block;
+      border: 1px solid rgba(255,255,255,.25);
+    }
+
+    /* Text spacing */
+    .meta h2{ margin:0 0 8px 0; }
+    .meta p{ margin:6px 0; }
+    hr{ border:0; height:1px; background:rgba(255,255,255,.22); margin:16px 0; }
   </style>
 
-  <!-- ŠEIT pievieno pilno “liquid glass” CSS no manas iepriekšējās atbildes -->
-  <!-- <link rel="stylesheet" href="glass.css"> -->
+  <!-- Ja tev ir pilnais liquid-glass css, atkomentē un izmanto:
+  <link rel="stylesheet" href="glass.css">
+  -->
 </head>
+
 <body>
   <noscript>
     <p style="padding:12px; background:#fee; border:1px solid #fbb; border-radius:8px;">
@@ -56,45 +114,278 @@
   </header>
 
   <main class="wrap">
-    <!-- Profila karte ar liquid-glass efektu -->
     <section id="profile-card" class="glass card" aria-labelledby="profile-title">
-      <h2 id="profile-title" class="visually-hidden" style="position:absolute;clip:rect(0,0,0,0);">Profila informācija</h2>
+      <h2 id="profile-title" class="visually-hidden">Profila informācija</h2>
 
-      <!-- Kļūdu kaste (JS to izmanto) -->
       <div id="error-box" class="is-hidden" role="alert" aria-live="polite"></div>
 
       <div class="profile">
-        <!-- Attēla zonai sākumā skeleton; JS to aizstās ar reālo img -->
         <div aria-busy="true" id="avatar-wrap">
           <div class="skeleton skeleton-avatar" id="avatar-skeleton"></div>
           <img id="profile-image" alt="Profila attēls" class="is-hidden" width="160" height="160" loading="lazy" />
         </div>
 
         <div class="meta" aria-live="polite">
-          <h2 id="username" class="skeleton skeleton-line" style="width: 40%; height: 22px;"></h2>
+          <h2 id="username" class="skeleton" style="width:40%; height:22px; border-radius:10px;"></h2>
 
-          <p>
-            <strong>NFC:</strong>
-            <span id="nfc-id" class="skeleton skeleton-line" style="width: 28%;"></span>
+          <p><strong>NFC:</strong>
+            <span id="nfc-id" class="skeleton skeleton-line" style="width:28%;"></span>
           </p>
-          <p>
-            <strong>Vieta:</strong>
-            <span id="place" class="skeleton skeleton-line" style="width: 20%;"></span>
+          <p><strong>Vieta:</strong>
+            <span id="place" class="skeleton skeleton-line" style="width:20%;"></span>
           </p>
-          <p>
-            <strong>Komanda:</strong>
-            <span id="team-name" class="skeleton skeleton-line" style="width: 36%;"></span>
+          <p><strong>Komanda:</strong>
+            <span id="team-name" class="skeleton skeleton-line" style="width:36%;"></span>
           </p>
         </div>
       </div>
 
-      <hr style="border:0;height:1px;background:rgba(255,255,255,.25);margin:16px 0;">
+      <hr>
 
-      <!-- Darbību pogas -->
       <div class="actions">
-        <button id="change-button" class="glass-btn" type="button" aria-controls="image-input" aria-label="Augšupielādēt vai nomainīt profila attēlu">
+        <button id="change-button" class="glass-btn" type="button" aria-controls="image-input">
           Izvēlēties attēlu
         </button>
+
         <input id="image-input" type="file" accept="image/*" hidden />
 
-        <button id="
+        <button id="save-button" class="glass-btn is-hidden" type="button">
+          Saglabāt attēlu
+        </button>
+
+        <button id="reset-button" class="glass-btn is-hidden" type="button">
+          Atcelt
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap" style="opacity:.75;">
+    <small>© Vezitivus</small>
+  </footer>
+
+  <script>
+    (() => {
+      // ---------- helpers ----------
+      const $ = (id) => document.getElementById(id);
+
+      const els = {
+        errorBox: $("error-box"),
+        avatarWrap: $("avatar-wrap"),
+        avatarSkeleton: $("avatar-skeleton"),
+        profileImage: $("profile-image"),
+
+        username: $("username"),
+        nfcId: $("nfc-id"),
+        place: $("place"),
+        teamName: $("team-name"),
+
+        changeBtn: $("change-button"),
+        imageInput: $("image-input"),
+        saveBtn: $("save-button"),
+        resetBtn: $("reset-button"),
+      };
+
+      function showError(msg) {
+        els.errorBox.textContent = msg;
+        els.errorBox.classList.remove("is-hidden");
+      }
+      function clearError() {
+        els.errorBox.textContent = "";
+        els.errorBox.classList.add("is-hidden");
+      }
+
+      function setBusy(isBusy) {
+        els.avatarWrap.setAttribute("aria-busy", String(isBusy));
+      }
+
+      function setText(el, value) {
+        // noņem skeleton klases, ieliek tekstu
+        el.classList.remove("skeleton", "skeleton-line");
+        el.textContent = value ?? "—";
+      }
+
+      function setAvatar(url) {
+        if (!url) return;
+        els.profileImage.src = url;
+        els.profileImage.classList.remove("is-hidden");
+        els.avatarSkeleton.classList.add("is-hidden");
+        setBusy(false);
+      }
+
+      function clearAvatar() {
+        els.profileImage.removeAttribute("src");
+        els.profileImage.classList.add("is-hidden");
+        els.avatarSkeleton.classList.remove("is-hidden");
+        setBusy(false);
+      }
+
+      // ---------- config (pielāgo šitos!) ----------
+      // Sagaidāmais API atgrieztais JSON formāts (piemērs):
+      // { "username":"Mārcis", "nfc":"ABC123", "place":"Rīga", "team":"Alpha", "imageUrl":"https://..." }
+      const API_PROFILE = "/api/profile";           // GET /api/profile?uid=... vai ?nfc=...
+      const API_UPLOAD  = "/api/profile/image";     // POST multipart/form-data (file=...) + uid/nfc
+
+      // ---------- state ----------
+      let currentKey = null;       // uid vai nfc vērtība
+      let originalImageUrl = null; // lai var "Atcelt"
+      let pendingFile = null;
+
+      // ---------- load profile ----------
+      async function loadProfile() {
+        clearError();
+        setBusy(true);
+
+        const params = new URLSearchParams(location.search);
+        const uid = params.get("uid");
+        const nfc = params.get("nfc");
+        currentKey = uid || nfc;
+
+        if (!currentKey) {
+          setBusy(false);
+          // noņem skeleton un ieliek placeholder tekstus
+          setText(els.username, "Nav norādīts lietotājs");
+          setText(els.nfcId, "—");
+          setText(els.place, "—");
+          setText(els.teamName, "—");
+          showError('URL trūkst identifikators. Piemērs: ?uid=123 vai ?nfc=ABC');
+          return;
+        }
+
+        try {
+          const url = API_PROFILE + "?" + (uid ? "uid=" : "nfc=") + encodeURIComponent(currentKey);
+          const res = await fetch(url, { headers: { "Accept": "application/json" } });
+
+          if (!res.ok) {
+            throw new Error("Neizdevās ielādēt profilu (HTTP " + res.status + ").");
+          }
+
+          const data = await res.json();
+
+          setText(els.username, data.username || "—");
+          setText(els.nfcId, data.nfc || (nfc ? currentKey : "—"));
+          setText(els.place, data.place || "—");
+          setText(els.teamName, data.team || "—");
+
+          originalImageUrl = data.imageUrl || null;
+          if (originalImageUrl) setAvatar(originalImageUrl);
+          else {
+            // ja nav attēla, vienkārši noņem skeleton, bet img nerādi
+            els.avatarSkeleton.classList.add("is-hidden");
+            setBusy(false);
+          }
+        } catch (err) {
+          setBusy(false);
+          // noņem skeleton, lai nepaliek “mūžīgā ielāde”
+          setText(els.username, "—");
+          setText(els.nfcId, "—");
+          setText(els.place, "—");
+          setText(els.teamName, "—");
+          els.avatarSkeleton.classList.add("is-hidden");
+          showError(err?.message || "Kļūda ielādējot profilu.");
+        }
+      }
+
+      // ---------- image select / preview ----------
+      function setEditingState(isEditing) {
+        els.saveBtn.classList.toggle("is-hidden", !isEditing);
+        els.resetBtn.classList.toggle("is-hidden", !isEditing);
+      }
+
+      els.changeBtn.addEventListener("click", () => {
+        clearError();
+        els.imageInput.click();
+      });
+
+      els.imageInput.addEventListener("change", () => {
+        clearError();
+        const file = els.imageInput.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+          showError("Lūdzu izvēlies attēla failu (JPG/PNG/WebP).");
+          els.imageInput.value = "";
+          return;
+        }
+
+        // maigs limits (vari mainīt)
+        const maxMB = 8;
+        if (file.size > maxMB * 1024 * 1024) {
+          showError("Fails ir pārāk liels. Maksimums: " + maxMB + " MB.");
+          els.imageInput.value = "";
+          return;
+        }
+
+        pendingFile = file;
+
+        // preview
+        const objectUrl = URL.createObjectURL(file);
+        setAvatar(objectUrl);
+        setEditingState(true);
+      });
+
+      els.resetBtn.addEventListener("click", () => {
+        clearError();
+        pendingFile = null;
+        els.imageInput.value = "";
+
+        if (originalImageUrl) setAvatar(originalImageUrl);
+        else clearAvatar();
+
+        setEditingState(false);
+      });
+
+      // ---------- upload (optional) ----------
+      els.saveBtn.addEventListener("click", async () => {
+        clearError();
+
+        if (!pendingFile) {
+          showError("Nav izvēlēts jauns attēls.");
+          return;
+        }
+        if (!currentKey) {
+          showError("Nav zināms lietotāja identifikators (uid/nfc).");
+          return;
+        }
+
+        els.saveBtn.disabled = true;
+        els.resetBtn.disabled = true;
+        els.changeBtn.disabled = true;
+
+        try {
+          const params = new URLSearchParams(location.search);
+          const uid = params.get("uid");
+          const nfc = params.get("nfc");
+
+          const fd = new FormData();
+          fd.append("file", pendingFile);
+          fd.append(uid ? "uid" : "nfc", currentKey);
+
+          const res = await fetch(API_UPLOAD, { method: "POST", body: fd });
+          if (!res.ok) throw new Error("Neizdevās saglabāt attēlu (HTTP " + res.status + ").");
+
+          // pieņemam, ka API atgriež { imageUrl: "https://..." }
+          const out = await res.json().catch(() => ({}));
+          if (out.imageUrl) {
+            originalImageUrl = out.imageUrl;
+            setAvatar(originalImageUrl);
+          }
+
+          pendingFile = null;
+          els.imageInput.value = "";
+          setEditingState(false);
+        } catch (err) {
+          showError(err?.message || "Kļūda saglabājot attēlu.");
+        } finally {
+          els.saveBtn.disabled = false;
+          els.resetBtn.disabled = false;
+          els.changeBtn.disabled = false;
+        }
+      });
+
+      // start
+      loadProfile();
+    })();
+  </script>
+</body>
+</html>
