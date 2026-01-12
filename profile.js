@@ -1,4 +1,3 @@
-<!-- Ieteicams ielikt <script type="module">, lai droši lietotu mūsdienu JS -->
 <script type="module">
 "use strict";
 
@@ -9,34 +8,46 @@ const CONFIG = {
     cloudName: "dmkpb05ww",
     uploadPreset: "Vezitivus",
     folder: "Vezitivus",
-    maxBytes: 5 * 1024 * 1024,           // 5MB limits (pielāgo vajadzībām)
+    maxBytes: 5 * 1024 * 1024,
     allowedTypes: ["image/jpeg","image/png","image/webp","image/avif"]
+  },
+  timeouts: {
+    apiMs: 15000,
+    cloudinaryMs: 30000
   }
 };
 
 // ====== Palīgfunkcijas ======
 const qs = (k, s = window.location.search) => new URLSearchParams(s).get(k);
+
 const select = (sel) => {
   const el = document.querySelector(sel);
   if (!el) console.warn(`Nav atrasts elements: ${sel}`);
   return el;
 };
+
 const show = (el) => el && el.classList.remove("is-hidden");
 const hide = (el) => el && el.classList.add("is-hidden");
+const setText = (el, value = "—") => { if (el) el.textContent = value; };
 
-const setText = (el, value = "") => { if (el) el.textContent = value; };
+// Apps Script dažreiz dod "TRUE"/"FALSE", dažreiz true/false
+const normalizeBool = (v) => {
+  if (typeof v === "boolean") return v;
+  if (typeof v === "number") return v !== 0;
+  if (typeof v === "string") return v.trim().toLowerCase() === "true";
+  return false;
+};
 
 const withLoading = async (el, fn, labelLoading = "Notiek…", labelIdle) => {
   if (!el) return fn();
-  const prev = el.textContent;
+  const prevText = el.textContent;
   const prevDisabled = el.disabled;
   el.disabled = true;
-  el.textContent = labelIdle ?? prev;
-  if (labelLoading) el.textContent = labelLoading;
+  el.textContent = labelLoading;
   try { return await fn(); }
   finally {
     el.disabled = prevDisabled;
-    el.textContent = labelIdle ?? prev;
+    el.textContent = labelIdle ?? prevText;
   }
 };
 
@@ -56,28 +67,75 @@ const toast = (() => {
     t.className = `toast toast--${type}`;
     t.textContent = msg;
     container.appendChild(t);
-    setTimeout(() => t.classList.add("is-out"), ms - 250);
+    const outAt = Math.max(250, ms - 250);
+    setTimeout(() => t.classList.add("is-out"), outAt);
     setTimeout(() => t.remove(), ms);
   };
 })();
 
+const buildUrl = (base, paramsObj = {}) => {
+  const u = new URL(base);
+  Object.entries(paramsObj).forEach(([k, v]) => {
+    if (v === undefined || v === null) return;
+    u.searchParams.set(k, String(v));
+  });
+  return u.toString();
+};
+
+// Robustāks API: Apps Script reizēm atdod nepareizu content-type / tukšu text
 const apiCall = async (url, opts = {}) => {
   const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort("timeout"), 15000);
+  const t = setTimeout(() => ctrl.abort(), CONFIG.timeouts.apiMs);
+
   try {
     const res = await fetch(url, { cache: "no-store", signal: ctrl.signal, ...opts });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
+    const text = await res.text();
+
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch { /* ignore */ }
+
+    if (!res.ok) {
+      const msg = data?.message || `HTTP ${res.status}`;
+      throw new Error(msg);
+    }
+    if (data === null) throw new Error("Atbilde nav derīgs JSON (Apps Script).");
+
     return data;
   } finally {
     clearTimeout(t);
   }
 };
 
-const buildUrl = (base, paramsObj) => {
-  const u = new URL(base);
-  Object.entries(paramsObj).forEach(([k, v]) => u.searchParams.set(k, v));
-  return u.toString();
+// Cloudinary upload ar timeout + labāku error
+const cloudinaryUpload = async (file) => {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), CONFIG.timeouts.cloudinaryMs);
+
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", CONFIG.cloudinary.uploadPreset);
+    formData.append("folder", CONFIG.cloudinary.folder);
+
+    const resp = await fetch(
+      `https://api.cloudinary.com/v1_1/${CONFIG.cloudinary.cloudName}/image/upload`,
+      { method: "POST", body: formData, signal: ctrl.signal }
+    );
+
+    const result = await resp.json().catch(() => null);
+
+    if (!resp.ok) {
+      const msg = result?.error?.message || `Cloudinary HTTP ${resp.status}`;
+      throw new Error(msg);
+    }
+    if (!(result?.secure_url && result?.public_id)) {
+      throw new Error("Cloudinary neatgrieza secure_url/public_id.");
+    }
+
+    return { imageUrl: result.secure_url, publicId: result.public_id };
+  } finally {
+    clearTimeout(t);
+  }
 };
 
 // ====== Galvenā loģika ======
@@ -92,7 +150,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   const nfcIdEl        = select("#nfc-id");
   const placeEl        = select("#place");
   const teamNameEl     = select("#team-name");
-  const errorBox       = select("#error-box"); // ieteicams HTML ielikt <div id="error-box"></div>
+  const errorBox       = select("#error-box");
+
+  const showError = (msg) => {
+    if (errorBox) { errorBox.textContent = msg; show(errorBox); }
+    else document.body.innerHTML = `<h1 class="error">${msg}</h1>`;
+  };
+  const clearError = () => {
+    if (errorBox) { errorBox.textContent = ""; hide(errorBox); }
+  };
 
   // Palaid-drošs “hide” uzreiz
   if (checkinButton) hide(checkinButton);
@@ -100,48 +166,50 @@ document.addEventListener("DOMContentLoaded", async () => {
   // NFC uid
   const uid = qs("uid");
   if (!uid) {
-    if (errorBox) { errorBox.textContent = "Kļūda: NFC ID nav atrasts!"; show(errorBox); }
-    else document.body.innerHTML = "<h1 class='error'>Kļūda: NFC ID nav atrasts!</h1>";
+    showError("Kļūda: NFC ID (uid) nav atrasts URL! Piemērs: ?uid=ABC123");
     return;
   }
 
+  let originalImageUrl = "";
+
   // 1) Ielādē profils
   try {
+    clearError();
     const data = await apiCall(buildUrl(CONFIG.scriptUrl, { action: "getProfile", uid }));
+
     if (data?.status !== "success") {
-      const msg = data?.message || "Nezināma kļūda.";
-      if (errorBox) { errorBox.textContent = `Kļūda: ${msg}`; show(errorBox); }
-      else document.body.innerHTML = `<h1 class='error'>Kļūda: ${msg}</h1>`;
+      showError(`Kļūda: ${data?.message || "Nezināma kļūda."}`);
       return;
     }
 
-    setText(usernameEl, data.username || "");
-    setText(nfcIdEl, data.uid || "");
-    setText(placeEl, data.place || "");
+    setText(usernameEl, data.username || "—");
+    setText(nfcIdEl, data.uid || uid);
+    setText(placeEl, data.place || "—");
     setText(teamNameEl, data.team || "Nav komandas");
 
-    if (data.imageUrl && profileImage) {
-      profileImage.src = data.imageUrl;
-      profileImage.loading = "lazy";
-      show(profileImage);
-      if (changeButton) changeButton.textContent = "Nomainīt attēlu";
-    } else if (changeButton) {
-      changeButton.textContent = "Izvēlēties attēlu";
+    originalImageUrl = data.imageUrl || "";
+
+    if (profileImage) {
+      if (originalImageUrl) {
+        profileImage.src = originalImageUrl;
+        profileImage.loading = "lazy";
+        show(profileImage);
+        if (changeButton) changeButton.textContent = "Nomainīt attēlu";
+      } else if (changeButton) {
+        changeButton.textContent = "Izvēlēties attēlu";
+      }
     }
 
-    const checkinStatus = data.checkinStatus;            // kolonna C
-    const globalCheckinEnabled = data.globalCheckinEnabled; // Lapa1!C4
+    // check-in loģika (robusta pret TRUE/FALSE un true/false)
+    const checkinStatus = normalizeBool(data.checkinStatus); // true = jau check-in
+    const globalEnabled = normalizeBool(data.globalCheckinEnabled);
 
-    if (checkinButton && globalCheckinEnabled === "TRUE" && checkinStatus === "FALSE") {
-      show(checkinButton);
-    } else {
-      hide(checkinButton);
-    }
+    if (checkinButton && globalEnabled && !checkinStatus) show(checkinButton);
+    else hide(checkinButton);
 
   } catch (e) {
     console.error("Kļūda ielādējot profilu:", e);
-    if (errorBox) { errorBox.textContent = "Kļūda: Savienojuma problēma."; show(errorBox); }
-    else document.body.innerHTML = "<h1 class='error'>Kļūda: Savienojuma problēma.</h1>";
+    showError("Kļūda: Savienojuma problēma vai nederīgs API formāts.");
     return;
   }
 
@@ -150,6 +218,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     changeButton.addEventListener("click", () => imageInput.click());
 
     imageInput.addEventListener("change", async function () {
+      clearError();
+
       const file = this.files?.[0];
       if (!file) return;
 
@@ -166,55 +236,43 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       await withLoading(changeButton, async () => {
-        // Priekšskatījums uzreiz
-        if (profileImage) {
-          const blobUrl = URL.createObjectURL(file);
-          profileImage.src = blobUrl;
-          show(profileImage);
-        }
+        let blobUrl = "";
 
-        // Augšupielāde uz Cloudinary
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("upload_preset", CONFIG.cloudinary.uploadPreset);
-        formData.append("folder", CONFIG.cloudinary.folder);
-
-        let result;
         try {
-          const resp = await fetch(`https://api.cloudinary.com/v1_1/${CONFIG.cloudinary.cloudName}/image/upload`, {
-            method: "POST",
-            body: formData
-          });
-          result = await resp.json();
-        } catch (err) {
-          console.error("Cloudinary kļūda:", err);
-          toast("Neizdevās augšupielādēt attēlu.", "error");
-          return;
-        }
+          // Preview uzreiz
+          if (profileImage) {
+            blobUrl = URL.createObjectURL(file);
+            profileImage.src = blobUrl;
+            show(profileImage);
+          }
 
-        if (!(result?.secure_url && result?.public_id)) {
-          console.error("Cloudinary neatgrieza secure_url/public_id:", result);
-          toast("Kļūda apstrādājot attēlu.", "error");
-          return;
-        }
+          // Upload
+          const { imageUrl, publicId } = await cloudinaryUpload(file);
 
-        // Persistējam Apps Script pusē
-        try {
-          const saveUrl = buildUrl(CONFIG.scriptUrl, {
+          // Persistējam Apps Script pusē
+          const saveData = await apiCall(buildUrl(CONFIG.scriptUrl, {
             action: "saveImage",
             uid,
-            imageUrl: result.secure_url,
-            publicId: result.public_id
-          });
-          const saveData = await apiCall(saveUrl);
+            imageUrl,
+            publicId
+          }));
+
           if (saveData?.status === "success") {
             toast("Attēls atjaunots!", "success");
+            originalImageUrl = imageUrl;
+            if (profileImage) profileImage.src = imageUrl;
           } else {
             toast(`Kļūda saglabājot attēlu: ${saveData?.message ?? "nezināms iemesls"}`, "error");
+            if (profileImage && originalImageUrl) profileImage.src = originalImageUrl;
           }
+
         } catch (err) {
-          console.error("Kļūda saglabājot attēlu:", err);
-          toast("Kļūda saglabājot attēlu.", "error");
+          console.error("Attēla maiņas kļūda:", err);
+          toast("Neizdevās augšupielādēt vai saglabāt attēlu.", "error");
+          if (profileImage && originalImageUrl) profileImage.src = originalImageUrl;
+        } finally {
+          if (blobUrl) URL.revokeObjectURL(blobUrl);
+          this.value = ""; // ļauj izvēlēties to pašu failu vēlreiz
         }
       }, "Augšupielādē…", "Nomainīt attēlu");
     });
