@@ -6,7 +6,6 @@
 <title>Turnīru Aplikācija — Pro Liquid UI</title>
 <meta name="color-scheme" content="light dark" />
 <style>
-  /* ===== Pro Liquid + Glass Theme ===== */
   :root{
     --bg:#0b0f14; --text:#e6e9ef; --muted:#9aa4b2;
     --card:rgba(18,24,38,.55); --border:rgba(255,255,255,.08); --ring:#6f7dd62b;
@@ -16,7 +15,7 @@
     --std-w-num: clamp(30px, 7vw, 56px);
   }
   @media (prefers-color-scheme:light){
-    :root{ --bg:#f7f8fc; --text:#0f172a; --muted:#4b5568; --card:rgba(255,255,255,.82); --border:rgba(15,23,42,.08);
+    :root{ --bg:#f7f8fc; --text:#0f172a; --muted:#4b5568; --card:rgba(255,255,255,.82); --border:rgba(15,23,42,.10);
            --ring:#7c8dd41c; --shadow:0 12px 30px rgba(18,20,40,.08), inset 0 1px 0 rgba(255,255,255,.55)}
   }
   *{box-sizing:border-box}
@@ -24,12 +23,11 @@
   body{
     margin:0;color:var(--text);font-family:var(--font);background:var(--bg);
     background:
-      radial-gradient(1200px 800px at 120% -10%, color-mix(in oklab, var(--accent) 35%, transparent), transparent 60%),
-      radial-gradient(900px 600px at -30% 20%, color-mix(in oklab, var(--accent2) 35%, transparent), transparent 60%),
-      radial-gradient(600px 500px at 80% 110%, color-mix(in oklab, #19c37d 35%, transparent), transparent 60%);
+      radial-gradient(1200px 800px at 120% -10%, color-mix(in oklab, var(--accent) 30%, transparent), transparent 60%),
+      radial-gradient(900px 600px at -30% 20%, color-mix(in oklab, var(--accent2) 28%, transparent), transparent 60%),
+      radial-gradient(600px 500px at 80% 110%, color-mix(in oklab, #19c37d 26%, transparent), transparent 60%);
   }
 
-  /* ===== Header ===== */
   header{
     position:sticky;top:0;z-index:20;backdrop-filter:saturate(140%) blur(12px);
     background:linear-gradient(180deg, rgba(0,0,0,.0), rgba(0,0,0,.05)), var(--card);
@@ -41,32 +39,20 @@
        background:radial-gradient(12px 12px at 20% 20%, #fff8, #0000), linear-gradient(135deg,var(--accent),var(--accent2))}
   .wrap{max-width:1200px;margin:clamp(10px,2vw,20px) auto clamp(60px,7vw,96px); padding:0 clamp(14px,3vw,24px);display:grid;gap:var(--space)}
 
-  /* notice (inline, not popup) */
-  .notice{
-    max-width:1200px;
-    margin:0 auto 10px;
-    padding:0 clamp(14px,3vw,24px);
-  }
+  /* non-intrusive notice (no alerts) */
+  .notice{max-width:1200px;margin:0 auto 10px;padding:0 clamp(14px,3vw,24px)}
   .notice > div{
-    display:flex; align-items:center; justify-content:space-between; gap:12px;
-    padding:10px 12px;
-    border-radius:14px;
-    border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:10px 12px;border-radius:14px;border:1px solid var(--border);
     background:color-mix(in oklab, var(--card) 92%, rgba(0,0,0,.18));
-    box-shadow:0 20px 60px rgba(0,0,0,.35);
+    box-shadow:0 20px 60px rgba(0,0,0,.25)
   }
-  .notice b{font-weight:900}
-  .notice button{
-    border:1px solid var(--border); background:transparent; color:var(--text);
-    border-radius:999px; padding:6px 10px; cursor:pointer;
-  }
+  .notice button{border:1px solid var(--border);background:transparent;color:var(--text);border-radius:999px;padding:6px 10px;cursor:pointer}
 
-  /* ===== Panels & buttons ===== */
   .panel{
     background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);
     padding:clamp(12px,2.6vw,20px); transition:transform .12s ease, box-shadow .25s ease;
   }
-  .panel:hover{ transform:translateY(-1px) }
   h2{margin:0 0 8px;font-size:clamp(18px,2.6vw,22px)}
   h3{margin:0 0 8px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -74,12 +60,13 @@
   .tnum{font-variant-numeric:tabular-nums}
 
   input,textarea,select{
-    width:100%;background:rgba(255,255,255,.02);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:12px 12px;
-    transition:border .2s ease, box-shadow .2s ease, background-color .2s ease, transform .08s ease;
+    width:100%;background:rgba(255,255,255,.02);color:var(--text);
+    border:1px solid var(--border);border-radius:12px;padding:12px 12px;
+    transition:border .2s ease, box-shadow .2s ease, transform .08s ease;
     -webkit-tap-highlight-color: transparent;
   }
-  textarea{min-height:160px;resize:vertical}
   input:focus,textarea:focus,select:focus{outline:none;border-color:color-mix(in oklab, var(--accent) 45%, var(--border));box-shadow:0 0 0 6px var(--ring)}
+
   .btn{
     appearance:none;border:1px solid var(--border);
     background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.08));
@@ -90,28 +77,134 @@
   .btn--gold{border:none;background:linear-gradient(135deg,var(--gold),#ffd569);color:#1a1a1a}
   .btn:active{transform:translateY(1px)}
 
-  .score-in{
-    width:clamp(44px, 11vw, 62px);
-    text-align:center;
-    padding:8px 6px;
-    border-radius:10px;
-    border:1px solid var(--border);
-    background:rgba(255,255,255,.03);
-    color:var(--text);
+  /* ===== TEAM LIST (setup) ===== */
+  .teams-box{display:grid;gap:10px}
+  .teams-list{display:grid;gap:8px}
+  .team-row{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:10px 12px;border-radius:14px;border:1px solid var(--border);
+    background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,.10));
+  }
+  .team-left{display:flex;align-items:center;gap:10px;min-width:0}
+  .team-name{font-weight:900;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .team-actions{display:flex;gap:8px;flex:0 0 auto}
+  .icon-btn{
+    border:1px solid var(--border);background:rgba(255,255,255,.02);color:var(--text);
+    border-radius:999px;padding:8px 10px;cursor:pointer
+  }
+  .icon-btn[disabled]{opacity:.45;cursor:not-allowed}
+
+  /* ===== Avatars ===== */
+  .avatar{
+    width:30px;height:30px;border-radius:10px;overflow:hidden;flex:0 0 auto;
+    border:1px solid rgba(255,255,255,.10);
+    background:radial-gradient(14px 14px at 30% 30%, rgba(255,255,255,.30), transparent 55%),
+               linear-gradient(135deg, rgba(124,92,255,.95), rgba(69,162,255,.85));
+    display:grid;place-items:center;font-weight:1000;color:#fff;font-size:12px;letter-spacing:.06em;
+    box-shadow:0 10px 26px rgba(0,0,0,.25);
+  }
+  .avatar img{width:100%;height:100%;object-fit:cover;display:block}
+  .avatar.alt{
+    background:radial-gradient(14px 14px at 30% 30%, rgba(255,255,255,.30), transparent 55%),
+               linear-gradient(135deg, rgba(99,102,241,.95), rgba(168,85,247,.80));
   }
 
-  /* ===== Standings (no horizontal scroll) ===== */
+  /* ===== GROUPS — PROFESSIONAL (less frames, smaller fonts) ===== */
+  .group-grid{display:grid;gap:var(--space);grid-template-columns:repeat(auto-fit,minmax(360px,1fr))}
+  .group-head{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px;
+  }
+  .g-left{display:flex;align-items:center;gap:10px;min-width:0}
+  .gid{
+    width:34px;height:34px;border-radius:12px;display:grid;place-items:center;
+    font-weight:1000;color:#fff;flex:0 0 auto;
+    background:radial-gradient(14px 14px at 25% 25%, rgba(255,255,255,.35), transparent 55%),
+               linear-gradient(135deg,var(--accent),var(--accent2));
+    box-shadow:0 14px 30px rgba(0,0,0,.25);
+  }
+  .g-title{font-weight:1000;font-size:18px;letter-spacing:.2px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .g-sub{font-size:12px;color:var(--muted)}
+  .matches{display:grid;gap:10px}
+
+  .match-row{
+    border:1px solid var(--border);
+    border-radius:18px;
+    padding:10px 12px;
+    background:
+      radial-gradient(220px 120px at 18% 40%, rgba(255,255,255,.05), transparent 60%),
+      linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,.14));
+    box-shadow:0 16px 50px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.04);
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+    touch-action:manipulation;
+    transition:transform .12s ease, border-color .2s ease;
+  }
+  .match-row:hover{transform:translateY(-1px);border-color:color-mix(in oklab, var(--accent) 18%, var(--border))}
+  .match-row:active{transform:translateY(1px)}
+  .match-row.disabled{opacity:.45;cursor:default}
+  .mr{
+    display:grid;
+    grid-template-columns:44px 1fr 132px 1fr;
+    gap:12px;
+    align-items:center;
+  }
+  .mr-r{
+    text-align:center;
+    font-weight:1000;
+    color:color-mix(in oklab, var(--text) 85%, var(--muted));
+    font-size:13px;
+    letter-spacing:.06em;
+  }
+  .mr-team{display:flex;align-items:center;gap:10px;min-width:0}
+  .mr-team.away{justify-content:flex-end}
+  .mr-name{
+    min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    font-weight:1000;
+    font-size:clamp(14px, 2.0vw, 17px);
+    letter-spacing:.01em;
+  }
+  .mr-score{
+    height:38px;
+    border-radius:999px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    font-weight:1000;
+    letter-spacing:.04em;
+    border:1px solid color-mix(in oklab, var(--ok) 35%, rgba(255,255,255,.06));
+    background:
+      radial-gradient(140px 80px at 25% 25%, rgba(255,255,255,.12), transparent 60%),
+      linear-gradient(135deg, color-mix(in oklab, var(--ok) 28%, rgba(0,0,0,.20)), rgba(0,0,0,.26));
+    box-shadow:0 14px 40px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.08);
+    font-size:18px;
+  }
+  .mr-ot{
+    font-size:12px;
+    font-weight:1000;
+    padding:5px 9px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,.10);
+    color:color-mix(in oklab, var(--gold) 90%, #fff);
+    background:rgba(0,0,0,.18);
+    display:none;
+  }
+  .mr-ot.on{display:inline-flex}
+
+  @media (max-width:520px){
+    .mr{grid-template-columns:40px 1fr 118px 1fr;gap:10px}
+    .mr-score{font-size:16px}
+    .avatar{width:28px;height:28px}
+  }
+
+  /* ===== STANDINGS ===== */
+  #standingsHost{display:grid;grid-template-columns:1fr;gap:var(--space);align-items:start}
+  #standingsHost > .panel{min-width:0}
   .standings-table{table-layout:fixed;width:100%;border-collapse:separate;border-spacing:0 8px}
-  .standings-table th,.standings-table td{padding:8px 10px}
+  .standings-table th,.standings-table td{padding:8px 10px;overflow:hidden}
   .standings-table thead th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
   .standings-table tbody tr{background:linear-gradient(180deg,transparent, color-mix(in oklab, var(--card) 88%, transparent))}
-  .name-nowrap{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:inline-block}
-  @media (max-width:520px){ .standings-table th,.standings-table td{font-size:12px;padding:6px 6px} }
-
-  #standingsHost{ display:grid; grid-template-columns:1fr; gap:var(--space); align-items:start; }
-  #standingsHost > .panel{ min-width:0 }
-  .standings-table td:nth-child(2) .name-nowrap{display:block;min-width:0;max-width:100%}
-  .standings-table th,.standings-table td{overflow:hidden}
+  .name-nowrap{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
 
   /* ===== Bracket ===== */
   .bracket{display:grid;gap:var(--space);grid-template-columns:repeat(3, minmax(260px,1fr))}
@@ -120,197 +213,74 @@
   .team{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:8px;border-radius:10px}
   .team.win{outline:2px solid color-mix(in oklab, var(--ok) 45%, transparent);outline-offset:-2px}
   .status{font-size:12px;color:var(--muted);margin-bottom:6px}
+  .score-in{width:clamp(44px, 11vw, 62px);text-align:center;padding:8px 6px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--text)}
 
   /* compact checkbox */
   .chk{appearance:none;width:16px;height:16px;border:1px solid var(--border);border-radius:4px;background:rgba(255,255,255,.02);display:inline-block;position:relative;vertical-align:middle}
   .chk:checked{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent}
   .chk:checked::after{content:'✓';position:absolute;inset:0;font-size:12px;color:#fff;display:flex;align-items:center;justify-content:center}
 
-  /* ===== Groups layout ===== */
-  .group-grid{display:grid; gap:var(--space); grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
-  .group-head{
-    display:flex; align-items:flex-start; justify-content:space-between; gap:10px; flex-wrap:wrap;
-    margin-bottom:10px;
-  }
-  .group-title{display:flex; align-items:baseline; gap:10px}
-  .gid{
-    display:inline-flex; align-items:center; justify-content:center;
-    width:36px; height:36px; border-radius:12px;
-    background:radial-gradient(14px 14px at 20% 20%, rgba(255,255,255,.35), transparent 55%),
-               linear-gradient(135deg,var(--accent),var(--accent2));
-    color:#fff; font-weight:1000;
-    box-shadow:0 14px 32px rgba(0,0,0,.35);
-  }
-
-  /* ===== Match row like screenshot ===== */
-  .match-pill{
-    position:relative;
-    border-radius:999px;
-    padding:14px 14px 12px;
-    border:1px solid rgba(255,255,255,.06);
-    background:
-      radial-gradient(220px 120px at 18% 40%, rgba(255,255,255,.06), transparent 60%),
-      linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,.22));
-    box-shadow:0 30px 90px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.05);
-    cursor:pointer;
-    touch-action:manipulation;
-    -webkit-tap-highlight-color:transparent;
-    transition:transform .12s ease, border-color .2s ease;
-  }
-  .match-pill:hover{ transform:translateY(-1px); border-color:color-mix(in oklab, var(--accent) 18%, rgba(255,255,255,.06)); }
-  .match-pill:active{ transform:translateY(1px); }
-
-  .mp-labels{
-    display:flex; justify-content:space-between; align-items:center;
-    padding:0 10px 10px 86px; /* leave space for R badge */
-    font-size:12px;
-    color:color-mix(in oklab, var(--text) 65%, var(--muted));
-    font-weight:900;
-    opacity:.9;
-  }
-  .mp-main{display:flex; align-items:center; gap:16px}
-
-  .rbadge{
-    width:72px; height:56px;
-    border-radius:18px;
-    display:grid; place-items:center;
-    font-weight:1000;
-    letter-spacing:.08em;
-    border:1px solid rgba(255,255,255,.07);
-    background:
-      radial-gradient(40px 24px at 35% 30%, rgba(255,255,255,.08), transparent 60%),
-      linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,.25));
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
-  }
-
-  .team-chip{
-    flex:1; min-width:0;
-    display:flex; align-items:center; gap:12px;
-    height:56px;
-    padding:10px 14px;
-    border-radius:18px;
-    border:1px solid rgba(255,255,255,.06);
-    background:
-      radial-gradient(140px 70px at 10% 30%, rgba(255,255,255,.06), transparent 60%),
-      linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,.20));
-  }
-  .team-chip.away{ justify-content:flex-end; }
-  .team-name{
-    min-width:0;
-    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-    font-weight:1000;
-    font-size:clamp(16px, 2.4vw, 22px);
-    letter-spacing:.02em;
-  }
-
-  .avatar{
-    width:36px;height:36px;border-radius:12px;
-    flex:0 0 auto;
-    overflow:hidden;
-    border:1px solid rgba(255,255,255,.10);
-    background:
-      radial-gradient(14px 14px at 30% 30%, rgba(255,255,255,.30), transparent 55%),
-      linear-gradient(135deg, rgba(124,92,255,.95), rgba(69,162,255,.85));
-    box-shadow:0 12px 30px rgba(0,0,0,.35);
-    display:grid; place-items:center;
-    font-weight:1000;
-    color:#fff;
-    font-size:12px;
-    letter-spacing:.06em;
-  }
-  .avatar img{width:100%;height:100%;object-fit:cover;display:block}
-  .avatar.alt{
-    background:
-      radial-gradient(14px 14px at 30% 30%, rgba(255,255,255,.30), transparent 55%),
-      linear-gradient(135deg, rgba(99,102,241,.95), rgba(168,85,247,.80));
-  }
-
-  .score-chip{
-    position:relative;
-    width:180px; height:56px;
-    border-radius:999px;
-    display:grid; place-items:center;
-    font-weight:1000;
-    font-size:clamp(18px, 3vw, 28px);
-    letter-spacing:.04em;
-    color:#fff;
-    border:1px solid color-mix(in oklab, var(--ok) 35%, rgba(255,255,255,.06));
-    background:
-      radial-gradient(140px 80px at 25% 25%, rgba(255,255,255,.15), transparent 60%),
-      linear-gradient(135deg, color-mix(in oklab, var(--ok) 35%, rgba(0,0,0,.20)), rgba(0,0,0,.30));
-    box-shadow:0 18px 50px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.08);
-  }
-  .score-chip.done{
-    border-color:color-mix(in oklab, var(--ok) 55%, rgba(255,255,255,.06));
-  }
-  .ot-badge{
-    position:absolute;
-    right:10px; top:50%;
-    transform:translateY(-50%);
-    padding:6px 10px;
-    border-radius:999px;
-    font-size:12px;
-    font-weight:1000;
-    letter-spacing:.06em;
-    color:color-mix(in oklab, var(--gold) 90%, #fff);
-    border:1px solid rgba(255,255,255,.10);
-    background:rgba(0,0,0,.18);
-    opacity:0;
-  }
-  .ot-badge.on{ opacity:1; }
-
-  .match-pill.disabled{
-    opacity:.45;
-    cursor:default;
-  }
-
-  @media (max-width:720px){
-    .mp-labels{ padding-left:86px; }
-    .score-chip{ width:148px; }
-  }
-  @media (max-width:560px){
-    .mp-labels{ padding-left:82px; }
-    .rbadge{ width:68px; }
-    .score-chip{ width:132px; }
-    .team-name{ font-size:18px; }
-  }
-
-  /* ===== Match modal (clean, no hints) ===== */
-  .mm-backdrop{
+  /* ===== Generic modal (team + match) ===== */
+  .backdrop{
     position:fixed; inset:0;
     background:rgba(0,0,0,.62);
     backdrop-filter: blur(10px);
     opacity:0; visibility:hidden; pointer-events:none;
     transition:opacity .22s cubic-bezier(.2,.8,.2,1);
-    z-index:95;
+    z-index:90;
   }
-  .mm-backdrop.open{ opacity:1; visibility:visible; pointer-events:auto; }
+  .backdrop.open{opacity:1;visibility:visible;pointer-events:auto}
 
-  .mm{
+  .modal{
     position:fixed; left:50%; top:50%;
     transform:translate(-50%,-50%) scale(.985);
-    width:min(520px, calc(100% - 24px));
+    width:min(560px, calc(100% - 24px));
     border-radius:22px;
     background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(0,0,0,.18)), var(--card);
     border:1px solid var(--border);
-    box-shadow:0 40px 120px rgba(0,0,0,.62), inset 0 1px 0 rgba(255,255,255,.06);
+    box-shadow:0 40px 120px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
     backdrop-filter: blur(14px) saturate(150%);
     opacity:0; visibility:hidden; pointer-events:none;
     transition: transform .24s cubic-bezier(.2,.8,.2,1), opacity .24s cubic-bezier(.2,.8,.2,1);
-    z-index:110;
+    z-index:100;
     overflow:hidden;
   }
-  .mm.open{ opacity:1; visibility:visible; pointer-events:auto; transform:translate(-50%,-50%) scale(1); }
+  .modal.open{opacity:1;visibility:visible;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
 
-  .mm-head{
+  .m-head{
     display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
     padding:14px 16px; border-bottom:1px solid var(--border);
     background:color-mix(in oklab, var(--card) 96%, transparent)
   }
-  .mm-title{ font-weight:1000; letter-spacing:.02em; font-size:16px; }
-  .mm-sub{ margin-top:6px; font-size:12px; color:var(--muted); line-height:1.25; }
+  .m-title{font-weight:1000;letter-spacing:.02em;font-size:16px}
+  .m-sub{margin-top:6px;font-size:12px;color:var(--muted);line-height:1.25}
+  .m-body{padding:14px 16px 16px;display:grid;gap:12px}
+  .m-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+  .m-actions .btn{min-width:140px}
 
-  .mm-body{ padding:14px 16px 16px; display:grid; gap:12px; }
+  /* TEAM modal specifics */
+  .team-form{display:grid;gap:12px}
+  .photo-row{display:flex;gap:12px;align-items:center}
+  .photo-lg{
+    width:58px;height:58px;border-radius:18px;overflow:hidden;flex:0 0 auto;
+    border:1px solid rgba(255,255,255,.12);
+    background:radial-gradient(18px 18px at 30% 30%, rgba(255,255,255,.28), transparent 55%),
+               linear-gradient(135deg, rgba(124,92,255,.95), rgba(69,162,255,.85));
+    display:grid;place-items:center;color:#fff;font-weight:1000;
+    box-shadow:0 18px 44px rgba(0,0,0,.28);
+  }
+  .photo-lg img{width:100%;height:100%;object-fit:cover;display:block}
+  .file-hide{display:none}
+
+  /* MATCH modal keypad */
+  .mm-err{
+    width:100%;padding:10px 12px;border-radius:14px;
+    border:1px solid color-mix(in oklab, var(--bad) 30%, var(--border));
+    background:color-mix(in oklab, var(--bad) 12%, rgba(0,0,0,.10));
+    color:color-mix(in oklab, var(--text) 92%, var(--bad));
+    font-weight:900;display:none;
+  }
+  .mm-err.show{display:block}
 
   .mm-scorebox{
     border:1px solid var(--border);
@@ -320,10 +290,8 @@
     display:grid; gap:10px;
   }
   .mm-row{
-    display:grid;
-    grid-template-columns:1fr min-content 1fr;
-    gap:10px;
-    align-items:stretch;
+    display:grid; grid-template-columns:1fr min-content 1fr;
+    gap:10px; align-items:stretch;
   }
   .mm-side{
     border:1px solid var(--border);
@@ -331,16 +299,15 @@
     border-radius:16px;
     padding:12px;
     cursor:pointer;
-    touch-action:manipulation;
     user-select:none; -webkit-user-select:none;
     display:grid; gap:8px;
     box-shadow:0 10px 24px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.04);
   }
   .mm-side.active{
     border-color:color-mix(in oklab, var(--accent) 45%, var(--border));
-    box-shadow:0 0 0 6px var(--ring), 0 12px 30px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.04);
+    box-shadow:0 0 0 6px var(--ring), 0 12px 30px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.04);
   }
-  .mm-team{ font-weight:900; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .mm-team{font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .mm-val{
     text-align:center;
     font-size:clamp(44px, 10vw, 62px);
@@ -350,84 +317,37 @@
     background:linear-gradient(135deg, var(--accent), var(--accent2));
     -webkit-background-clip:text; background-clip:text;
     color:transparent;
-    text-shadow:0 18px 44px rgba(0,0,0,.35);
+    text-shadow:0 18px 44px rgba(0,0,0,.30);
   }
-  .mm-mid{
-    display:grid; place-items:center;
-    font-weight:1000;
-    opacity:.6;
-    font-size:22px;
-  }
-
-  .mm-meta{
-    display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
-  }
+  .mm-mid{display:grid;place-items:center;font-weight:1000;opacity:.6;font-size:22px}
+  .mm-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
   .mm-toggle{
-    display:inline-flex; align-items:center; gap:10px;
-    padding:10px 12px;
-    border:1px solid var(--border);
-    border-radius:999px;
+    display:inline-flex;align-items:center;gap:10px;
+    padding:10px 12px;border:1px solid var(--border);border-radius:999px;
     background:rgba(255,255,255,.02);
     user-select:none; -webkit-user-select:none;
   }
-  .switch{
-    position:relative; width:44px; height:26px; border-radius:999px;
-    border:1px solid var(--border); background:rgba(255,255,255,.04);
-    flex:0 0 auto;
-  }
+  .switch{position:relative;width:44px;height:26px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,.04)}
   .switch::after{
-    content:"";
-    position:absolute; top:3px; left:3px;
-    width:20px; height:20px; border-radius:50%;
-    background:rgba(255,255,255,.85);
-    transition:transform .18s cubic-bezier(.2,.8,.2,1);
-    box-shadow:0 10px 18px rgba(0,0,0,.25);
+    content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;
+    background:rgba(255,255,255,.85);transition:transform .18s cubic-bezier(.2,.8,.2,1);box-shadow:0 10px 18px rgba(0,0,0,.25)
   }
-  .mm-toggle input{ display:none; }
-  .mm-toggle input:checked + .switch{
-    border-color:transparent;
-    background:linear-gradient(135deg, var(--accent), var(--accent2));
-  }
-  .mm-toggle input:checked + .switch::after{ transform:translateX(18px); }
-  .mm-toggle b{ font-weight:1000 }
+  .mm-toggle input{display:none}
+  .mm-toggle input:checked + .switch{border-color:transparent;background:linear-gradient(135deg, var(--accent), var(--accent2))}
+  .mm-toggle input:checked + .switch::after{transform:translateX(18px)}
+  .mm-toggle b{font-weight:1000}
 
-  .mm-err{
-    width:100%;
-    padding:10px 12px;
-    border-radius:14px;
-    border:1px solid color-mix(in oklab, var(--bad) 30%, var(--border));
-    background:color-mix(in oklab, var(--bad) 12%, rgba(0,0,0,.10));
-    color:color-mix(in oklab, var(--text) 92%, var(--bad));
-    font-weight:900;
-    display:none;
-  }
-  .mm-err.show{ display:block; }
-
-  .mm-pad{
-    display:grid;
-    grid-template-columns:repeat(3, 1fr);
-    gap:10px;
-  }
+  .mm-pad{display:grid;grid-template-columns:repeat(3, 1fr);gap:10px}
   .pad-btn{
-    appearance:none;
-    border:1px solid var(--border);
+    appearance:none;border:1px solid var(--border);
     background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.12));
-    color:var(--text);
-    border-radius:16px;
-    padding:14px 12px;
-    font-size:18px;
-    font-weight:1000;
-    cursor:pointer;
-    touch-action:manipulation;
-    -webkit-tap-highlight-color:transparent;
-    user-select:none;
-    box-shadow:0 12px 28px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
+    color:var(--text);border-radius:16px;
+    padding:14px 12px;font-size:18px;font-weight:1000;cursor:pointer;
+    touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;
+    box-shadow:0 12px 28px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.06);
   }
-  .pad-btn:active{ transform:translateY(1px); }
-  .pad-btn--sub{ font-size:14px; font-weight:900; color:color-mix(in oklab, var(--text) 80%, var(--muted)); }
-  .mm-actions{ display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap; }
-  .mm-actions .btn{ flex:1; min-width:140px; }
-  .mm-actions .btn--accent{ flex:1.25; }
+  .pad-btn:active{transform:translateY(1px)}
+  .pad-btn--sub{font-size:14px;font-weight:900;color:color-mix(in oklab, var(--text) 80%, var(--muted))}
 </style>
 </head>
 <body>
@@ -446,7 +366,7 @@
   </div>
   <div class="notice" id="notice" hidden>
     <div>
-      <span id="noticeText"><b>Info:</b> …</span>
+      <span id="noticeText"></span>
       <button type="button" id="noticeClose">OK</button>
     </div>
   </div>
@@ -460,11 +380,19 @@
     </div>
 
     <div class="row" style="gap:var(--space); align-items:flex-start">
-      <div style="flex:2; min-width:260px">
+      <div style="flex:2; min-width:280px">
         <input id="tName" placeholder="Turnīra nosaukums (neobligāts)"/>
         <div style="height:10px"></div>
-        <textarea id="teamsInput" placeholder="Katru komandu jaunā rindā..."></textarea>
+
+        <div class="teams-box">
+          <div class="row" style="justify-content:space-between">
+            <div class="muted"><span class="tnum" id="teamsCount">0</span> komandas</div>
+            <button type="button" class="btn btn--accent" id="addTeamBtn">Pievienot komandu</button>
+          </div>
+          <div id="teamsList" class="teams-list"></div>
+        </div>
       </div>
+
       <div style="flex:1; min-width:240px">
         <label class="muted" for="groupStrategy">Grupu skaits</label>
         <select id="groupStrategy">
@@ -523,18 +451,51 @@
   </section>
 </main>
 
-<!-- Match modal -->
-<div id="mmBackdrop" class="mm-backdrop"></div>
-<div id="mm" class="mm" role="dialog" aria-modal="true" aria-labelledby="mmTitle" aria-hidden="true">
-  <div class="mm-head">
+<!-- TEAM MODAL -->
+<div id="teamBackdrop" class="backdrop"></div>
+<div id="teamModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="teamTitle" aria-hidden="true">
+  <div class="m-head">
     <div>
-      <div class="mm-title" id="mmTitle">Ievadi rezultātu</div>
-      <div class="mm-sub" id="mmSub">—</div>
+      <div class="m-title" id="teamTitle">Komanda</div>
+      <div class="m-sub" id="teamSub">Ievadi nosaukumu un (ja gribi) pievieno attēlu.</div>
+    </div>
+    <button type="button" class="btn" id="teamCloseBtn" aria-label="Aizvērt">✕</button>
+  </div>
+  <div class="m-body">
+    <div class="team-form">
+      <div class="photo-row">
+        <div class="photo-lg" id="teamPhotoPreview">?</div>
+        <div style="flex:1;min-width:0">
+          <input id="teamNameInput" placeholder="Komandas nosaukums" />
+          <div class="row" style="margin-top:10px;justify-content:flex-start">
+            <input type="file" id="teamFile" class="file-hide" accept="image/*" />
+            <button type="button" class="btn" id="teamPickPhotoBtn">Izvēlēties attēlu</button>
+            <button type="button" class="btn" id="teamRemovePhotoBtn">Noņemt attēlu</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="m-actions">
+      <button type="button" class="btn" id="teamDeleteBtn">Dzēst</button>
+      <button type="button" class="btn" id="teamSaveNextBtn">Saglabāt & nākamā</button>
+      <button type="button" class="btn btn--accent" id="teamSaveDoneBtn">Saglabāt</button>
+    </div>
+  </div>
+</div>
+
+<!-- MATCH MODAL -->
+<div id="mmBackdrop" class="backdrop"></div>
+<div id="mm" class="modal" role="dialog" aria-modal="true" aria-labelledby="mmTitle" aria-hidden="true">
+  <div class="m-head">
+    <div>
+      <div class="m-title" id="mmTitle">Ievadi rezultātu</div>
+      <div class="m-sub" id="mmSub">—</div>
     </div>
     <button type="button" class="btn" id="mmCloseBtn" aria-label="Aizvērt">✕</button>
   </div>
 
-  <div class="mm-body">
+  <div class="m-body">
     <div class="mm-scorebox">
       <div class="mm-row">
         <div class="mm-side active" id="mmHomeBtn" role="button" tabindex="0">
@@ -575,7 +536,7 @@
       <button type="button" class="pad-btn pad-btn--sub" data-k="bs">⌫</button>
     </div>
 
-    <div class="mm-actions">
+    <div class="m-actions">
       <button type="button" class="btn" id="mmResetMatchBtn">Notīrīt spēli</button>
       <button type="button" class="btn btn--accent" id="mmSaveBtn">Saglabāt</button>
     </div>
@@ -594,15 +555,13 @@ function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random
 const todayStamp = ()=> new Date().toISOString().slice(0,10);
 const slugify = s => (s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80)||'tournament';
 
-/* ===== Inline notice (no alert popups) ===== */
+/* ===== Notice (no alerts) ===== */
 function notice(msg){
-  const wrap=$('#notice');
-  const txt=$('#noticeText');
-  if(!wrap||!txt) return;
-  txt.innerHTML = `<b>Info:</b> ${String(msg).replace(/</g,'&lt;')}`;
+  const wrap=$('#notice'); const txt=$('#noticeText');
+  txt.textContent = msg;
   wrap.hidden=false;
   clearTimeout(notice._t);
-  notice._t=setTimeout(()=>{wrap.hidden=true}, 3200);
+  notice._t=setTimeout(()=>{wrap.hidden=true}, 2600);
 }
 $('#noticeClose').addEventListener('click', ()=>$('#notice').hidden=true);
 
@@ -629,6 +588,214 @@ $('#soundBtn').addEventListener('click',()=>{ soundOn=!soundOn; localStorage.set
 
 /* ===== State ===== */
 let state={ name:'', teams:[], groups:[], standings:{}, bracket:null, overall:null };
+
+/* ===== Avatars ===== */
+function initials(name){
+  const parts=(name||'').trim().split(/\s+/).filter(Boolean);
+  const a=parts[0]?.[0]||'?';
+  const b=parts[1]?.[0]||'';
+  return (a+b).toUpperCase();
+}
+function avatarHTML(team, alt=false){
+  const cls = alt ? 'avatar alt' : 'avatar';
+  if(team?.imageUrl){
+    return `<span class="${cls}"><img src="${team.imageUrl}" alt=""></span>`;
+  }
+  return `<span class="${cls}">${initials(team?.name||'?')}</span>`;
+}
+
+/* ===== Image compress → dataURL (persist in localStorage) ===== */
+async function fileToDataUrl(file, max=256, quality=0.82){
+  const img = await new Promise((res, rej)=>{
+    const i=new Image();
+    i.onload=()=>res(i);
+    i.onerror=rej;
+    i.src=URL.createObjectURL(file);
+  });
+  const w=img.naturalWidth, h=img.naturalHeight;
+  const scale = Math.min(1, max / Math.max(w,h));
+  const cw = Math.max(1, Math.round(w*scale));
+  const ch = Math.max(1, Math.round(h*scale));
+  const c=document.createElement('canvas');
+  c.width=cw; c.height=ch;
+  const ctx=c.getContext('2d',{alpha:false});
+  ctx.drawImage(img, 0, 0, cw, ch);
+  // JPEG to reduce size
+  const out=c.toDataURL('image/jpeg', quality);
+  URL.revokeObjectURL(img.src);
+  return out;
+}
+
+/* ===== Team Modal ===== */
+let teamDraft=null; // {mode:'add'|'edit', id, imageUrl}
+function teamModalOpen(mode, id=null){
+  teamDraft={mode, id, imageUrl:null};
+
+  const isEdit = mode==='edit';
+  const t = isEdit ? state.teams.find(x=>x.id===id) : null;
+
+  $('#teamTitle').textContent = isEdit ? 'Rediģēt komandu' : 'Pievienot komandu';
+  $('#teamSub').textContent   = isEdit ? 'Maini nosaukumu/attēlu. (Komandu skaitu pēc grupu ģenerēšanas nemaini.)' : 'Ievadi nosaukumu un (ja gribi) pievieno attēlu.';
+  $('#teamNameInput').value   = t?.name || '';
+  teamDraft.imageUrl          = t?.imageUrl || null;
+  renderTeamPreview();
+
+  // buttons
+  const canDelete = isEdit && !state.groups?.length; // droši dzēst tikai pirms ģenerēšanas
+  $('#teamDeleteBtn').disabled = !canDelete;
+  $('#teamDeleteBtn').style.display = isEdit ? 'inline-flex' : 'none';
+
+  $('#teamSaveNextBtn').style.display = isEdit ? 'none' : 'inline-flex';
+  $('#teamSaveDoneBtn').textContent   = isEdit ? 'Saglabāt' : 'Pabeigt';
+
+  $('#teamBackdrop').classList.add('open');
+  $('#teamModal').classList.add('open');
+  $('#teamModal').setAttribute('aria-hidden','false');
+
+  setTimeout(()=>$('#teamNameInput').focus(), 40);
+}
+function teamModalClose(){
+  $('#teamBackdrop').classList.remove('open');
+  $('#teamModal').classList.remove('open');
+  $('#teamModal').setAttribute('aria-hidden','true');
+  teamDraft=null;
+  $('#teamFile').value='';
+}
+function renderTeamPreview(){
+  const box=$('#teamPhotoPreview');
+  const name=$('#teamNameInput').value.trim() || '??';
+  if(teamDraft?.imageUrl){
+    box.innerHTML = `<img src="${teamDraft.imageUrl}" alt="">`;
+  }else{
+    box.textContent = initials(name);
+  }
+}
+$('#teamBackdrop').addEventListener('click', ()=>{ teamModalClose(); sfx.click(); });
+$('#teamCloseBtn').addEventListener('click', ()=>{ teamModalClose(); sfx.click(); });
+
+$('#teamPickPhotoBtn').addEventListener('click', ()=>$('#teamFile').click());
+$('#teamRemovePhotoBtn').addEventListener('click', ()=>{
+  teamDraft.imageUrl=null;
+  renderTeamPreview();
+  sfx.click();
+});
+$('#teamNameInput').addEventListener('input', ()=>renderTeamPreview());
+
+$('#teamFile').addEventListener('change', async ()=>{
+  const f=$('#teamFile').files[0];
+  if(!f) return;
+  try{
+    teamDraft.imageUrl = await fileToDataUrl(f, 256, 0.82);
+    renderTeamPreview();
+    sfx.success();
+  }catch{
+    notice('Neizdevās ielādēt attēlu.');
+  }
+});
+
+function teamValidateName(){
+  const name=$('#teamNameInput').value.trim();
+  if(!name){ notice('Ievadi komandas nosaukumu.'); return null; }
+  return name;
+}
+function teamSave(applyMode){
+  const name=teamValidateName();
+  if(!name) return false;
+
+  if(teamDraft.mode==='add'){
+    if(state.groups?.length){ notice('Komandu skaitu pēc grupu ģenerēšanas nemaini. Notīri turnīru, ja vajag mainīt komandas.'); return false; }
+    state.teams.push({id:uid(), name, imageUrl:teamDraft.imageUrl});
+  }else{
+    const t=state.teams.find(x=>x.id===teamDraft.id);
+    if(t){
+      t.name=name;
+      t.imageUrl=teamDraft.imageUrl;
+      // ja jau ir grupas — pārrēķinam standings (nosaukums mainās)
+      if(state.groups?.length){
+        state.standings=computeStandings(state.groups, Object.fromEntries(state.teams.map(t=>[t.id,t])));
+      }
+    }
+  }
+  saveState(state);
+  renderTeamsList();
+  if(state.groups?.length){ renderGroups(); renderStandings(); renderBracket(); }
+  sfx.success();
+
+  if(applyMode==='next'){
+    // clear for next team
+    $('#teamNameInput').value='';
+    teamDraft.imageUrl=null;
+    renderTeamPreview();
+    $('#teamNameInput').focus();
+  }else{
+    teamModalClose();
+  }
+  return true;
+}
+$('#teamSaveNextBtn').addEventListener('click', ()=>teamSave('next'));
+$('#teamSaveDoneBtn').addEventListener('click', ()=>{
+  if(teamDraft?.mode==='add'){
+    // pabeigt: ja lauks tukšs — vienkārši aizver (lai nav uzspiešanas)
+    const name=$('#teamNameInput').value.trim();
+    if(!name){ teamModalClose(); sfx.click(); return; }
+  }
+  teamSave('done');
+});
+
+$('#teamDeleteBtn').addEventListener('click', ()=>{
+  if(!teamDraft || teamDraft.mode!=='edit') return;
+  if(state.groups?.length){ notice('Dzēšana pēc grupu ģenerēšanas nav atļauta.'); return; }
+  state.teams = state.teams.filter(t=>t.id!==teamDraft.id);
+  saveState(state);
+  renderTeamsList();
+  teamModalClose();
+  sfx.click();
+});
+
+$('#addTeamBtn').addEventListener('click', ()=>{
+  if(state.groups?.length){
+    notice('Komandu pievienošana pēc grupu ģenerēšanas nav atļauta. Notīri turnīru, ja vajag mainīt komandas.');
+    return;
+  }
+  teamModalOpen('add');
+  sfx.click();
+});
+
+function renderTeamsList(){
+  const host=$('#teamsList');
+  host.innerHTML='';
+  $('#teamsCount').textContent = state.teams.length;
+
+  const lockCount = !!state.groups?.length;
+
+  state.teams.forEach(t=>{
+    const row=document.createElement('div');
+    row.className='team-row';
+    row.innerHTML=`
+      <div class="team-left">
+        ${avatarHTML(t,false)}
+        <div class="team-name">${t.name}</div>
+      </div>
+      <div class="team-actions">
+        <button type="button" class="icon-btn" data-act="edit" title="Rediģēt">✎</button>
+        <button type="button" class="icon-btn" data-act="del" title="Dzēst" ${lockCount?'disabled':''}>🗑</button>
+      </div>
+    `;
+    row.querySelector('[data-act="edit"]').addEventListener('click', ()=>{
+      teamModalOpen('edit', t.id); sfx.click();
+    });
+    row.querySelector('[data-act="del"]').addEventListener('click', ()=>{
+      if(lockCount){ notice('Dzēšana pēc grupu ģenerēšanas nav atļauta.'); return; }
+      state.teams = state.teams.filter(x=>x.id!==t.id);
+      saveState(state);
+      renderTeamsList();
+      sfx.click();
+    });
+    host.appendChild(row);
+  });
+
+  updateGroupOptions();
+}
 
 /* ===== Grouping / fixtures ===== */
 function deriveGroupCount(n,str){
@@ -733,604 +900,4 @@ function buildBracketFromStandings(st){
     return mk([{home:s[0],away:s[7]},{home:s[1],away:s[6]},{home:s[2],away:s[5]},{home:s[3],away:s[4]}]);
   }
   const all=[]; for(const g of gids) all.push(...(st[g]||[]));
-  all.sort((a,b)=> (b.pts-a.pts)||(b.gd-a.gd)||(b.gf-a.gf));
-  const s=pad(all.slice(0,8).map(x=>x.teamId??null),8);
-  return mk([{home:s[0],away:s[7]},{home:s[1],away:s[6]},{home:s[2],away:s[5]},{home:s[3],away:s[4]}]);
-}
-function nameOf(id,map){ return id ? (map[id]?.name||'?') : 'BYE' }
-function pickWinner(m){
-  if(!m) return null;
-  if(m.home&&!m.away) return m.home;
-  if(!m.home&&m.away) return m.away;
-  if(Number.isFinite(m.hs)&&Number.isFinite(m.as)){
-    if(m.hs>m.as) return m.home;
-    if(m.as>m.hs) return m.away;
-  }
-  return null;
-}
-function pickLoser(m){ const w=pickWinner(m); if(!w) return null; return w===m.home ? (m.away||null) : (m.home||null); }
-function propagate(br){
-  const wQF=br.qf.map(pickWinner);
-  br.sf[0].home=wQF[0]; br.sf[0].away=wQF[3];
-  br.sf[1].home=wQF[1]; br.sf[1].away=wQF[2];
-  const wSF=br.sf.map(pickWinner), lSF=br.sf.map(pickLoser);
-  br.fin[0].home=wSF[0]; br.fin[0].away=wSF[1];
-  br.third[0].home=lSF[0]; br.third[0].away=lSF[1];
-}
-
-/* ===== Avatars (fallback initials) ===== */
-function initials(name){
-  const parts=(name||'').trim().split(/\s+/).filter(Boolean);
-  const a=parts[0]?.[0]||'?';
-  const b=parts[1]?.[0]||'';
-  return (a+b).toUpperCase();
-}
-function avatarHTML(team, alt=false){
-  const cls = alt ? 'avatar alt' : 'avatar';
-  if(team?.imageUrl){
-    return `<span class="${cls}"><img src="${team.imageUrl}" alt=""></span>`;
-  }
-  return `<span class="${cls}">${initials(team?.name||'?')}</span>`;
-}
-
-/* ===== Match Modal (both scores + OT) ===== */
-let mmCtx=null;
-let mmActive='home';
-let mmBuf={home:'', away:''};
-
-function mmErr(msg){
-  const el=$('#mmErr');
-  if(!el) return;
-  if(!msg){ el.classList.remove('show'); el.textContent=''; return; }
-  el.textContent=msg;
-  el.classList.add('show');
-}
-
-function mmOpen(ctx){
-  // BYE -> no modal
-  if(!ctx.homeId || !ctx.awayId) return;
-
-  mmCtx=ctx;
-  mmActive='home';
-  mmBuf.home = Number.isFinite(ctx.hs) ? String(ctx.hs) : '';
-  mmBuf.away = Number.isFinite(ctx.as) ? String(ctx.as) : '';
-
-  $('#mmSub').textContent = ctx.subtitle || '';
-  $('#mmHomeName').textContent = ctx.homeName || '—';
-  $('#mmAwayName').textContent = ctx.awayName || '—';
-
-  $('#mmOt').checked = !!ctx.ot;
-  $('#mmOtHint').textContent = ctx.ot ? 'ON' : 'OFF';
-
-  setActiveSide('home');
-  mmErr('');
-  mmRender();
-
-  $('#mmBackdrop').classList.add('open');
-  $('#mm').classList.add('open');
-  $('#mm').setAttribute('aria-hidden','false');
-
-  document.addEventListener('keydown', mmKeyHandler, {capture:true});
-}
-
-function mmClose(){
-  $('#mmBackdrop').classList.remove('open');
-  $('#mm').classList.remove('open');
-  $('#mm').setAttribute('aria-hidden','true');
-  mmCtx=null; mmActive='home'; mmBuf={home:'',away:''};
-  mmErr('');
-  document.removeEventListener('keydown', mmKeyHandler, {capture:true});
-}
-
-function setActiveSide(side){
-  mmActive = side;
-  $('#mmHomeBtn').classList.toggle('active', side==='home');
-  $('#mmAwayBtn').classList.toggle('active', side==='away');
-}
-
-function mmRender(){
-  $('#mmHomeVal').textContent = mmBuf.home==='' ? '—' : mmBuf.home;
-  $('#mmAwayVal').textContent = mmBuf.away==='' ? '—' : mmBuf.away;
-  $('#mmOtHint').textContent = $('#mmOt').checked ? 'ON' : 'OFF';
-}
-
-function mmKeyHandler(e){
-  if(!$('#mm').classList.contains('open')) return;
-  if(e.key==='Escape'){ e.preventDefault(); mmClose(); sfx.click(); return; }
-  if(/^[0-9]$/.test(e.key)){ e.preventDefault(); mmDigit(e.key); return; }
-  if(e.key==='Backspace'){ e.preventDefault(); mmBack(); return; }
-  if(e.key==='Enter'){ e.preventDefault(); mmSave(); return; }
-  if(e.key==='Tab'){
-    e.preventDefault();
-    setActiveSide(mmActive==='home'?'away':'home');
-    sfx.click();
-  }
-}
-
-function mmDigit(d){
-  let s = mmBuf[mmActive];
-  if(s.length>=3) return;
-  if(s==='0') s=d; else s+=d;
-  mmBuf[mmActive]=s;
-  mmErr('');
-  mmRender(); sfx.click();
-}
-function mmBack(){
-  mmBuf[mmActive]=mmBuf[mmActive].slice(0,-1);
-  mmErr('');
-  mmRender(); sfx.click();
-}
-function mmClearSide(){
-  mmBuf[mmActive]='';
-  mmErr('');
-  mmRender(); sfx.click();
-}
-function mmResetMatch(){
-  mmBuf.home=''; mmBuf.away=''; $('#mmOt').checked=false;
-  mmErr('');
-  mmRender(); sfx.click();
-}
-
-function parseBuf(x){ return x==='' ? null : Math.max(0, parseInt(x,10)); }
-
-function mmValidate(hs,as){
-  if(Number.isFinite(hs) && Number.isFinite(as) && hs===as){
-    mmErr('Neizšķirtu nav. OT gadījumā ievadi uzvaras vārtus.');
-    return false;
-  }
-  return true;
-}
-
-function mmSave(){
-  if(!mmCtx) return;
-  const hs=parseBuf(mmBuf.home);
-  const as=parseBuf(mmBuf.away);
-  const ot=!!$('#mmOt').checked;
-
-  if(!mmValidate(hs,as)) return;
-
-  if(mmCtx.type==='group'){
-    const G=state.groups.find(g=>g.id===mmCtx.gid); if(!G) return;
-    const M=G.matches.find(m=>m.id===mmCtx.mid); if(!M) return;
-    M.hs = hs;
-    M.as = as;
-    M.ot = ot;
-
-    state.standings=computeStandings(state.groups,Object.fromEntries(state.teams.map(t=>[t.id,t])));
-    saveState(state);
-    renderGroups();
-    renderStandings();
-    sfx.score();
-    mmClose();
-    return;
-  }
-
-  if(mmCtx.type==='bracket'){
-    if(!state.bracket) return;
-    const col=mmCtx.stage==='QF'?'qf':mmCtx.stage==='SF'?'sf':mmCtx.stage==='Final'?'fin':'third';
-    const M=state.bracket[col].find(x=>x.id===mmCtx.id); if(!M) return;
-    M.hs = hs;
-    M.as = as;
-    M.ot = ot;
-
-    propagate(state.bracket);
-    state.overall=null;
-    saveState(state);
-    renderBracket();
-    refreshOverallButtons();
-    $('#statsPanel').hidden=true;
-    $('#downloadPdfBtn').disabled=true;
-    sfx.score();
-    mmClose();
-    return;
-  }
-}
-
-/* Modal bindings */
-$('#mmBackdrop').addEventListener('click', ()=>{ mmClose(); sfx.click(); });
-$('#mmCloseBtn').addEventListener('click', ()=>{ mmClose(); sfx.click(); });
-$('#mmHomeBtn').addEventListener('click', ()=>{ setActiveSide('home'); sfx.click(); });
-$('#mmAwayBtn').addEventListener('click', ()=>{ setActiveSide('away'); sfx.click(); });
-$('#mmHomeBtn').addEventListener('keydown', (e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); setActiveSide('home'); sfx.click(); }});
-$('#mmAwayBtn').addEventListener('keydown', (e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); setActiveSide('away'); sfx.click(); }});
-$('#mmOt').addEventListener('change', ()=>{ mmErr(''); mmRender(); sfx.click(); });
-$('#mmSaveBtn').addEventListener('click', ()=>{ mmSave(); });
-$('#mmResetMatchBtn').addEventListener('click', ()=>{ mmResetMatch(); });
-
-$('#mmPad').addEventListener('click', (e)=>{
-  const b=e.target.closest('button[data-k]'); if(!b) return;
-  const k=b.dataset.k;
-  if(/^\d$/.test(k)) mmDigit(k);
-  else if(k==='bs') mmBack();
-  else if(k==='clr') mmClearSide();
-});
-
-/* ===== GROUPS (render like screenshot) ===== */
-function renderGroups(){
-  const host=$('#groupsHost'); host.innerHTML='';
-  const map=Object.fromEntries(state.teams.map(t=>[t.id,t]));
-  state.groups.forEach(g=>{
-    const card=document.createElement('div'); card.className='panel';
-    const scored=g.matches.filter(isScored).length;
-
-    card.innerHTML=`
-      <div class="group-head">
-        <div class="group-title">
-          <span class="gid">${g.id}</span>
-          <div>
-            <div style="font-weight:1000;font-size:18px;letter-spacing:.2px">Grupa ${g.id}</div>
-            <div class="muted tnum">${scored}/${g.matches.length}</div>
-          </div>
-        </div>
-      </div>
-      <div class="group-cal" id="cal_${g.id}" style="display:grid; gap:12px"></div>
-    `;
-
-    const cal = card.querySelector(`#cal_${g.id}`);
-    const matches=[...g.matches].sort((a,b)=> (a.round-b.round) || (a.id.localeCompare(b.id)));
-
-    for(const m of matches){
-      const homeTeam=map[m.home];
-      const awayTeam=map[m.away];
-
-      const hs = Number.isFinite(m.hs) ? m.hs : '–';
-      const as = Number.isFinite(m.as) ? m.as : '–';
-      const done = isScored(m);
-
-      const pill=document.createElement('div');
-      pill.className='match-pill';
-      pill.setAttribute('role','button');
-      pill.setAttribute('tabindex','0');
-
-      const isBye = (!m.home || !m.away);
-      if(isBye){
-        pill.classList.add('disabled');
-        pill.setAttribute('aria-disabled','true');
-      }
-
-      pill.innerHTML=`
-        <div class="mp-labels">
-          <span>Mājinieki</span>
-          <span>Viesi</span>
-        </div>
-        <div class="mp-main">
-          <div class="rbadge tnum">R${m.round}</div>
-
-          <div class="team-chip home">
-            ${avatarHTML(homeTeam,false)}
-            <div class="team-name">${nameOf(m.home,map)}</div>
-          </div>
-
-          <div class="score-chip tnum ${done?'done':''}">
-            ${hs}:${as}
-            <span class="ot-badge ${m.ot?'on':''}">OT</span>
-          </div>
-
-          <div class="team-chip away">
-            ${avatarHTML(awayTeam,true)}
-            <div class="team-name">${nameOf(m.away,map)}</div>
-          </div>
-        </div>
-      `;
-
-      const open=()=>{
-        if(isBye) return;
-        mmOpen({
-          type:'group',
-          gid:g.id,
-          mid:m.id,
-          homeId:m.home,
-          awayId:m.away,
-          homeName:nameOf(m.home,map),
-          awayName:nameOf(m.away,map),
-          hs:m.hs, as:m.as, ot:m.ot,
-          subtitle:`Grupa ${g.id} • R${m.round}`
-        });
-        sfx.click();
-      };
-      pill.addEventListener('click', open);
-      pill.addEventListener('keydown', (e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); open(); }});
-
-      cal.appendChild(pill);
-    }
-
-    host.appendChild(card);
-  });
-
-  $('#groupsPanel').hidden = state.groups.length===0;
-}
-
-/* ===== STANDINGS ===== */
-function renderStandings(){
-  const host=$('#standingsHost'); host.innerHTML='';
-  const st=state.standings||{}; const gids=Object.keys(st).sort();
-  gids.forEach(gid=>{
-    const card=document.createElement('div'); card.className='panel';
-    card.innerHTML=`<h3>Grupa ${gid} — Stāvējums</h3>`;
-    const tbl=document.createElement('table'); tbl.className='standings-table tnum';
-    tbl.innerHTML=`<colgroup>
-      <col style="width:var(--std-w-num)"><col>
-      <col style="width:var(--std-w-num)"><col style="width:var(--std-w-num)"><col style="width:var(--std-w-num)">
-      <col style="width:var(--std-w-num)"><col style="width:var(--std-w-num)"><col style="width:var(--std-w-num)"><col style="width:var(--std-w-num)">
-    </colgroup>
-    <thead><tr><th>#</th><th>Komanda</th><th>Sp</th><th>U</th><th>Z</th><th>GF</th><th>GA</th><th>GD</th><th>P</th></tr></thead><tbody></tbody>`;
-    const body=$('tbody',tbl);
-    st[gid].forEach((r,i)=>{
-      const tr=document.createElement('tr');
-      tr.innerHTML=`<td style="text-align:center">${i+1}</td>
-        <td><span class="name-nowrap">${r.name}</span></td>
-        <td style="text-align:center">${r.played}</td><td style="text-align:center">${r.w}</td><td style="text-align:center">${r.l}</td>
-        <td style="text-align:center">${r.gf}</td><td style="text-align:center">${r.ga}</td><td style="text-align:center">${r.gd}</td>
-        <td style="text-align:center"><b>${r.pts}</b></td>`;
-      body.appendChild(tr);
-    });
-    card.appendChild(tbl); host.appendChild(card);
-  });
-  $('#standingsPanel').hidden = !gids.length;
-}
-
-/* ===== Bracket ===== */
-function winnerClass(m,side){
-  if(m.home && !m.away) return side==='home'?'win':'';
-  if(!m.home && m.away) return side==='away'?'win':'';
-  if(Number.isFinite(m.hs)&&Number.isFinite(m.as)){
-    if(m.hs>m.as && side==='home') return 'win';
-    if(m.as>m.hs && side==='away') return 'win';
-  } return '';
-}
-function teamCellLg(map,id){ return `<span class="row" style="gap:8px"><span class="name">${nameOf(id,map)}</span></span>`; }
-
-function renderBracket(){
-  const map=Object.fromEntries(state.teams.map(t=>[t.id,t]));
-  $('#qfCol').innerHTML='<h3>Ceturtdaļfināli</h3>';
-  $('#sfCol').innerHTML='<h3>Pusfināli</h3>';
-  $('#finCol').innerHTML='<h3>Fināls & 3. vieta</h3>';
-
-  const mk=(m,stage,idx)=>{
-    const el=document.createElement('div'); el.className='match';
-    const hs = Number.isFinite(m.hs) ? m.hs : '';
-    const as = Number.isFinite(m.as) ? m.as : '';
-    el.innerHTML=`
-      <div class="status">${stage} ${idx!=null?('• '+(idx+1)):""}</div>
-      <div class="team ${winnerClass(m,'home')}">
-        <span class="seed">H</span>
-        ${teamCellLg(map,m.home)}
-        <input class="score-in tnum" type="text" readonly value="${hs}" />
-      </div>
-      <div class="team ${winnerClass(m,'away')}" style="margin-top:8px">
-        <span class="seed">A</span>
-        ${teamCellLg(map,m.away)}
-        <input class="score-in tnum" type="text" readonly value="${as}" />
-      </div>
-      <div class="row" style="margin-top:8px">
-        <label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)">
-          <input class="chk" type="checkbox" ${m.ot?'checked':''} data-stage="${stage}" data-id="${m.id}" data-ot="flag" /> OT
-        </label>
-      </div>`;
-    el.addEventListener('click', (e)=>{
-      if(e.target.closest('[data-ot]')) return;
-      if(!m.home || !m.away) return;
-      mmOpen({
-        type:'bracket',
-        stage,
-        id:m.id,
-        homeId:m.home,
-        awayId:m.away,
-        homeName:nameOf(m.home,map),
-        awayName:nameOf(m.away,map),
-        hs:m.hs, as:m.as, ot:m.ot,
-        subtitle:`${stage}`
-      });
-      sfx.click();
-    });
-    el.setAttribute('role','button');
-    el.setAttribute('tabindex','0');
-    el.addEventListener('keydown', (e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); el.click(); }});
-    return el;
-  };
-
-  state.bracket?.qf?.forEach((m,i)=>$('#qfCol').appendChild(mk(m,'QF',i)));
-  state.bracket?.sf?.forEach((m,i)=>$('#sfCol').appendChild(mk(m,'SF',i)));
-  state.bracket?.fin?.forEach(m=>$('#finCol').appendChild(mk(m,'Final')));
-  state.bracket?.third?.forEach(m=>$('#finCol').appendChild(mk(m,'3rd')));
-
-  $$('.bracket [data-ot]').forEach(el=>{
-    el.addEventListener('change', ()=>{
-      const stage=el.dataset.stage, id=el.dataset.id;
-      const col=stage==='QF'?'qf':stage==='SF'?'sf':stage==='Final'?'fin':'third';
-      const m=state.bracket[col].find(x=>x.id===id);
-      m.ot=el.checked; sfx.click();
-      propagate(state.bracket); saveState(state); renderBracket(); refreshOverallButtons();
-    });
-  });
-
-  refreshOverallButtons();
-}
-
-/* ===== Overall / Awards & PDF ===== */
-function tournamentFinished(){
-  if(!state.bracket) return false;
-  const fin=state.bracket.fin[0], third=state.bracket.third[0];
-  return !!(pickWinner(fin)&&pickWinner(third));
-}
-function refreshOverallButtons(){
-  const ready=tournamentFinished();
-  $('#overallBtn').disabled=!ready;
-  $('#downloadPdfBtn').disabled=!(ready&&state.overall);
-}
-function computeOverall(){
-  const map=Object.fromEntries(state.teams.map(t=>[t.id,t.name])), ids=Object.keys(map);
-  const stats=Object.fromEntries(ids.map(id=>[id,{teamId:id,name:map[id],played:0,wins:0,losses:0,gf:0,ga:0}]));
-  const apply=m=>{
-    if(!m||!m.home||!m.away) return;
-    if(!isScored(m)) return;
-    const hs=m.hs, as=m.as, H=stats[m.home], A=stats[m.away];
-    H.played++; A.played++;
-    H.gf+=hs; H.ga+=as;
-    A.gf+=as; A.ga+=hs;
-    if(hs>as){H.wins++;A.losses++;} else {A.wins++;H.losses++;}
-  };
-  for(const g of state.groups) for(const m of g.matches) apply(m);
-  if(state.bracket) [...state.bracket.qf,...state.bracket.sf,...state.bracket.fin,...state.bracket.third].forEach(apply);
-  const arr=Object.values(stats);
-  const maxGF=Math.max(...arr.map(s=>s.gf)), maxGA=Math.max(...arr.map(s=>s.ga));
-  const topGF=arr.filter(s=>s.gf===maxGF).map(s=>s.name), topGA=arr.filter(s=>s.ga===maxGA).map(s=>s.name);
-  const winId=state.bracket?pickWinner(state.bracket.fin[0]):null, winName=winId?map[winId]:'—';
-  return { winnerName:winName, topGF, maxGF, topGA, maxGA, teamStats: arr.sort((a,b)=> (b.wins-a.wins) || ((b.gf-b.ga)-(a.gf-a.ga)) || (b.gf-a.gf) || a.name.localeCompare(b.name)) };
-}
-function renderOverall(o){
-  const awards=$('#awards'); awards.innerHTML='';
-  const card=(t,c)=>{ const d=document.createElement('div'); d.className='panel'; d.innerHTML=`<div class="muted">${t}</div><div style="font-weight:1000;font-size:16px;margin-top:6px">${c}</div>`; return d; };
-  awards.appendChild(card('Turnīra uzvarētājs', o.winnerName));
-  awards.appendChild(card('Visvairāk gūtie vārti', `${o.topGF.join(', ')} (${o.maxGF})`));
-  awards.appendChild(card('Visvairāk ielaistie vārti', `${o.topGA.join(', ')} (${o.maxGA})`));
-
-  const host=$('#teamStatsHost'); const tbl=document.createElement('table'); tbl.className='standings-table tnum';
-  tbl.innerHTML=`<colgroup>
-    <col><col style="width:var(--std-w-num)"><col style="width:var(--std-w-num)"><col style="width:var(--std-w-num)">
-    <col style="width:var(--std-w-num)"><col style="width:var(--std-w-num)"><col style="width:var(--std-w-num)">
-  </colgroup>
-  <thead><tr><th>Komanda</th><th>Sp</th><th>U</th><th>Z</th><th>GF</th><th>GA</th><th>GD</th></tr></thead><tbody></tbody>`;
-  const body=$('tbody',tbl);
-  o.teamStats.forEach(s=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td><span class="name-nowrap">${s.name}</span></td><td style="text-align:center">${s.played}</td><td style="text-align:center">${s.wins}</td><td style="text-align:center">${s.losses}</td>
-      <td style="text-align:center">${s.gf}</td><td style="text-align:center">${s.ga}</td><td style="text-align:center">${s.gf-s.ga}</td>`;
-    body.appendChild(tr);
-  });
-  host.innerHTML=''; host.appendChild(tbl);
-}
-$('#overallBtn').addEventListener('click', ()=>{
-  if(!tournamentFinished()){ notice('Kopsavilkums pieejams pēc fināla un 3. vietas spēles.'); return; }
-  state.overall=computeOverall(); saveState(state); renderOverall(state.overall);
-  $('#statsPanel').hidden=false; $('#downloadPdfBtn').disabled=false; sfx.success();
-});
-$('#downloadPdfBtn').addEventListener('click', ()=>{
-  if(!state.overall){ notice('Vispirms ģenerē kopsavilkumu.'); return; }
-  try{
-    const { jsPDF } = window.jspdf; const doc=new jsPDF({unit:'pt',format:'a4'});
-    const margin=36, lineH=18, pageW=doc.internal.pageSize.getWidth();
-    const title = state.name ? `Turnīra kopsavilkums — ${state.name}` : 'Turnīra kopsavilkums';
-    doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.text(title, margin, 52);
-    doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.text(`Datums: ${todayStamp()}`, pageW - margin - 140, 52);
-    const y0=78;
-    doc.text(`Uzvarētājs: ${state.overall.winnerName}`, margin, y0);
-    doc.text(`Visvairāk gūtie vārti: ${state.overall.topGF.join(', ')} (${state.overall.maxGF})`, margin, y0+lineH);
-    doc.text(`Visvairāk ielaistie vārti: ${state.overall.topGA.join(', ')} (${state.overall.maxGA})`, margin, y0+lineH*2);
-
-    const rows = state.overall.teamStats.map(s=>({ name:s.name, Sp:s.played, U:s.wins, Z:s.losses, GF:s.gf, GA:s.ga, GD:(s.gf-s.ga) }));
-    doc.autoTable({
-      startY: y0+lineH*3+10,
-      head: [['Komanda','Sp','U','Z','GF','GA','GD']],
-      body: rows.map(r=>[r.name, r.Sp, r.U, r.Z, r.GF, r.GA, r.GD]),
-      styles:{font:'helvetica',fontSize:10,cellPadding:4},
-      headStyles:{fillColor:[124,92,255],textColor:255},
-      alternateRowStyles:{fillColor:[245,245,248]},
-      margin:{left:margin,right:margin}
-    });
-    const fname=`${slugify(state.name)}_${todayStamp()}_kopsavilkums.pdf`; doc.save(fname); sfx.success();
-  }catch(e){ notice('Neizdevās ģenerēt PDF.'); }
-});
-
-/* ===== UI hooks ===== */
-function updateGroupOptions(){
-  const n = ($('#teamsInput').value.split('\n').map(s=>s.trim()).filter(Boolean)).length;
-  const optN1=$('#groupStrategy').querySelector('option[value="n1"]');
-  if(n>6){ optN1.disabled=true; } else { optN1.disabled=false; }
-}
-$('#teamsInput').addEventListener('input', updateGroupOptions);
-
-$('#genGroups').addEventListener('click', ()=>{
-  const name=$('#tName').value.trim();
-  const teamNames=$('#teamsInput').value.split('\n').map(s=>s.trim()).filter(Boolean);
-  if(teamNames.length<2){ notice('Ievadi vismaz 2 komandas.'); return; }
-  if($('#groupStrategy').value==='n1' && teamNames.length>6){
-    $('#groupStrategy').value='auto';
-  }
-  const teams=teamNames.map(n=>({id:uid(),name:n, imageUrl:null}));
-  state={...state,name,teams,groups:makeGroups(teams,$('#groupStrategy').value), standings:{}, bracket:null, overall:null};
-  state.standings=computeStandings(state.groups,Object.fromEntries(teams.map(t=>[t.id,t])));
-  saveState(state);
-  $('#brandTitle').textContent = state.name || 'Turnīru Aplikācija';
-  updateGroupOptions();
-  renderGroups();
-  renderStandings();
-  $('#playoffPanel').hidden=false; $('#groupsPanel').hidden=false; $('#standingsPanel').hidden=false;
-  $('#statsPanel').hidden=true; $('#downloadPdfBtn').disabled=true;
-  sfx.success();
-});
-
-$('#buildBracket').addEventListener('click', ()=>{
-  if(!state.groups.length){ notice('Vispirms jāievada grupu dati.'); return; }
-  state.standings=computeStandings(state.groups,Object.fromEntries(state.teams.map(t=>[t.id,t])));
-  state.bracket=buildBracketFromStandings(state.standings);
-  propagate(state.bracket);
-  state.overall=null;
-  saveState(state);
-  renderBracket();
-  $('#statsPanel').hidden=true; $('#downloadPdfBtn').disabled=true;
-  sfx.success();
-});
-
-$('#exportBtn').addEventListener('click', ()=>{
-  const data='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(state,null,2));
-  const a=document.createElement('a'); a.href=data; a.download=(slugify(state.name)||'tournament')+'.json'; a.click(); sfx.click();
-});
-
-$('#importBtn').addEventListener('click', async ()=>{
-  const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json';
-  inp.onchange=async ()=>{
-    const f=inp.files[0]; if(!f) return;
-    try{
-      const txt=await f.text(); const obj=JSON.parse(txt);
-      state=Object.assign({name:'',teams:[],groups:[],standings:{},bracket:null,overall:null},obj);
-      saveState(state);
-      $('#tName').value=state.name||'';
-      $('#teamsInput').value=(state.teams||[]).map(t=>t.name).join('\n');
-      $('#brandTitle').textContent = state.name || 'Turnīru Aplikācija';
-
-      if(state.groups?.length){ renderGroups(); $('#groupsPanel').hidden=false }
-      if(state.standings && Object.keys(state.standings).length){ renderStandings(); $('#standingsPanel').hidden=false }
-      if(state.bracket){ renderBracket(); $('#playoffPanel').hidden=false }
-      if(state.overall){ renderOverall(state.overall); $('#statsPanel').hidden=false; $('#downloadPdfBtn').disabled=false }
-
-      updateGroupOptions();
-      sfx.success();
-    }catch{
-      notice('Neizdevās importēt.');
-    }
-  };
-  inp.click();
-});
-
-$('#resetBtn').addEventListener('click', ()=>{
-  if(!confirm('Tiešām notīrīt turnīru?')) return;
-  clearState();
-  state={name:'',teams:[],groups:[],standings:{},bracket:null,overall:null};
-  $('#tName').value=''; $('#teamsInput').value=''; $('#brandTitle').textContent='Turnīru Aplikācija';
-  $('#groupsHost').innerHTML=''; $('#standingsHost').innerHTML='';
-  $('#qfCol').innerHTML='<h3>Ceturtdaļfināli</h3>'; $('#sfCol').innerHTML='<h3>Pusfināli</h3>'; $('#finCol').innerHTML='<h3>Fināls & 3. vieta</h3>';
-  $('#groupsPanel').hidden=true; $('#standingsPanel').hidden=true; $('#playoffPanel').hidden=true; $('#statsPanel').hidden=true;
-  $('#downloadPdfBtn').disabled=true; $('#overallBtn').disabled=true;
-  sfx.click();
-});
-
-/* ===== Restore ===== */
-(function boot(){
-  $('#soundIcon').textContent = soundOn ? '🔊' : '🔇';
-  const saved=loadState();
-  if(saved){
-    state=Object.assign(state,saved);
-    $('#tName').value=state.name||'';
-    $('#teamsInput').value=(state.teams||[]).map(t=>t.name).join('\n');
-    $('#brandTitle').textContent = state.name || 'Turnīru Aplikācija';
-    if(state.groups?.length){ renderGroups(); $('#groupsPanel').hidden=false }
-    if(state.standings && Object.keys(state.standings).length){ renderStandings(); $('#standingsPanel').hidden=false }
-    if(state.bracket){ renderBracket(); $('#playoffPanel').hidden=false }
-    if(state.overall){ renderOverall(state.overall); $('#statsPanel').hidden=false; $('#downloadPdfBtn').disabled=false }
-  }
-  updateGroupOptions();
-})();
-</script>
-</body>
-</html>
+  all.sort((a,b)=> (b.
