@@ -6,6 +6,7 @@
 <title>Turnīru Aplikācija — Pro Liquid UI</title>
 <meta name="color-scheme" content="light dark" />
 <style>
+  /* ===== Pro Liquid + Glass Theme ===== */
   :root{
     --bg:#0b0f14; --text:#e6e9ef; --muted:#9aa4b2;
     --card:rgba(18,24,38,.55); --border:rgba(255,255,255,.08); --ring:#6f7dd62b;
@@ -15,7 +16,7 @@
     --std-w-num: clamp(30px, 7vw, 56px);
   }
   @media (prefers-color-scheme:light){
-    :root{ --bg:#f7f8fc; --text:#0f172a; --muted:#4b5568; --card:rgba(255,255,255,.82); --border:rgba(15,23,42,.10);
+    :root{ --bg:#f7f8fc; --text:#0f172a; --muted:#4b5568; --card:rgba(255,255,255,.82); --border:rgba(15,23,42,.08);
            --ring:#7c8dd41c; --shadow:0 12px 30px rgba(18,20,40,.08), inset 0 1px 0 rgba(255,255,255,.55)}
   }
   *{box-sizing:border-box}
@@ -23,50 +24,40 @@
   body{
     margin:0;color:var(--text);font-family:var(--font);background:var(--bg);
     background:
-      radial-gradient(1200px 800px at 120% -10%, color-mix(in oklab, var(--accent) 30%, transparent), transparent 60%),
-      radial-gradient(900px 600px at -30% 20%, color-mix(in oklab, var(--accent2) 28%, transparent), transparent 60%),
-      radial-gradient(600px 500px at 80% 110%, color-mix(in oklab, #19c37d 26%, transparent), transparent 60%);
+      radial-gradient(1200px 800px at 120% -10%, color-mix(in oklab, var(--accent) 35%, transparent), transparent 60%),
+      radial-gradient(900px 600px at -30% 20%, color-mix(in oklab, var(--accent2) 35%, transparent), transparent 60%),
+      radial-gradient(600px 500px at 80% 110%, color-mix(in oklab, #19c37d 35%, transparent), transparent 60%);
   }
 
+  /* ===== Header ===== */
   header{
     position:sticky;top:0;z-index:20;backdrop-filter:saturate(140%) blur(12px);
     background:linear-gradient(180deg, rgba(0,0,0,.0), rgba(0,0,0,.05)), var(--card);
     border-bottom:1px solid var(--border);
   }
   .bar{max-width:1200px;margin:0 auto;padding:12px clamp(14px,3vw,24px);display:flex;gap:12px;align-items:center;justify-content:space-between}
-  .brand{display:flex;gap:12px;align-items:center;font-weight:900;letter-spacing:.2px}
+  .brand{display:flex;gap:12px;align-items:center;font-weight:800;letter-spacing:.2px}
   .dot{width:14px;height:14px;border-radius:50%;
        background:radial-gradient(12px 12px at 20% 20%, #fff8, #0000), linear-gradient(135deg,var(--accent),var(--accent2))}
   .wrap{max-width:1200px;margin:clamp(10px,2vw,20px) auto clamp(60px,7vw,96px); padding:0 clamp(14px,3vw,24px);display:grid;gap:var(--space)}
 
-  /* non-intrusive notice (no alerts) */
-  .notice{max-width:1200px;margin:0 auto 10px;padding:0 clamp(14px,3vw,24px)}
-  .notice > div{
-    display:flex;align-items:center;justify-content:space-between;gap:12px;
-    padding:10px 12px;border-radius:14px;border:1px solid var(--border);
-    background:color-mix(in oklab, var(--card) 92%, rgba(0,0,0,.18));
-    box-shadow:0 20px 60px rgba(0,0,0,.25)
-  }
-  .notice button{border:1px solid var(--border);background:transparent;color:var(--text);border-radius:999px;padding:6px 10px;cursor:pointer}
-
+  /* ===== Panels & buttons ===== */
   .panel{
     background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);
     padding:clamp(12px,2.6vw,20px); transition:transform .12s ease, box-shadow .25s ease;
   }
-  h2{margin:0 0 8px;font-size:clamp(18px,2.6vw,22px)}
-  h3{margin:0 0 8px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+  .panel:hover{ transform:translateY(-1px) }
+  h2{margin:0 0 8px;font-size:clamp(18px,2.6vw,22px)} h3{margin:0 0 8px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .muted{color:var(--muted);font-size:13px}
-  .tnum{font-variant-numeric:tabular-nums}
 
   input,textarea,select{
-    width:100%;background:rgba(255,255,255,.02);color:var(--text);
-    border:1px solid var(--border);border-radius:12px;padding:12px 12px;
-    transition:border .2s ease, box-shadow .2s ease, transform .08s ease;
+    width:100%;background:rgba(255,255,255,.02);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:12px 12px;
+    transition:border .2s ease, box-shadow .2s ease, background-color .2s ease, transform .08s ease;
     -webkit-tap-highlight-color: transparent;
   }
+  textarea{min-height:160px;resize:vertical}
   input:focus,textarea:focus,select:focus{outline:none;border-color:color-mix(in oklab, var(--accent) 45%, var(--border));box-shadow:0 0 0 6px var(--ring)}
-
   .btn{
     appearance:none;border:1px solid var(--border);
     background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.08));
@@ -76,135 +67,22 @@
   .btn--accent{border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
   .btn--gold{border:none;background:linear-gradient(135deg,var(--gold),#ffd569);color:#1a1a1a}
   .btn:active{transform:translateY(1px)}
+  .btn:disabled{opacity:.55;cursor:not-allowed}
 
-  /* ===== TEAM LIST (setup) ===== */
-  .teams-box{display:grid;gap:10px}
-  .teams-list{display:grid;gap:8px}
-  .team-row{
-    display:flex;align-items:center;justify-content:space-between;gap:10px;
-    padding:10px 12px;border-radius:14px;border:1px solid var(--border);
-    background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,.10));
-  }
-  .team-left{display:flex;align-items:center;gap:10px;min-width:0}
-  .team-name{font-weight:900;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .team-actions{display:flex;gap:8px;flex:0 0 auto}
-  .icon-btn{
-    border:1px solid var(--border);background:rgba(255,255,255,.02);color:var(--text);
-    border-radius:999px;padding:8px 10px;cursor:pointer
-  }
-  .icon-btn[disabled]{opacity:.45;cursor:not-allowed}
+  /* ===== Numbers ===== */
+  .tnum{font-variant-numeric:tabular-nums}
 
-  /* ===== Avatars ===== */
-  .avatar{
-    width:30px;height:30px;border-radius:10px;overflow:hidden;flex:0 0 auto;
-    border:1px solid rgba(255,255,255,.10);
-    background:radial-gradient(14px 14px at 30% 30%, rgba(255,255,255,.30), transparent 55%),
-               linear-gradient(135deg, rgba(124,92,255,.95), rgba(69,162,255,.85));
-    display:grid;place-items:center;font-weight:1000;color:#fff;font-size:12px;letter-spacing:.06em;
-    box-shadow:0 10px 26px rgba(0,0,0,.25);
-  }
-  .avatar img{width:100%;height:100%;object-fit:cover;display:block}
-  .avatar.alt{
-    background:radial-gradient(14px 14px at 30% 30%, rgba(255,255,255,.30), transparent 55%),
-               linear-gradient(135deg, rgba(99,102,241,.95), rgba(168,85,247,.80));
-  }
-
-  /* ===== GROUPS — PROFESSIONAL (less frames, smaller fonts) ===== */
-  .group-grid{display:grid;gap:var(--space);grid-template-columns:repeat(auto-fit,minmax(360px,1fr))}
-  .group-head{
-    display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px;
-  }
-  .g-left{display:flex;align-items:center;gap:10px;min-width:0}
-  .gid{
-    width:34px;height:34px;border-radius:12px;display:grid;place-items:center;
-    font-weight:1000;color:#fff;flex:0 0 auto;
-    background:radial-gradient(14px 14px at 25% 25%, rgba(255,255,255,.35), transparent 55%),
-               linear-gradient(135deg,var(--accent),var(--accent2));
-    box-shadow:0 14px 30px rgba(0,0,0,.25);
-  }
-  .g-title{font-weight:1000;font-size:18px;letter-spacing:.2px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .g-sub{font-size:12px;color:var(--muted)}
-  .matches{display:grid;gap:10px}
-
-  .match-row{
-    border:1px solid var(--border);
-    border-radius:18px;
-    padding:10px 12px;
-    background:
-      radial-gradient(220px 120px at 18% 40%, rgba(255,255,255,.05), transparent 60%),
-      linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,.14));
-    box-shadow:0 16px 50px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.04);
-    cursor:pointer;
-    -webkit-tap-highlight-color:transparent;
-    touch-action:manipulation;
-    transition:transform .12s ease, border-color .2s ease;
-  }
-  .match-row:hover{transform:translateY(-1px);border-color:color-mix(in oklab, var(--accent) 18%, var(--border))}
-  .match-row:active{transform:translateY(1px)}
-  .match-row.disabled{opacity:.45;cursor:default}
-  .mr{
-    display:grid;
-    grid-template-columns:44px 1fr 132px 1fr;
-    gap:12px;
-    align-items:center;
-  }
-  .mr-r{
-    text-align:center;
-    font-weight:1000;
-    color:color-mix(in oklab, var(--text) 85%, var(--muted));
-    font-size:13px;
-    letter-spacing:.06em;
-  }
-  .mr-team{display:flex;align-items:center;gap:10px;min-width:0}
-  .mr-team.away{justify-content:flex-end}
-  .mr-name{
-    min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-    font-weight:1000;
-    font-size:clamp(14px, 2.0vw, 17px);
-    letter-spacing:.01em;
-  }
-  .mr-score{
-    height:38px;
-    border-radius:999px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:10px;
-    font-weight:1000;
-    letter-spacing:.04em;
-    border:1px solid color-mix(in oklab, var(--ok) 35%, rgba(255,255,255,.06));
-    background:
-      radial-gradient(140px 80px at 25% 25%, rgba(255,255,255,.12), transparent 60%),
-      linear-gradient(135deg, color-mix(in oklab, var(--ok) 28%, rgba(0,0,0,.20)), rgba(0,0,0,.26));
-    box-shadow:0 14px 40px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.08);
-    font-size:18px;
-  }
-  .mr-ot{
-    font-size:12px;
-    font-weight:1000;
-    padding:5px 9px;
-    border-radius:999px;
-    border:1px solid rgba(255,255,255,.10);
-    color:color-mix(in oklab, var(--gold) 90%, #fff);
-    background:rgba(0,0,0,.18);
-    display:none;
-  }
-  .mr-ot.on{display:inline-flex}
-
-  @media (max-width:520px){
-    .mr{grid-template-columns:40px 1fr 118px 1fr;gap:10px}
-    .mr-score{font-size:16px}
-    .avatar{width:28px;height:28px}
-  }
-
-  /* ===== STANDINGS ===== */
-  #standingsHost{display:grid;grid-template-columns:1fr;gap:var(--space);align-items:start}
-  #standingsHost > .panel{min-width:0}
+  /* ===== Standings ===== */
   .standings-table{table-layout:fixed;width:100%;border-collapse:separate;border-spacing:0 8px}
-  .standings-table th,.standings-table td{padding:8px 10px;overflow:hidden}
+  .standings-table th,.standings-table td{padding:8px 10px}
   .standings-table thead th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
   .standings-table tbody tr{background:linear-gradient(180deg,transparent, color-mix(in oklab, var(--card) 88%, transparent))}
-  .name-nowrap{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+  .name-nowrap{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:inline-block}
+  @media (max-width:520px){ .standings-table th,.standings-table td{font-size:12px;padding:6px 6px} }
+  #standingsHost{ display:grid; grid-template-columns:1fr; gap:var(--space); align-items:start; }
+  #standingsHost > .panel{ min-width:0 }
+  .standings-table td:nth-child(2) .name-nowrap{display:block;min-width:0;max-width:100%}
+  .standings-table th,.standings-table td{overflow:hidden}
 
   /* ===== Bracket ===== */
   .bracket{display:grid;gap:var(--space);grid-template-columns:repeat(3, minmax(260px,1fr))}
@@ -213,74 +91,189 @@
   .team{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:8px;border-radius:10px}
   .team.win{outline:2px solid color-mix(in oklab, var(--ok) 45%, transparent);outline-offset:-2px}
   .status{font-size:12px;color:var(--muted);margin-bottom:6px}
-  .score-in{width:clamp(44px, 11vw, 62px);text-align:center;padding:8px 6px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--text)}
+  .score-in{width:clamp(40px, 10vw, 56px);text-align:center;padding:8px 6px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--text)}
 
   /* compact checkbox */
   .chk{appearance:none;width:16px;height:16px;border:1px solid var(--border);border-radius:4px;background:rgba(255,255,255,.02);display:inline-block;position:relative;vertical-align:middle}
   .chk:checked{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent}
   .chk:checked::after{content:'✓';position:absolute;inset:0;font-size:12px;color:#fff;display:flex;align-items:center;justify-content:center}
 
-  /* ===== Generic modal (team + match) ===== */
-  .backdrop{
+  /* ===== Toast ===== */
+  .toast{
+    position:fixed; left:50%; bottom:calc(14px + env(safe-area-inset-bottom,0px));
+    transform:translateX(-50%) translateY(14px);
+    opacity:0; pointer-events:none; z-index:120;
+    padding:12px 14px; border-radius:999px;
+    background:color-mix(in oklab, var(--card) 92%, rgba(0,0,0,.25));
+    border:1px solid var(--border);
+    box-shadow:0 24px 80px rgba(0,0,0,.55);
+    backdrop-filter: blur(12px) saturate(140%);
+    color:var(--text); font-weight:800; font-size:13px; letter-spacing:.2px;
+    transition:opacity .18s cubic-bezier(.2,.8,.2,1), transform .18s cubic-bezier(.2,.8,.2,1);
+    max-width:min(92vw, 560px);
+    text-align:center;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* ===== Logos ===== */
+  .logo{
+    width:22px;height:22px;border-radius:8px;object-fit:cover;flex:0 0 auto;
+    border:1px solid var(--border);
+    background:rgba(255,255,255,.06);
+    box-shadow:0 10px 22px rgba(0,0,0,.28);
+  }
+  .logo--lg{ width:28px; height:28px; border-radius:10px; }
+  .badge{
+    display:inline-flex; align-items:center; gap:10px; min-width:0;
+  }
+  .badge .badge-name{
+    min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    font-weight:900;
+  }
+
+  /* ===== Setup: Team list ===== */
+  .team-list{ display:grid; gap:10px; margin-top:10px; }
+  .team-item{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:10px 12px; border-radius:16px;
+    border:1px solid var(--border);
+    background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,.10));
+    box-shadow:0 10px 24px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .team-item .left{
+    display:flex; align-items:center; gap:10px; min-width:0;
+  }
+  .team-item .name{
+    font-weight:900; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .pill-small{
+    padding:6px 10px; border:1px solid var(--border); border-radius:999px;
+    font-size:12px; color:var(--muted); background:rgba(255,255,255,.02);
+  }
+
+  /* ===== Groups inline calendar ===== */
+  .group-grid{display:grid; gap:var(--space); grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+  .group-head{
+    display:flex; align-items:flex-start; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    margin-bottom:10px;
+  }
+  .gid{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:34px; height:34px; border-radius:10px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    color:#fff; font-weight:1000;
+    box-shadow:0 14px 32px rgba(0,0,0,.35);
+  }
+  .group-meta{font-size:13px; color:var(--muted)}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .chip-tag{padding:6px 10px;border:1px solid var(--border);border-radius:999px;font-size:12px;background:rgba(255,255,255,.02)}
+
+  .round-sep{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-top:14px; margin-bottom:8px;
+    font-size:12px; color:var(--muted);
+    text-transform:uppercase; letter-spacing:.12em;
+  }
+  .round-sep .pill{
+    padding:6px 10px; border:1px solid var(--border); border-radius:999px;
+    background:rgba(255,255,255,.02);
+    text-transform:none; letter-spacing:0;
+    font-weight:900; color:color-mix(in oklab, var(--text) 85%, var(--muted));
+  }
+  .match-row{
+    display:grid;
+    grid-template-columns:48px 1fr min-content min-content;
+    gap:12px;
+    align-items:center;
+    padding:12px;
+    border:1px solid var(--border);
+    border-radius:16px;
+    background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,.10));
+    box-shadow:0 10px 24px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.04);
+    cursor:pointer;
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;
+    transition:transform .12s ease, box-shadow .2s ease, border-color .2s ease;
+  }
+  .match-row:hover{ transform:translateY(-1px); border-color:color-mix(in oklab, var(--accent) 22%, var(--border)); }
+  .match-row:active{ transform:translateY(1px) }
+  .rbox{
+    width:48px;height:38px;border-radius:12px;
+    display:grid; place-items:center;
+    background:rgba(255,255,255,.03);
+    border:1px solid var(--border);
+    font-weight:1000; color:color-mix(in oklab, var(--text) 85%, var(--muted));
+  }
+  .teams{ min-width:0; display:grid; gap:8px; }
+  .tline{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    min-width:0;
+  }
+  .tleft{ display:flex; align-items:center; gap:10px; min-width:0; }
+  .tname{
+    min-width:0; overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    font-weight:900; font-size:15px; letter-spacing:.2px;
+  }
+  .subtag{ font-size:12px; color:var(--muted); font-weight:700; }
+  .score-pill{
+    min-width:96px;
+    text-align:center;
+    padding:10px 12px;
+    border-radius:999px;
+    font-weight:1000;
+    letter-spacing:.5px;
+    border:1px solid color-mix(in oklab, var(--border) 70%, transparent);
+    background:radial-gradient(120px 60px at 20% 20%, rgba(255,255,255,.08), transparent 55%),
+               linear-gradient(135deg, rgba(255,255,255,.04), rgba(0,0,0,.16));
+  }
+  .score-pill.done{
+    background:radial-gradient(140px 70px at 20% 20%, rgba(255,255,255,.10), transparent 55%),
+               linear-gradient(135deg, color-mix(in oklab, var(--ok) 35%, transparent), color-mix(in oklab, var(--accent2) 20%, transparent));
+    border-color:color-mix(in oklab, var(--ok) 30%, var(--border));
+  }
+  .ot-pill{
+    padding:8px 10px; border-radius:999px; font-size:12px; font-weight:1000;
+    border:1px solid var(--border);
+    background:rgba(255,255,255,.02);
+    color:color-mix(in oklab, var(--gold) 85%, var(--text));
+    min-width:54px; text-align:center;
+    opacity:.0;
+  }
+  .ot-pill.on{ opacity:1; }
+
+  /* ===== Match popup (enter both scores + OT) ===== */
+  .mm-backdrop{
     position:fixed; inset:0;
     background:rgba(0,0,0,.62);
     backdrop-filter: blur(10px);
     opacity:0; visibility:hidden; pointer-events:none;
     transition:opacity .22s cubic-bezier(.2,.8,.2,1);
-    z-index:90;
+    z-index:95;
   }
-  .backdrop.open{opacity:1;visibility:visible;pointer-events:auto}
-
-  .modal{
+  .mm-backdrop.open{ opacity:1; visibility:visible; pointer-events:auto; }
+  .mm{
     position:fixed; left:50%; top:50%;
     transform:translate(-50%,-50%) scale(.985);
-    width:min(560px, calc(100% - 24px));
+    width:min(520px, calc(100% - 24px));
     border-radius:22px;
     background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(0,0,0,.18)), var(--card);
     border:1px solid var(--border);
-    box-shadow:0 40px 120px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
+    box-shadow:0 40px 120px rgba(0,0,0,.62), inset 0 1px 0 rgba(255,255,255,.06);
     backdrop-filter: blur(14px) saturate(150%);
     opacity:0; visibility:hidden; pointer-events:none;
     transition: transform .24s cubic-bezier(.2,.8,.2,1), opacity .24s cubic-bezier(.2,.8,.2,1);
-    z-index:100;
+    z-index:110;
     overflow:hidden;
   }
-  .modal.open{opacity:1;visibility:visible;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
-
-  .m-head{
+  .mm.open{ opacity:1; visibility:visible; pointer-events:auto; transform:translate(-50%,-50%) scale(1); }
+  .mm-head{
     display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
     padding:14px 16px; border-bottom:1px solid var(--border);
     background:color-mix(in oklab, var(--card) 96%, transparent)
   }
-  .m-title{font-weight:1000;letter-spacing:.02em;font-size:16px}
-  .m-sub{margin-top:6px;font-size:12px;color:var(--muted);line-height:1.25}
-  .m-body{padding:14px 16px 16px;display:grid;gap:12px}
-  .m-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
-  .m-actions .btn{min-width:140px}
-
-  /* TEAM modal specifics */
-  .team-form{display:grid;gap:12px}
-  .photo-row{display:flex;gap:12px;align-items:center}
-  .photo-lg{
-    width:58px;height:58px;border-radius:18px;overflow:hidden;flex:0 0 auto;
-    border:1px solid rgba(255,255,255,.12);
-    background:radial-gradient(18px 18px at 30% 30%, rgba(255,255,255,.28), transparent 55%),
-               linear-gradient(135deg, rgba(124,92,255,.95), rgba(69,162,255,.85));
-    display:grid;place-items:center;color:#fff;font-weight:1000;
-    box-shadow:0 18px 44px rgba(0,0,0,.28);
-  }
-  .photo-lg img{width:100%;height:100%;object-fit:cover;display:block}
-  .file-hide{display:none}
-
-  /* MATCH modal keypad */
-  .mm-err{
-    width:100%;padding:10px 12px;border-radius:14px;
-    border:1px solid color-mix(in oklab, var(--bad) 30%, var(--border));
-    background:color-mix(in oklab, var(--bad) 12%, rgba(0,0,0,.10));
-    color:color-mix(in oklab, var(--text) 92%, var(--bad));
-    font-weight:900;display:none;
-  }
-  .mm-err.show{display:block}
+  .mm-title{ font-weight:1000; letter-spacing:.02em; font-size:16px; }
+  .mm-sub{ margin-top:6px; font-size:12px; color:var(--muted); line-height:1.25; }
+  .mm-body{ padding:14px 16px 16px; display:grid; gap:12px; }
 
   .mm-scorebox{
     border:1px solid var(--border);
@@ -290,8 +283,10 @@
     display:grid; gap:10px;
   }
   .mm-row{
-    display:grid; grid-template-columns:1fr min-content 1fr;
-    gap:10px; align-items:stretch;
+    display:grid;
+    grid-template-columns:1fr min-content 1fr;
+    gap:10px;
+    align-items:stretch;
   }
   .mm-side{
     border:1px solid var(--border);
@@ -299,15 +294,20 @@
     border-radius:16px;
     padding:12px;
     cursor:pointer;
+    touch-action:manipulation;
     user-select:none; -webkit-user-select:none;
     display:grid; gap:8px;
     box-shadow:0 10px 24px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.04);
   }
   .mm-side.active{
     border-color:color-mix(in oklab, var(--accent) 45%, var(--border));
-    box-shadow:0 0 0 6px var(--ring), 0 12px 30px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.04);
+    box-shadow:0 0 0 6px var(--ring), 0 12px 30px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.04);
   }
-  .mm-team{font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mm-team{
+    display:flex; align-items:center; gap:10px;
+    font-weight:900; min-width:0;
+  }
+  .mm-team span{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .mm-val{
     text-align:center;
     font-size:clamp(44px, 10vw, 62px);
@@ -317,39 +317,121 @@
     background:linear-gradient(135deg, var(--accent), var(--accent2));
     -webkit-background-clip:text; background-clip:text;
     color:transparent;
-    text-shadow:0 18px 44px rgba(0,0,0,.30);
+    text-shadow:0 18px 44px rgba(0,0,0,.35);
   }
-  .mm-mid{display:grid;place-items:center;font-weight:1000;opacity:.6;font-size:22px}
-  .mm-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .mm-mid{ display:grid; place-items:center; font-weight:1000; opacity:.6; font-size:22px; }
+
+  .mm-meta{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
   .mm-toggle{
-    display:inline-flex;align-items:center;gap:10px;
-    padding:10px 12px;border:1px solid var(--border);border-radius:999px;
+    display:inline-flex; align-items:center; gap:10px;
+    padding:10px 12px;
+    border:1px solid var(--border);
+    border-radius:999px;
     background:rgba(255,255,255,.02);
     user-select:none; -webkit-user-select:none;
   }
-  .switch{position:relative;width:44px;height:26px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,.04)}
+  .switch{
+    position:relative; width:44px; height:26px; border-radius:999px;
+    border:1px solid var(--border); background:rgba(255,255,255,.04);
+    flex:0 0 auto;
+  }
   .switch::after{
-    content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;
-    background:rgba(255,255,255,.85);transition:transform .18s cubic-bezier(.2,.8,.2,1);box-shadow:0 10px 18px rgba(0,0,0,.25)
+    content:"";
+    position:absolute; top:3px; left:3px;
+    width:20px; height:20px; border-radius:50%;
+    background:rgba(255,255,255,.85);
+    transition:transform .18s cubic-bezier(.2,.8,.2,1);
+    box-shadow:0 10px 18px rgba(0,0,0,.25);
   }
-  .mm-toggle input{display:none}
-  .mm-toggle input:checked + .switch{border-color:transparent;background:linear-gradient(135deg, var(--accent), var(--accent2))}
-  .mm-toggle input:checked + .switch::after{transform:translateX(18px)}
-  .mm-toggle b{font-weight:1000}
-
-  .mm-pad{display:grid;grid-template-columns:repeat(3, 1fr);gap:10px}
+  .mm-toggle input{ display:none; }
+  .mm-toggle input:checked + .switch{
+    border-color:transparent;
+    background:linear-gradient(135deg, var(--accent), var(--accent2));
+  }
+  .mm-toggle input:checked + .switch::after{ transform:translateX(18px); }
+  .mm-toggle b{ font-weight:1000 }
+  .mm-pad{ display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; }
   .pad-btn{
-    appearance:none;border:1px solid var(--border);
+    appearance:none;
+    border:1px solid var(--border);
     background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.12));
-    color:var(--text);border-radius:16px;
-    padding:14px 12px;font-size:18px;font-weight:1000;cursor:pointer;
-    touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;
-    box-shadow:0 12px 28px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.06);
+    color:var(--text);
+    border-radius:16px;
+    padding:14px 12px;
+    font-size:18px;
+    font-weight:1000;
+    cursor:pointer;
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;
+    user-select:none;
+    box-shadow:0 12px 28px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
   }
-  .pad-btn:active{transform:translateY(1px)}
-  .pad-btn--sub{font-size:14px;font-weight:900;color:color-mix(in oklab, var(--text) 80%, var(--muted))}
+  .pad-btn:active{ transform:translateY(1px); }
+  .pad-btn--sub{ font-size:14px; font-weight:900; color:color-mix(in oklab, var(--text) 80%, var(--muted)); }
+  .mm-actions{ display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap; }
+  .mm-actions .btn{ flex:1; min-width:140px; }
+  .mm-actions .btn--accent{ flex:1.25; }
+
+  /* ===== Team Wizard Modal (add team + image) ===== */
+  .tm-backdrop{
+    position:fixed; inset:0;
+    background:rgba(0,0,0,.62);
+    backdrop-filter: blur(10px);
+    opacity:0; visibility:hidden; pointer-events:none;
+    transition:opacity .22s cubic-bezier(.2,.8,.2,1);
+    z-index:85;
+  }
+  .tm-backdrop.open{ opacity:1; visibility:visible; pointer-events:auto; }
+
+  .tm{
+    position:fixed; left:50%; top:50%;
+    transform:translate(-50%,-50%) scale(.985);
+    width:min(560px, calc(100% - 24px));
+    border-radius:22px;
+    background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(0,0,0,.18)), var(--card);
+    border:1px solid var(--border);
+    box-shadow:0 40px 120px rgba(0,0,0,.62), inset 0 1px 0 rgba(255,255,255,.06);
+    backdrop-filter: blur(14px) saturate(150%);
+    opacity:0; visibility:hidden; pointer-events:none;
+    transition: transform .24s cubic-bezier(.2,.8,.2,1), opacity .24s cubic-bezier(.2,.8,.2,1);
+    z-index:100;
+    overflow:hidden;
+  }
+  .tm.open{ opacity:1; visibility:visible; pointer-events:auto; transform:translate(-50%,-50%) scale(1); }
+  .tm-head{
+    display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+    padding:14px 16px; border-bottom:1px solid var(--border);
+    background:color-mix(in oklab, var(--card) 96%, transparent)
+  }
+  .tm-title{ font-weight:1000; letter-spacing:.02em; font-size:16px; }
+  .tm-sub{ margin-top:6px; font-size:12px; color:var(--muted); line-height:1.25; }
+  .tm-body{ padding:14px 16px 16px; display:grid; gap:12px; }
+  .tm-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+  @media (max-width:520px){ .tm-grid{ grid-template-columns:1fr; } }
+  .preview{
+    border:1px solid var(--border);
+    border-radius:18px;
+    background:rgba(255,255,255,.03);
+    padding:12px;
+    display:grid; gap:10px;
+  }
+  .preview-box{
+    display:flex; align-items:center; gap:12px;
+    padding:12px; border-radius:16px;
+    border:1px solid var(--border);
+    background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.10));
+    box-shadow:0 10px 24px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .preview-img{
+    width:56px;height:56px;border-radius:18px;object-fit:cover;border:1px solid var(--border);
+    background:rgba(255,255,255,.06);
+  }
+  .tm-actions{ display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap; }
+  .tm-actions .btn{ flex:1; min-width:160px; }
+  .tm-actions .btn--accent{ flex:1.25; }
 </style>
 </head>
+
 <body>
 <header>
   <div class="bar">
@@ -364,33 +446,32 @@
       <button type="button" class="btn" id="soundBtn"><span id="soundIcon">🔊</span></button>
     </div>
   </div>
-  <div class="notice" id="notice" hidden>
-    <div>
-      <span id="noticeText"></span>
-      <button type="button" id="noticeClose">OK</button>
-    </div>
-  </div>
 </header>
 
 <main class="wrap">
   <!-- SETUP -->
   <section class="panel" id="setupPanel">
     <div class="row" style="justify-content:space-between">
-      <h2>1) Komandas</h2>
+      <h2>1) Ievadi komandas</h2>
+      <div class="muted">Dati glabājas lokāli (localStorage) • ar attēliem (kompresēti)</div>
     </div>
 
     <div class="row" style="gap:var(--space); align-items:flex-start">
-      <div style="flex:2; min-width:280px">
+      <div style="flex:2; min-width:260px">
         <input id="tName" placeholder="Turnīra nosaukums (neobligāts)"/>
         <div style="height:10px"></div>
 
-        <div class="teams-box">
-          <div class="row" style="justify-content:space-between">
-            <div class="muted"><span class="tnum" id="teamsCount">0</span> komandas</div>
-            <button type="button" class="btn btn--accent" id="addTeamBtn">Pievienot komandu</button>
-          </div>
-          <div id="teamsList" class="teams-list"></div>
+        <div class="row" style="gap:10px">
+          <input id="teamQuick" placeholder="Ievadi komandas nosaukumu (viena rindiņa)" />
+          <button type="button" class="btn btn--accent" id="addTeamBtn" style="white-space:nowrap">Pievienot</button>
         </div>
+
+        <div class="row" style="margin-top:10px; justify-content:space-between">
+          <div class="pill-small tnum" id="teamCountPill">0 komandas</div>
+          <div class="muted">Pievienošana notiek popupā (nosaukums + logo)</div>
+        </div>
+
+        <div id="teamList" class="team-list"></div>
       </div>
 
       <div style="flex:1; min-width:240px">
@@ -404,28 +485,37 @@
         </select>
         <div style="height:10px"></div>
         <button type="button" class="btn btn--accent" id="genGroups" style="width:100%">Ģenerēt grupas</button>
+
+        <div style="height:10px"></div>
+        <div class="muted">
+          Padoms: ja ieliksi logotipus, tie parādīsies grupās, playoff un PDF.
+          <br/><br/>
+          <b>Piezīme:</b> localStorage vieta ir ierobežota; logotipi tiek samazināti (max 256px), lai tas turētos rāmjos.
+          Ja reizēm sāk “neglābties”, tad nākamais līmenis ir glabāt bildes <b>IndexedDB</b> (komentārs zemāk kodā).
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- GROUPS -->
+  <!-- GROUPS (inline calendar, direct input) -->
   <section class="panel" id="groupsPanel" hidden>
     <div class="row" style="justify-content:space-between; align-items:baseline">
-      <h2>2) Grupas</h2>
+      <h2>2) Grupas & ievade (spied uz spēli)</h2>
+      <div class="muted">Popupā: abi rezultāti + OT</div>
     </div>
     <div id="groupsHost" class="group-grid"></div>
   </section>
 
   <!-- STANDINGS -->
   <section class="panel" id="standingsPanel" hidden>
-    <h2>3) Stāvējums</h2>
+    <h2>3) Stāvējums (Standings)</h2>
     <div id="standingsHost" class="grid"></div>
   </section>
 
   <!-- PLAYOFF -->
   <section class="panel" id="playoffPanel" hidden>
     <div class="row" style="justify-content:space-between;align-items:center">
-      <h2>4) Playoff</h2>
+      <h2>4) Playoff (no Quarterfinals)</h2>
       <button type="button" class="btn" id="buildBracket">Ģenerēt Bracket</button>
     </div>
 
@@ -441,7 +531,7 @@
     </div>
 
     <div id="statsPanel" class="grid" hidden style="margin-top:var(--space)">
-      <h2>5) Kopsavilkums</h2>
+      <h2>5) Turnīra kopsavilkums & apbalvojumi</h2>
       <div id="awards" class="awards"></div>
       <div class="panel" id="teamStatsPanel">
         <h3>Komandu kopstatistika</h3>
@@ -451,74 +541,89 @@
   </section>
 </main>
 
-<!-- TEAM MODAL -->
-<div id="teamBackdrop" class="backdrop"></div>
-<div id="teamModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="teamTitle" aria-hidden="true">
-  <div class="m-head">
+<!-- Team Wizard Modal -->
+<div id="tmBackdrop" class="tm-backdrop"></div>
+<div id="tm" class="tm" role="dialog" aria-modal="true" aria-labelledby="tmTitle" aria-hidden="true">
+  <div class="tm-head">
     <div>
-      <div class="m-title" id="teamTitle">Komanda</div>
-      <div class="m-sub" id="teamSub">Ievadi nosaukumu un (ja gribi) pievieno attēlu.</div>
+      <div class="tm-title" id="tmTitle">Pievienot komandu</div>
+      <div class="tm-sub" id="tmSub">Ievadi nosaukumu un (ja gribi) pievieno logo. Pēc saglabāšanas uzreiz varēsi ievadīt nākamo.</div>
     </div>
-    <button type="button" class="btn" id="teamCloseBtn" aria-label="Aizvērt">✕</button>
+    <button type="button" class="btn" id="tmCloseBtn" aria-label="Aizvērt">✕</button>
   </div>
-  <div class="m-body">
-    <div class="team-form">
-      <div class="photo-row">
-        <div class="photo-lg" id="teamPhotoPreview">?</div>
-        <div style="flex:1;min-width:0">
-          <input id="teamNameInput" placeholder="Komandas nosaukums" />
-          <div class="row" style="margin-top:10px;justify-content:flex-start">
-            <input type="file" id="teamFile" class="file-hide" accept="image/*" />
-            <button type="button" class="btn" id="teamPickPhotoBtn">Izvēlēties attēlu</button>
-            <button type="button" class="btn" id="teamRemovePhotoBtn">Noņemt attēlu</button>
+
+  <div class="tm-body">
+    <div class="tm-grid">
+      <div>
+        <label class="muted" for="tmName">Komandas nosaukums</label>
+        <input id="tmName" placeholder="piem., Vezīši" />
+        <div style="height:10px"></div>
+        <label class="muted" for="tmFile">Komandas logo (neobligāts)</label>
+        <input id="tmFile" type="file" accept="image/*" />
+        <div class="muted" style="margin-top:8px">Logo tiks automātiski samazināts, lai ietilptu localStorage.</div>
+      </div>
+      <div class="preview">
+        <div class="muted">Priekšskatījums</div>
+        <div class="preview-box">
+          <img id="tmPreviewImg" class="preview-img" alt="Logo priekšskatījums" />
+          <div style="min-width:0">
+            <div style="font-weight:1000" id="tmPreviewName">—</div>
+            <div class="muted">Tā izskatīsies kalendārā un playoff</div>
           </div>
+        </div>
+        <div class="muted" style="margin-top:4px">
+          Hotkeys: <b>Enter</b> saglabāt • <b>Esc</b> aizvērt
         </div>
       </div>
     </div>
 
-    <div class="m-actions">
-      <button type="button" class="btn" id="teamDeleteBtn">Dzēst</button>
-      <button type="button" class="btn" id="teamSaveNextBtn">Saglabāt & nākamā</button>
-      <button type="button" class="btn btn--accent" id="teamSaveDoneBtn">Saglabāt</button>
+    <div class="tm-actions">
+      <button type="button" class="btn" id="tmSaveCloseBtn">Saglabāt & aizvērt</button>
+      <button type="button" class="btn btn--accent" id="tmSaveNextBtn">Saglabāt & nākamā</button>
     </div>
   </div>
 </div>
 
-<!-- MATCH MODAL -->
-<div id="mmBackdrop" class="backdrop"></div>
-<div id="mm" class="modal" role="dialog" aria-modal="true" aria-labelledby="mmTitle" aria-hidden="true">
-  <div class="m-head">
+<!-- Match modal -->
+<div id="mmBackdrop" class="mm-backdrop"></div>
+<div id="mm" class="mm" role="dialog" aria-modal="true" aria-labelledby="mmTitle" aria-hidden="true">
+  <div class="mm-head">
     <div>
-      <div class="m-title" id="mmTitle">Ievadi rezultātu</div>
-      <div class="m-sub" id="mmSub">—</div>
+      <div class="mm-title" id="mmTitle">Ievadi rezultātu</div>
+      <div class="mm-sub" id="mmSub">—</div>
     </div>
     <button type="button" class="btn" id="mmCloseBtn" aria-label="Aizvērt">✕</button>
   </div>
 
-  <div class="m-body">
+  <div class="mm-body">
     <div class="mm-scorebox">
       <div class="mm-row">
-        <div class="mm-side active" id="mmHomeBtn" role="button" tabindex="0">
-          <div class="mm-team" id="mmHomeName">—</div>
+        <div class="mm-side active" id="mmHomeBtn" role="button" tabindex="0" aria-label="Mājinieku rezultāts">
+          <div class="mm-team">
+            <img class="logo logo--lg" id="mmHomeLogo" alt="Mājinieku logo" />
+            <span id="mmHomeName">—</span>
+          </div>
           <div class="mm-val tnum" id="mmHomeVal">—</div>
         </div>
         <div class="mm-mid">:</div>
-        <div class="mm-side" id="mmAwayBtn" role="button" tabindex="0">
-          <div class="mm-team" id="mmAwayName">—</div>
+        <div class="mm-side" id="mmAwayBtn" role="button" tabindex="0" aria-label="Viesu rezultāts">
+          <div class="mm-team">
+            <img class="logo logo--lg" id="mmAwayLogo" alt="Viesu logo" />
+            <span id="mmAwayName">—</span>
+          </div>
           <div class="mm-val tnum" id="mmAwayVal">—</div>
         </div>
       </div>
 
       <div class="mm-meta">
-        <label class="mm-toggle">
+        <label class="mm-toggle" aria-label="Overtime">
           <input type="checkbox" id="mmOt" />
           <span class="switch" aria-hidden="true"></span>
           <span>OT</span>
           <b class="tnum" id="mmOtHint"></b>
         </label>
+        <div class="muted" id="mmHint">Neizšķirtu nav — OT gadījumā ievadi uzvaras vārtus.</div>
       </div>
-
-      <div class="mm-err" id="mmErr"></div>
     </div>
 
     <div class="mm-pad" id="mmPad">
@@ -527,7 +632,7 @@
       <button type="button" class="pad-btn" data-k="3">3</button>
       <button type="button" class="pad-btn" data-k="4">4</button>
       <button type="button" class="pad-btn" data-k="5">5</button>
-      <button type="button" class="pad-btn" data-k="6">6</button>
+      <button type="i mean11-0 /min.j0</button>
       <button type="button" class="pad-btn" data-k="7">7</button>
       <button type="button" class="pad-btn" data-k="8">8</button>
       <button type="button" class="pad-btn" data-k="9">9</button>
@@ -536,12 +641,15 @@
       <button type="button" class="pad-btn pad-btn--sub" data-k="bs">⌫</button>
     </div>
 
-    <div class="m-actions">
+    <div class="mm-actions">
       <button type="button" class="btn" id="mmResetMatchBtn">Notīrīt spēli</button>
       <button type="button" class="btn btn--accent" id="mmSaveBtn">Saglabāt</button>
     </div>
   </div>
 </div>
+
+<!-- Toast -->
+<div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <!-- PDF libs -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
@@ -555,18 +663,18 @@ function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random
 const todayStamp = ()=> new Date().toISOString().slice(0,10);
 const slugify = s => (s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80)||'tournament';
 
-/* ===== Notice (no alerts) ===== */
-function notice(msg){
-  const wrap=$('#notice'); const txt=$('#noticeText');
-  txt.textContent = msg;
-  wrap.hidden=false;
-  clearTimeout(notice._t);
-  notice._t=setTimeout(()=>{wrap.hidden=true}, 2600);
+/* ===== Toast ===== */
+function toast(msg, ms=2400){
+  const el=$('#toast');
+  if(!el){ alert(msg); return; }
+  el.textContent=msg;
+  el.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t=setTimeout(()=>el.classList.remove('show'), ms);
 }
-$('#noticeClose').addEventListener('click', ()=>$('#notice').hidden=true);
 
 /* ===== Storage ===== */
-const STORAGE_KEY='tournament_state_pro_v12';
+const STORAGE_KEY='tournament_state_pro_v13_with_logos';
 function saveState(s){ localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
 function loadState(){ try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'null')}catch{return null} }
 function clearState(){ localStorage.removeItem(STORAGE_KEY); }
@@ -587,226 +695,316 @@ const sfx={ click:()=>beep({freq:280,type:'triangle',dur:0.05,gain:0.06}),
 $('#soundBtn').addEventListener('click',()=>{ soundOn=!soundOn; localStorage.setItem(SOUND_PREF_KEY,soundOn?'1':'0'); $('#soundIcon').textContent=soundOn?'🔊':'🔇'; sfx.click(); });
 
 /* ===== State ===== */
-let state={ name:'', teams:[], groups:[], standings:{}, bracket:null, overall:null };
+let state={
+  name:'',
+  teams:[],  // {id, name, logo? (dataURL)}
+  groups:[],
+  standings:{},
+  bracket:null,
+  overall:null
+};
 
-/* ===== Avatars ===== */
-function initials(name){
-  const parts=(name||'').trim().split(/\s+/).filter(Boolean);
-  const a=parts[0]?.[0]||'?';
-  const b=parts[1]?.[0]||'';
-  return (a+b).toUpperCase();
+/* ============================================================================
+   🚀 KOMENTĀRS: Attālinātā reģistrācija ar QR kodu (remote sign-up)
+
+   Ideja: turnīra “hosts” atver šo app un publicē reģistrācijas linku ar QR kodu.
+   Dalībnieks atver linku telefonā, ievada komandas nosaukumu + logo un nosūta.
+   Hostam app automātiski parāda jaunās komandas sarakstā.
+
+   1) Tev vajag servera “reģistrācijas endpointu”. Varianti:
+      A) Google Apps Script WebApp (ātri, bez servera)
+      B) Firebase / Supabase (foršāk: realtime / websocket)
+      C) Vienkāršs Node/Cloudflare worker
+
+   2) Plūsma (GAS piemērs):
+      - Hostam ir tournamentId (ģenerējam vienreiz un glabājam state.tournamentId)
+      - QR kods satur URL:
+          https://tavs-domens.lv/register.html?tournamentId=XYZ
+      - register.html sūta POST uz GAS:
+          action=registerTeam&tournamentId=XYZ&name=...&logo=...
+      - GAS saglabā komandu Sheet / DB un atgriež success.
+
+   3) Hosts app pusē:
+      - Ik pēc 2–5 sekundēm poll uz GAS:
+          action=listRegistrations&tournamentId=XYZ
+        un ja ir jaunas komandas → pievieno state.teams un pārzīmē.
+
+      - Labāk (realtime): ja lieto Firebase/Supabase, klausies izmaiņas un update bez polling.
+
+   4) QR koda ģenerēšana:
+      - Ātri: izmantot ārēju QR attēla servisu (vienkāršs <img src="...">)
+      - Labāk: ielikt lokālu QR generator lib (piem., qrcodejs) un ģenerēt offline.
+
+   5) Drošība:
+      - tournamentId + “admin token” (hostam) lai neviens cits nevar izdzēst/rediģēt.
+      - Rate limit, validācija, un max attēla izmērs.
+
+   NB: Ja gribi saglabāt attēlus lielākus, localStorage ātri piepildīsies.
+       Tad bildes glabā IndexedDB, bet state JSONā glabā tikai id/atsauci.
+============================================================================ */
+
+/* ===== Logos & badge helpers ===== */
+const PLACEHOLDER_LOGO = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+      <stop stop-color="#7c5cff" offset="0"/>
+      <stop stop-color="#45a2ff" offset="1"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#g)"/>
+  <circle cx="44" cy="52" r="10" fill="rgba(255,255,255,.85)"/>
+  <circle cx="84" cy="52" r="10" fill="rgba(255,255,255,.85)"/>
+  <rect x="34" y="78" width="60" height="10" rx="5" fill="rgba(255,255,255,.7)"/>
+</svg>
+`);
+
+function logoOf(id,map){
+  if(!id) return PLACEHOLDER_LOGO;
+  const t=map[id];
+  return (t && t.logo) ? t.logo : PLACEHOLDER_LOGO;
 }
-function avatarHTML(team, alt=false){
-  const cls = alt ? 'avatar alt' : 'avatar';
-  if(team?.imageUrl){
-    return `<span class="${cls}"><img src="${team.imageUrl}" alt=""></span>`;
-  }
-  return `<span class="${cls}">${initials(team?.name||'?')}</span>`;
+function nameOf(id,map){
+  return id ? (map[id]?.name||'?') : 'BYE';
+}
+function badgeHTML(id,map,{lg=false}={}){
+  const n = nameOf(id,map);
+  const src = logoOf(id,map);
+  const cls = lg ? 'logo logo--lg' : 'logo';
+  return `<span class="badge">
+    <img class="${cls}" alt="logo" src="${src}">
+    <span class="badge-name">${escapeHtml(n)}</span>
+  </span>`;
+}
+function escapeHtml(str){
+  return String(str ?? '')
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'","&#039;");
 }
 
-/* ===== Image compress → dataURL (persist in localStorage) ===== */
-async function fileToDataUrl(file, max=256, quality=0.82){
-  const img = await new Promise((res, rej)=>{
-    const i=new Image();
-    i.onload=()=>res(i);
-    i.onerror=rej;
-    i.src=URL.createObjectURL(file);
-  });
-  const w=img.naturalWidth, h=img.naturalHeight;
-  const scale = Math.min(1, max / Math.max(w,h));
+/* ===== Image compress ===== */
+async function fileToCompressedDataUrl(file, {maxSide=256, quality=0.78}={}){
+  // Kompresē uz JPEG (mazāks svars). Ja vajag caurspīdīgumu, var pārslēgt uz PNG, bet būs lielāks.
+  const img = await createImageBitmap(file);
+  const w = img.width, h = img.height;
+  const scale = Math.min(1, maxSide / Math.max(w,h));
   const cw = Math.max(1, Math.round(w*scale));
   const ch = Math.max(1, Math.round(h*scale));
-  const c=document.createElement('canvas');
-  c.width=cw; c.height=ch;
-  const ctx=c.getContext('2d',{alpha:false});
+  const canvas = document.createElement('canvas');
+  canvas.width=cw; canvas.height=ch;
+  const ctx = canvas.getContext('2d');
   ctx.drawImage(img, 0, 0, cw, ch);
-  // JPEG to reduce size
-  const out=c.toDataURL('image/jpeg', quality);
-  URL.revokeObjectURL(img.src);
-  return out;
+
+  // JPEG output
+  const blob = await new Promise(res=>canvas.toBlob(res, 'image/jpeg', quality));
+  if(!blob) throw new Error('compress_failed');
+  const dataUrl = await new Promise((resolve,reject)=>{
+    const r=new FileReader();
+    r.onload=()=>resolve(r.result);
+    r.onerror=()=>reject(new Error('read_failed'));
+    r.readAsDataURL(blob);
+  });
+  return dataUrl;
 }
 
-/* ===== Team Modal ===== */
-let teamDraft=null; // {mode:'add'|'edit', id, imageUrl}
-function teamModalOpen(mode, id=null){
-  teamDraft={mode, id, imageUrl:null};
+/* ===== Team Wizard (add/edit) ===== */
+let tmMode='add';        // 'add' | 'edit'
+let tmEditId=null;
+let tmLogoDataUrl=null;
 
-  const isEdit = mode==='edit';
-  const t = isEdit ? state.teams.find(x=>x.id===id) : null;
+function tmOpen({prefillName='', mode='add', editId=null}={}){
+  tmMode=mode; tmEditId=editId; tmLogoDataUrl=null;
 
-  $('#teamTitle').textContent = isEdit ? 'Rediģēt komandu' : 'Pievienot komandu';
-  $('#teamSub').textContent   = isEdit ? 'Maini nosaukumu/attēlu. (Komandu skaitu pēc grupu ģenerēšanas nemaini.)' : 'Ievadi nosaukumu un (ja gribi) pievieno attēlu.';
-  $('#teamNameInput').value   = t?.name || '';
-  teamDraft.imageUrl          = t?.imageUrl || null;
-  renderTeamPreview();
+  $('#tmTitle').textContent = (mode==='edit') ? 'Rediģēt komandu' : 'Pievienot komandu';
+  $('#tmSub').textContent = (mode==='edit')
+    ? 'Maini nosaukumu/logo. Saglabā un turpini.'
+    : 'Ievadi nosaukumu un (ja gribi) pievieno logo. Pēc saglabāšanas varēsi uzreiz ievadīt nākamo.';
 
-  // buttons
-  const canDelete = isEdit && !state.groups?.length; // droši dzēst tikai pirms ģenerēšanas
-  $('#teamDeleteBtn').disabled = !canDelete;
-  $('#teamDeleteBtn').style.display = isEdit ? 'inline-flex' : 'none';
+  const existing = (mode==='edit' && editId) ? state.teams.find(t=>t.id===editId) : null;
 
-  $('#teamSaveNextBtn').style.display = isEdit ? 'none' : 'inline-flex';
-  $('#teamSaveDoneBtn').textContent   = isEdit ? 'Saglabāt' : 'Pabeigt';
+  $('#tmName').value = existing ? (existing.name||'') : (prefillName||'');
+  tmLogoDataUrl = existing ? (existing.logo||null) : null;
 
-  $('#teamBackdrop').classList.add('open');
-  $('#teamModal').classList.add('open');
-  $('#teamModal').setAttribute('aria-hidden','false');
+  $('#tmFile').value = '';
+  $('#tmPreviewName').textContent = $('#tmName').value.trim() || '—';
+  $('#tmPreviewImg').src = tmLogoDataUrl || PLACEHOLDER_LOGO;
 
-  setTimeout(()=>$('#teamNameInput').focus(), 40);
+  $('#tmBackdrop').classList.add('open');
+  $('#tm').classList.add('open');
+  $('#tm').setAttribute('aria-hidden','false');
+
+  setTimeout(()=>$('#tmName').focus(), 30);
+  document.addEventListener('keydown', tmKeyHandler, {capture:true});
 }
-function teamModalClose(){
-  $('#teamBackdrop').classList.remove('open');
-  $('#teamModal').classList.remove('open');
-  $('#teamModal').setAttribute('aria-hidden','true');
-  teamDraft=null;
-  $('#teamFile').value='';
+function tmClose(){
+  $('#tmBackdrop').classList.remove('open');
+  $('#tm').classList.remove('open');
+  $('#tm').setAttribute('aria-hidden','true');
+  tmMode='add'; tmEditId=null; tmLogoDataUrl=null;
+  document.removeEventListener('keydown', tmKeyHandler, {capture:true});
 }
-function renderTeamPreview(){
-  const box=$('#teamPhotoPreview');
-  const name=$('#teamNameInput').value.trim() || '??';
-  if(teamDraft?.imageUrl){
-    box.innerHTML = `<img src="${teamDraft.imageUrl}" alt="">`;
+function tmKeyHandler(e){
+  if(!$('#tm').classList.contains('open')) return;
+  if(e.key==='Escape'){ e.preventDefault(); tmClose(); sfx.click(); return; }
+  if(e.key==='Enter'){
+    e.preventDefault();
+    tmSave({keepOpen:true});
+  }
+}
+function tmResetForNext(){
+  tmMode='add'; tmEditId=null; tmLogoDataUrl=null;
+  $('#tmTitle').textContent='Pievienot komandu';
+  $('#tmName').value='';
+  $('#tmFile').value='';
+  $('#tmPreviewName').textContent='—';
+  $('#tmPreviewImg').src=PLACEHOLDER_LOGO;
+  setTimeout(()=>$('#tmName').focus(), 30);
+}
+function tmSave({keepOpen=true}={}){
+  const name = $('#tmName').value.trim();
+  if(!name){ toast('Ievadi komandas nosaukumu.'); return false; }
+
+  // Duplicate check (case-insensitive)
+  const same = state.teams.find(t=>t.name?.trim().toLowerCase()===name.toLowerCase() && t.id!==tmEditId);
+  if(same){
+    toast('Šāds nosaukums jau ir sarakstā. Ja vajag, izmanto citu.'); return false;
+  }
+
+  if(tmMode==='edit' && tmEditId){
+    const t = state.teams.find(x=>x.id===tmEditId);
+    if(!t){ toast('Kļūda: komanda nav atrasta.'); return false; }
+    t.name = name;
+    t.logo = tmLogoDataUrl || null;
   }else{
-    box.textContent = initials(name);
+    state.teams.push({ id: uid(), name, logo: tmLogoDataUrl || null });
   }
-}
-$('#teamBackdrop').addEventListener('click', ()=>{ teamModalClose(); sfx.click(); });
-$('#teamCloseBtn').addEventListener('click', ()=>{ teamModalClose(); sfx.click(); });
 
-$('#teamPickPhotoBtn').addEventListener('click', ()=>$('#teamFile').click());
-$('#teamRemovePhotoBtn').addEventListener('click', ()=>{
-  teamDraft.imageUrl=null;
-  renderTeamPreview();
-  sfx.click();
-});
-$('#teamNameInput').addEventListener('input', ()=>renderTeamPreview());
-
-$('#teamFile').addEventListener('change', async ()=>{
-  const f=$('#teamFile').files[0];
-  if(!f) return;
-  try{
-    teamDraft.imageUrl = await fileToDataUrl(f, 256, 0.82);
-    renderTeamPreview();
-    sfx.success();
-  }catch{
-    notice('Neizdevās ielādēt attēlu.');
-  }
-});
-
-function teamValidateName(){
-  const name=$('#teamNameInput').value.trim();
-  if(!name){ notice('Ievadi komandas nosaukumu.'); return null; }
-  return name;
-}
-function teamSave(applyMode){
-  const name=teamValidateName();
-  if(!name) return false;
-
-  if(teamDraft.mode==='add'){
-    if(state.groups?.length){ notice('Komandu skaitu pēc grupu ģenerēšanas nemaini. Notīri turnīru, ja vajag mainīt komandas.'); return false; }
-    state.teams.push({id:uid(), name, imageUrl:teamDraft.imageUrl});
-  }else{
-    const t=state.teams.find(x=>x.id===teamDraft.id);
-    if(t){
-      t.name=name;
-      t.imageUrl=teamDraft.imageUrl;
-      // ja jau ir grupas — pārrēķinam standings (nosaukums mainās)
-      if(state.groups?.length){
-        state.standings=computeStandings(state.groups, Object.fromEntries(state.teams.map(t=>[t.id,t])));
-      }
-    }
-  }
   saveState(state);
-  renderTeamsList();
-  if(state.groups?.length){ renderGroups(); renderStandings(); renderBracket(); }
-  sfx.success();
+  renderTeamList();
+  updateGroupOptions();
 
-  if(applyMode==='next'){
-    // clear for next team
-    $('#teamNameInput').value='';
-    teamDraft.imageUrl=null;
-    renderTeamPreview();
-    $('#teamNameInput').focus();
+  // ja jau ir ģenerētas grupas un teams mainās — tas maina visu loģiku,
+  // tāpēc drošākais ir prasīt userim pārģenerēt.
+  if(state.groups?.length){
+    toast('Komandu saraksts mainīts. Lai pārrēķinātu grupas, spied “Ģenerēt grupas”.', 3200);
+    // Atstājam veco stāvokli, bet UI norāda.
   }else{
-    teamModalClose();
+    sfx.success();
+  }
+
+  if(keepOpen){
+    tmResetForNext();
+  }else{
+    tmClose();
   }
   return true;
 }
-$('#teamSaveNextBtn').addEventListener('click', ()=>teamSave('next'));
-$('#teamSaveDoneBtn').addEventListener('click', ()=>{
-  if(teamDraft?.mode==='add'){
-    // pabeigt: ja lauks tukšs — vienkārši aizver (lai nav uzspiešanas)
-    const name=$('#teamNameInput').value.trim();
-    if(!name){ teamModalClose(); sfx.click(); return; }
+
+/* Team wizard bindings */
+$('#tmBackdrop').addEventListener('click', ()=>{ tmClose(); sfx.click(); });
+$('#tmCloseBtn').addEventListener('click', ()=>{ tmClose(); sfx.click(); });
+$('#tmName').addEventListener('input', ()=>{
+  $('#tmPreviewName').textContent = $('#tmName').value.trim() || '—';
+});
+$('#tmFile').addEventListener('change', async ()=>{
+  const f = $('#tmFile').files && $('#tmFile').files[0];
+  if(!f) return;
+  if(!f.type.startsWith('image/')){ toast('Lūdzu izvēlies attēla failu.'); $('#tmFile').value=''; return; }
+  if(f.size > 15*1024*1024){ toast('Attēls par lielu (max ~15MB).'); $('#tmFile').value=''; return; }
+  try{
+    tmLogoDataUrl = await fileToCompressedDataUrl(f, {maxSide:256, quality:0.78});
+    $('#tmPreviewImg').src = tmLogoDataUrl;
+    sfx.click();
+  }catch(e){
+    console.error(e);
+    toast('Neizdevās apstrādāt attēlu.');
   }
-  teamSave('done');
 });
+$('#tmSaveNextBtn').addEventListener('click', ()=>{ tmSave({keepOpen:true}); });
+$('#tmSaveCloseBtn').addEventListener('click', ()=>{ tmSave({keepOpen:false}); });
 
-$('#teamDeleteBtn').addEventListener('click', ()=>{
-  if(!teamDraft || teamDraft.mode!=='edit') return;
-  if(state.groups?.length){ notice('Dzēšana pēc grupu ģenerēšanas nav atļauta.'); return; }
-  state.teams = state.teams.filter(t=>t.id!==teamDraft.id);
-  saveState(state);
-  renderTeamsList();
-  teamModalClose();
-  sfx.click();
-});
+/* ===== Team list UI ===== */
+function renderTeamList(){
+  const host = $('#teamList');
+  host.innerHTML = '';
+  const count = state.teams.length;
+  $('#teamCountPill').textContent = `${count} komandas`;
 
-$('#addTeamBtn').addEventListener('click', ()=>{
-  if(state.groups?.length){
-    notice('Komandu pievienošana pēc grupu ģenerēšanas nav atļauta. Notīri turnīru, ja vajag mainīt komandas.');
+  if(count===0){
+    const empty=document.createElement('div');
+    empty.className='muted';
+    empty.textContent='Nav pievienotu komandu. Ievadi nosaukumu un spied “Pievienot”.';
+    host.appendChild(empty);
     return;
   }
-  teamModalOpen('add');
-  sfx.click();
-});
 
-function renderTeamsList(){
-  const host=$('#teamsList');
-  host.innerHTML='';
-  $('#teamsCount').textContent = state.teams.length;
-
-  const lockCount = !!state.groups?.length;
-
-  state.teams.forEach(t=>{
-    const row=document.createElement('div');
-    row.className='team-row';
-    row.innerHTML=`
-      <div class="team-left">
-        ${avatarHTML(t,false)}
-        <div class="team-name">${t.name}</div>
+  state.teams.forEach((t, idx)=>{
+    const item=document.createElement('div');
+    item.className='team-item';
+    item.innerHTML=`
+      <div class="left">
+        <img class="logo logo--lg" alt="logo" src="${t.logo || PLACEHOLDER_LOGO}">
+        <div style="min-width:0">
+          <div class="name">${escapeHtml(t.name)}</div>
+          <div class="muted tnum">#${idx+1}</div>
+        </div>
       </div>
-      <div class="team-actions">
-        <button type="button" class="icon-btn" data-act="edit" title="Rediģēt">✎</button>
-        <button type="button" class="icon-btn" data-act="del" title="Dzēst" ${lockCount?'disabled':''}>🗑</button>
+      <div class="row" style="gap:8px">
+        <button type="button" class="btn" data-edit="${t.id}">Edit</button>
+        <button type="button" class="btn" data-del="${t.id}">Dzēst</button>
       </div>
     `;
-    row.querySelector('[data-act="edit"]').addEventListener('click', ()=>{
-      teamModalOpen('edit', t.id); sfx.click();
-    });
-    row.querySelector('[data-act="del"]').addEventListener('click', ()=>{
-      if(lockCount){ notice('Dzēšana pēc grupu ģenerēšanas nav atļauta.'); return; }
-      state.teams = state.teams.filter(x=>x.id!==t.id);
-      saveState(state);
-      renderTeamsList();
-      sfx.click();
-    });
-    host.appendChild(row);
+    host.appendChild(item);
   });
 
-  updateGroupOptions();
+  // handlers
+  $$('[data-edit]', host).forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const id=b.dataset.edit;
+      const t=state.teams.find(x=>x.id===id);
+      if(!t) return;
+      tmOpen({mode:'edit', editId:id});
+      sfx.click();
+    });
+  });
+  $$('[data-del]', host).forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const id=b.dataset.del;
+      const t=state.teams.find(x=>x.id===id);
+      if(!t) return;
+      if(!confirm(`Dzēst komandu "${t.name}"?`)) return;
+      state.teams = state.teams.filter(x=>x.id!==id);
+      saveState(state);
+      renderTeamList();
+      updateGroupOptions();
+      sfx.click();
+    });
+  });
 }
+
+/* Quick add */
+$('#addTeamBtn').addEventListener('click', ()=>{
+  const name = $('#teamQuick').value.trim();
+  tmOpen({prefillName:name, mode:'add'});
+  $('#teamQuick').value='';
+  sfx.click();
+});
+$('#teamQuick').addEventListener('keydown', (e)=>{
+  if(e.key==='Enter'){
+    e.preventDefault();
+    $('#addTeamBtn').click();
+  }
+});
 
 /* ===== Grouping / fixtures ===== */
 function deriveGroupCount(n,str){
   const allowed=[2,4,6];
   if(str==='n1') return (n<=6)?1:deriveGroupCount(n,'auto');
-  if(str==='auto' && n<=6) return 1;
-  if(str?.startsWith('n')){
-    const req=+str.slice(1);
-    if(req===1 && n<=6) return 1;
-    if(allowed.includes(req)) return Math.min(req,n);
-  }
+  if(str==='auto' && n<=6) return Math.min(1,n);
+  if(str?.startsWith('n')){ const req=+str.slice(1); if(req===1 && n<=6) return 1; if(allowed.includes(req)) return Math.min(req,n); }
   if(n<=6) return 1;
   const target=Math.round(n/4); let best=2;
   for(const k of allowed){
@@ -900,4 +1098,671 @@ function buildBracketFromStandings(st){
     return mk([{home:s[0],away:s[7]},{home:s[1],away:s[6]},{home:s[2],away:s[5]},{home:s[3],away:s[4]}]);
   }
   const all=[]; for(const g of gids) all.push(...(st[g]||[]));
-  all.sort((a,b)=> (b.
+  all.sort((a,b)=> (b.pts-a.pts)||(b.gd-a.gd)||(b.gf-a.gf));
+  const s=pad(all.slice(0,8).map(x=>x.teamId??null),8);
+  return mk([{home:s[0],away:s[7]},{home:s[1],away:s[6]},{home:s[2],away:s[5]},{home:s[3],away:s[4]}]);
+}
+function pickWinner(m){
+  if(!m) return null;
+  if(m.home&&!m.away) return m.home;
+  if(!m.home&&m.away) return m.away;
+  if(Number.isFinite(m.hs)&&Number.isFinite(m.as)){
+    if(m.hs>m.as) return m.home;
+    if(m.as>m.hs) return m.away;
+  }
+  return null;
+}
+function pickLoser(m){ const w=pickWinner(m); if(!w) return null; return w===m.home ? (m.away||null) : (m.home||null); }
+function propagate(br){
+  const wQF=br.qf.map(pickWinner);
+  br.sf[0].home=wQF[0]; br.sf[0].away=wQF[3];
+  br.sf[1].home=wQF[1]; br.sf[1].away=wQF[2];
+  const wSF=br.sf.map(pickWinner), lSF=br.sf.map(pickLoser);
+  br.fin[0].home=wSF[0]; br.fin[0].away=wSF[1];
+  br.third[0].home=lSF[0]; br.third[0].away=lSF[1];
+}
+
+/* ===== Match Modal (both scores + OT) ===== */
+let mmCtx=null;                 // {type:'group'|'bracket', ...}
+let mmActive='home';            // 'home' | 'away'
+let mmBuf={home:'', away:''};   // strings
+
+function mmOpen(ctx){
+  if(!ctx.homeId || !ctx.awayId){
+    toast('BYE — šai spēlei rezultātu nevajag ievadīt.');
+    return;
+  }
+  mmCtx=ctx;
+  mmActive='home';
+  mmBuf.home = Number.isFinite(ctx.hs) ? String(ctx.hs) : '';
+  mmBuf.away = Number.isFinite(ctx.as) ? String(ctx.as) : '';
+
+  $('#mmTitle').textContent = 'Ievadi rezultātu';
+  $('#mmSub').textContent = ctx.subtitle || '';
+
+  $('#mmHomeName').textContent = ctx.homeName || '—';
+  $('#mmAwayName').textContent = ctx.awayName || '—';
+  $('#mmHomeLogo').src = ctx.homeLogo || PLACEHOLDER_LOGO;
+  $('#mmAwayLogo').src = ctx.awayLogo || PLACEHOLDER_LOGO;
+
+  $('#mmOt').checked = !!ctx.ot;
+  $('#mmOtHint').textContent = ctx.ot ? 'ON' : 'OFF';
+
+  setActiveSide('home');
+  mmRender();
+
+  $('#mmBackdrop').classList.add('open');
+  $('#mm').classList.add('open');
+  $('#mm').setAttribute('aria-hidden','false');
+
+  document.addEventListener('keydown', mmKeyHandler, {capture:true});
+}
+function mmClose(){
+  $('#mmBackdrop').classList.remove('open');
+  $('#mm').classList.remove('open');
+  $('#mm').setAttribute('aria-hidden','true');
+  mmCtx=null; mmActive='home'; mmBuf={home:'',away:''};
+  document.removeEventListener('keydown', mmKeyHandler, {capture:true});
+}
+function setActiveSide(side){
+  mmActive = side;
+  $('#mmHomeBtn').classList.toggle('active', side==='home');
+  $('#mmAwayBtn').classList.toggle('active', side==='away');
+}
+function mmRender(){
+  $('#mmHomeVal').textContent = mmBuf.home==='' ? '—' : mmBuf.home;
+  $('#mmAwayVal').textContent = mmBuf.away==='' ? '—' : mmBuf.away;
+  $('#mmOtHint').textContent = $('#mmOt').checked ? 'ON' : 'OFF';
+}
+function mmKeyHandler(e){
+  if(!$('#mm').classList.contains('open')) return;
+  if(e.key==='Escape'){ e.preventDefault(); mmClose(); sfx.click(); return; }
+  if(/^[0-9]$/.test(e.key)){ e.preventDefault(); mmDigit(e.key); return; }
+  if(e.key==='Backspace'){ e.preventDefault(); mmBack(); return; }
+  if(e.key==='Enter'){ e.preventDefault(); mmSave(); return; }
+  if(e.key==='Tab'){
+    e.preventDefault();
+    setActiveSide(mmActive==='home'?'away':'home');
+    sfx.click();
+  }
+}
+function mmDigit(d){
+  let s = mmBuf[mmActive];
+  if(s.length>=3) return;
+  if(s==='0') s=d; else s+=d;
+  mmBuf[mmActive]=s;
+  mmRender(); sfx.click();
+}
+function mmBack(){
+  mmBuf[mmActive]=mmBuf[mmActive].slice(0,-1);
+  mmRender(); sfx.click();
+}
+function mmClearSide(){ mmBuf[mmActive]=''; mmRender(); sfx.click(); }
+function mmResetMatch(){ mmBuf.home=''; mmBuf.away=''; $('#mmOt').checked=false; mmRender(); sfx.click(); }
+function parseBuf(x){ return x==='' ? null : Math.max(0, parseInt(x,10)); }
+function mmValidate(hs,as){
+  if(Number.isFinite(hs) && Number.isFinite(as) && hs===as){
+    toast('Neizšķirtu nav. OT gadījumā ievadi uzvaras vārtus.');
+    return false;
+  }
+  return true;
+}
+function mmSave(){
+  if(!mmCtx) return;
+  const hs=parseBuf(mmBuf.home);
+  const as=parseBuf(mmBuf.away);
+  const ot=!!$('#mmOt').checked;
+
+  if(!mmValidate(hs,as)) return;
+
+  if(mmCtx.type==='group'){
+    const G=state.groups.find(g=>g.id===mmCtx.gid); if(!G) return;
+    const M=G.matches.find(m=>m.id===mmCtx.mid); if(!M) return;
+    M.hs = hs; M.as = as; M.ot = ot;
+
+    const map=Object.fromEntries(state.teams.map(t=>[t.id,t]));
+    state.standings=computeStandings(state.groups,map);
+    saveState(state);
+    renderGroups();
+    renderStandings();
+    sfx.score();
+    mmClose();
+    return;
+  }
+
+  if(mmCtx.type==='bracket'){
+    if(!state.bracket) return;
+    const col=mmCtx.stage==='QF'?'qf':mmCtx.stage==='SF'?'sf':mmCtx.stage==='Final'?'fin':'third';
+    const M=state.bracket[col].find(x=>x.id===mmCtx.id); if(!M) return;
+    M.hs = hs; M.as = as; M.ot = ot;
+
+    propagate(state.bracket);
+    state.overall=null;
+    saveState(state);
+    renderBracket();
+    refreshOverallButtons();
+    $('#statsPanel').hidden=true;
+    $('#downloadPdfBtn').disabled=true;
+    sfx.score();
+    mmClose();
+    return;
+  }
+}
+
+/* Modal bindings */
+$('#mmBackdrop').addEventListener('click', ()=>{ mmClose(); sfx.click(); });
+$('#mmCloseBtn').addEventListener('click', ()=>{ mmClose(); sfx.click(); });
+$('#mmHomeBtn').addEventListener('click', ()=>{ setActiveSide('home'); sfx.click(); });
+$('#mmAwayBtn').addEventListener('click', ()=>{ setActiveSide('away'); sfx.click(); });
+$('#mmOt').addEventListener('change', ()=>{ mmRender(); sfx.click(); });
+$('#mmSaveBtn').addEventListener('click', ()=>{ mmSave(); });
+$('#mmResetMatchBtn').addEventListener('click', ()=>{ mmResetMatch(); });
+$('#mmPad').addEventListener('click', (e)=>{
+  const b=e.target.closest('button[data-k]'); if(!b) return;
+  const k=b.dataset.k;
+  if(/^\d$/.test(k)) mmDigit(k);
+  else if(k==='bs') mmBack();
+  else if(k==='clr') mmClearSide();
+});
+
+/* ===== Render Groups (inline calendars) ===== */
+function renderGroups(){
+  const host=$('#groupsHost'); host.innerHTML='';
+  const map=Object.fromEntries(state.teams.map(t=>[t.id,t]));
+  state.groups.forEach(g=>{
+    const card=document.createElement('div'); card.className='panel';
+    const rounds = [...new Set(g.matches.map(m=>m.round))].sort((a,b)=>a-b);
+
+    const scored=g.matches.filter(isScored).length;
+    const chips = g.teams.map(id=>`<span class="chip-tag">${escapeHtml(nameOf(id,map))}</span>`).join('');
+
+    card.innerHTML=`
+      <div class="group-head">
+        <div>
+          <div class="row" style="gap:10px; align-items:center">
+            <span class="gid">${g.id}</span>
+            <div>
+              <div style="font-weight:1000;font-size:18px;letter-spacing:.2px">Grupa ${g.id}</div>
+              <div class="group-meta tnum">${g.teams.length} komandas • ${scored}/${g.matches.length} spēles ievadītas</div>
+            </div>
+          </div>
+          <div class="chips">${chips}</div>
+        </div>
+        <div class="muted">Spied uz spēli, lai ievadītu</div>
+      </div>
+      <div class="group-cal" id="cal_${g.id}"></div>
+    `;
+
+    const cal = card.querySelector(`#cal_${g.id}`);
+    for(const r of rounds){
+      const rm = g.matches.filter(m=>m.round===r);
+      const doneCount = rm.filter(isScored).length;
+      const sep=document.createElement('div');
+      sep.className='round-sep';
+      sep.innerHTML=`<div>Kārta ${r}</div><div class="pill tnum">${doneCount}/${rm.length}</div>`;
+      cal.appendChild(sep);
+
+      for(const m of rm){
+        const hs = Number.isFinite(m.hs) ? m.hs : '–';
+        const as = Number.isFinite(m.as) ? m.as : '–';
+        const done = isScored(m);
+
+        const row=document.createElement('div');
+        row.className='match-row';
+        row.setAttribute('role','button');
+        row.setAttribute('tabindex','0');
+
+        row.innerHTML=`
+          <div class="rbox tnum">R${m.round}</div>
+          <div class="teams">
+            <div class="tline">
+              <div class="tleft">
+                <img class="logo" alt="logo" src="${logoOf(m.home,map)}">
+                <div class="tname">${escapeHtml(nameOf(m.home,map))}</div>
+              </div>
+              <div class="subtag">Mājinieki</div>
+            </div>
+            <div class="tline">
+              <div class="tleft">
+                <img class="logo" alt="logo" src="${logoOf(m.away,map)}">
+                <div class="tname">${escapeHtml(nameOf(m.away,map))}</div>
+              </div>
+              <div class="subtag">Viesi</div>
+            </div>
+          </div>
+          <div class="score-pill tnum ${done?'done':''}">${hs}:${as}</div>
+          <div class="ot-pill ${m.ot?'on':''}">OT</div>
+        `;
+
+        const open=()=>{
+          mmOpen({
+            type:'group',
+            gid:g.id,
+            mid:m.id,
+            homeId:m.home,
+            awayId:m.away,
+            homeName:nameOf(m.home,map),
+            awayName:nameOf(m.away,map),
+            homeLogo:logoOf(m.home,map),
+            awayLogo:logoOf(m.away,map),
+            hs:m.hs, as:m.as, ot:m.ot,
+            subtitle:`Grupa ${g.id} • R${m.round} • ${nameOf(m.home,map)} vs ${nameOf(m.away,map)}`
+          });
+          sfx.click();
+        };
+        row.addEventListener('click', open);
+        row.addEventListener('keydown', (e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); open(); }});
+        cal.appendChild(row);
+      }
+    }
+
+    host.appendChild(card);
+  });
+
+  $('#groupsPanel').hidden = state.groups.length===0;
+}
+
+/* ===== Standings ===== */
+function renderStandings(){
+  const host=$('#standingsHost'); host.innerHTML='';
+  const st=state.standings||{}; const gids=Object.keys(st).sort();
+  const map=Object.fromEntries(state.teams.map(t=>[t.id,t]));
+  gids.forEach(gid=>{
+    const card=document.createElement('div'); card.className='panel';
+    card.innerHTML=`<h3>Grupa ${gid} — Stāvējums</h3>`;
+    const tbl=document.createElement('table'); tbl.className='standings-table tnum';
+    tbl.innerHTML=`<colgroup>
+      <col style="width:var(--std-w-num)"><col>
+      <col style="width:var(--std-w-num)"><col style="width:var(--std-w-num)"><col style="width:var(--std-w-num)">
+      <col style="width:var(--std-w-num)"><col style="width:var(--std-w-num)"><col style="width:var(--std-w-num)"><col style="width:var(--std-w-num)">
+    </colgroup>
+    <thead><tr><th>#</th><th>Komanda</th><th>Sp</th><th>U</th><th>Z</th><th>GF</th><th>GA</th><th>GD</th><th>P</th></tr></thead><tbody></tbody>`;
+    const body=$('tbody',tbl);
+    st[gid].forEach((r,i)=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td style="text-align:center">${i+1}</td>
+        <td>${badgeHTML(r.teamId, map)}</td>
+        <td style="text-align:center">${r.played}</td><td style="text-align:center">${r.w}</td><td style="text-align:center">${r.l}</td>
+        <td style="text-align:center">${r.gf}</td><td style="text-align:center">${r.ga}</td><td style="text-align:center">${r.gd}</td>
+        <td style="text-align:center"><b>${r.pts}</b></td>`;
+      body.appendChild(tr);
+    });
+    card.appendChild(tbl); host.appendChild(card);
+  });
+  $('#standingsPanel').hidden = !gids.length;
+}
+
+/* ===== Bracket rendering (click -> match modal) ===== */
+function winnerClass(m,side){
+  if(m.home && !m.away) return side==='home'?'win':'';
+  if(!m.home && m.away) return side==='away'?'win':'';
+  if(Number.isFinite(m.hs)&&Number.isFinite(m.as)){
+    if(m.hs>m.as && side==='home') return 'win';
+    if(m.as>m.hs && side==='away') return 'win';
+  } return '';
+}
+function renderBracket(){
+  const map=Object.fromEntries(state.teams.map(t=>[t.id,t]));
+  $('#qfCol').innerHTML='<h3>Ceturtdaļfināli</h3>';
+  $('#sfCol').innerHTML='<h3>Pusfināli</h3>';
+  $('#finCol').innerHTML='<h3>Fināls & 3. vieta</h3>';
+
+  const mk=(m,stage,idx)=>{
+    const el=document.createElement('div'); el.className='match';
+    const hs = Number.isFinite(m.hs) ? m.hs : '';
+    const as = Number.isFinite(m.as) ? m.as : '';
+    el.innerHTML=`
+      <div class="status">${stage} ${idx!=null?('• '+(idx+1)):""}</div>
+      <div class="team ${winnerClass(m,'home')}">
+        <span class="seed">H</span>
+        ${badgeHTML(m.home,map,{lg:false})}
+        <input class="score-in tnum" type="text" readonly value="${hs}" />
+      </div>
+      <div class="team ${winnerClass(m,'away')}" style="margin-top:8px">
+        <span class="seed">A</span>
+        ${badgeHTML(m.away,map,{lg:false})}
+        <input class="score-in tnum" type="text" readonly value="${as}" />
+      </div>
+      <div class="row" style="margin-top:8px">
+        <label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)">
+          <input class="chk" type="checkbox" ${m.ot?'checked':''} data-stage="${stage}" data-id="${m.id}" data-ot="flag" /> OT
+        </label>
+        <span class="muted" style="margin-left:auto">Spied uz spēli, lai ievadītu</span>
+      </div>
+    `;
+
+    el.addEventListener('click', (e)=>{
+      if(e.target.closest('[data-ot]')) return;
+      mmOpen({
+        type:'bracket',
+        stage,
+        id:m.id,
+        homeId:m.home,
+        awayId:m.away,
+        homeName:nameOf(m.home,map),
+        awayName:nameOf(m.away,map),
+        homeLogo:logoOf(m.home,map),
+        awayLogo:logoOf(m.away,map),
+        hs:m.hs, as:m.as, ot:m.ot,
+        subtitle:`${stage} • ${nameOf(m.home,map)} vs ${nameOf(m.away,map)}`
+      });
+      sfx.click();
+    });
+    el.setAttribute('role','button');
+    el.setAttribute('tabindex','0');
+    el.addEventListener('keydown', (e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); el.click(); }});
+    return el;
+  };
+
+  state.bracket?.qf?.forEach((m,i)=>$('#qfCol').appendChild(mk(m,'QF',i)));
+  state.bracket?.sf?.forEach((m,i)=>$('#sfCol').appendChild(mk(m,'SF',i)));
+  state.bracket?.fin?.forEach(m=>$('#finCol').appendChild(mk(m,'Final')));
+  state.bracket?.third?.forEach(m=>$('#finCol').appendChild(mk(m,'3rd')));
+
+  // OT checkbox binding
+  $$('.bracket [data-ot]').forEach(el=>{
+    el.addEventListener('change', ()=>{
+      const stage=el.dataset.stage, id=el.dataset.id;
+      const col=stage==='QF'?'qf':stage==='SF'?'sf':stage==='Final'?'fin':'third';
+      const m=state.bracket[col].find(x=>x.id===id);
+      m.ot=el.checked; sfx.click();
+      if(Number.isFinite(m.hs)&&Number.isFinite(m.as)&&m.hs===m.as){
+        toast('Neizšķirtu nav. OT gadījumā jābūt uzvaras vārtiem.');
+      }
+      propagate(state.bracket); saveState(state); renderBracket(); refreshOverallButtons();
+    });
+  });
+
+  refreshOverallButtons();
+}
+
+/* ===== Overall / Awards & PDF ===== */
+function tournamentFinished(){
+  if(!state.bracket) return false;
+  const fin=state.bracket.fin[0], third=state.bracket.third[0];
+  return !!(pickWinner(fin)&&pickWinner(third));
+}
+function refreshOverallButtons(){
+  const ready=tournamentFinished();
+  $('#overallBtn').disabled=!ready;
+  $('#downloadPdfBtn').disabled=!(ready&&state.overall);
+}
+function computeOverall(){
+  const map=Object.fromEntries(state.teams.map(t=>[t.id,t.name])), ids=Object.keys(map);
+  const stats=Object.fromEntries(ids.map(id=>[id,{teamId:id,name:map[id],played:0,wins:0,losses:0,gf:0,ga:0}]));
+  const apply=m=>{
+    if(!m||!m.home||!m.away) return;
+    if(!isScored(m)) return;
+    const hs=m.hs, as=m.as, H=stats[m.home], A=stats[m.away];
+    H.played++; A.played++;
+    H.gf+=hs; H.ga+=as;
+    A.gf+=as; A.ga+=hs;
+    if(hs>as){H.wins++;A.losses++;} else {A.wins++;H.losses++;}
+  };
+  for(const g of state.groups) for(const m of g.matches) apply(m);
+  if(state.bracket) [...state.bracket.qf,...state.bracket.sf,...state.bracket.fin,...state.bracket.third].forEach(apply);
+  const arr=Object.values(stats);
+  const maxGF=Math.max(...arr.map(s=>s.gf)), maxGA=Math.max(...arr.map(s=>s.ga));
+  const topGF=arr.filter(s=>s.gf===maxGF).map(s=>s.name), topGA=arr.filter(s=>s.ga===maxGA).map(s=>s.name);
+  const winId=state.bracket?pickWinner(state.bracket.fin[0]):null, winName=winId?map[winId]:'—';
+  return { winnerName:winName, topGF, maxGF, topGA, maxGA, teamStats: arr.sort((a,b)=> (b.wins-a.wins) || ((b.gf-b.ga)-(a.gf-a.ga)) || (b.gf-a.gf) || a.name.localeCompare(b.name)) };
+}
+function renderOverall(o){
+  const awards=$('#awards'); awards.innerHTML='';
+  const card=(t,c)=>{ const d=document.createElement('div'); d.className='panel'; d.innerHTML=`<div class="muted">${t}</div><div style="font-weight:900;font-size:16px;margin-top:6px">${c}</div>`; return d; };
+  awards.appendChild(card('Turnīra uzvarētājs', o.winnerName));
+  awards.appendChild(card('Visvairāk gūtie vārti', `${o.topGF.join(', ')} (${o.maxGF})`));
+  awards.appendChild(card('Visvairāk ielaistie vārti', `${o.topGA.join(', ')} (${o.maxGA})`));
+
+  const map=Object.fromEntries(state.teams.map(t=>[t.id,t]));
+  const host=$('#teamStatsHost'); const tbl=document.createElement('table'); tbl.className='standings-table tnum';
+  tbl.innerHTML=`<colgroup>
+    <col><col style="width:var(--std-w-num)"><col style="width:var(--std-w-num)"><col style="width:var(--std-w-num)">
+    <col style="width:var(--std-w-num)"><col style="width:var(--std-w-num)"><col style="width:var(--std-w-num)">
+  </colgroup>
+  <thead><tr><th>Komanda</th><th>Sp</th><th>U</th><th>Z</th><th>GF</th><th>GA</th><th>GD</th></tr></thead><tbody></tbody>`;
+  const body=$('tbody',tbl);
+  o.teamStats.forEach(s=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${badgeHTML(s.teamId,map)}</td>
+      <td style="text-align:center">${s.played}</td><td style="text-align:center">${s.wins}</td><td style="text-align:center">${s.losses}</td>
+      <td style="text-align:center">${s.gf}</td><td style="text-align:center">${s.ga}</td><td style="text-align:center">${s.gf-s.ga}</td>`;
+    body.appendChild(tr);
+  });
+  host.innerHTML=''; host.appendChild(tbl);
+}
+
+function imgFormatFromDataUrl(dataUrl){
+  if(!dataUrl) return 'JPEG';
+  const m = /^data:image\/(png|jpeg|jpg);/i.exec(dataUrl);
+  if(!m) return 'JPEG';
+  const t = m[1].toLowerCase();
+  return (t==='png') ? 'PNG' : 'JPEG';
+}
+
+$('#overallBtn').addEventListener('click', ()=>{
+  if(!tournamentFinished()){ toast('Kopsavilkums pieejams pēc fināla un 3. vietas spēles.'); return; }
+  state.overall=computeOverall(); saveState(state); renderOverall(state.overall);
+  $('#statsPanel').hidden=false; $('#downloadPdfBtn').disabled=false; sfx.success();
+});
+
+$('#downloadPdfBtn').addEventListener('click', ()=>{
+  if(!state.overall){ toast('Vispirms ģenerē kopsavilkumu.'); return; }
+  try{
+    const { jsPDF } = window.jspdf;
+    const doc=new jsPDF({unit:'pt',format:'a4'});
+    const margin=36, lineH=18, pageW=doc.internal.pageSize.getWidth();
+
+    const title = state.name ? `Turnīra kopsavilkums — ${state.name}` : 'Turnīra kopsavilkums';
+    doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.text(title, margin, 52);
+    doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.text(`Datums: ${todayStamp()}`, pageW - margin - 140, 52);
+
+    const y0=78;
+    doc.text(`Uzvarētājs: ${state.overall.winnerName}`, margin, y0);
+    doc.text(`Visvairāk gūtie vārti: ${state.overall.topGF.join(', ')} (${state.overall.maxGF})`, margin, y0+lineH);
+    doc.text(`Visvairāk ielaistie vārti: ${state.overall.topGA.join(', ')} (${state.overall.maxGA})`, margin, y0+lineH*2);
+
+    const teamMap=Object.fromEntries(state.teams.map(t=>[t.id,t]));
+    const rows = state.overall.teamStats.map(s=>({
+      teamId:s.teamId,
+      name:s.name,
+      Sp:s.played, U:s.wins, Z:s.losses, GF:s.gf, GA:s.ga, GD:(s.gf-s.ga)
+    }));
+
+    doc.autoTable({
+      startY: y0+lineH*3+10,
+      head: [['', 'Komanda','Sp','U','Z','GF','GA','GD']],
+      body: rows.map(r=>['', r.name, r.Sp, r.U, r.Z, r.GF, r.GA, r.GD]),
+      styles:{font:'helvetica',fontSize:10,cellPadding:4, valign:'middle'},
+      headStyles:{fillColor:[124,92,255],textColor:255},
+      alternateRowStyles:{fillColor:[245,245,248]},
+      margin:{left:margin,right:margin},
+      columnStyles:{ 0:{cellWidth:28}, 1:{cellWidth:'auto'} },
+      didDrawCell: (data)=>{
+        if(data.section!=='body') return;
+        if(data.column.index!==0) return;
+        const rowIndex = data.row.index;
+        const teamId = rows[rowIndex]?.teamId;
+        const logo = teamId ? (teamMap[teamId]?.logo || null) : null;
+        const src = logo || PLACEHOLDER_LOGO;
+        const fmt = imgFormatFromDataUrl(src);
+
+        const x = data.cell.x + 5;
+        const y = data.cell.y + 3;
+        const size = 18;
+        try{
+          doc.addImage(src, fmt, x, y, size, size);
+        }catch(e){
+          // ja kādreiz addImage nepatīk konkrētais dataURL, ignorējam (PDF vēl būs ok)
+        }
+      }
+    });
+
+    const fname=`${slugify(state.name)}_${todayStamp()}_kopsavilkums.pdf`;
+    doc.save(fname);
+    sfx.success();
+  }catch(e){
+    console.error(e);
+    toast('Neizdevās ģenerēt PDF.');
+  }
+});
+
+/* ===== UI helpers & hooks ===== */
+function updateGroupOptions(){
+  const n = state.teams.length;
+  const optN1=$('#groupStrategy').querySelector('option[value="n1"]');
+  if(n>6){ optN1.disabled=true; optN1.title='1 grupa atļauta tikai ja ≤6 komandas'; }
+  else { optN1.disabled=false; optN1.title=''; }
+}
+
+$('#genGroups').addEventListener('click', ()=>{
+  const name=$('#tName').value.trim();
+  if(state.teams.length<2){ toast('Pievieno vismaz 2 komandas.'); return; }
+  if($('#groupStrategy').value==='n1' && state.teams.length>6){
+    toast('“1 grupa” atļauta tikai, ja ≤6 komandas. Pārslēdzu uz automātisku (2/4/6).');
+    $('#groupStrategy').value='auto';
+  }
+
+  // Ja tiek pārgenerēts, pārstartējam visu (rezultāti izzudīs) — drošības confirm
+  if(state.groups?.length){
+    const ok = confirm('Pārgenerēt grupas? Esošie rezultāti tiks notīrīti.');
+    if(!ok) return;
+  }
+
+  state.name = name;
+  state.groups = makeGroups(state.teams, $('#groupStrategy').value);
+  state.bracket = null;
+  state.overall = null;
+
+  const map=Object.fromEntries(state.teams.map(t=>[t.id,t]));
+  state.standings=computeStandings(state.groups,map);
+
+  saveState(state);
+  $('#brandTitle').textContent = state.name || 'Turnīru Aplikācija';
+
+  renderGroups();
+  renderStandings();
+
+  $('#playoffPanel').hidden=false;
+  $('#groupsPanel').hidden=false;
+  $('#standingsPanel').hidden=false;
+  $('#statsPanel').hidden=true;
+  $('#downloadPdfBtn').disabled=true;
+
+  sfx.success();
+});
+
+$('#buildBracket').addEventListener('click', ()=>{
+  if(!state.groups.length){ toast('Vispirms ģenerē grupas.'); return; }
+  const map=Object.fromEntries(state.teams.map(t=>[t.id,t]));
+  state.standings=computeStandings(state.groups,map);
+  state.bracket=buildBracketFromStandings(state.standings);
+  propagate(state.bracket);
+  state.overall=null;
+
+  saveState(state);
+  renderBracket();
+
+  $('#statsPanel').hidden=true;
+  $('#downloadPdfBtn').disabled=true;
+  sfx.success();
+});
+
+/* ===== Export / Import ===== */
+$('#exportBtn').addEventListener('click', ()=>{
+  const data='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(state,null,2));
+  const a=document.createElement('a');
+  a.href=data;
+  a.download=(slugify(state.name)||'tournament')+'.json';
+  a.click();
+  sfx.click();
+});
+
+$('#importBtn').addEventListener('click', async ()=>{
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json';
+  inp.onchange=async ()=>{
+    const f=inp.files[0]; if(!f) return;
+    try{
+      const txt=await f.text();
+      const obj=JSON.parse(txt);
+
+      state=Object.assign({name:'',teams:[],groups:[],standings:{},bracket:null,overall:null},obj);
+
+      // backward-compat: ja teams bez logo, ok
+      if(!Array.isArray(state.teams)) state.teams=[];
+
+      saveState(state);
+
+      $('#tName').value=state.name||'';
+      $('#brandTitle').textContent = state.name || 'Turnīru Aplikācija';
+
+      renderTeamList();
+      updateGroupOptions();
+
+      if(state.groups?.length){ renderGroups(); $('#groupsPanel').hidden=false } else $('#groupsPanel').hidden=true;
+      if(state.standings && Object.keys(state.standings).length){ renderStandings(); $('#standingsPanel').hidden=false } else $('#standingsPanel').hidden=true;
+      if(state.bracket){ renderBracket(); $('#playoffPanel').hidden=false } else $('#playoffPanel').hidden=true;
+      if(state.overall){ renderOverall(state.overall); $('#statsPanel').hidden=false; $('#downloadPdfBtn').disabled=false } else $('#statsPanel').hidden=true;
+
+      sfx.success();
+    }catch(e){
+      console.error(e);
+      toast('Neizdevās importēt.');
+    }
+  };
+  inp.click();
+});
+
+$('#resetBtn').addEventListener('click', ()=>{
+  if(!confirm('Tiešām notīrīt turnīru?')) return;
+  clearState();
+  state={name:'',teams:[],groups:[],standings:{},bracket:null,overall:null};
+  $('#tName').value='';
+  $('#brandTitle').textContent='Turnīru Aplikācija';
+
+  renderTeamList();
+  updateGroupOptions();
+
+  $('#groupsHost').innerHTML='';
+  $('#standingsHost').innerHTML='';
+  $('#qfCol').innerHTML='<h3>Ceturtdaļfināli</h3>';
+  $('#sfCol').innerHTML='<h3>Pusfināli</h3>';
+  $('#finCol').innerHTML='<h3>Fināls & 3. vieta</h3>';
+
+  $('#groupsPanel').hidden=true;
+  $('#standingsPanel').hidden=true;
+  $('#playoffPanel').hidden=true;
+  $('#statsPanel').hidden=true;
+
+  $('#downloadPdfBtn').disabled=true;
+  $('#overallBtn').disabled=true;
+
+  sfx.click();
+});
+
+/* ===== Restore ===== */
+(function boot(){
+  $('#soundIcon').textContent = soundOn ? '🔊' : '🔇';
+
+  const saved=loadState();
+  if(saved){
+    state=Object.assign(state,saved);
+
+    $('#tName').value=state.name||'';
+    $('#brandTitle').textContent = state.name || 'Turnīru Aplikācija';
+
+    renderTeamList();
+    updateGroupOptions();
+
+    if(state.groups?.length){ renderGroups(); $('#groupsPanel').hidden=false } else $('#groupsPanel').hidden=true;
+    if(state.standings && Object.keys(state.standings).length){ renderStandings(); $('#standingsPanel').hidden=false } else $('#standingsPanel').hidden=true;
+    if(state.bracket){ renderBracket(); $('#playoffPanel').hidden=false } else $('#playoffPanel').hidden=true;
+    if(state.overall){ renderOverall(state.overall); $('#statsPanel').hidden=false; $('#downloadPdfBtn').disabled=false } else $('#statsPanel').hidden=true;
+  }else{
+    renderTeamList();
+    updateGroupOptions();
+  }
+})();
+</script>
+</body>
+</html>
