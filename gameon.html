@@ -77,7 +77,20 @@
 
   /* ===== Numbers, inputs ===== */
   .tnum{font-variant-numeric:tabular-nums}
-  .score-in{width:clamp(36px, 11vw, 54px);text-align:center;padding:8px 6px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--text)}
+  .score-in{
+    width:clamp(36px, 11vw, 54px);
+    text-align:center;
+    padding:8px 6px;
+    border-radius:10px;
+    border:1px solid var(--border);
+    background:rgba(255,255,255,.03);
+    color:var(--text);
+  }
+  .score-in[readonly]{
+    cursor:pointer;
+    user-select:none;
+    -webkit-user-select:none;
+  }
   .table-scroll{overflow:auto; -webkit-overflow-scrolling:touch}
 
   /* ===== Standings (no horizontal scroll) ===== */
@@ -159,6 +172,124 @@
   .chk{appearance:none;width:16px;height:16px;border:1px solid var(--border);border-radius:4px;background:rgba(255,255,255,.02);display:inline-block;position:relative;vertical-align:middle}
   .chk:checked{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent}
   .chk:checked::after{content:'✓';position:absolute;inset:0;font-size:12px;color:#fff;display:flex;align-items:center;justify-content:center}
+
+  /* ===== NEW: Toast ===== */
+  .toast{
+    position:fixed; left:50%; bottom:calc(14px + env(safe-area-inset-bottom,0px));
+    transform:translateX(-50%) translateY(14px);
+    opacity:0; pointer-events:none; z-index:120;
+    padding:12px 14px; border-radius:999px;
+    background:color-mix(in oklab, var(--card) 92%, rgba(0,0,0,.25));
+    border:1px solid var(--border);
+    box-shadow:0 24px 80px rgba(0,0,0,.55);
+    backdrop-filter: blur(12px) saturate(140%);
+    color:var(--text); font-weight:700; font-size:13px; letter-spacing:.2px;
+    transition:opacity .18s cubic-bezier(.2,.8,.2,1), transform .18s cubic-bezier(.2,.8,.2,1);
+    max-width:min(92vw, 560px);
+    text-align:center;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* ===== NEW: Score Popup (only the clicked side) ===== */
+  .score-backdrop{
+    position:fixed; inset:0;
+    background:rgba(0,0,0,.62);
+    backdrop-filter: blur(10px);
+    opacity:0; visibility:hidden; pointer-events:none;
+    transition:opacity .22s cubic-bezier(.2,.8,.2,1);
+    z-index:95;
+  }
+  .score-backdrop.open{ opacity:1; visibility:visible; pointer-events:auto; }
+
+  .score-modal{
+    position:fixed;
+    left:50%; top:50%;
+    transform:translate(-50%,-50%) scale(.985);
+    width:min(460px, calc(100% - 24px));
+    border-radius:22px;
+    background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(0,0,0,.18)), var(--card);
+    border:1px solid var(--border);
+    box-shadow:0 40px 120px rgba(0,0,0,.62), inset 0 1px 0 rgba(255,255,255,.06);
+    backdrop-filter: blur(14px) saturate(150%);
+    opacity:0; visibility:hidden; pointer-events:none;
+    transition: transform .24s cubic-bezier(.2,.8,.2,1), opacity .24s cubic-bezier(.2,.8,.2,1);
+    z-index:110;
+    overflow:hidden;
+  }
+  .score-modal.open{ opacity:1; visibility:visible; pointer-events:auto; transform:translate(-50%,-50%) scale(1); }
+
+  .score-head{
+    display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+    padding:14px 16px;
+    border-bottom:1px solid var(--border);
+    background:color-mix(in oklab, var(--card) 96%, transparent);
+  }
+  .score-title{ font-weight:900; letter-spacing:.02em; font-size:16px; }
+  .score-sub{ margin-top:6px; font-size:12px; color:var(--muted); line-height:1.25; }
+
+  .score-body{ padding:14px 16px 16px; display:grid; gap:12px; }
+  .score-display{
+    border:1px solid var(--border);
+    border-radius:18px;
+    background:rgba(255,255,255,.03);
+    padding:12px 12px;
+    display:grid; gap:8px;
+  }
+  .score-line{
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    font-size:13px; color:var(--muted);
+  }
+  .score-line b{ color:var(--text); }
+  .score-value{
+    text-align:center;
+    font-size:clamp(42px, 10vw, 64px);
+    font-weight:1000;
+    letter-spacing:.02em;
+    line-height:1;
+    margin:2px 0 2px;
+    background:linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip:text; background-clip:text;
+    color:transparent;
+    text-shadow:0 18px 44px rgba(0,0,0,.35);
+  }
+
+  .score-pad{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:10px;
+  }
+  .pad-btn{
+    appearance:none;
+    border:1px solid var(--border);
+    background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.12));
+    color:var(--text);
+    border-radius:16px;
+    padding:14px 12px;
+    font-size:18px;
+    font-weight:900;
+    cursor:pointer;
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;
+    user-select:none;
+    box-shadow:0 12px 28px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  .pad-btn:active{ transform:translateY(1px); }
+  .pad-btn--sub{ font-size:14px; font-weight:800; color:color-mix(in oklab, var(--text) 80%, var(--muted)); }
+  .pad-btn--accent{
+    border:none;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    color:#fff;
+  }
+
+  .score-actions{
+    display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;
+  }
+  .score-actions .btn{ flex:1; min-width:140px; }
+  .score-actions .btn--accent{ flex:1.2; }
+
+  @media (max-width:420px){
+    .score-actions .btn{ min-width:0; flex:1; }
+  }
 </style>
 </head>
 <body>
@@ -265,6 +396,49 @@
   </div>
 </div>
 
+<!-- NEW: SCORE POPUP -->
+<div id="scoreBackdrop" class="score-backdrop"></div>
+<div id="scoreModal" class="score-modal" role="dialog" aria-modal="true" aria-labelledby="scoreModalTitle" aria-hidden="true">
+  <div class="score-head">
+    <div>
+      <div class="score-title" id="scoreModalTitle">Rezultāts</div>
+      <div class="score-sub" id="scoreModalSub">—</div>
+    </div>
+    <button type="button" class="btn" id="scoreCloseBtn" aria-label="Aizvērt">✕</button>
+  </div>
+  <div class="score-body">
+    <div class="score-display">
+      <div class="score-line" id="scoreSideLine">Ievade: <b id="scoreSideLabel">—</b></div>
+      <div class="score-value tnum" id="scoreValue">—</div>
+      <div class="score-line" id="scoreOtherLine">Pretinieks: <b id="scoreOtherLabel">—</b></div>
+    </div>
+
+    <div class="score-pad" id="scorePad">
+      <button type="button" class="pad-btn" data-k="1">1</button>
+      <button type="button" class="pad-btn" data-k="2">2</button>
+      <button type="button" class="pad-btn" data-k="3">3</button>
+      <button type="button" class="pad-btn" data-k="4">4</button>
+      <button type="button" class="pad-btn" data-k="5">5</button>
+      <button type="button" class="pad-btn" data-k="6">6</button>
+      <button type="button" class="pad-btn" data-k="7">7</button>
+      <button type="button" class="pad-btn" data-k="8">8</button>
+      <button type="button" class="pad-btn" data-k="9">9</button>
+
+      <button type="button" class="pad-btn pad-btn--sub" data-k="pm">+/-</button>
+      <button type="button" class="pad-btn" data-k="0">0</button>
+      <button type="button" class="pad-btn pad-btn--sub" data-k="bs">⌫</button>
+    </div>
+
+    <div class="score-actions">
+      <button type="button" class="btn" id="scoreClearBtn">Notīrīt</button>
+      <button type="button" class="btn btn--accent" id="scoreDoneBtn">Saglabāt</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
 <!-- PDF libs -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" crossorigin="anonymous"></script>
@@ -276,6 +450,16 @@ const uid=()=>Math.random().toString(36).slice(2,9);
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 const todayStamp = ()=> new Date().toISOString().slice(0,10);
 const slugify = s => (s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80)||'tournament';
+
+/* ===== Toast ===== */
+function toast(msg, ms=2400){
+  const el=$('#toast');
+  if(!el){ alert(msg); return; }
+  el.textContent=msg;
+  el.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t=setTimeout(()=>el.classList.remove('show'), ms);
+}
 
 /* ===== Storage ===== */
 const STORAGE_KEY='tournament_state_pro_v12';
@@ -391,6 +575,219 @@ function propagate(br){
 /* ===== Render helpers ===== */
 function teamCellLg(map,id){ return `<span class="row" style="gap:8px"><span class="name">${nameOf(id,map)}</span></span>`; }
 
+/* ===== NEW: Score modal logic ===== */
+let scoreCtx=null;      // {type:'group'|'bracket', ...}
+let scoreBuf='';        // string buffer
+const scoreBackdrop = $('#scoreBackdrop');
+const scoreModal = $('#scoreModal');
+
+function fmtVal(v){ return Number.isFinite(v) ? String(v) : '—'; }
+
+function openScoreModal(ctx){
+  scoreCtx = ctx;
+  scoreBuf = (Number.isFinite(ctx.cur) ? String(ctx.cur) : '');
+
+  $('#scoreModalTitle').textContent = 'Rezultāts';
+  $('#scoreModalSub').textContent = ctx.subtitle || '';
+  $('#scoreSideLabel').textContent = ctx.sideLabel || '—';
+  $('#scoreOtherLabel').textContent = `${ctx.otherLabel || '—'} (${fmtVal(ctx.other)})`;
+  renderScoreBuf();
+
+  scoreBackdrop.classList.add('open');
+  scoreModal.classList.add('open');
+  scoreModal.setAttribute('aria-hidden','false');
+
+  // keyboard support
+  document.addEventListener('keydown', scoreKeyHandler, {capture:true});
+}
+
+function closeScoreModal(){
+  scoreBackdrop.classList.remove('open');
+  scoreModal.classList.remove('open');
+  scoreModal.setAttribute('aria-hidden','true');
+  scoreCtx=null;
+  scoreBuf='';
+  document.removeEventListener('keydown', scoreKeyHandler, {capture:true});
+}
+
+function renderScoreBuf(){
+  $('#scoreValue').textContent = scoreBuf==='' ? '—' : scoreBuf;
+}
+
+function scoreKeyHandler(e){
+  if(!scoreModal.classList.contains('open')) return;
+  if(e.key==='Escape'){ e.preventDefault(); closeScoreModal(); sfx.click(); return; }
+  if(/^[0-9]$/.test(e.key)){ e.preventDefault(); appendDigit(e.key); return; }
+  if(e.key==='Backspace'){ e.preventDefault(); backspace(); return; }
+  if(e.key==='Enter'){ e.preventDefault(); commitScoreFromModal(); return; }
+}
+
+function appendDigit(d){
+  if(scoreBuf.length>=3) return; // droši pietiek (0-999)
+  // no leading zeros (izņemot "0")
+  if(scoreBuf==='0') scoreBuf=d;
+  else scoreBuf += d;
+  renderScoreBuf();
+  sfx.click();
+}
+
+function backspace(){
+  scoreBuf = scoreBuf.slice(0,-1);
+  renderScoreBuf();
+  sfx.click();
+}
+
+function togglePlusMinus(){
+  // score nevar būt negatīvs, tāpēc +/- šeit darbojas kā +1 / -1 ātrs solis
+  const cur = scoreBuf==='' ? 0 : parseInt(scoreBuf,10);
+  const next = cur>0 ? cur-1 : cur+1;
+  scoreBuf = String(Math.max(0,next));
+  renderScoreBuf();
+  sfx.click();
+}
+
+function clearScore(){
+  scoreBuf='';
+  renderScoreBuf();
+  sfx.click();
+}
+
+function commitScoreFromModal(){
+  if(!scoreCtx) return;
+  const val = scoreBuf==='' ? null : Math.max(0, parseInt(scoreBuf,10));
+
+  const ok = commitScore(scoreCtx, val);
+  if(ok){
+    sfx.score();
+    closeScoreModal();
+  }
+}
+
+/* commitScore: saglabā to pašu loģiku, tikai ievade nāk no popup */
+function commitScore(ctx, val){
+  if(ctx.type==='group'){
+    const G=state.groups.find(x=>x.id===ctx.gid); if(!G) return false;
+    const M=G.matches.find(x=>x.id===ctx.mid); if(!M) return false;
+
+    const newHs = (ctx.side==='hs') ? val : M.hs;
+    const newAs = (ctx.side==='as') ? val : M.as;
+
+    // Neizšķirts nav atļauts
+    if(Number.isFinite(newHs) && Number.isFinite(newAs) && newHs===newAs){
+      toast('Neizšķirtu nav. OT gadījumā jāievada uzvaras vārti.');
+      return false;
+    }
+
+    M[ctx.side]=val;
+
+    state.standings=computeStandings(state.groups,Object.fromEntries(state.teams.map(t=>[t.id,t])));
+    saveState(state);
+    renderGroups(); renderStandings();
+
+    // atjaunojam sheet, saglabājot scroll pozīciju
+    if($('#sheet').classList.contains('open')){
+      const sb=$('.sheet-body'); const sc=sb?sb.scrollTop:0;
+      openGroupSheet(ctx.gid, { preserveScroll: sc, keepOpen:true });
+    }
+    return true;
+  }
+
+  if(ctx.type==='bracket'){
+    if(!state.bracket) return false;
+    const col=ctx.stage==='QF'?'qf':ctx.stage==='SF'?'sf':ctx.stage==='Final'?'fin':'third';
+    const m=state.bracket[col].find(x=>x.id===ctx.id); if(!m) return false;
+
+    const old = m[ctx.side];
+    const newHs = (ctx.side==='hs') ? val : m.hs;
+    const newAs = (ctx.side==='as') ? val : m.as;
+
+    if(Number.isFinite(newHs) && Number.isFinite(newAs) && newHs===newAs){
+      toast('Neizšķirtu nav. Ja bija OT, atzīmē OT un ievadi uzvaras vārtus.');
+      return false;
+    }
+
+    m[ctx.side]=val ?? null;
+
+    propagate(state.bracket);
+    saveState(state);
+    renderBracket();
+    refreshOverallButtons();
+    return true;
+  }
+
+  return false;
+}
+
+/* Make score inputs act like buttons (only popup editing) */
+function bindScoreInputs(root, kind){
+  $$('.score-in', root).forEach(inp=>{
+    inp.setAttribute('readonly','readonly');
+    inp.setAttribute('inputmode','none');
+    inp.setAttribute('aria-haspopup','dialog');
+
+    const open = ()=>{
+      const map=Object.fromEntries(state.teams.map(t=>[t.id,t]));
+      if(kind==='group'){
+        const gid=inp.dataset.g, mid=inp.dataset.mid, side=inp.dataset.side;
+        const G=state.groups.find(x=>x.id===gid); if(!G) return;
+        const M=G.matches.find(x=>x.id===mid); if(!M) return;
+
+        const homeName = nameOf(M.home,map);
+        const awayName = nameOf(M.away,map);
+        const isHome = side==='hs';
+
+        openScoreModal({
+          type:'group',
+          gid, mid, side,
+          cur: isHome ? M.hs : M.as,
+          other: isHome ? M.as : M.hs,
+          sideLabel: isHome ? `Mājinieki: ${homeName}` : `Viesi: ${awayName}`,
+          otherLabel: isHome ? `Viesi: ${awayName}` : `Mājinieki: ${homeName}`,
+          subtitle: `Grupa ${gid} • R${M.round} • ${homeName} vs ${awayName}`
+        });
+        sfx.click();
+      }
+
+      if(kind==='bracket'){
+        const stage=inp.dataset.stage, id=inp.dataset.id, side=inp.dataset.side;
+        const col=stage==='QF'?'qf':stage==='SF'?'sf':stage==='Final'?'fin':'third';
+        const m=state.bracket?.[col]?.find(x=>x.id===id); if(!m) return;
+
+        const homeName = nameOf(m.home,map);
+        const awayName = nameOf(m.away,map);
+        const isHome = side==='hs';
+
+        openScoreModal({
+          type:'bracket',
+          stage, id, side,
+          cur: isHome ? m.hs : m.as,
+          other: isHome ? m.as : m.hs,
+          sideLabel: isHome ? `Mājinieki: ${homeName}` : `Viesi: ${awayName}`,
+          otherLabel: isHome ? `Viesi: ${awayName}` : `Mājinieki: ${homeName}`,
+          subtitle: `${stage} • ${homeName} vs ${awayName}`
+        });
+        sfx.click();
+      }
+    };
+
+    inp.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); open(); });
+    inp.addEventListener('keydown', (e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); open(); } });
+  });
+}
+
+/* Score modal buttons */
+$('#scoreBackdrop').addEventListener('click', ()=>{ closeScoreModal(); sfx.click(); });
+$('#scoreCloseBtn').addEventListener('click', ()=>{ closeScoreModal(); sfx.click(); });
+$('#scoreClearBtn').addEventListener('click', ()=>{ clearScore(); });
+$('#scoreDoneBtn').addEventListener('click', ()=>{ commitScoreFromModal(); });
+$('#scorePad').addEventListener('click', (e)=>{
+  const b=e.target.closest('button[data-k]'); if(!b) return;
+  const k=b.dataset.k;
+  if(/^\d$/.test(k)) appendDigit(k);
+  else if(k==='bs') backspace();
+  else if(k==='pm') togglePlusMinus();
+});
+
 /* ===== GROUP CARDS (preview) ===== */
 function renderGroups(){
   const host=$('#groupsHost'); host.innerHTML='';
@@ -435,9 +832,12 @@ $('#backdrop').addEventListener('click', ()=>{ sheetOpen(false); sfx.click(); })
 $('#closeSheetBtn').addEventListener('click', ()=>{ sheetOpen(false); sfx.click(); });
 $('#sheetDoneBtn').addEventListener('click', ()=>{ sheetOpen(false); sfx.success(); });
 
-function openGroupSheet(gid){
+function openGroupSheet(gid, opts={}){
   const g=state.groups.find(x=>x.id===gid); if(!g) return;
   const map=Object.fromEntries(state.teams.map(t=>[t.id,t]));
+  const sb=$('.sheet-body');
+  const prevScroll = typeof opts.preserveScroll==='number' ? opts.preserveScroll : (sb?sb.scrollTop:0);
+
   $('#sheetTitle').textContent = `Grupa ${g.id} — Kalendārs`;
   const cal=$('#calTable');
   cal.innerHTML='';
@@ -466,9 +866,9 @@ function openGroupSheet(gid){
       <td class="home"><span class="name-nowrap">${nameOf(m.home,map)}</span></td>
       <td class="score">
         <span class="score-grid">
-          <input class="score-in" type="number" min="0" inputmode="numeric" value="${m.hs??''}" data-g="${g.id}" data-mid="${m.id}" data-side="hs">
+          <input class="score-in" type="number" min="0" inputmode="none" readonly value="${m.hs??''}" data-g="${g.id}" data-mid="${m.id}" data-side="hs">
           <span class="colon">:</span>
-          <input class="score-in" type="number" min="0" inputmode="numeric" value="${m.as??''}" data-g="${g.id}" data-mid="${m.id}" data-side="as">
+          <input class="score-in" type="number" min="0" inputmode="none" readonly value="${m.as??''}" data-g="${g.id}" data-mid="${m.id}" data-side="as">
         </span>
       </td>
       <td class="away" style="text-align:right"><span class="name-nowrap">${nameOf(m.away,map)}</span></td>
@@ -476,30 +876,27 @@ function openGroupSheet(gid){
     body.appendChild(tr);
   });
 
-  // handlers
-  $$('#calTable .score-in').forEach(inp=>{
-    inp.addEventListener('change', ()=>{
-      const gId=inp.dataset.g, mid=inp.dataset.mid, side=inp.dataset.side;
-      const G=state.groups.find(x=>x.id===gId), M=G.matches.find(x=>x.id===mid);
-      const v=inp.value===''?null:Math.max(0,parseInt(inp.value,10));
-      M[side]=Number.isFinite(v)?v:null;
-      if(Number.isFinite(M.hs)&&Number.isFinite(M.as)){ sfx.score(); if(M.hs===M.as){ alert('Neizšķirtu nav. OT gadījumā jāievada uzvaras vārti.'); } }
-      state.standings=computeStandings(state.groups,Object.fromEntries(state.teams.map(t=>[t.id,t])));
-      saveState(state); renderGroups(); renderStandings(); openGroupSheet(gid);
-    });
-  });
+  // Score inputs -> popup
+  bindScoreInputs(cal, 'group');
+
+  // OT handler (paliek)
   $$('#calTable [data-ot]').forEach(box=>{
     box.addEventListener('change', ()=>{
       const gId=box.dataset.g, mid=box.dataset.mid;
       const G=state.groups.find(x=>x.id===gId), M=G.matches.find(x=>x.id===mid);
       M.ot=box.checked; sfx.click();
-      if(Number.isFinite(M.hs)&&Number.isFinite(M.as)&&M.hs===M.as){ alert('Neizšķirtu nav. OT gadījumā jābūt uzvaras vārtiem.'); }
+      if(Number.isFinite(M.hs)&&Number.isFinite(M.as)&&M.hs===M.as){
+        toast('Neizšķirtu nav. OT gadījumā jābūt uzvaras vārtiem.');
+      }
       state.standings=computeStandings(state.groups,Object.fromEntries(state.teams.map(t=>[t.id,t])));
       saveState(state); renderGroups(); renderStandings();
     });
   });
 
-  sheetOpen(true);
+  if(opts.keepOpen!==false) sheetOpen(true);
+
+  // restore scroll
+  requestAnimationFrame(()=>{ if(sb) sb.scrollTop = prevScroll; });
 }
 
 /* ===== STANDINGS ===== */
@@ -553,12 +950,12 @@ function renderBracket(){
       <div class="team ${winnerClass(m,'home')}">
         <span class="seed">H</span>
         ${teamCellLg(map,m.home)}
-        <input class="score-in" type="number" min="0" value="${m.hs??''}" data-stage="${stage}" data-id="${m.id}" data-side="hs" />
+        <input class="score-in" type="number" min="0" inputmode="none" readonly value="${m.hs??''}" data-stage="${stage}" data-id="${m.id}" data-side="hs" />
       </div>
       <div class="team ${winnerClass(m,'away')}" style="margin-top:8px">
         <span class="seed">A</span>
         ${teamCellLg(map,m.away)}
-        <input class="score-in" type="number" min="0" value="${m.as??''}" data-stage="${stage}" data-id="${m.id}" data-side="as" />
+        <input class="score-in" type="number" min="0" inputmode="none" readonly value="${m.as??''}" data-stage="${stage}" data-id="${m.id}" data-side="as" />
       </div>
       <div class="row" style="margin-top:8px">
         <label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)"><input class="chk" type="checkbox" ${m.ot?'checked':''} data-stage="${stage}" data-id="${m.id}" data-ot="flag" /> OT</label>
@@ -571,24 +968,19 @@ function renderBracket(){
   state.bracket?.fin?.forEach(m=>$('#finCol').appendChild(mk(m,'Final')));
   state.bracket?.third?.forEach(m=>$('#finCol').appendChild(mk(m,'3rd')));
 
-  $$('.bracket .score-in').forEach(inp=>{
-    inp.addEventListener('change', ()=>{
-      const stage=inp.dataset.stage, id=inp.dataset.id, side=inp.dataset.side;
-      const col=stage==='QF'?'qf':stage==='SF'?'sf':stage==='Final'?'fin':'third';
-      const m=state.bracket[col].find(x=>x.id===id);
-      const val=inp.value===''?null:Math.max(0,parseInt(inp.value,10));
-      m[side]=Number.isFinite(val)?val:null;
-      if(Number.isFinite(m.hs)&&Number.isFinite(m.as)){ sfx.score(); if(m.hs===m.as){ alert('Neizšķirtu nav. Ja bija OT, atzīmē OT un ievadi uzvaras vārtus.'); } }
-      propagate(state.bracket); saveState(state); renderBracket(); refreshOverallButtons();
-    });
-  });
+  // Score inputs -> popup
+  bindScoreInputs($('#playoffPanel'), 'bracket');
+
+  // OT handlers (paliek)
   $$('.bracket [data-ot]').forEach(el=>{
     el.addEventListener('change', ()=>{
       const stage=el.dataset.stage, id=el.dataset.id;
       const col=stage==='QF'?'qf':stage==='SF'?'sf':stage==='Final'?'fin':'third';
       const m=state.bracket[col].find(x=>x.id===id);
       m.ot=el.checked; sfx.click();
-      if(Number.isFinite(m.hs)&&Number.isFinite(m.as)&&m.hs===m.as){ alert('Neizšķirtu nav. OT gadījumā jābūt uzvaras vārtiem.'); }
+      if(Number.isFinite(m.hs)&&Number.isFinite(m.as)&&m.hs===m.as){
+        toast('Neizšķirtu nav. OT gadījumā jābūt uzvaras vārtiem.');
+      }
       propagate(state.bracket); saveState(state); renderBracket(); refreshOverallButtons();
     });
   });
@@ -635,12 +1027,12 @@ function renderOverall(o){
   host.innerHTML=''; host.appendChild(tbl);
 }
 $('#overallBtn').addEventListener('click', ()=>{
-  if(!tournamentFinished()){ alert('Kopsavilkums pieejams pēc fināla un 3. vietas spēles.'); return; }
+  if(!tournamentFinished()){ toast('Kopsavilkums pieejams pēc fināla un 3. vietas spēles.'); return; }
   state.overall=computeOverall(); saveState(state); renderOverall(state.overall);
   $('#statsPanel').hidden=false; $('#downloadPdfBtn').disabled=false; sfx.success();
 });
 $('#downloadPdfBtn').addEventListener('click', ()=>{
-  if(!state.overall){ alert('Vispirms ģenerē kopsavilkumu.'); return; }
+  if(!state.overall){ toast('Vispirms ģenerē kopsavilkumu.'); return; }
   try{
     const { jsPDF } = window.jspdf; const doc=new jsPDF({unit:'pt',format:'a4'});
     const margin=36, lineH=18, pageW=doc.internal.pageSize.getWidth();
@@ -662,7 +1054,7 @@ $('#downloadPdfBtn').addEventListener('click', ()=>{
       margin:{left:margin,right:margin}
     });
     const fname=`${slugify(state.name)}_${todayStamp()}_kopsavilkums.pdf`; doc.save(fname); sfx.success();
-  }catch(e){ alert('Neizdevās ģenerēt PDF.'); }
+  }catch(e){ toast('Neizdevās ģenerēt PDF.'); }
 });
 
 /* ===== UI helpers & hooks ===== */
@@ -676,9 +1068,9 @@ $('#teamsInput').addEventListener('input', updateGroupOptions);
 $('#genGroups').addEventListener('click', ()=>{
   const name=$('#tName').value.trim();
   const teamNames=$('#teamsInput').value.split('\n').map(s=>s.trim()).filter(Boolean);
-  if(teamNames.length<2){ alert('Ievadi vismaz 2 komandas.'); return; }
+  if(teamNames.length<2){ toast('Ievadi vismaz 2 komandas.'); return; }
   if($('#groupStrategy').value==='n1' && teamNames.length>6){
-    alert('“1 grupa” atļauta tikai, ja ≤6 komandas. Pārslēdzu uz automātisku (2/4/6).');
+    toast('“1 grupa” atļauta tikai, ja ≤6 komandas. Pārslēdzu uz automātisku (2/4/6).');
     $('#groupStrategy').value='auto';
   }
   const teams=teamNames.map(n=>({id:uid(),name:n}));
@@ -691,7 +1083,7 @@ $('#genGroups').addEventListener('click', ()=>{
 });
 
 $('#buildBracket').addEventListener('click', ()=>{
-  if(!state.groups.length){ alert('Vispirms jāievada grupu dati.'); return; }
+  if(!state.groups.length){ toast('Vispirms jāievada grupu dati.'); return; }
   state.standings=computeStandings(state.groups,Object.fromEntries(state.teams.map(t=>[t.id,t])));
   state.bracket=buildBracketFromStandings(state.standings); propagate(state.bracket);
   state.overall=null; saveState(state); renderBracket(); $('#statsPanel').hidden=true; $('#downloadPdfBtn').disabled=true; sfx.success();
@@ -717,7 +1109,7 @@ $('#importBtn').addEventListener('click', async ()=>{
       if(state.bracket){ renderBracket(); $('#playoffPanel').hidden=false }
       if(state.overall){ renderOverall(state.overall); $('#statsPanel').hidden=false; $('#downloadPdfBtn').disabled=false }
       updateGroupOptions(); sfx.success();
-    }catch{ alert('Neizdevās importēt.'); }
+    }catch{ toast('Neizdevās importēt.'); }
   };
   inp.click();
 });
