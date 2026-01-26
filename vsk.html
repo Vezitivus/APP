@@ -3,93 +3,63 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Squash Tourney — Offline</title>
+  <title>Skvoša turnīrs (vienkārši)</title>
   <style>
     :root{
       --bg:#0b0f14;
       --card:#111826;
-      --card2:#0f1622;
       --text:#e8eef7;
       --muted:#9fb0c4;
       --line:#223049;
-      --good:#2dd4bf;
-      --warn:#fbbf24;
-      --bad:#fb7185;
       --accent:#60a5fa;
+      --good:#2dd4bf;
+      --bad:#fb7185;
       --shadow: 0 10px 30px rgba(0,0,0,.35);
-      --radius: 16px;
+      --radius: 14px;
     }
     *{box-sizing:border-box}
     body{
       margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      background: radial-gradient(1200px 600px at 20% -20%, rgba(96,165,250,.25), transparent 60%),
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(900px 500px at 20% -20%, rgba(96,165,250,.22), transparent 60%),
                   radial-gradient(800px 500px at 90% 10%, rgba(45,212,191,.14), transparent 60%),
                   var(--bg);
       color:var(--text);
     }
-    a{color:inherit}
-    .wrap{max-width:1100px;margin:0 auto;padding:18px}
+    .wrap{max-width:900px;margin:0 auto;padding:18px}
     .top{
-      display:flex; gap:12px; align-items:center; justify-content:space-between;
-      padding:14px 16px; border:1px solid var(--line); border-radius: var(--radius);
-      background: linear-gradient(180deg, rgba(17,24,38,.85), rgba(15,22,34,.85));
-      box-shadow: var(--shadow);
-      position:sticky; top:12px; z-index:5;
-      backdrop-filter: blur(8px);
+      display:flex; gap:10px; justify-content:space-between; align-items:center; flex-wrap:wrap;
+      padding:14px 14px; border:1px solid var(--line); border-radius: var(--radius);
+      background: rgba(17,24,38,.75); box-shadow: var(--shadow);
     }
-    .brand{display:flex; gap:12px; align-items:center}
-    .logo{
-      width:38px;height:38px;border-radius:12px;
-      background: radial-gradient(circle at 30% 20%, rgba(96,165,250,.9), rgba(45,212,191,.6));
-      display:grid; place-items:center;
-      color:#081018; font-weight:800;
-    }
-    .title{font-weight:800; letter-spacing:.2px}
-    .subtitle{color:var(--muted); font-size:12px; margin-top:2px}
-    .nav{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
+    .title{font-weight:900}
+    .muted{color:var(--muted); font-size:12px}
     .btn{
       border:1px solid var(--line);
-      background: rgba(17,24,38,.7);
+      background: rgba(17,24,38,.85);
       color:var(--text);
       padding:10px 12px;
       border-radius: 12px;
       cursor:pointer;
-      font-weight:650;
-      transition:.15s transform, .15s background, .15s border;
-      user-select:none;
+      font-weight:750;
     }
-    .btn:hover{transform: translateY(-1px); background: rgba(17,24,38,.9); border-color:#2b3f61}
-    .btn.primary{background: rgba(96,165,250,.22); border-color: rgba(96,165,250,.35)}
-    .btn.good{background: rgba(45,212,191,.18); border-color: rgba(45,212,191,.35)}
-    .btn.warn{background: rgba(251,191,36,.14); border-color: rgba(251,191,36,.35)}
+    .btn:hover{border-color:rgba(96,165,250,.55)}
+    .btn.primary{background: rgba(96,165,250,.18); border-color: rgba(96,165,250,.35)}
+    .btn.good{background: rgba(45,212,191,.14); border-color: rgba(45,212,191,.35)}
     .btn.bad{background: rgba(251,113,133,.14); border-color: rgba(251,113,133,.35)}
-    .btn.ghost{background: transparent}
-    .grid{
-      margin-top:14px;
-      display:grid;
-      grid-template-columns: 1.15fr .85fr;
-      gap:14px;
-    }
-    @media (max-width: 920px){
-      .grid{grid-template-columns: 1fr}
-      .top{position:relative; top:0}
-    }
+    .grid{margin-top:14px; display:grid; grid-template-columns: 1fr; gap:14px}
     .card{
       border:1px solid var(--line);
       border-radius: var(--radius);
       background: rgba(17,24,38,.72);
       box-shadow: var(--shadow);
       padding:14px;
-      overflow:hidden;
     }
-    .card h2{margin:0 0 10px 0; font-size:16px}
-    .muted{color:var(--muted)}
-    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
-    .row > *{flex:0 0 auto}
-    .field{display:grid; gap:6px; min-width: 210px; flex: 1 1 220px}
+    h2{margin:0 0 10px 0; font-size:16px}
+    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:end}
+    .field{display:grid; gap:6px; flex:1 1 240px}
     label{font-size:12px; color:var(--muted)}
-    input, select{
+    input{
       width:100%;
       padding:10px 11px;
       border-radius: 12px;
@@ -98,125 +68,87 @@
       color: var(--text);
       outline:none;
     }
-    input:focus, select:focus{border-color: rgba(96,165,250,.55)}
-    .list{display:grid; gap:10px}
+    input:focus{border-color: rgba(96,165,250,.55)}
+    .list{display:grid; gap:8px}
     .item{
       border:1px solid var(--line);
-      border-radius: 14px;
+      border-radius: 12px;
       background: rgba(15,22,34,.75);
-      padding:12px;
-      display:flex; gap:10px; justify-content:space-between; align-items:flex-start;
+      padding:10px;
+      display:flex; justify-content:space-between; gap:10px; align-items:center;
     }
-    .item .meta{display:grid; gap:4px}
-    .pill{
-      font-size:12px; padding:6px 10px; border-radius:999px;
-      border:1px solid var(--line); color:var(--muted); background: rgba(17,24,38,.5);
-      display:inline-flex; gap:6px; align-items:center;
-    }
-    .pill.good{color:#a7f3d0; border-color: rgba(45,212,191,.35)}
-    .pill.warn{color:#fde68a; border-color: rgba(251,191,36,.35)}
-    .pill.bad{color:#fecdd3; border-color: rgba(251,113,133,.35)}
-    .split{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
-    .split .btn{padding:8px 10px; font-weight:700}
+    .item b{font-weight:900}
     .hr{height:1px;background:var(--line); margin:12px 0}
-    .notice{
+    .note{
       border:1px dashed rgba(96,165,250,.45);
       background: rgba(96,165,250,.08);
-      border-radius: 14px;
+      border-radius: 12px;
       padding:10px 12px;
       color: var(--muted);
       font-size: 13px;
     }
-    .scoreBox{
+    .pairs{
       border:1px solid var(--line);
-      border-radius: 18px;
-      background: rgba(15,22,34,.82);
-      padding:14px;
-      display:grid; gap:12px;
-    }
-    .scoreTop{display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center}
-    .bigScore{
-      display:grid;
-      grid-template-columns: 1fr auto 1fr;
-      gap:10px;
-      align-items:stretch;
-    }
-    .side{
-      border:1px solid var(--line);
-      border-radius: 16px;
-      background: rgba(17,24,38,.55);
-      padding:12px;
-      display:grid; gap:10px;
-    }
-    .sideName{font-weight:800; font-size:16px}
-    .sidePts{font-size:44px; font-weight:900; line-height:1}
-    .mid{
-      display:grid; place-items:center;
-      border:1px solid var(--line);
-      border-radius:16px;
-      background: rgba(17,24,38,.25);
-      padding:10px;
-      min-width: 86px;
-    }
-    .wins{font-weight:900; font-size:18px}
-    .small{font-size:12px; color:var(--muted)}
-    .actions{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:10px;
-    }
-    .actions .btn{padding:14px 12px; font-size:14px}
-    .gamesTable{
-      width:100%;
-      border-collapse: collapse;
+      border-radius: 12px;
       overflow:hidden;
-      border-radius: 14px;
-      border:1px solid var(--line);
     }
-    .gamesTable th, .gamesTable td{
-      text-align:left;
-      padding:10px 10px;
-      border-bottom:1px solid rgba(34,48,73,.7);
-      font-size:13px;
+    table{width:100%; border-collapse:collapse}
+    th, td{padding:10px; border-bottom:1px solid rgba(34,48,73,.7); text-align:left; font-size:13px}
+    th{color:var(--muted); background: rgba(17,24,38,.35)}
+    tr:last-child td{border-bottom:none}
+    @media (max-width: 600px){
+      .row{align-items:stretch}
+      .btn{width:100%}
     }
-    .gamesTable th{color:var(--muted); font-weight:700; background: rgba(17,24,38,.35)}
-    .gamesTable tr:last-child td{border-bottom:none}
-    .rightActions{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
-    .kbd{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono"; font-size:12px; color:var(--muted)}
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="top">
-      <div class="brand">
-        <div class="logo">SQ</div>
-        <div>
-          <div class="title">Squash Tourney — Offline</div>
-          <div class="subtitle">Viss vienā failā. Dati glabājas ierīcē (localStorage). Export/Import ir tavs backup.</div>
-        </div>
+      <div>
+        <div class="title">Skvoša turnīrs</div>
+        <div class="muted">Vienkārši: nosaukums → spēlētāji → ģenerēt spēles. Viss glabājas ierīcē.</div>
       </div>
-      <div class="nav">
-        <button class="btn ghost" id="navHome">Turnīri</button>
-        <button class="btn ghost" id="navManage" disabled>Pārvaldīt</button>
-        <button class="btn ghost" id="navScore" disabled>Skaitīt</button>
-        <button class="btn warn" id="btnExport">Export JSON</button>
-        <button class="btn warn" id="btnImport">Import JSON</button>
-        <button class="btn bad" id="btnReset">Reset</button>
-        <input type="file" id="fileImport" accept="application/json" style="display:none" />
+      <div class="row">
+        <button class="btn bad" id="btnReset">Notīrīt visu</button>
       </div>
     </div>
 
     <div class="grid">
-      <!-- LEFT -->
       <div class="card">
-        <h2 id="leftTitle">Turnīri</h2>
-        <div id="leftBody"></div>
+        <h2>Turnīrs</h2>
+        <div class="row">
+          <div class="field">
+            <label>Turnīra nosaukums</label>
+            <input id="tName" type="text" />
+          </div>
+          <button class="btn primary" id="btnSaveName">Saglabāt</button>
+        </div>
+        <div class="hr"></div>
+        <div class="note" id="statusBox"></div>
       </div>
 
-      <!-- RIGHT -->
       <div class="card">
-        <h2 id="rightTitle">Statuss</h2>
-        <div id="rightBody"></div>
+        <h2>Spēlētāji</h2>
+        <div class="row">
+          <div class="field">
+            <label>Spēlētāja vārds</label>
+            <input id="pName" type="text" />
+          </div>
+          <button class="btn good" id="btnAddPlayer">Pievienot</button>
+        </div>
+        <div class="hr"></div>
+        <div class="list" id="playersList"></div>
+        <div class="hr"></div>
+        <div class="row">
+          <button class="btn primary" id="btnGenerate">Ģenerēt spēles</button>
+          <button class="btn bad" id="btnClearMatches">Dzēst spēles</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Spēles (katrs ar katru)</h2>
+        <div id="matchesBox"></div>
       </div>
     </div>
   </div>
@@ -225,843 +157,196 @@
 (() => {
   "use strict";
 
-  /***********************
-   * Storage & Schema
-   ***********************/
-  const STORAGE_KEY = "squash_tourney_v1";
-  const APP_VERSION = 1;
+  const KEY = "squash_simple_v1";
 
-  /** @typedef {{id:string, name:string}} Player */
-  /** @typedef {{id:string, a:number, b:number, winner:("A"|"B"|null)}} GameLine */
-  /** @typedef {{
-   *  id:string,
-   *  playerAId:string,
-   *  playerBId:string,
-   *  court:string,
-   *  startTime:string,
-   *  status:"SCHEDULED"|"LIVE"|"FINISHED",
-   *  events:("A"|"B")[]   // point events stack
-   * }} Match */
+  const $ = (s) => document.querySelector(s);
+  const uid = () => crypto.randomUUID ? crypto.randomUUID() : ("id_" + Math.random().toString(16).slice(2) + Date.now());
 
-  /** @typedef {{
-   *  pointsToWin:number,
-   *  winByTwo:boolean,
-   *  bestOf:number
-   * }} Rules */
-
-  /** @typedef {{
-   *  id:string,
-   *  name:string,
-   *  location:string,
-   *  date:string,
-   *  rules:Rules,
-   *  players:Player[],
-   *  matches:Match[]
-   * }} Tournament */
-
-  /** @typedef {{version:number, selectedTournamentId:string|null, selectedMatchId:string|null, tournaments:Tournament[]}} AppState */
-
-  /** @returns {AppState} */
-  function loadState(){
-    const raw = localStorage.getItem(STORAGE_KEY);
+  function load(){
+    const raw = localStorage.getItem(KEY);
     if(!raw){
-      return { version: APP_VERSION, selectedTournamentId: null, selectedMatchId: null, tournaments: [] };
+      return { tournamentName: "", players: [], matches: [] };
     }
     try{
       const obj = JSON.parse(raw);
-      // minimal validation
-      if(!obj || typeof obj !== "object") throw new Error("Bad state");
-      if(obj.version !== APP_VERSION){
-        // simple forward-compat: accept old versions if close
-        obj.version = APP_VERSION;
-      }
-      obj.selectedTournamentId ??= null;
-      obj.selectedMatchId ??= null;
-      obj.tournaments ??= [];
+      obj.tournamentName ??= "";
+      obj.players ??= [];
+      obj.matches ??= [];
       return obj;
-    }catch(e){
-      console.warn("State parse failed:", e);
-      return { version: APP_VERSION, selectedTournamentId: null, selectedMatchId: null, tournaments: [] };
+    }catch{
+      return { tournamentName: "", players: [], matches: [] };
     }
   }
 
-  /** @param {AppState} state */
-  function saveState(state){
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  function save(){
+    localStorage.setItem(KEY, JSON.stringify(state));
   }
 
-  let state = loadState();
+  let state = load();
 
-  /***********************
-   * Helpers
-   ***********************/
-  const $ = (sel, root=document) => root.querySelector(sel);
-  const el = (tag, props={}, children=[]) => {
-    const n = document.createElement(tag);
-    for (const [k,v] of Object.entries(props)){
-      if(k === "class") n.className = v;
-      else if(k === "html") n.innerHTML = v;
-      else if(k.startsWith("on") && typeof v === "function") n.addEventListener(k.slice(2), v);
-      else n.setAttribute(k, v);
-    }
-    for (const c of children){
-      if(typeof c === "string") n.appendChild(document.createTextNode(c));
-      else if(c) n.appendChild(c);
-    }
-    return n;
-  };
-  const uid = () => crypto.randomUUID ? crypto.randomUUID() : ("id_" + Math.random().toString(16).slice(2) + Date.now());
-  const fmtDate = (iso) => iso ? new Date(iso).toLocaleString(undefined, {year:"numeric",month:"2-digit",day:"2-digit"}) : "-";
-  const fmtDT = (iso) => iso ? new Date(iso).toLocaleString(undefined, {year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}) : "-";
-  const clampInt = (v, def) => {
-    const n = Number(v);
-    return Number.isFinite(n) ? Math.trunc(n) : def;
-  };
-  function gamesToWin(bestOf){ return Math.floor(bestOf/2) + 1; }
+  function setStatus(){
+    const nameOk = state.tournamentName.trim().length > 0;
+    const pCount = state.players.length;
+    const mCount = state.matches.length;
 
-  function getTournament(){
-    return state.tournaments.find(t => t.id === state.selectedTournamentId) || null;
-  }
-  function getMatch(tournament){
-    if(!tournament) return null;
-    return tournament.matches.find(m => m.id === state.selectedMatchId) || null;
+    const steps = [];
+    steps.push(nameOk ? "✅ Turnīra nosaukums saglabāts." : "1) Ievadi turnīra nosaukumu un nospied “Saglabāt”.");
+    steps.push(pCount >= 2 ? `✅ Spēlētāji pievienoti: ${pCount}.` : "2) Pievieno vismaz 2 spēlētājus.");
+    steps.push(mCount > 0 ? `✅ Spēles ģenerētas: ${mCount}.` : "3) Spied “Ģenerēt spēles”, lai automātiski sadalītu pārus.");
+
+    $("#statusBox").textContent = steps.join(" ");
   }
 
-  /***********************
-   * Squash scoring engine
-   * - events stack -> derived games/winner/match status
-   ***********************/
-  /**
-   * @param {("A"|"B")[]} events
-   * @param {Rules} rules
-   * @returns {{
-   *  games: {a:number,b:number,winner:("A"|"B"|null)}[],
-   *  winsA:number, winsB:number,
-   *  current: {a:number,b:number,gameNo:number},
-   *  finished:boolean
-   * }}
-   */
-  function deriveFromEvents(events, rules){
-    const ptw = rules.pointsToWin;
-    const w2 = !!rules.winByTwo;
-    const gtw = gamesToWin(rules.bestOf);
+  function renderPlayers(){
+    const box = $("#playersList");
+    box.innerHTML = "";
 
-    /** @type {{a:number,b:number,winner:("A"|"B"|null)}[]} */
-    const games = [];
-    let a=0,b=0;
-    let winsA=0,winsB=0;
-
-    const isGameWon = (sa, sb) => {
-      const max = Math.max(sa, sb);
-      const min = Math.min(sa, sb);
-      if(max < ptw) return null;
-      if(w2){
-        if(max - min >= 2) return sa>sb ? "A" : "B";
-        return null;
-      }
-      return sa>sb ? "A" : "B";
-    };
-
-    for (const ev of events){
-      // if match already finished, ignore extra events for safety
-      if(winsA >= gtw || winsB >= gtw) break;
-
-      if(ev === "A") a++; else b++;
-
-      const gw = isGameWon(a,b);
-      if(gw){
-        games.push({a,b,winner:gw});
-        if(gw === "A") winsA++; else winsB++;
-        // reset for next game
-        a=0; b=0;
-      }
-    }
-
-    const finished = (winsA >= gtw || winsB >= gtw);
-    const gameNo = games.length + 1;
-
-    // current (unfinished) game score
-    const current = {a, b, gameNo};
-
-    return { games, winsA, winsB, current, finished };
-  }
-
-  /***********************
-   * UI rendering
-   ***********************/
-  const leftTitle = $("#leftTitle");
-  const leftBody  = $("#leftBody");
-  const rightTitle= $("#rightTitle");
-  const rightBody = $("#rightBody");
-
-  function setNav(){
-    const hasT = !!getTournament();
-    const hasM = hasT && !!getMatch(getTournament());
-    $("#navManage").disabled = !hasT;
-    $("#navScore").disabled = !hasM;
-  }
-
-  function renderRightStatus(){
-    const t = getTournament();
-    const m = t ? getMatch(t) : null;
-
-    rightTitle.textContent = "Statuss";
-
-    const blocks = [];
-    blocks.push(el("div", {class:"notice"}, [
-      "Padoms: ",
-      el("span",{class:"kbd"},["Export JSON"]),
-      " pirms turnīra un pēc turnīra. Tā tu nekad nepazaudēsi datus."
-    ]));
-
-    if(!t){
-      blocks.push(el("div",{class:"hr"}));
-      blocks.push(el("div",{class:"muted"},["Nav izvēlēts turnīrs. Izveido vai atver kādu no saraksta."]));
-      rightBody.replaceChildren(...blocks);
+    if(state.players.length === 0){
+      box.appendChild(document.createTextNode("Nav spēlētāju."));
+      box.classList.add("muted");
       return;
     }
+    box.classList.remove("muted");
 
-    const rules = t.rules;
-    blocks.push(el("div",{class:"hr"}));
-    blocks.push(el("div",{class:"row"},[
-      el("span",{class:"pill"},["Turnīrs: ", t.name]),
-      el("span",{class:"pill"},["Datums: ", fmtDate(t.date)]),
-      el("span",{class:"pill"},["Spēlētāji: ", String(t.players.length)]),
-      el("span",{class:"pill"},["Spēles: ", String(t.matches.length)])
-    ]));
-    blocks.push(el("div",{class:"row"},[
-      el("span",{class:"pill"},[`Rules: PAR ${rules.pointsToWin}`]),
-      el("span",{class:"pill"},[rules.winByTwo ? "+2" : "no +2"]),
-      el("span",{class:"pill"},[`best-of-${rules.bestOf} (to win ${gamesToWin(rules.bestOf)})`])
-    ]));
-
-    if(m){
-      const d = deriveFromEvents(m.events, rules);
-      const statusPill =
-        m.status === "FINISHED" ? el("span",{class:"pill bad"},["FINISHED"]) :
-        m.status === "LIVE"     ? el("span",{class:"pill good"},["LIVE"]) :
-                                 el("span",{class:"pill warn"},["SCHEDULED"]);
-
-      blocks.push(el("div",{class:"hr"}));
-      blocks.push(el("div",{class:"row"},[
-        el("span",{class:"pill"},["Selected match:"]),
-        statusPill,
-        el("span",{class:"pill"},["Court: ", m.court || "-"]),
-        el("span",{class:"pill"},["Start: ", fmtDT(m.startTime)])
-      ]));
-      blocks.push(el("div",{class:"muted"},[
-        `Games won: A ${d.winsA} — ${d.winsB} B | Current game #${d.current.gameNo}: ${d.current.a}-${d.current.b}`
-      ]));
-    }
-
-    rightBody.replaceChildren(...blocks);
-  }
-
-  function renderHome(){
-    setNav();
-    leftTitle.textContent = "Turnīri";
-    leftBody.replaceChildren(
-      el("div",{class:"notice"},[
-        "Šis ir offline rīks. Viss, ko ievadi, paliek šajā ierīcē. Ja maini telefonu/datoru — ",
-        el("span",{class:"kbd"},["Export/Import"]),
-        " ir vienīgais pārcelšanas veids."
-      ]),
-      el("div",{class:"hr"}),
-      renderCreateTournamentForm(),
-      el("div",{class:"hr"}),
-      renderTournamentList()
-    );
-    renderRightStatus();
-  }
-
-  function renderManage(){
-    const t = getTournament();
-    setNav();
-    if(!t){ renderHome(); return; }
-
-    leftTitle.textContent = "Pārvaldīt turnīru";
-    leftBody.replaceChildren(
-      renderTournamentHeader(t),
-      el("div",{class:"hr"}),
-      renderRulesEditor(t),
-      el("div",{class:"hr"}),
-      renderPlayersManager(t),
-      el("div",{class:"hr"}),
-      renderMatchesManager(t)
-    );
-    renderRightStatus();
-  }
-
-  function renderScore(){
-    const t = getTournament();
-    setNav();
-    if(!t){ renderHome(); return; }
-    const m = getMatch(t);
-    if(!m){ renderManage(); return; }
-
-    leftTitle.textContent = "Skaitīt spēli";
-    leftBody.replaceChildren(
-      renderMatchPicker(t),
-      el("div",{class:"hr"}),
-      renderScoringBox(t, m)
-    );
-    renderRightStatus();
-  }
-
-  function renderTournamentHeader(t){
-    return el("div",{class:"row"},[
-      el("span",{class:"pill"},["Turnīrs: ", t.name]),
-      el("span",{class:"pill"},["Lokācija: ", t.location || "-"]),
-      el("span",{class:"pill"},["Datums: ", fmtDate(t.date)]),
-      el("button",{class:"btn bad", onclick: () => deleteTournament(t.id)},["Dzēst turnīru"])
-    ]);
-  }
-
-  function renderCreateTournamentForm(){
-    const name = el("input",{placeholder:"Piem., ITAB Squash Cup"});
-    const location = el("input",{placeholder:"Piem., Rīga / klubs"});
-    const date = el("input",{type:"date"});
-    date.valueAsDate = new Date();
-
-    const pointsToWin = el("input",{type:"number", min:"1", max:"99", value:"11"});
-    const winByTwo = el("select",{},[
-      el("option",{value:"true"},["+2 (standarts)"]),
-      el("option",{value:"false"},["Bez +2"])
-    ]);
-    const bestOf = el("select",{},[
-      el("option",{value:"5"},["Best-of-5 (līdz 3)"]),
-      el("option",{value:"3"},["Best-of-3 (līdz 2)"])
-    ]);
-
-    const createBtn = el("button",{class:"btn primary", onclick: () => {
-      const nm = name.value.trim();
-      if(!nm){ alert("Ievadi turnīra nosaukumu."); return; }
-
-      const t = /** @type {Tournament} */ ({
-        id: uid(),
-        name: nm,
-        location: location.value.trim(),
-        date: date.value ? date.value : new Date().toISOString().slice(0,10),
-        rules: {
-          pointsToWin: clampInt(pointsToWin.value, 11),
-          winByTwo: winByTwo.value === "true",
-          bestOf: clampInt(bestOf.value, 5),
-        },
-        players: [],
-        matches: []
-      });
-
-      state.tournaments.unshift(t);
-      state.selectedTournamentId = t.id;
-      state.selectedMatchId = null;
-      saveState(state);
-      renderManage();
-    }},["Izveidot turnīru"]);
-
-    return el("div",{},[
-      el("h2",{},["Izveidot jaunu turnīru"]),
-      el("div",{class:"row"},[
-        el("div",{class:"field"},[el("label",{},["Nosaukums"]), name]),
-        el("div",{class:"field"},[el("label",{},["Lokācija"]), location]),
-        el("div",{class:"field"},[el("label",{},["Datums"]), date]),
-      ]),
-      el("div",{class:"row"},[
-        el("div",{class:"field"},[el("label",{},["Punkti līdz uzvarai geimā"]), pointsToWin]),
-        el("div",{class:"field"},[el("label",{},["+2 noteikums"]), winByTwo]),
-        el("div",{class:"field"},[el("label",{},["Mačs (best-of)"]), bestOf]),
-      ]),
-      el("div",{class:"row"},[
-        createBtn,
-        el("span",{class:"muted"},["Pēc izveides uzreiz vari pievienot spēlētājus un ģenerēt spēles."])
-      ])
-    ]);
-  }
-
-  function renderTournamentList(){
-    if(state.tournaments.length === 0){
-      return el("div",{class:"muted"},["Nav turnīru. Izveido pirmo augstāk."]);
-    }
-
-    const list = el("div",{class:"list"});
-    for(const t of state.tournaments){
-      const openBtn = el("button",{class:"btn good", onclick: () => {
-        state.selectedTournamentId = t.id;
-        state.selectedMatchId = null;
-        saveState(state);
-        renderManage();
-      }},["Atvērt"]);
-
-      const pills = el("div",{class:"row"},[
-        el("span",{class:"pill"},["Datums: ", fmtDate(t.date)]),
-        el("span",{class:"pill"},["Spēlētāji: ", String(t.players.length)]),
-        el("span",{class:"pill"},["Spēles: ", String(t.matches.length)])
-      ]);
-
-      list.appendChild(el("div",{class:"item"},[
-        el("div",{class:"meta"},[
-          el("div",{style:"font-weight:900"},[t.name]),
-          el("div",{class:"muted"},[t.location || "—"]),
-          pills
-        ]),
-        el("div",{class:"split"},[openBtn])
-      ]));
-    }
-    return list;
-  }
-
-  function renderRulesEditor(t){
-    const pointsToWin = el("input",{type:"number", min:"1", max:"99", value:String(t.rules.pointsToWin)});
-    const winByTwo = el("select",{},[
-      el("option",{value:"true"},["+2 (standarts)"]),
-      el("option",{value:"false"},["Bez +2"])
-    ]);
-    winByTwo.value = String(!!t.rules.winByTwo);
-    const bestOf = el("select",{},[
-      el("option",{value:"5"},["Best-of-5 (līdz 3)"]),
-      el("option",{value:"3"},["Best-of-3 (līdz 2)"])
-    ]);
-    bestOf.value = String(t.rules.bestOf);
-
-    const saveBtn = el("button",{class:"btn primary", onclick: () => {
-      t.rules.pointsToWin = clampInt(pointsToWin.value, 11);
-      t.rules.winByTwo = (winByTwo.value === "true");
-      t.rules.bestOf = clampInt(bestOf.value, 5);
-
-      // drošības nolūkos: pārrēķinam statusu "FINISHED" gadījumā (ja rules mainās)
-      for(const m of t.matches){
-        const d = deriveFromEvents(m.events, t.rules);
-        m.status = d.finished ? "FINISHED" : (m.events.length ? "LIVE" : m.status);
-      }
-
-      saveState(state);
-      renderManage();
-    }},["Saglabāt rules"]);
-
-    return el("div",{},[
-      el("h2",{},["Rules"]),
-      el("div",{class:"row"},[
-        el("div",{class:"field"},[el("label",{},["Punkti līdz uzvarai geimā"]), pointsToWin]),
-        el("div",{class:"field"},[el("label",{},["+2 noteikums"]), winByTwo]),
-        el("div",{class:"field"},[el("label",{},["Mačs (best-of)"]), bestOf]),
-      ]),
-      el("div",{class:"row"},[
-        saveBtn,
-        el("span",{class:"muted"},["Ja rules maini pēc spēlēm, rezultāti tiks pārrēķināti no punktu notikumiem (events)."])
-      ])
-    ]);
-  }
-
-  function renderPlayersManager(t){
-    const inp = el("input",{placeholder:"Spēlētāja vārds"});
-    const addBtn = el("button",{class:"btn good", onclick: () => {
-      const nm = inp.value.trim();
-      if(!nm){ alert("Ievadi vārdu."); return; }
-      t.players.push({id: uid(), name: nm});
-      inp.value = "";
-      saveState(state);
-      renderManage();
-    }},["Pievienot"]);
-
-    const list = el("div",{class:"list"});
-    if(t.players.length === 0){
-      list.appendChild(el("div",{class:"muted"},["Nav spēlētāju. Pievieno vismaz 2."]));
-    }else{
-      for(const p of t.players){
-        const del = el("button",{class:"btn bad", onclick: () => {
-          // nevar dzēst, ja ir spēles ar šo spēlētāju
-          const used = t.matches.some(m => m.playerAId === p.id || m.playerBId === p.id);
-          if(used){
-            alert("Šo spēlētāju nevar dzēst, jo viņš jau ir spēlēs. Dzēs spēles vai turnīru.");
-            return;
-          }
-          t.players = t.players.filter(x => x.id !== p.id);
-          saveState(state);
-          renderManage();
-        }},["Dzēst"]);
-
-        list.appendChild(el("div",{class:"item"},[
-          el("div",{class:"meta"},[
-            el("div",{style:"font-weight:900"},[p.name]),
-            el("div",{class:"muted"},["ID: ", p.id.slice(0,8)])
-          ]),
-          el("div",{class:"split"},[del])
-        ]));
-      }
-    }
-
-    return el("div",{},[
-      el("h2",{},["Spēlētāji"]),
-      el("div",{class:"row"},[
-        el("div",{class:"field"},[el("label",{},["Pievienot spēlētāju"]), inp]),
-        el("div",{style:"margin-top:18px"},[addBtn])
-      ]),
-      list
-    ]);
-  }
-
-  function renderMatchesManager(t){
-    const info = el("div",{class:"notice"},[
-      "Match ģenerēšana šobrīd: ",
-      el("b",{},["Round-robin (katrs ar katru 1x)"]),
-      ". Ja gribi, nākamajā iterācijā uztaisām arī knockout + consolation."
-    ]);
-
-    const genBtn = el("button",{class:"btn primary", onclick: () => {
-      if(t.players.length < 2){
-        alert("Vajag vismaz 2 spēlētājus.");
-        return;
-      }
-      if(t.matches.length > 0){
-        if(!confirm("Turnīram jau ir spēles. Pārrakstīt un ģenerēt no jauna?")) return;
-      }
-      t.matches = generateRoundRobin(t.players).map((pair, i) => ({
-        id: uid(),
-        playerAId: pair.aId,
-        playerBId: pair.bId,
-        court: "",
-        startTime: "",
-        status: "SCHEDULED",
-        events: []
-      }));
-      state.selectedMatchId = t.matches[0]?.id || null;
-      saveState(state);
-      renderManage();
-    }},["Ģenerēt spēles"]);
-
-    const clearBtn = el("button",{class:"btn bad", onclick: () => {
-      if(!confirm("Dzēst visas spēles šim turnīram?")) return;
-      t.matches = [];
-      state.selectedMatchId = null;
-      saveState(state);
-      renderManage();
-    }},["Dzēst spēles"]);
-
-    const list = el("div",{class:"list"});
-    if(t.matches.length === 0){
-      list.appendChild(el("div",{class:"muted"},["Nav spēļu. Ģenerē spēles."]));
-    } else {
-      for(const m of t.matches){
-        const a = t.players.find(p => p.id === m.playerAId)?.name || "A?";
-        const b = t.players.find(p => p.id === m.playerBId)?.name || "B?";
-        const d = deriveFromEvents(m.events, t.rules);
-
-        const statusPill =
-          m.status === "FINISHED" ? el("span",{class:"pill bad"},["FINISHED"]) :
-          m.status === "LIVE"     ? el("span",{class:"pill good"},["LIVE"]) :
-                                   el("span",{class:"pill warn"},["SCHEDULED"]);
-
-        const open = el("button",{class:"btn good", onclick: () => {
-          state.selectedMatchId = m.id;
-          saveState(state);
-          renderScore();
-        }},["Atvērt"]);
-
-        const setCourt = el("input",{placeholder:"Court", value:m.court || ""});
-        setCourt.style.maxWidth = "120px";
-        setCourt.addEventListener("change", () => {
-          m.court = setCourt.value.trim();
-          saveState(state);
-          renderRightStatus();
-        });
-
-        const setStart = el("input",{type:"datetime-local"});
-        setStart.style.maxWidth = "190px";
-        // Best effort to show existing
-        if(m.startTime){
-          const dt = new Date(m.startTime);
-          const pad = (n)=> String(n).padStart(2,"0");
-          const local = `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
-          setStart.value = local;
-        }
-        setStart.addEventListener("change", () => {
-          if(!setStart.value){ m.startTime=""; saveState(state); renderRightStatus(); return; }
-          const dt = new Date(setStart.value);
-          m.startTime = dt.toISOString();
-          saveState(state);
-          renderRightStatus();
-        });
-
-        list.appendChild(el("div",{class:"item"},[
-          el("div",{class:"meta"},[
-            el("div",{style:"font-weight:900"},[`${a} vs ${b}`]),
-            el("div",{class:"row"},[
-              statusPill,
-              el("span",{class:"pill"},[`Score: ${d.winsA}-${d.winsB}`]),
-              el("span",{class:"pill"},[`Game #${d.current.gameNo} ${d.current.a}-${d.current.b}`]),
-            ]),
-            el("div",{class:"row"},[
-              el("span",{class:"muted"},["Court: "]), setCourt,
-              el("span",{class:"muted"},["Start: "]), setStart
-            ])
-          ]),
-          el("div",{class:"split"},[open])
-        ]));
-      }
-    }
-
-    return el("div",{},[
-      el("h2",{},["Spēles"]),
-      info,
-      el("div",{class:"row", style:"margin-top:10px"},[genBtn, clearBtn]),
-      el("div",{class:"hr"}),
-      list
-    ]);
-  }
-
-  function renderMatchPicker(t){
-    const sel = el("select");
-    for(const m of t.matches){
-      const a = t.players.find(p => p.id === m.playerAId)?.name || "A?";
-      const b = t.players.find(p => p.id === m.playerBId)?.name || "B?";
-      const opt = el("option",{value:m.id},[`${a} vs ${b}`]);
-      sel.appendChild(opt);
-    }
-    sel.value = state.selectedMatchId || (t.matches[0]?.id ?? "");
-    sel.addEventListener("change", () => {
-      state.selectedMatchId = sel.value;
-      saveState(state);
-      renderScore();
-    });
-
-    return el("div",{class:"row"},[
-      el("div",{class:"field"},[
-        el("label",{},["Izvēlēties spēli"]),
-        sel
-      ]),
-      el("button",{class:"btn ghost", onclick: () => renderManage()},["Atpakaļ uz pārvaldību"])
-    ]);
-  }
-
-  function renderScoringBox(t, m){
-    const aName = t.players.find(p => p.id === m.playerAId)?.name || "Player A";
-    const bName = t.players.find(p => p.id === m.playerBId)?.name || "Player B";
-    const d = deriveFromEvents(m.events, t.rules);
-    const gtw = gamesToWin(t.rules.bestOf);
-
-    // ensure match status consistent
-    if(d.finished && m.status !== "FINISHED"){
-      m.status = "FINISHED";
-      saveState(state);
-    } else if(!d.finished && m.events.length && m.status === "SCHEDULED"){
-      m.status = "LIVE";
-      saveState(state);
-    }
-
-    const statusPill =
-      m.status === "FINISHED" ? el("span",{class:"pill bad"},["FINISHED"]) :
-      m.status === "LIVE"     ? el("span",{class:"pill good"},["LIVE"]) :
-                               el("span",{class:"pill warn"},["SCHEDULED"]);
-
-    const top = el("div",{class:"scoreTop"},[
-      el("div",{class:"row"},[
-        statusPill,
-        el("span",{class:"pill"},[`To win: ${gtw} games`]),
-        el("span",{class:"pill"},[`PAR ${t.rules.pointsToWin}${t.rules.winByTwo ? " (+2)" : ""}`]),
-      ]),
-      el("div",{class:"rightActions"},[
-        el("button",{class:"btn warn", onclick: () => {
-          if(!m.events.length){ alert("Nav ko atsaukt."); return; }
-          m.events.pop();
-          // if finished, revert to LIVE
-          const dd = deriveFromEvents(m.events, t.rules);
-          m.status = dd.finished ? "FINISHED" : (m.events.length ? "LIVE" : "SCHEDULED");
-          saveState(state);
-          renderScore();
-        }},["Undo (pēdējais punkts)"]),
-        el("button",{class:"btn bad", onclick: () => {
-          if(!confirm("Notīrīt šīs spēles score (events) uz 0?")) return;
-          m.events = [];
-          m.status = "SCHEDULED";
-          saveState(state);
-          renderScore();
-        }},["Reset score"])
-      ])
-    ]);
-
-    const big = el("div",{class:"bigScore"},[
-      el("div",{class:"side"},[
-        el("div",{class:"sideName"},[aName]),
-        el("div",{class:"sidePts"},[String(d.current.a)]),
-        el("div",{class:"small"},[`Games won: ${d.winsA}`])
-      ]),
-      el("div",{class:"mid"},[
-        el("div",{class:"wins"},[`${d.winsA} : ${d.winsB}`]),
-        el("div",{class:"small"},[`Game #${d.current.gameNo}`])
-      ]),
-      el("div",{class:"side"},[
-        el("div",{class:"sideName"},[bName]),
-        el("div",{class:"sidePts"},[String(d.current.b)]),
-        el("div",{class:"small"},[`Games won: ${d.winsB}`])
-      ]),
-    ]);
-
-    const addA = el("button",{class:"btn good", onclick: () => addPoint(t, m, "A")},[`+1 ${aName}`]);
-    const addB = el("button",{class:"btn good", onclick: () => addPoint(t, m, "B")},[`+1 ${bName}`]);
-
-    if(m.status === "FINISHED"){
-      addA.disabled = true;
-      addB.disabled = true;
-      addA.classList.add("ghost");
-      addB.classList.add("ghost");
-    }
-
-    const actions = el("div",{class:"actions"},[addA, addB]);
-
-    const table = el("table",{class:"gamesTable"});
-    table.appendChild(el("thead",{},[
-      el("tr",{},[
-        el("th",{},["Game"]),
-        el("th",{},[aName]),
-        el("th",{},[bName]),
-        el("th",{},["Winner"])
-      ])
-    ]));
-    const tb = el("tbody");
-    // Finished games
-    for(let i=0;i<d.games.length;i++){
-      const g = d.games[i];
-      tb.appendChild(el("tr",{},[
-        el("td",{},[String(i+1)]),
-        el("td",{},[String(g.a)]),
-        el("td",{},[String(g.b)]),
-        el("td",{},[g.winner || "-"])
-      ]));
-    }
-    // Current unfinished game row
-    if(!d.finished){
-      tb.appendChild(el("tr",{},[
-        el("td",{},[String(d.current.gameNo)]),
-        el("td",{},[String(d.current.a)]),
-        el("td",{},[String(d.current.b)]),
-        el("td",{class:"muted"},["—"])
-      ]));
-    }
-    table.appendChild(tb);
-
-    const box = el("div",{class:"scoreBox"},[
-      top,
-      big,
-      actions,
-      el("div",{class:"muted"},[
-        "Undo atsauc pēdējo punktu (events stack). Viss tiek glabāts kā notikumi, un rezultāts tiek pārrēķināts droši."
-      ]),
-      table
-    ]);
-    return box;
-  }
-
-  /***********************
-   * Actions
-   ***********************/
-  function deleteTournament(tournamentId){
-    if(!confirm("Dzēst turnīru pilnībā?")) return;
-    state.tournaments = state.tournaments.filter(t => t.id !== tournamentId);
-    if(state.selectedTournamentId === tournamentId){
-      state.selectedTournamentId = null;
-      state.selectedMatchId = null;
-    }
-    saveState(state);
-    renderHome();
-  }
-
-  /**
-   * Generate round-robin pairs from players (simple all pairs once)
-   * @param {Player[]} players
-   * @returns {{aId:string,bId:string}[]}
-   */
-  function generateRoundRobin(players){
-    const pairs = [];
-    for(let i=0;i<players.length;i++){
-      for(let j=i+1;j<players.length;j++){
-        pairs.push({aId: players[i].id, bId: players[j].id});
-      }
-    }
-    return pairs;
-  }
-
-  /**
-   * Add a point event and re-render
-   * @param {Tournament} t
-   * @param {Match} m
-   * @param {"A"|"B"} side
-   */
-  function addPoint(t, m, side){
-    const d = deriveFromEvents(m.events, t.rules);
-    if(d.finished){
-      alert("Mačs jau ir pabeigts.");
-      return;
-    }
-    m.events.push(side);
-    const dd = deriveFromEvents(m.events, t.rules);
-    m.status = dd.finished ? "FINISHED" : "LIVE";
-    saveState(state);
-    renderScore();
-  }
-
-  /***********************
-   * Export / Import / Reset
-   ***********************/
-  function exportJSON(){
-    const blob = new Blob([JSON.stringify(state, null, 2)], {type:"application/json"});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `squash-tourney-backup-${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  function importJSON(file){
-    const reader = new FileReader();
-    reader.onload = () => {
-      try{
-        const obj = JSON.parse(String(reader.result || ""));
-        if(!obj || typeof obj !== "object" || !Array.isArray(obj.tournaments)){
-          alert("JSON nav pareizā formātā.");
+    for(const p of state.players){
+      const row = document.createElement("div");
+      row.className = "item";
+      row.innerHTML = `<b>${escapeHtml(p.name)}</b>`;
+      const del = document.createElement("button");
+      del.className = "btn bad";
+      del.textContent = "Dzēst";
+      del.onclick = () => {
+        // neļaujam dzēst, ja spēles jau ģenerētas
+        const used = state.matches.some(m => m.aId === p.id || m.bId === p.id);
+        if(used){
+          alert("Spēlētāju nevar dzēst, kamēr ir ģenerētas spēles. Dzēs spēles un tad dzēs spēlētāju.");
           return;
         }
-        obj.version = APP_VERSION;
-        obj.selectedTournamentId ??= null;
-        obj.selectedMatchId ??= null;
-        state = obj;
-        saveState(state);
-        renderHome();
-      }catch(e){
-        alert("Neizdevās ielasīt JSON.");
+        state.players = state.players.filter(x => x.id !== p.id);
+        save();
+        renderAll();
+      };
+      row.appendChild(del);
+      box.appendChild(row);
+    }
+  }
+
+  function renderMatches(){
+    const box = $("#matchesBox");
+    box.innerHTML = "";
+
+    if(state.matches.length === 0){
+      box.appendChild(document.createTextNode("Nav spēļu. Nospied “Ģenerēt spēles”."));
+      box.classList.add("muted");
+      return;
+    }
+    box.classList.remove("muted");
+
+    const tableWrap = document.createElement("div");
+    tableWrap.className = "pairs";
+
+    const table = document.createElement("table");
+    const thead = document.createElement("thead");
+    thead.innerHTML = `<tr><th>#</th><th>Spēlētājs A</th><th>Spēlētājs B</th></tr>`;
+    table.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+    state.matches.forEach((m, idx) => {
+      const a = state.players.find(p => p.id === m.aId)?.name || "?";
+      const b = state.players.find(p => p.id === m.bId)?.name || "?";
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${idx+1}</td><td>${escapeHtml(a)}</td><td>${escapeHtml(b)}</td>`;
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+
+    tableWrap.appendChild(table);
+    box.appendChild(tableWrap);
+  }
+
+  function escapeHtml(s){
+    return String(s)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  function generateRoundRobin(){
+    if(state.players.length < 2){
+      alert("Vajag vismaz 2 spēlētājus.");
+      return;
+    }
+    if(!state.tournamentName.trim()){
+      alert("Ievadi un saglabā turnīra nosaukumu.");
+      return;
+    }
+
+    const pairs = [];
+    for(let i=0;i<state.players.length;i++){
+      for(let j=i+1;j<state.players.length;j++){
+        pairs.push({ aId: state.players[i].id, bId: state.players[j].id });
       }
-    };
-    reader.readAsText(file);
+    }
+    state.matches = pairs;
+    save();
+    renderAll();
   }
 
-  function resetAll(){
-    if(!confirm("Reset izdzēsīs VISUS datus šajā ierīcē. Turpināt?")) return;
-    localStorage.removeItem(STORAGE_KEY);
-    state = loadState();
-    renderHome();
+  function clearMatches(){
+    if(state.matches.length === 0) return;
+    if(!confirm("Dzēst visas spēles?")) return;
+    state.matches = [];
+    save();
+    renderAll();
   }
 
-  /***********************
-   * Navigation
-   ***********************/
-  $("#navHome").addEventListener("click", renderHome);
-  $("#navManage").addEventListener("click", renderManage);
-  $("#navScore").addEventListener("click", renderScore);
+  function renderAll(){
+    $("#tName").value = state.tournamentName || "";
+    renderPlayers();
+    renderMatches();
+    setStatus();
+  }
 
-  $("#btnExport").addEventListener("click", exportJSON);
-  $("#btnImport").addEventListener("click", () => $("#fileImport").click());
-  $("#fileImport").addEventListener("change", (e) => {
-    const f = e.target.files?.[0];
-    if(f) importJSON(f);
-    e.target.value = "";
-  });
-  $("#btnReset").addEventListener("click", resetAll);
+  // Events
+  $("#btnSaveName").onclick = () => {
+    state.tournamentName = $("#tName").value.trim();
+    save();
+    renderAll();
+  };
 
-  /***********************
-   * Boot
-   ***********************/
-  setNav();
-  renderHome();
+  $("#btnAddPlayer").onclick = () => {
+    const name = $("#pName").value.trim();
+    if(!name){ alert("Ievadi spēlētāja vārdu."); return; }
+    state.players.push({ id: uid(), name });
+    $("#pName").value = "";
+    save();
+    renderAll();
+  };
 
+  $("#btnGenerate").onclick = () => {
+    if(state.matches.length > 0){
+      if(!confirm("Spēles jau ir ģenerētas. Pārgenerēt no jauna?")) return;
+    }
+    generateRoundRobin();
+  };
+
+  $("#btnClearMatches").onclick = clearMatches;
+
+  $("#btnReset").onclick = () => {
+    if(!confirm("Notīrīt visu (turnīru, spēlētājus, spēles) no šīs ierīces?")) return;
+    localStorage.removeItem(KEY);
+    state = load();
+    renderAll();
+  };
+
+  // Enter key shortcuts
+  $("#tName").addEventListener("keydown", (e) => { if(e.key === "Enter") $("#btnSaveName").click(); });
+  $("#pName").addEventListener("keydown", (e) => { if(e.key === "Enter") $("#btnAddPlayer").click(); });
+
+  // Boot
+  renderAll();
 })();
 </script>
 </body>
