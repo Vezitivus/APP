@@ -9,21 +9,18 @@
   <title>Squash — Turnīrs</title>
 
   <style>
-    /* ===== iOS-ish modern minimal ===== */
     :root{
-      --bg: #0B0F14;
-      --card: rgba(255,255,255,0.06);
-      --card2: rgba(255,255,255,0.08);
-      --line: rgba(255,255,255,0.10);
-      --text: rgba(255,255,255,0.92);
-      --muted: rgba(255,255,255,0.62);
-      --shadow: 0 18px 60px rgba(0,0,0,0.45);
-      --radius: 18px;
+      --bg:#0B0F14;
+      --card:rgba(255,255,255,0.06);
+      --line:rgba(255,255,255,0.10);
+      --text:rgba(255,255,255,0.92);
+      --muted:rgba(255,255,255,0.62);
+      --shadow:0 18px 60px rgba(0,0,0,0.45);
+      --radius:18px;
 
-      --accent: #5AA7FF; /* iOS-ish blue */
-      --good: #2DD4BF;
-      --warn: #FBBF24;
-      --bad:  #FB7185;
+      --accent:#5AA7FF;
+      --good:#2DD4BF;
+      --bad:#FB7185;
     }
 
     *{box-sizing:border-box}
@@ -65,15 +62,11 @@
       flex-wrap: wrap;
     }
 
-    .brand{
-      display:flex; gap:12px; align-items:center;
-      min-width: 240px;
-    }
+    .brand{display:flex; gap:12px; align-items:center; min-width: 240px;}
     .logo{
       width:40px;height:40px;border-radius:14px;
       display:grid;place-items:center;
-      background:
-        radial-gradient(circle at 30% 20%, rgba(90,167,255,.95), rgba(45,212,191,.65));
+      background: radial-gradient(circle at 30% 20%, rgba(90,167,255,.95), rgba(45,212,191,.65));
       color:#071019;
       font-weight:900;
       letter-spacing:.4px;
@@ -84,9 +77,7 @@
     .hSub{color:var(--muted); font-size:12px; margin-top:2px}
 
     .seg{
-      display:flex;
-      gap:6px;
-      padding:6px;
+      display:flex; gap:6px; padding:6px;
       border-radius: 16px;
       border:1px solid var(--line);
       background: rgba(255,255,255,0.04);
@@ -108,9 +99,7 @@
       color: var(--text);
     }
 
-    .actions{
-      display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;
-    }
+    .actions{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;}
     .btn{
       border:1px solid var(--line);
       background: rgba(255,255,255,0.05);
@@ -128,16 +117,8 @@
     .btn.bad{background: rgba(251,113,133,0.14); border-color: rgba(251,113,133,0.35)}
     .btn:disabled{opacity:.45; cursor:not-allowed; transform:none}
 
-    .content{
-      margin-top: 14px;
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
-    @media (max-width: 920px){
-      .content{grid-template-columns: 1fr}
-      .header{position: relative; top: 0}
-    }
+    .content{margin-top: 14px; display:grid; grid-template-columns: 1fr 1fr; gap: 14px;}
+    @media (max-width: 920px){ .content{grid-template-columns: 1fr} .header{position: relative; top: 0} }
 
     .card{
       border:1px solid var(--line);
@@ -147,11 +128,7 @@
       padding: 14px;
       overflow:hidden;
     }
-    .card h2{
-      margin:0 0 10px 0;
-      font-size: 16px;
-      letter-spacing:.2px;
-    }
+    .card h2{margin:0 0 10px 0; font-size: 16px; letter-spacing:.2px;}
     .muted{color:var(--muted)}
     .note{
       border:1px dashed rgba(90,167,255,0.35);
@@ -205,16 +182,9 @@
     .pill.bad{border-color: rgba(251,113,133,0.35); color: rgba(254,205,211,0.95)}
     .pill.accent{border-color: rgba(90,167,255,0.35); color: rgba(191,224,255,0.95)}
 
-    .two{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:10px;
-    }
-    @media (max-width: 520px){
-      .two{grid-template-columns: 1fr}
-    }
+    .two{display:grid; grid-template-columns: 1fr 1fr; gap:10px;}
+    @media (max-width: 520px){ .two{grid-template-columns: 1fr} }
 
-    /* Matches */
     .round{
       border:1px solid var(--line);
       border-radius: 18px;
@@ -238,38 +208,19 @@
       display:grid;
       gap:10px;
     }
-    .matchTop{
-      display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap;
-    }
-    .vs{
-      font-weight: 900;
-      line-height: 1.25;
-      font-size: 14px;
-    }
-    .resultLine{
-      display:flex; gap:8px; flex-wrap:wrap; align-items:center;
-    }
-    .selectSlim{
-      min-width: 160px;
-      flex: 1 1 180px;
-    }
-    .btnTiny{
-      padding: 9px 10px;
-      border-radius: 12px;
-      font-weight: 900;
-    }
+    .matchTop{display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap;}
+    .vs{font-weight: 900; line-height: 1.25; font-size: 14px;}
+    .resultLine{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+    .selectSlim{min-width: 160px; flex: 1 1 180px;}
+    .btnTiny{padding: 9px 10px; border-radius: 12px; font-weight: 900;}
 
-    /* Standings table */
     .tableWrap{
       border:1px solid var(--line);
       border-radius: 18px;
       overflow:hidden;
       background: rgba(255,255,255,0.04);
     }
-    table{
-      width:100%;
-      border-collapse: collapse;
-    }
+    table{width:100%; border-collapse: collapse;}
     th, td{
       padding: 10px 10px;
       border-bottom: 1px solid rgba(255,255,255,0.08);
@@ -277,16 +228,9 @@
       font-size: 13px;
       white-space: nowrap;
     }
-    th{
-      color: var(--muted);
-      font-weight: 900;
-      background: rgba(255,255,255,0.04);
-    }
+    th{color: var(--muted); font-weight: 900; background: rgba(255,255,255,0.04);}
     tr:last-child td{border-bottom:none}
-    .rank{
-      font-weight: 900;
-      color: rgba(191,224,255,0.95);
-    }
+    .rank{font-weight: 900; color: rgba(191,224,255,0.95);}
     .nameCell{
       font-weight: 900;
       max-width: 240px;
@@ -295,8 +239,6 @@
     }
     .gdPos{color: rgba(167,243,208,0.95); font-weight:900}
     .gdNeg{color: rgba(254,205,211,0.95); font-weight:900}
-
-    .hidden{display:none !important}
   </style>
 </head>
 
@@ -307,7 +249,7 @@
         <div class="logo">SQ</div>
         <div>
           <div class="hTitle" id="hdrTitle">Squash turnīrs</div>
-          <div class="hSub" id="hdrSub">Nosaukums → spēlētāji → ģenerēt izspēli → ievadīt rezultātus → standings.</div>
+          <div class="hSub" id="hdrSub">Nosaukums → spēlētāji → ģenerēt izspēli → rezultāti → standings.</div>
         </div>
       </div>
 
@@ -323,13 +265,11 @@
     </div>
 
     <div class="content">
-      <!-- LEFT: Main -->
       <div class="card">
         <h2 id="leftTitle">Setup</h2>
         <div id="leftBody"></div>
       </div>
 
-      <!-- RIGHT: Secondary / Summary -->
       <div class="card">
         <h2>Overview</h2>
         <div id="rightBody"></div>
@@ -353,8 +293,8 @@
     if(!raw){
       return {
         tournamentName: "",
-        players: [], // {id, name}
-        schedule: null, // { rounds: [{roundNo, matches:[{id,aId,bId,result:{aGames,bGames} | null}]}] }
+        players: [],  // {id, name}
+        schedule: null, // { rounds: [{roundNo, matches:[{id,aId,bId,result:{aGames,bGames}|null}]}] }
         view: "setup"
       };
     }
@@ -369,67 +309,22 @@
       return { tournamentName:"", players:[], schedule:null, view:"setup" };
     }
   }
+
   function save(){
     localStorage.setItem(KEY, JSON.stringify(state));
   }
 
-  /* ===== Navigation ===== */
-  const tabSetup = $("#tabSetup");
-  const tabMatches = $("#tabMatches");
-  const tabStandings = $("#tabStandings");
-
-  tabSetup.addEventListener("click", () => setView("setup"));
-  tabMatches.addEventListener("click", () => setView("matches"));
-  tabStandings.addEventListener("click", () => setView("standings"));
-
-  function setView(v){
-    state.view = v;
-    save();
-    render();
-  }
-
-  /* ===== Rendering roots ===== */
-  const leftTitle = $("#leftTitle");
-  const leftBody  = $("#leftBody");
-  const rightBody = $("#rightBody");
-
-  function render(){
-    // tabs active
-    tabSetup.classList.toggle("active", state.view === "setup");
-    tabMatches.classList.toggle("active", state.view === "matches");
-    tabStandings.classList.toggle("active", state.view === "standings");
-
-    // enable matches/standings when schedule exists
-    const hasSchedule = !!state.schedule;
-    tabMatches.disabled = !hasSchedule;
-    tabStandings.disabled = !hasSchedule;
-
-    // header title reflects tournament name if present
-    $("#hdrTitle").textContent = state.tournamentName?.trim() ? state.tournamentName.trim() : "Squash turnīrs";
-
-    // right panel always overview
-    rightBody.replaceChildren(renderOverview());
-
-    // left panel by view
-    if(state.view === "setup"){
-      leftTitle.textContent = "Setup";
-      leftBody.replaceChildren(renderSetup());
-    } else if(state.view === "matches"){
-      leftTitle.textContent = "Matches";
-      leftBody.replaceChildren(renderMatches());
-    } else {
-      leftTitle.textContent = "Standings";
-      leftBody.replaceChildren(renderStandings());
-    }
-  }
-
+  // ✅ FIX: onClick -> "click" (lowercase) so event binding works.
   function el(tag, props={}, children=[]){
     const n = document.createElement(tag);
     for(const [k,v] of Object.entries(props)){
       if(k === "class") n.className = v;
       else if(k === "text") n.textContent = v;
-      else if(k.startsWith("on") && typeof v === "function") n.addEventListener(k.slice(2), v);
-      else n.setAttribute(k, v);
+      else if(k.startsWith("on") && typeof v === "function"){
+        n.addEventListener(k.slice(2).toLowerCase(), v);
+      } else {
+        n.setAttribute(k, v);
+      }
     }
     for(const c of children){
       if(c == null) continue;
@@ -448,14 +343,56 @@
       .replaceAll("'","&#039;");
   }
 
-  /* ===== Setup UI ===== */
+  const tabSetup = $("#tabSetup");
+  const tabMatches = $("#tabMatches");
+  const tabStandings = $("#tabStandings");
+
+  tabSetup.addEventListener("click", () => setView("setup"));
+  tabMatches.addEventListener("click", () => setView("matches"));
+  tabStandings.addEventListener("click", () => setView("standings"));
+
+  function setView(v){
+    state.view = v;
+    save();
+    render();
+  }
+
+  const leftTitle = $("#leftTitle");
+  const leftBody  = $("#leftBody");
+  const rightBody = $("#rightBody");
+
+  function render(){
+    tabSetup.classList.toggle("active", state.view === "setup");
+    tabMatches.classList.toggle("active", state.view === "matches");
+    tabStandings.classList.toggle("active", state.view === "standings");
+
+    const hasSchedule = !!state.schedule;
+    tabMatches.disabled = !hasSchedule;
+    tabStandings.disabled = !hasSchedule;
+
+    $("#hdrTitle").textContent = state.tournamentName?.trim() ? state.tournamentName.trim() : "Squash turnīrs";
+
+    rightBody.replaceChildren(renderOverview());
+
+    if(state.view === "setup"){
+      leftTitle.textContent = "Setup";
+      leftBody.replaceChildren(renderSetup());
+    } else if(state.view === "matches"){
+      leftTitle.textContent = "Matches";
+      leftBody.replaceChildren(renderMatches());
+    } else {
+      leftTitle.textContent = "Standings";
+      leftBody.replaceChildren(renderStandings());
+    }
+  }
+
+  /* ===== Setup ===== */
   function renderSetup(){
     const nameInput = el("input", { id:"tName", value: state.tournamentName || "" });
     nameInput.addEventListener("input", () => {
       state.tournamentName = nameInput.value;
       save();
       $("#hdrTitle").textContent = state.tournamentName.trim() || "Squash turnīrs";
-      // keep it calm; no rerender needed here
     });
 
     const saveNameBtn = el("button", {
@@ -476,27 +413,23 @@
       class:"btn primary",
       onClick: () => generateSchedule()
     }, ["Ģenerēt izspēli"]);
-
     genBtn.disabled = !(state.tournamentName.trim() && state.players.length >= 2);
 
     const resetScheduleBtn = el("button", {
       class:"btn bad",
       onClick: () => resetSchedule()
     }, ["Dzēst izspēli"]);
-
     resetScheduleBtn.disabled = !state.schedule;
-
-    const playersList = renderPlayersList();
 
     const help = el("div", { class:"note" }, [
       "Formāts: ",
       el("span", { class:"pill accent" }, ["Round-robin"]),
-      " (katrs ar katru) ar raundu sadalījumu. Rezultātu ievade ir vienkārša: ",
+      " (katrs ar katru) ar raundu sadalījumu. Rezultāts: ",
       el("span", { class:"pill" }, ["3–0 / 3–1 / 3–2"]),
-      ". Standings automātiski pārrēķinās."
+      ". Standings pārrēķinās automātiski."
     ]);
 
-    const top = el("div", {}, [
+    return el("div", {}, [
       el("div", { class:"row" }, [
         el("div", { class:"field" }, [ el("label", {text:"Turnīra nosaukums"}), nameInput ]),
         el("div", {}, [saveNameBtn])
@@ -509,15 +442,10 @@
         addBtn
       ]),
       el("div", { class:"hr" }),
-      playersList,
+      renderPlayersList(),
       el("div", { class:"hr" }),
-      el("div", { class:"row" }, [
-        genBtn,
-        resetScheduleBtn
-      ])
+      el("div", { class:"row" }, [genBtn, resetScheduleBtn])
     ]);
-
-    return top;
   }
 
   function addPlayer(inputEl){
@@ -553,7 +481,7 @@
       box.appendChild(
         el("div", { class:"item" }, [
           el("div", {}, [
-            el("b", { }, [p.name]),
+            el("b", {}, [p.name]),
             el("div", { class:"muted", style:"font-size:12px;margin-top:4px" }, ["ID: ", p.id.slice(0,8)])
           ]),
           del
@@ -563,30 +491,24 @@
     return box;
   }
 
-  /* ===== Schedule generation (Round-robin by rounds, circle method) ===== */
+  /* ===== Schedule (Circle method) ===== */
   function generateSchedule(){
     const tName = state.tournamentName.trim();
     if(!tName) return alert("Ievadi turnīra nosaukumu.");
     if(state.players.length < 2) return alert("Vajag vismaz 2 spēlētājus.");
     if(state.schedule){
-      if(!confirm("Izspēle jau eksistē. Pārgenerēt? (Esošie rezultāti tiks dzēsti)")) return;
+      if(!confirm("Izspēle jau eksistē. Pārgenerēt? (Rezultāti tiks dzēsti)")) return;
     }
 
-    // Circle method:
-    // If odd, add BYE. Fix first, rotate others.
     const list = state.players.map(p => ({...p}));
     const BYE = { id:"BYE", name:"BYE" };
-
-    const isOdd = (list.length % 2) === 1;
-    if(isOdd) list.push(BYE);
+    if(list.length % 2 === 1) list.push(BYE);
 
     const n = list.length;
     const rounds = n - 1;
     const half = n / 2;
 
     let arr = list.slice();
-
-    /** rounds = [{roundNo, matches:[{id,aId,bId,result:null|{aGames,bGames}}]}] */
     const outRounds = [];
 
     for(let r=1; r<=rounds; r++){
@@ -595,17 +517,17 @@
         const a = arr[i];
         const b = arr[n - 1 - i];
         if(a.id === "BYE" || b.id === "BYE") continue;
+
         matches.push({
           id: uid(),
           aId: a.id,
           bId: b.id,
-          result: null // {aGames,bGames}
+          result: null
         });
       }
 
       outRounds.push({ roundNo: r, matches });
 
-      // rotate (keep first fixed)
       const fixed = arr[0];
       const rest = arr.slice(1);
       rest.unshift(rest.pop());
@@ -619,51 +541,41 @@
 
   function resetSchedule(){
     if(!state.schedule) return;
-    if(!confirm("Dzēst izspēli un VISUS rezultātus?")) return;
+    if(!confirm("Dzēst izspēli un visus rezultātus?")) return;
     state.schedule = null;
     save();
     setView("setup");
   }
 
-  /* ===== Matches UI (simple result input) ===== */
+  /* ===== Matches ===== */
   function renderMatches(){
     if(!state.schedule){
       return el("div", { class:"note" }, ["Nav izspēles. Ej uz Setup un ģenerē."]);
     }
 
-    const rounds = state.schedule.rounds;
-
-    const wrap = el("div", { class:"list" });
-
-    const headerNote = el("div", { class:"note" }, [
-      "Rezultāts: izvēlies uzvarētāju un rezultātu (best-of-5). Standings pārrēķinās automātiski."
+    const wrap = el("div", { class:"list" }, [
+      el("div", { class:"note" }, ["Izvēlies uzvarētāju un rezultātu (best-of-5). Standings pārrēķinās automātiski."])
     ]);
 
-    wrap.appendChild(headerNote);
-
-    for(const rd of rounds){
-      const roundBox = el("div", { class:"round" });
-
+    for(const rd of state.schedule.rounds){
       const done = rd.matches.filter(m => !!m.result).length;
       const total = rd.matches.length;
 
-      roundBox.appendChild(
+      const roundBox = el("div", { class:"round" }, [
         el("div", { class:"roundHead" }, [
           el("div", { class:"name" }, [`Round ${rd.roundNo}`]),
           el("div", { class:"pill accent" }, [`Done: ${done}/${total}`])
         ])
-      );
+      ]);
 
       const body = el("div", { class:"roundBody" });
-
       if(rd.matches.length === 0){
         body.appendChild(el("div", { class:"muted", text:"(Šajā raundā nav spēļu.)" }));
+      } else {
+        for(const m of rd.matches){
+          body.appendChild(renderMatchCard(m));
+        }
       }
-
-      for(const m of rd.matches){
-        body.appendChild(renderMatchCard(m));
-      }
-
       roundBox.appendChild(body);
       wrap.appendChild(roundBox);
     }
@@ -695,11 +607,9 @@
       el("option", { value:"3-2" }, ["3–2"]),
     ]);
 
-    // preload existing
     if(match.result){
       const { aGames, bGames } = match.result;
-      const winner = (aGames > bGames) ? "A" : "B";
-      winnerSel.value = winner;
+      winnerSel.value = (aGames > bGames) ? "A" : "B";
       scoreSel.value = `${Math.max(aGames,bGames)}-${Math.min(aGames,bGames)}`;
     }
 
@@ -711,8 +621,8 @@
     ]);
 
     function apply(){
-      const w = winnerSel.value;   // "A" | "B" | ""
-      const s = scoreSel.value;    // "3-0" | "3-1" | "3-2" | ""
+      const w = winnerSel.value;
+      const s = scoreSel.value;
       if(!w || !s) return alert("Izvēlies uzvarētāju un rezultātu.");
 
       const [hi, lo] = s.split("-").map(x => parseInt(x,10));
@@ -723,7 +633,7 @@
 
       match.result = { aGames, bGames };
       save();
-      render(); // refresh overview + standings dependencies
+      render();
       setView("matches");
     }
 
@@ -736,21 +646,11 @@
 
     applyBtn.addEventListener("click", apply);
     clearBtn.addEventListener("click", clear);
-
-    const resultLine = el("div", { class:"resultLine" }, [
-      winnerSel,
-      scoreSel,
-      applyBtn,
-      clearBtn,
-      statusPill
-    ]);
-
-    // quick smart defaults: if you select winner first, preselect 3-0
     winnerSel.addEventListener("change", () => { if(winnerSel.value && !scoreSel.value) scoreSel.value = "3-0"; });
 
     return el("div", { class:"matchCard" }, [
       el("div", { class:"matchTop" }, [vs]),
-      resultLine
+      el("div", { class:"resultLine" }, [winnerSel, scoreSel, applyBtn, clearBtn, statusPill])
     ]);
   }
 
@@ -763,11 +663,12 @@
     const standings = computeStandings();
 
     const note = el("div", { class:"note" }, [
-      "Pts = 2 par uzvaru. Kārtība: Pts → GD (game diff) → GF (games for) → savstarpējā spēle (ja ir tieši 2 spēlētāji ar vienādiem rādītājiem)."
+      "Pts = 2 par uzvaru. Kārtība: Pts → GD → GF → savstarpējā spēle (ja tieši 2 spēlētāji ir vienādi)."
     ]);
 
     const tableWrap = el("div", { class:"tableWrap" });
     const table = el("table");
+
     table.appendChild(el("thead", {}, [
       el("tr", {}, [
         el("th", {}, ["#"]),
@@ -784,7 +685,6 @@
 
     const tb = el("tbody");
     standings.forEach((s, idx) => {
-      const gdClass = s.gd >= 0 ? "gdPos" : "gdNeg";
       tb.appendChild(el("tr", {}, [
         el("td", { class:"rank" }, [String(idx+1)]),
         el("td", { class:"nameCell" }, [s.name]),
@@ -793,10 +693,11 @@
         el("td", {}, [String(s.losses)]),
         el("td", {}, [String(s.gf)]),
         el("td", {}, [String(s.ga)]),
-        el("td", { class: gdClass }, [String(s.gd)]),
+        el("td", { class: s.gd >= 0 ? "gdPos" : "gdNeg" }, [String(s.gd)]),
         el("td", { class:"rank" }, [String(s.pts)])
       ]));
     });
+
     table.appendChild(tb);
     tableWrap.appendChild(table);
 
@@ -807,70 +708,55 @@
     const map = new Map();
     for(const p of state.players){
       map.set(p.id, {
-        id: p.id,
-        name: p.name,
-        played: 0,
-        wins: 0,
-        losses: 0,
-        gf: 0, // games for
-        ga: 0, // games against
-        gd: 0,
-        pts: 0
+        id: p.id, name: p.name,
+        played: 0, wins: 0, losses: 0,
+        gf: 0, ga: 0, gd: 0, pts: 0
       });
     }
 
-    // Collect all finished matches
     const finished = [];
     for(const rd of state.schedule.rounds){
       for(const m of rd.matches){
-        if(m.result){
-          finished.push(m);
-          const A = map.get(m.aId);
-          const B = map.get(m.bId);
-          if(!A || !B) continue;
+        if(!m.result) continue;
+        finished.push(m);
 
-          const aG = m.result.aGames;
-          const bG = m.result.bGames;
+        const A = map.get(m.aId);
+        const B = map.get(m.bId);
+        if(!A || !B) continue;
 
-          A.played++; B.played++;
-          A.gf += aG; A.ga += bG;
-          B.gf += bG; B.ga += aG;
+        const aG = m.result.aGames;
+        const bG = m.result.bGames;
 
-          if(aG > bG){
-            A.wins++; B.losses++;
-            A.pts += 2;
-          } else {
-            B.wins++; A.losses++;
-            B.pts += 2;
-          }
+        A.played++; B.played++;
+        A.gf += aG; A.ga += bG;
+        B.gf += bG; B.ga += aG;
+
+        if(aG > bG){
+          A.wins++; B.losses++; A.pts += 2;
+        } else {
+          B.wins++; A.losses++; B.pts += 2;
         }
       }
     }
 
-    // compute gd
     for(const v of map.values()){
       v.gd = v.gf - v.ga;
     }
 
     const arr = Array.from(map.values());
 
-    // helper for head-to-head (only if exactly 2 players tie)
     function headToHeadWinner(id1, id2){
       const m = finished.find(x =>
         (x.aId === id1 && x.bId === id2) || (x.aId === id2 && x.bId === id1)
       );
       if(!m || !m.result) return null;
-      const aWon = (m.result.aGames > m.result.bGames);
-      const winnerId = aWon ? m.aId : m.bId;
-      return winnerId;
+      return (m.result.aGames > m.result.bGames) ? m.aId : m.bId;
     }
 
     arr.sort((x,y) => {
       if(y.pts !== x.pts) return y.pts - x.pts;
       if(y.gd !== x.gd) return y.gd - x.gd;
       if(y.gf !== x.gf) return y.gf - x.gf;
-
-      // head-to-head only if still tie and match exists
       const w = headToHeadWinner(x.id, y.id);
       if(w === x.id) return -1;
       if(w === y.id) return 1;
@@ -880,47 +766,37 @@
     return arr;
   }
 
-  /* ===== Overview (right panel) ===== */
+  /* ===== Overview ===== */
   function renderOverview(){
     const hasName = !!state.tournamentName.trim();
     const hasPlayers = state.players.length >= 2;
     const hasSchedule = !!state.schedule;
 
-    const matchesTotal = hasSchedule
-      ? state.schedule.rounds.reduce((sum,r) => sum + r.matches.length, 0)
-      : 0;
-    const matchesDone = hasSchedule
-      ? state.schedule.rounds.reduce((sum,r) => sum + r.matches.filter(m => !!m.result).length, 0)
-      : 0;
-
-    const steps = [];
-    steps.push(hasName ? "✅ Nosaukums" : "1) Nosaukums");
-    steps.push(hasPlayers ? "✅ Spēlētāji" : "2) Spēlētāji (min 2)");
-    steps.push(hasSchedule ? "✅ Izspēle" : "3) Ģenerēt izspēli");
+    const matchesTotal = hasSchedule ? state.schedule.rounds.reduce((s,r) => s + r.matches.length, 0) : 0;
+    const matchesDone  = hasSchedule ? state.schedule.rounds.reduce((s,r) => s + r.matches.filter(m => !!m.result).length, 0) : 0;
 
     const pills = el("div", { class:"row" }, [
       el("span", { class:"pill" }, ["Players: ", String(state.players.length)]),
       el("span", { class:"pill" }, ["Matches: ", String(matchesTotal)]),
-      el("span", { class:"pill accent" }, ["Done: ", String(matchesDone), "/", String(matchesTotal)]),
+      el("span", { class:"pill accent" }, ["Done: ", String(matchesDone), "/", String(matchesTotal)])
     ]);
 
+    const steps = [
+      hasName ? "✅ Nosaukums" : "1) Nosaukums",
+      hasPlayers ? "✅ Spēlētāji" : "2) Spēlētāji (min 2)",
+      hasSchedule ? "✅ Izspēle" : "3) Ģenerēt izspēli"
+    ].join(" → ");
+
     const status = el("div", { class:"note" }, [
-      steps.join(" → "),
-      " ",
-      hasSchedule ? "Ievadi rezultātus sadaļā Matches, un Standings būs vienmēr aktuāli." : "Kad būs vismaz 2 spēlētāji, varēsi ģenerēt izspēli."
+      steps, " ",
+      hasSchedule
+        ? "Ievadi rezultātus sadaļā Matches, un Standings būs vienmēr aktuāli."
+        : "Kad ir vismaz 2 spēlētāji un nosaukums, vari ģenerēt izspēli."
     ]);
 
     const quick = el("div", { class:"two" }, [
-      el("button", {
-        class:"btn primary",
-        disabled: !hasSchedule,
-        onClick: () => setView("matches")
-      }, ["Atvērt Matches"]),
-      el("button", {
-        class:"btn primary",
-        disabled: !hasSchedule,
-        onClick: () => setView("standings")
-      }, ["Atvērt Standings"])
+      el("button", { class:"btn primary", disabled: !hasSchedule, onClick: () => setView("matches") }, ["Atvērt Matches"]),
+      el("button", { class:"btn primary", disabled: !hasSchedule, onClick: () => setView("standings") }, ["Atvērt Standings"])
     ]);
 
     return el("div", { class:"list" }, [pills, status, quick]);
@@ -933,7 +809,6 @@
     location.reload();
   });
 
-  // initial
   render();
 })();
 </script>
