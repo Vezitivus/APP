@@ -2,153 +2,337 @@
 <html lang="lv">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Skvoša turnīrs (vienkārši)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0B0F14" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Squash — Turnīrs</title>
+
   <style>
+    /* ===== iOS-ish modern minimal ===== */
     :root{
-      --bg:#0b0f14;
-      --card:#111826;
-      --text:#e8eef7;
-      --muted:#9fb0c4;
-      --line:#223049;
-      --accent:#60a5fa;
-      --good:#2dd4bf;
-      --bad:#fb7185;
-      --shadow: 0 10px 30px rgba(0,0,0,.35);
-      --radius: 14px;
+      --bg: #0B0F14;
+      --card: rgba(255,255,255,0.06);
+      --card2: rgba(255,255,255,0.08);
+      --line: rgba(255,255,255,0.10);
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.62);
+      --shadow: 0 18px 60px rgba(0,0,0,0.45);
+      --radius: 18px;
+
+      --accent: #5AA7FF; /* iOS-ish blue */
+      --good: #2DD4BF;
+      --warn: #FBBF24;
+      --bad:  #FB7185;
     }
+
     *{box-sizing:border-box}
+    html,body{height:100%}
     body{
       margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: radial-gradient(900px 500px at 20% -20%, rgba(96,165,250,.22), transparent 60%),
-                  radial-gradient(800px 500px at 90% 10%, rgba(45,212,191,.14), transparent 60%),
-                  var(--bg);
+      font-family: ui-sans-serif, system-ui, -apple-system, "SF Pro Display","SF Pro Text", Segoe UI, Roboto, Arial, sans-serif;
+      background:
+        radial-gradient(900px 600px at 18% -10%, rgba(90,167,255,.22), transparent 55%),
+        radial-gradient(800px 520px at 92% 10%, rgba(45,212,191,.14), transparent 55%),
+        radial-gradient(900px 700px at 70% 110%, rgba(251,113,133,.12), transparent 60%),
+        var(--bg);
       color:var(--text);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
-    .wrap{max-width:900px;margin:0 auto;padding:18px}
-    .top{
-      display:flex; gap:10px; justify-content:space-between; align-items:center; flex-wrap:wrap;
-      padding:14px 14px; border:1px solid var(--line); border-radius: var(--radius);
-      background: rgba(17,24,38,.75); box-shadow: var(--shadow);
+
+    .wrap{
+      max-width: 980px;
+      margin: 0 auto;
+      padding: max(16px, env(safe-area-inset-top)) 16px max(18px, env(safe-area-inset-bottom));
     }
-    .title{font-weight:900}
-    .muted{color:var(--muted); font-size:12px}
+
+    .header{
+      position: sticky;
+      top: 10px;
+      z-index: 10;
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background: rgba(13,18,28,0.55);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: var(--shadow);
+      padding: 14px 14px;
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap: wrap;
+    }
+
+    .brand{
+      display:flex; gap:12px; align-items:center;
+      min-width: 240px;
+    }
+    .logo{
+      width:40px;height:40px;border-radius:14px;
+      display:grid;place-items:center;
+      background:
+        radial-gradient(circle at 30% 20%, rgba(90,167,255,.95), rgba(45,212,191,.65));
+      color:#071019;
+      font-weight:900;
+      letter-spacing:.4px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      user-select:none;
+    }
+    .hTitle{font-weight:900; letter-spacing:.2px; line-height:1.1}
+    .hSub{color:var(--muted); font-size:12px; margin-top:2px}
+
+    .seg{
+      display:flex;
+      gap:6px;
+      padding:6px;
+      border-radius: 16px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+    }
+    .seg button{
+      border:0;
+      background: transparent;
+      color: var(--muted);
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: .12s transform, .12s background, .12s color;
+      user-select:none;
+    }
+    .seg button:hover{transform: translateY(-1px)}
+    .seg button.active{
+      background: rgba(90,167,255,0.18);
+      color: var(--text);
+    }
+
+    .actions{
+      display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;
+    }
     .btn{
       border:1px solid var(--line);
-      background: rgba(17,24,38,.85);
-      color:var(--text);
-      padding:10px 12px;
-      border-radius: 12px;
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 14px;
       cursor:pointer;
-      font-weight:750;
+      font-weight: 850;
+      transition: .12s transform, .12s border, .12s background;
+      user-select:none;
     }
-    .btn:hover{border-color:rgba(96,165,250,.55)}
-    .btn.primary{background: rgba(96,165,250,.18); border-color: rgba(96,165,250,.35)}
-    .btn.good{background: rgba(45,212,191,.14); border-color: rgba(45,212,191,.35)}
-    .btn.bad{background: rgba(251,113,133,.14); border-color: rgba(251,113,133,.35)}
-    .grid{margin-top:14px; display:grid; grid-template-columns: 1fr; gap:14px}
+    .btn:hover{transform: translateY(-1px); border-color: rgba(90,167,255,.35)}
+    .btn.primary{background: rgba(90,167,255,0.18); border-color: rgba(90,167,255,0.35)}
+    .btn.good{background: rgba(45,212,191,0.14); border-color: rgba(45,212,191,0.35)}
+    .btn.bad{background: rgba(251,113,133,0.14); border-color: rgba(251,113,133,0.35)}
+    .btn:disabled{opacity:.45; cursor:not-allowed; transform:none}
+
+    .content{
+      margin-top: 14px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 920px){
+      .content{grid-template-columns: 1fr}
+      .header{position: relative; top: 0}
+    }
+
     .card{
       border:1px solid var(--line);
+      background: var(--card);
       border-radius: var(--radius);
-      background: rgba(17,24,38,.72);
       box-shadow: var(--shadow);
-      padding:14px;
+      padding: 14px;
+      overflow:hidden;
     }
-    h2{margin:0 0 10px 0; font-size:16px}
+    .card h2{
+      margin:0 0 10px 0;
+      font-size: 16px;
+      letter-spacing:.2px;
+    }
+    .muted{color:var(--muted)}
+    .note{
+      border:1px dashed rgba(90,167,255,0.35);
+      background: rgba(90,167,255,0.08);
+      border-radius: 16px;
+      padding: 10px 12px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height:1.35;
+    }
+    .hr{height:1px; background: var(--line); margin: 12px 0}
+
     .row{display:flex; gap:10px; flex-wrap:wrap; align-items:end}
-    .field{display:grid; gap:6px; flex:1 1 240px}
+    .field{display:grid; gap:6px; flex:1 1 260px}
     label{font-size:12px; color:var(--muted)}
-    input{
+    input, select{
       width:100%;
-      padding:10px 11px;
-      border-radius: 12px;
+      padding: 11px 12px;
+      border-radius: 14px;
       border:1px solid var(--line);
-      background: rgba(15,22,34,.9);
+      background: rgba(10,14,22,0.55);
       color: var(--text);
       outline:none;
     }
-    input:focus{border-color: rgba(96,165,250,.55)}
-    .list{display:grid; gap:8px}
+    input:focus, select:focus{border-color: rgba(90,167,255,0.50)}
+
+    .list{display:grid; gap:10px}
     .item{
       border:1px solid var(--line);
-      border-radius: 12px;
-      background: rgba(15,22,34,.75);
-      padding:10px;
-      display:flex; justify-content:space-between; gap:10px; align-items:center;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.05);
+      padding: 12px;
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:center;
     }
-    .item b{font-weight:900}
-    .hr{height:1px;background:var(--line); margin:12px 0}
-    .note{
-      border:1px dashed rgba(96,165,250,.45);
-      background: rgba(96,165,250,.08);
-      border-radius: 12px;
-      padding:10px 12px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-    .pairs{
+    .item b{font-weight: 900}
+    .pill{
+      display:inline-flex; align-items:center; gap:6px;
+      padding: 7px 10px;
+      border-radius: 999px;
       border:1px solid var(--line);
-      border-radius: 12px;
+      background: rgba(255,255,255,0.04);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      user-select:none;
+    }
+    .pill.good{border-color: rgba(45,212,191,0.35); color: rgba(167,243,208,0.95)}
+    .pill.bad{border-color: rgba(251,113,133,0.35); color: rgba(254,205,211,0.95)}
+    .pill.accent{border-color: rgba(90,167,255,0.35); color: rgba(191,224,255,0.95)}
+
+    .two{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    @media (max-width: 520px){
+      .two{grid-template-columns: 1fr}
+    }
+
+    /* Matches */
+    .round{
+      border:1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.04);
       overflow:hidden;
     }
-    table{width:100%; border-collapse:collapse}
-    th, td{padding:10px; border-bottom:1px solid rgba(34,48,73,.7); text-align:left; font-size:13px}
-    th{color:var(--muted); background: rgba(17,24,38,.35)}
-    tr:last-child td{border-bottom:none}
-    @media (max-width: 600px){
-      .row{align-items:stretch}
-      .btn{width:100%}
+    .roundHead{
+      display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;
+      padding: 12px;
+      background: rgba(255,255,255,0.04);
+      border-bottom:1px solid var(--line);
     }
+    .roundHead .name{font-weight: 900}
+    .roundBody{padding: 12px; display:grid; gap:10px}
+
+    .matchCard{
+      border:1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(10,14,22,0.45);
+      padding: 12px;
+      display:grid;
+      gap:10px;
+    }
+    .matchTop{
+      display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap;
+    }
+    .vs{
+      font-weight: 900;
+      line-height: 1.25;
+      font-size: 14px;
+    }
+    .resultLine{
+      display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+    }
+    .selectSlim{
+      min-width: 160px;
+      flex: 1 1 180px;
+    }
+    .btnTiny{
+      padding: 9px 10px;
+      border-radius: 12px;
+      font-weight: 900;
+    }
+
+    /* Standings table */
+    .tableWrap{
+      border:1px solid var(--line);
+      border-radius: 18px;
+      overflow:hidden;
+      background: rgba(255,255,255,0.04);
+    }
+    table{
+      width:100%;
+      border-collapse: collapse;
+    }
+    th, td{
+      padding: 10px 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      text-align:left;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    th{
+      color: var(--muted);
+      font-weight: 900;
+      background: rgba(255,255,255,0.04);
+    }
+    tr:last-child td{border-bottom:none}
+    .rank{
+      font-weight: 900;
+      color: rgba(191,224,255,0.95);
+    }
+    .nameCell{
+      font-weight: 900;
+      max-width: 240px;
+      overflow:hidden;
+      text-overflow: ellipsis;
+    }
+    .gdPos{color: rgba(167,243,208,0.95); font-weight:900}
+    .gdNeg{color: rgba(254,205,211,0.95); font-weight:900}
+
+    .hidden{display:none !important}
   </style>
 </head>
+
 <body>
   <div class="wrap">
-    <div class="top">
-      <div>
-        <div class="title">Skvoša turnīrs</div>
-        <div class="muted">Vienkārši: nosaukums → spēlētāji → ģenerēt spēles. Viss glabājas ierīcē.</div>
+    <div class="header">
+      <div class="brand">
+        <div class="logo">SQ</div>
+        <div>
+          <div class="hTitle" id="hdrTitle">Squash turnīrs</div>
+          <div class="hSub" id="hdrSub">Nosaukums → spēlētāji → ģenerēt izspēli → ievadīt rezultātus → standings.</div>
+        </div>
       </div>
-      <div class="row">
-        <button class="btn bad" id="btnReset">Notīrīt visu</button>
+
+      <div class="seg" role="tablist" aria-label="Skati">
+        <button id="tabSetup" class="active" type="button">Setup</button>
+        <button id="tabMatches" type="button">Matches</button>
+        <button id="tabStandings" type="button">Standings</button>
+      </div>
+
+      <div class="actions">
+        <button class="btn bad" id="btnResetAll" type="button">Reset</button>
       </div>
     </div>
 
-    <div class="grid">
+    <div class="content">
+      <!-- LEFT: Main -->
       <div class="card">
-        <h2>Turnīrs</h2>
-        <div class="row">
-          <div class="field">
-            <label>Turnīra nosaukums</label>
-            <input id="tName" type="text" />
-          </div>
-          <button class="btn primary" id="btnSaveName">Saglabāt</button>
-        </div>
-        <div class="hr"></div>
-        <div class="note" id="statusBox"></div>
+        <h2 id="leftTitle">Setup</h2>
+        <div id="leftBody"></div>
       </div>
 
+      <!-- RIGHT: Secondary / Summary -->
       <div class="card">
-        <h2>Spēlētāji</h2>
-        <div class="row">
-          <div class="field">
-            <label>Spēlētāja vārds</label>
-            <input id="pName" type="text" />
-          </div>
-          <button class="btn good" id="btnAddPlayer">Pievienot</button>
-        </div>
-        <div class="hr"></div>
-        <div class="list" id="playersList"></div>
-        <div class="hr"></div>
-        <div class="row">
-          <button class="btn primary" id="btnGenerate">Ģenerēt spēles</button>
-          <button class="btn bad" id="btnClearMatches">Dzēst spēles</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>Spēles (katrs ar katru)</h2>
-        <div id="matchesBox"></div>
+        <h2>Overview</h2>
+        <div id="rightBody"></div>
       </div>
     </div>
   </div>
@@ -157,111 +341,102 @@
 (() => {
   "use strict";
 
-  const KEY = "squash_simple_v1";
+  const KEY = "squash_modern_v1";
 
-  const $ = (s) => document.querySelector(s);
+  const $ = (s, r=document) => r.querySelector(s);
   const uid = () => crypto.randomUUID ? crypto.randomUUID() : ("id_" + Math.random().toString(16).slice(2) + Date.now());
+
+  const state = load();
 
   function load(){
     const raw = localStorage.getItem(KEY);
     if(!raw){
-      return { tournamentName: "", players: [], matches: [] };
+      return {
+        tournamentName: "",
+        players: [], // {id, name}
+        schedule: null, // { rounds: [{roundNo, matches:[{id,aId,bId,result:{aGames,bGames} | null}]}] }
+        view: "setup"
+      };
     }
     try{
       const obj = JSON.parse(raw);
       obj.tournamentName ??= "";
       obj.players ??= [];
-      obj.matches ??= [];
+      obj.schedule ??= null;
+      obj.view ??= "setup";
       return obj;
     }catch{
-      return { tournamentName: "", players: [], matches: [] };
+      return { tournamentName:"", players:[], schedule:null, view:"setup" };
     }
   }
-
   function save(){
     localStorage.setItem(KEY, JSON.stringify(state));
   }
 
-  let state = load();
+  /* ===== Navigation ===== */
+  const tabSetup = $("#tabSetup");
+  const tabMatches = $("#tabMatches");
+  const tabStandings = $("#tabStandings");
 
-  function setStatus(){
-    const nameOk = state.tournamentName.trim().length > 0;
-    const pCount = state.players.length;
-    const mCount = state.matches.length;
+  tabSetup.addEventListener("click", () => setView("setup"));
+  tabMatches.addEventListener("click", () => setView("matches"));
+  tabStandings.addEventListener("click", () => setView("standings"));
 
-    const steps = [];
-    steps.push(nameOk ? "✅ Turnīra nosaukums saglabāts." : "1) Ievadi turnīra nosaukumu un nospied “Saglabāt”.");
-    steps.push(pCount >= 2 ? `✅ Spēlētāji pievienoti: ${pCount}.` : "2) Pievieno vismaz 2 spēlētājus.");
-    steps.push(mCount > 0 ? `✅ Spēles ģenerētas: ${mCount}.` : "3) Spied “Ģenerēt spēles”, lai automātiski sadalītu pārus.");
-
-    $("#statusBox").textContent = steps.join(" ");
+  function setView(v){
+    state.view = v;
+    save();
+    render();
   }
 
-  function renderPlayers(){
-    const box = $("#playersList");
-    box.innerHTML = "";
+  /* ===== Rendering roots ===== */
+  const leftTitle = $("#leftTitle");
+  const leftBody  = $("#leftBody");
+  const rightBody = $("#rightBody");
 
-    if(state.players.length === 0){
-      box.appendChild(document.createTextNode("Nav spēlētāju."));
-      box.classList.add("muted");
-      return;
-    }
-    box.classList.remove("muted");
+  function render(){
+    // tabs active
+    tabSetup.classList.toggle("active", state.view === "setup");
+    tabMatches.classList.toggle("active", state.view === "matches");
+    tabStandings.classList.toggle("active", state.view === "standings");
 
-    for(const p of state.players){
-      const row = document.createElement("div");
-      row.className = "item";
-      row.innerHTML = `<b>${escapeHtml(p.name)}</b>`;
-      const del = document.createElement("button");
-      del.className = "btn bad";
-      del.textContent = "Dzēst";
-      del.onclick = () => {
-        // neļaujam dzēst, ja spēles jau ģenerētas
-        const used = state.matches.some(m => m.aId === p.id || m.bId === p.id);
-        if(used){
-          alert("Spēlētāju nevar dzēst, kamēr ir ģenerētas spēles. Dzēs spēles un tad dzēs spēlētāju.");
-          return;
-        }
-        state.players = state.players.filter(x => x.id !== p.id);
-        save();
-        renderAll();
-      };
-      row.appendChild(del);
-      box.appendChild(row);
+    // enable matches/standings when schedule exists
+    const hasSchedule = !!state.schedule;
+    tabMatches.disabled = !hasSchedule;
+    tabStandings.disabled = !hasSchedule;
+
+    // header title reflects tournament name if present
+    $("#hdrTitle").textContent = state.tournamentName?.trim() ? state.tournamentName.trim() : "Squash turnīrs";
+
+    // right panel always overview
+    rightBody.replaceChildren(renderOverview());
+
+    // left panel by view
+    if(state.view === "setup"){
+      leftTitle.textContent = "Setup";
+      leftBody.replaceChildren(renderSetup());
+    } else if(state.view === "matches"){
+      leftTitle.textContent = "Matches";
+      leftBody.replaceChildren(renderMatches());
+    } else {
+      leftTitle.textContent = "Standings";
+      leftBody.replaceChildren(renderStandings());
     }
   }
 
-  function renderMatches(){
-    const box = $("#matchesBox");
-    box.innerHTML = "";
-
-    if(state.matches.length === 0){
-      box.appendChild(document.createTextNode("Nav spēļu. Nospied “Ģenerēt spēles”."));
-      box.classList.add("muted");
-      return;
+  function el(tag, props={}, children=[]){
+    const n = document.createElement(tag);
+    for(const [k,v] of Object.entries(props)){
+      if(k === "class") n.className = v;
+      else if(k === "text") n.textContent = v;
+      else if(k.startsWith("on") && typeof v === "function") n.addEventListener(k.slice(2), v);
+      else n.setAttribute(k, v);
     }
-    box.classList.remove("muted");
-
-    const tableWrap = document.createElement("div");
-    tableWrap.className = "pairs";
-
-    const table = document.createElement("table");
-    const thead = document.createElement("thead");
-    thead.innerHTML = `<tr><th>#</th><th>Spēlētājs A</th><th>Spēlētājs B</th></tr>`;
-    table.appendChild(thead);
-
-    const tbody = document.createElement("tbody");
-    state.matches.forEach((m, idx) => {
-      const a = state.players.find(p => p.id === m.aId)?.name || "?";
-      const b = state.players.find(p => p.id === m.bId)?.name || "?";
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${idx+1}</td><td>${escapeHtml(a)}</td><td>${escapeHtml(b)}</td>`;
-      tbody.appendChild(tr);
-    });
-    table.appendChild(tbody);
-
-    tableWrap.appendChild(table);
-    box.appendChild(tableWrap);
+    for(const c of children){
+      if(c == null) continue;
+      if(typeof c === "string") n.appendChild(document.createTextNode(c));
+      else n.appendChild(c);
+    }
+    return n;
   }
 
   function escapeHtml(s){
@@ -273,80 +448,493 @@
       .replaceAll("'","&#039;");
   }
 
-  function generateRoundRobin(){
-    if(state.players.length < 2){
-      alert("Vajag vismaz 2 spēlētājus.");
-      return;
-    }
-    if(!state.tournamentName.trim()){
-      alert("Ievadi un saglabā turnīra nosaukumu.");
-      return;
+  /* ===== Setup UI ===== */
+  function renderSetup(){
+    const nameInput = el("input", { id:"tName", value: state.tournamentName || "" });
+    nameInput.addEventListener("input", () => {
+      state.tournamentName = nameInput.value;
+      save();
+      $("#hdrTitle").textContent = state.tournamentName.trim() || "Squash turnīrs";
+      // keep it calm; no rerender needed here
+    });
+
+    const saveNameBtn = el("button", {
+      class:"btn primary",
+      onClick: () => {
+        state.tournamentName = (nameInput.value || "").trim();
+        save();
+        render();
+      }
+    }, ["Saglabāt"]);
+
+    const pInput = el("input", { id:"pName", value:"" });
+    pInput.addEventListener("keydown", (e) => { if(e.key === "Enter") addPlayer(pInput); });
+
+    const addBtn = el("button", { class:"btn good", onClick: () => addPlayer(pInput) }, ["Pievienot"]);
+
+    const genBtn = el("button", {
+      class:"btn primary",
+      onClick: () => generateSchedule()
+    }, ["Ģenerēt izspēli"]);
+
+    genBtn.disabled = !(state.tournamentName.trim() && state.players.length >= 2);
+
+    const resetScheduleBtn = el("button", {
+      class:"btn bad",
+      onClick: () => resetSchedule()
+    }, ["Dzēst izspēli"]);
+
+    resetScheduleBtn.disabled = !state.schedule;
+
+    const playersList = renderPlayersList();
+
+    const help = el("div", { class:"note" }, [
+      "Formāts: ",
+      el("span", { class:"pill accent" }, ["Round-robin"]),
+      " (katrs ar katru) ar raundu sadalījumu. Rezultātu ievade ir vienkārša: ",
+      el("span", { class:"pill" }, ["3–0 / 3–1 / 3–2"]),
+      ". Standings automātiski pārrēķinās."
+    ]);
+
+    const top = el("div", {}, [
+      el("div", { class:"row" }, [
+        el("div", { class:"field" }, [ el("label", {text:"Turnīra nosaukums"}), nameInput ]),
+        el("div", {}, [saveNameBtn])
+      ]),
+      el("div", { class:"hr" }),
+      help,
+      el("div", { class:"hr" }),
+      el("div", { class:"row" }, [
+        el("div", { class:"field" }, [ el("label", {text:"Spēlētājs"}), pInput ]),
+        addBtn
+      ]),
+      el("div", { class:"hr" }),
+      playersList,
+      el("div", { class:"hr" }),
+      el("div", { class:"row" }, [
+        genBtn,
+        resetScheduleBtn
+      ])
+    ]);
+
+    return top;
+  }
+
+  function addPlayer(inputEl){
+    const name = (inputEl.value || "").trim();
+    if(!name) return alert("Ievadi spēlētāja vārdu.");
+    if(state.schedule) return alert("Izspēle jau ir ģenerēta. Dzēs izspēli, ja gribi mainīt spēlētājus.");
+
+    state.players.push({ id: uid(), name });
+    inputEl.value = "";
+    save();
+    render();
+  }
+
+  function renderPlayersList(){
+    const box = el("div", { class:"list" });
+
+    if(state.players.length === 0){
+      box.appendChild(el("div", { class:"muted", text:"Nav spēlētāju." }));
+      return box;
     }
 
-    const pairs = [];
-    for(let i=0;i<state.players.length;i++){
-      for(let j=i+1;j<state.players.length;j++){
-        pairs.push({ aId: state.players[i].id, bId: state.players[j].id });
+    for(const p of state.players){
+      const del = el("button", {
+        class:"btn bad btnTiny",
+        onClick: () => {
+          if(state.schedule) return alert("Nevar dzēst, kamēr ir izspēle. Dzēs izspēli un tad dzēs spēlētāju.");
+          state.players = state.players.filter(x => x.id !== p.id);
+          save();
+          render();
+        }
+      }, ["Dzēst"]);
+
+      box.appendChild(
+        el("div", { class:"item" }, [
+          el("div", {}, [
+            el("b", { }, [p.name]),
+            el("div", { class:"muted", style:"font-size:12px;margin-top:4px" }, ["ID: ", p.id.slice(0,8)])
+          ]),
+          del
+        ])
+      );
+    }
+    return box;
+  }
+
+  /* ===== Schedule generation (Round-robin by rounds, circle method) ===== */
+  function generateSchedule(){
+    const tName = state.tournamentName.trim();
+    if(!tName) return alert("Ievadi turnīra nosaukumu.");
+    if(state.players.length < 2) return alert("Vajag vismaz 2 spēlētājus.");
+    if(state.schedule){
+      if(!confirm("Izspēle jau eksistē. Pārgenerēt? (Esošie rezultāti tiks dzēsti)")) return;
+    }
+
+    // Circle method:
+    // If odd, add BYE. Fix first, rotate others.
+    const list = state.players.map(p => ({...p}));
+    const BYE = { id:"BYE", name:"BYE" };
+
+    const isOdd = (list.length % 2) === 1;
+    if(isOdd) list.push(BYE);
+
+    const n = list.length;
+    const rounds = n - 1;
+    const half = n / 2;
+
+    let arr = list.slice();
+
+    /** rounds = [{roundNo, matches:[{id,aId,bId,result:null|{aGames,bGames}}]}] */
+    const outRounds = [];
+
+    for(let r=1; r<=rounds; r++){
+      const matches = [];
+      for(let i=0; i<half; i++){
+        const a = arr[i];
+        const b = arr[n - 1 - i];
+        if(a.id === "BYE" || b.id === "BYE") continue;
+        matches.push({
+          id: uid(),
+          aId: a.id,
+          bId: b.id,
+          result: null // {aGames,bGames}
+        });
+      }
+
+      outRounds.push({ roundNo: r, matches });
+
+      // rotate (keep first fixed)
+      const fixed = arr[0];
+      const rest = arr.slice(1);
+      rest.unshift(rest.pop());
+      arr = [fixed, ...rest];
+    }
+
+    state.schedule = { rounds: outRounds };
+    save();
+    setView("matches");
+  }
+
+  function resetSchedule(){
+    if(!state.schedule) return;
+    if(!confirm("Dzēst izspēli un VISUS rezultātus?")) return;
+    state.schedule = null;
+    save();
+    setView("setup");
+  }
+
+  /* ===== Matches UI (simple result input) ===== */
+  function renderMatches(){
+    if(!state.schedule){
+      return el("div", { class:"note" }, ["Nav izspēles. Ej uz Setup un ģenerē."]);
+    }
+
+    const rounds = state.schedule.rounds;
+
+    const wrap = el("div", { class:"list" });
+
+    const headerNote = el("div", { class:"note" }, [
+      "Rezultāts: izvēlies uzvarētāju un rezultātu (best-of-5). Standings pārrēķinās automātiski."
+    ]);
+
+    wrap.appendChild(headerNote);
+
+    for(const rd of rounds){
+      const roundBox = el("div", { class:"round" });
+
+      const done = rd.matches.filter(m => !!m.result).length;
+      const total = rd.matches.length;
+
+      roundBox.appendChild(
+        el("div", { class:"roundHead" }, [
+          el("div", { class:"name" }, [`Round ${rd.roundNo}`]),
+          el("div", { class:"pill accent" }, [`Done: ${done}/${total}`])
+        ])
+      );
+
+      const body = el("div", { class:"roundBody" });
+
+      if(rd.matches.length === 0){
+        body.appendChild(el("div", { class:"muted", text:"(Šajā raundā nav spēļu.)" }));
+      }
+
+      for(const m of rd.matches){
+        body.appendChild(renderMatchCard(m));
+      }
+
+      roundBox.appendChild(body);
+      wrap.appendChild(roundBox);
+    }
+
+    return wrap;
+  }
+
+  function playerName(id){
+    return state.players.find(p => p.id === id)?.name || "?";
+  }
+
+  function renderMatchCard(match){
+    const aN = playerName(match.aId);
+    const bN = playerName(match.bId);
+
+    const vs = el("div", { class:"vs" });
+    vs.innerHTML = `${escapeHtml(aN)} <span class="muted">vs</span> ${escapeHtml(bN)}`;
+
+    const winnerSel = el("select", { class:"selectSlim" }, [
+      el("option", { value:"" }, ["— Uzvarētājs —"]),
+      el("option", { value:"A" }, [aN]),
+      el("option", { value:"B" }, [bN]),
+    ]);
+
+    const scoreSel = el("select", { class:"selectSlim" }, [
+      el("option", { value:"" }, ["— Rezultāts —"]),
+      el("option", { value:"3-0" }, ["3–0"]),
+      el("option", { value:"3-1" }, ["3–1"]),
+      el("option", { value:"3-2" }, ["3–2"]),
+    ]);
+
+    // preload existing
+    if(match.result){
+      const { aGames, bGames } = match.result;
+      const winner = (aGames > bGames) ? "A" : "B";
+      winnerSel.value = winner;
+      scoreSel.value = `${Math.max(aGames,bGames)}-${Math.min(aGames,bGames)}`;
+    }
+
+    const applyBtn = el("button", { class:"btn good btnTiny" }, ["Saglabāt"]);
+    const clearBtn = el("button", { class:"btn bad btnTiny" }, ["Notīrīt"]);
+
+    const statusPill = el("span", { class: "pill " + (match.result ? "good" : "") }, [
+      match.result ? "Saved" : "Pending"
+    ]);
+
+    function apply(){
+      const w = winnerSel.value;   // "A" | "B" | ""
+      const s = scoreSel.value;    // "3-0" | "3-1" | "3-2" | ""
+      if(!w || !s) return alert("Izvēlies uzvarētāju un rezultātu.");
+
+      const [hi, lo] = s.split("-").map(x => parseInt(x,10));
+      if(!(hi === 3 && (lo === 0 || lo === 1 || lo === 2))) return alert("Nepareizs rezultāts.");
+
+      const aGames = (w === "A") ? hi : lo;
+      const bGames = (w === "B") ? hi : lo;
+
+      match.result = { aGames, bGames };
+      save();
+      render(); // refresh overview + standings dependencies
+      setView("matches");
+    }
+
+    function clear(){
+      match.result = null;
+      save();
+      render();
+      setView("matches");
+    }
+
+    applyBtn.addEventListener("click", apply);
+    clearBtn.addEventListener("click", clear);
+
+    const resultLine = el("div", { class:"resultLine" }, [
+      winnerSel,
+      scoreSel,
+      applyBtn,
+      clearBtn,
+      statusPill
+    ]);
+
+    // quick smart defaults: if you select winner first, preselect 3-0
+    winnerSel.addEventListener("change", () => { if(winnerSel.value && !scoreSel.value) scoreSel.value = "3-0"; });
+
+    return el("div", { class:"matchCard" }, [
+      el("div", { class:"matchTop" }, [vs]),
+      resultLine
+    ]);
+  }
+
+  /* ===== Standings ===== */
+  function renderStandings(){
+    if(!state.schedule){
+      return el("div", { class:"note" }, ["Nav izspēles. Ej uz Setup un ģenerē."]);
+    }
+
+    const standings = computeStandings();
+
+    const note = el("div", { class:"note" }, [
+      "Pts = 2 par uzvaru. Kārtība: Pts → GD (game diff) → GF (games for) → savstarpējā spēle (ja ir tieši 2 spēlētāji ar vienādiem rādītājiem)."
+    ]);
+
+    const tableWrap = el("div", { class:"tableWrap" });
+    const table = el("table");
+    table.appendChild(el("thead", {}, [
+      el("tr", {}, [
+        el("th", {}, ["#"]),
+        el("th", {}, ["Player"]),
+        el("th", {}, ["P"]),
+        el("th", {}, ["W"]),
+        el("th", {}, ["L"]),
+        el("th", {}, ["GF"]),
+        el("th", {}, ["GA"]),
+        el("th", {}, ["GD"]),
+        el("th", {}, ["Pts"])
+      ])
+    ]));
+
+    const tb = el("tbody");
+    standings.forEach((s, idx) => {
+      const gdClass = s.gd >= 0 ? "gdPos" : "gdNeg";
+      tb.appendChild(el("tr", {}, [
+        el("td", { class:"rank" }, [String(idx+1)]),
+        el("td", { class:"nameCell" }, [s.name]),
+        el("td", {}, [String(s.played)]),
+        el("td", {}, [String(s.wins)]),
+        el("td", {}, [String(s.losses)]),
+        el("td", {}, [String(s.gf)]),
+        el("td", {}, [String(s.ga)]),
+        el("td", { class: gdClass }, [String(s.gd)]),
+        el("td", { class:"rank" }, [String(s.pts)])
+      ]));
+    });
+    table.appendChild(tb);
+    tableWrap.appendChild(table);
+
+    return el("div", { class:"list" }, [note, tableWrap]);
+  }
+
+  function computeStandings(){
+    const map = new Map();
+    for(const p of state.players){
+      map.set(p.id, {
+        id: p.id,
+        name: p.name,
+        played: 0,
+        wins: 0,
+        losses: 0,
+        gf: 0, // games for
+        ga: 0, // games against
+        gd: 0,
+        pts: 0
+      });
+    }
+
+    // Collect all finished matches
+    const finished = [];
+    for(const rd of state.schedule.rounds){
+      for(const m of rd.matches){
+        if(m.result){
+          finished.push(m);
+          const A = map.get(m.aId);
+          const B = map.get(m.bId);
+          if(!A || !B) continue;
+
+          const aG = m.result.aGames;
+          const bG = m.result.bGames;
+
+          A.played++; B.played++;
+          A.gf += aG; A.ga += bG;
+          B.gf += bG; B.ga += aG;
+
+          if(aG > bG){
+            A.wins++; B.losses++;
+            A.pts += 2;
+          } else {
+            B.wins++; A.losses++;
+            B.pts += 2;
+          }
+        }
       }
     }
-    state.matches = pairs;
-    save();
-    renderAll();
-  }
 
-  function clearMatches(){
-    if(state.matches.length === 0) return;
-    if(!confirm("Dzēst visas spēles?")) return;
-    state.matches = [];
-    save();
-    renderAll();
-  }
-
-  function renderAll(){
-    $("#tName").value = state.tournamentName || "";
-    renderPlayers();
-    renderMatches();
-    setStatus();
-  }
-
-  // Events
-  $("#btnSaveName").onclick = () => {
-    state.tournamentName = $("#tName").value.trim();
-    save();
-    renderAll();
-  };
-
-  $("#btnAddPlayer").onclick = () => {
-    const name = $("#pName").value.trim();
-    if(!name){ alert("Ievadi spēlētāja vārdu."); return; }
-    state.players.push({ id: uid(), name });
-    $("#pName").value = "";
-    save();
-    renderAll();
-  };
-
-  $("#btnGenerate").onclick = () => {
-    if(state.matches.length > 0){
-      if(!confirm("Spēles jau ir ģenerētas. Pārgenerēt no jauna?")) return;
+    // compute gd
+    for(const v of map.values()){
+      v.gd = v.gf - v.ga;
     }
-    generateRoundRobin();
-  };
 
-  $("#btnClearMatches").onclick = clearMatches;
+    const arr = Array.from(map.values());
 
-  $("#btnReset").onclick = () => {
-    if(!confirm("Notīrīt visu (turnīru, spēlētājus, spēles) no šīs ierīces?")) return;
+    // helper for head-to-head (only if exactly 2 players tie)
+    function headToHeadWinner(id1, id2){
+      const m = finished.find(x =>
+        (x.aId === id1 && x.bId === id2) || (x.aId === id2 && x.bId === id1)
+      );
+      if(!m || !m.result) return null;
+      const aWon = (m.result.aGames > m.result.bGames);
+      const winnerId = aWon ? m.aId : m.bId;
+      return winnerId;
+    }
+
+    arr.sort((x,y) => {
+      if(y.pts !== x.pts) return y.pts - x.pts;
+      if(y.gd !== x.gd) return y.gd - x.gd;
+      if(y.gf !== x.gf) return y.gf - x.gf;
+
+      // head-to-head only if still tie and match exists
+      const w = headToHeadWinner(x.id, y.id);
+      if(w === x.id) return -1;
+      if(w === y.id) return 1;
+      return x.name.localeCompare(y.name);
+    });
+
+    return arr;
+  }
+
+  /* ===== Overview (right panel) ===== */
+  function renderOverview(){
+    const hasName = !!state.tournamentName.trim();
+    const hasPlayers = state.players.length >= 2;
+    const hasSchedule = !!state.schedule;
+
+    const matchesTotal = hasSchedule
+      ? state.schedule.rounds.reduce((sum,r) => sum + r.matches.length, 0)
+      : 0;
+    const matchesDone = hasSchedule
+      ? state.schedule.rounds.reduce((sum,r) => sum + r.matches.filter(m => !!m.result).length, 0)
+      : 0;
+
+    const steps = [];
+    steps.push(hasName ? "✅ Nosaukums" : "1) Nosaukums");
+    steps.push(hasPlayers ? "✅ Spēlētāji" : "2) Spēlētāji (min 2)");
+    steps.push(hasSchedule ? "✅ Izspēle" : "3) Ģenerēt izspēli");
+
+    const pills = el("div", { class:"row" }, [
+      el("span", { class:"pill" }, ["Players: ", String(state.players.length)]),
+      el("span", { class:"pill" }, ["Matches: ", String(matchesTotal)]),
+      el("span", { class:"pill accent" }, ["Done: ", String(matchesDone), "/", String(matchesTotal)]),
+    ]);
+
+    const status = el("div", { class:"note" }, [
+      steps.join(" → "),
+      " ",
+      hasSchedule ? "Ievadi rezultātus sadaļā Matches, un Standings būs vienmēr aktuāli." : "Kad būs vismaz 2 spēlētāji, varēsi ģenerēt izspēli."
+    ]);
+
+    const quick = el("div", { class:"two" }, [
+      el("button", {
+        class:"btn primary",
+        disabled: !hasSchedule,
+        onClick: () => setView("matches")
+      }, ["Atvērt Matches"]),
+      el("button", {
+        class:"btn primary",
+        disabled: !hasSchedule,
+        onClick: () => setView("standings")
+      }, ["Atvērt Standings"])
+    ]);
+
+    return el("div", { class:"list" }, [pills, status, quick]);
+  }
+
+  /* ===== Reset all ===== */
+  $("#btnResetAll").addEventListener("click", () => {
+    if(!confirm("Reset izdzēsīs visu no šīs ierīces. Turpināt?")) return;
     localStorage.removeItem(KEY);
-    state = load();
-    renderAll();
-  };
+    location.reload();
+  });
 
-  // Enter key shortcuts
-  $("#tName").addEventListener("keydown", (e) => { if(e.key === "Enter") $("#btnSaveName").click(); });
-  $("#pName").addEventListener("keydown", (e) => { if(e.key === "Enter") $("#btnAddPlayer").click(); });
-
-  // Boot
-  renderAll();
+  // initial
+  render();
 })();
 </script>
 </body>
