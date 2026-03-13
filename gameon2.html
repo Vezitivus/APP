@@ -1,0 +1,2413 @@
+<!doctype html>
+<html lang="lv">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Turnīru Aplikācija — Pro Liquid UI</title>
+<meta name="color-scheme" content="light dark" />
+<style>
+  /* ===== Pro Liquid + Glass Theme ===== */
+  :root{
+    --bg:#0b0f14; --text:#e6e9ef; --muted:#9aa4b2;
+    --card:rgba(18,24,38,.55); --border:rgba(255,255,255,.08); --ring:#6f7dd62b;
+    --accent:#7c5cff; --accent2:#45a2ff; --gold:#f4c542; --ok:#19c37d; --bad:#ff5c7a;
+    --radius:16px; --shadow:0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05);
+    --font:ui-sans-serif,-apple-system,"SF Pro Text","Inter","Segoe UI",Roboto,Arial; --space:clamp(10px,2vw,18px);
+    --std-w-num: clamp(30px, 7vw, 56px);
+  }
+  @media (prefers-color-scheme:light){
+    :root{ --bg:#f7f8fc; --text:#0f172a; --muted:#4b5568; --card:rgba(255,255,255,.82); --border:rgba(15,23,42,.08);
+           --ring:#7c8dd41c; --shadow:0 12px 30px rgba(18,20,40,.08), inset 0 1px 0 rgba(255,255,255,.55)}
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;color:var(--text);font-family:var(--font);background:var(--bg);
+    background:
+      radial-gradient(1200px 800px at 120% -10%, color-mix(in oklab, var(--accent) 35%, transparent), transparent 60%),
+      radial-gradient(900px 600px at -30% 20%, color-mix(in oklab, var(--accent2) 35%, transparent), transparent 60%),
+      radial-gradient(600px 500px at 80% 110%, color-mix(in oklab, #19c37d 35%, transparent), transparent 60%);
+  }
+
+  /* ===== Header ===== */
+  header{
+    position:sticky;top:0;z-index:20;backdrop-filter:saturate(140%) blur(12px);
+    background:linear-gradient(180deg, rgba(0,0,0,.0), rgba(0,0,0,.05)), var(--card);
+    border-bottom:1px solid var(--border);
+  }
+  .bar{max-width:1200px;margin:0 auto;padding:12px clamp(14px,3vw,24px);display:flex;gap:12px;align-items:center;justify-content:space-between}
+  .brand{display:flex;gap:12px;align-items:center;font-weight:800;letter-spacing:.2px}
+  .dot{width:14px;height:14px;border-radius:50%;
+       background:radial-gradient(12px 12px at 20% 20%, #fff8, #0000), linear-gradient(135deg,var(--accent),var(--accent2))}
+  .wrap{max-width:1200px;margin:clamp(10px,2vw,20px) auto clamp(60px,7vw,96px); padding:0 clamp(14px,3vw,24px);display:grid;gap:var(--space)}
+
+  /* ===== Panels & buttons ===== */
+  .panel{
+    background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:clamp(12px,2.6vw,20px); transition:transform .12s ease, box-shadow .25s ease;
+  }
+  .panel:hover{ transform:translateY(-1px) }
+  h2{margin:0 0 8px;font-size:clamp(18px,2.6vw,22px)} h3{margin:0 0 8px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .muted{color:var(--muted);font-size:13px}
+
+  input,textarea,select{
+    width:100%;background:rgba(255,255,255,.02);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:12px 12px;
+    transition:border .2s ease, box-shadow .2s ease, background-color .2s ease, transform .08s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  textarea{min-height:160px;resize:vertical}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:color-mix(in oklab, var(--accent) 45%, var(--border));box-shadow:0 0 0 6px var(--ring)}
+  .btn{
+    appearance:none;border:1px solid var(--border);
+    background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.08));
+    color:var(--text);border-radius:999px;padding:11px 16px;cursor:pointer;
+    -webkit-tap-highlight-color:transparent; touch-action:manipulation; user-select:none; -webkit-user-select:none;
+  }
+  .btn--accent{border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+  .btn--gold{border:none;background:linear-gradient(135deg,var(--gold),#ffd569);color:#1a1a1a}
+  .btn:active{transform:translateY(1px)}
+  .btn:disabled{opacity:.55;cursor:not-allowed}
+
+  /* ===== Numbers ===== */
+  .tnum{font-variant-numeric:tabular-nums}
+
+  /* ===== Standings ===== */
+  .standings-table{table-layout:fixed;width:100%;border-collapse:separate;border-spacing:0 8px}
+  .standings-table th,.standings-table td{padding:8px 10px}
+  .standings-table thead th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+  .standings-table tbody tr{background:linear-gradient(180deg,transparent, color-mix(in oklab, var(--card) 88%, transparent))}
+  .name-nowrap{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:inline-block}
+  @media (max-width:520px){ .standings-table th,.standings-table td{font-size:12px;padding:6px 6px} }
+  #standingsHost{ display:grid; grid-template-columns:1fr; gap:var(--space); align-items:start; }
+  #standingsHost > .panel{ min-width:0 }
+  .standings-table td:nth-child(2) .name-nowrap{display:block;min-width:0;max-width:100%}
+  .standings-table th,.standings-table td{overflow:hidden}
+
+  /* hide extra columns on small screens to avoid horizontal scroll */
+  @media (max-width:520px){
+    .hide-sm{display:none}
+  }
+
+  /* ===== Bracket ===== */
+  .bracket{display:grid;gap:var(--space);grid-template-columns:repeat(3, minmax(260px,1fr))}
+  .round{display:grid;gap:var(--space)}
+  .match{border:1px solid var(--border);border-radius:14px;padding:12px;background:color-mix(in oklab, var(--card) 94%, transparent)}
+  .team{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:8px;border-radius:10px}
+  .team.win{outline:2px solid color-mix(in oklab, var(--ok) 45%, transparent);outline-offset:-2px}
+  .status{font-size:12px;color:var(--muted);margin-bottom:6px}
+  .score-in{width:clamp(40px, 10vw, 56px);text-align:center;padding:8px 6px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--text)}
+
+  /* compact checkbox */
+  .chk{appearance:none;width:16px;height:16px;border:1px solid var(--border);border-radius:4px;background:rgba(255,255,255,.02);display:inline-block;position:relative;vertical-align:middle}
+  .chk:checked{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent}
+  .chk:checked::after{content:'✓';position:absolute;inset:0;font-size:12px;color:#fff;display:flex;align-items:center;justify-content:center}
+
+  /* ===== Toast ===== */
+  .toast{
+    position:fixed; left:50%; bottom:calc(14px + env(safe-area-inset-bottom,0px));
+    transform:translateX(-50%) translateY(14px);
+    opacity:0; pointer-events:none; z-index:120;
+    padding:12px 14px; border-radius:999px;
+    background:color-mix(in oklab, var(--card) 92%, rgba(0,0,0,.25));
+    border:1px solid var(--border);
+    box-shadow:0 24px 80px rgba(0,0,0,.55);
+    backdrop-filter: blur(12px) saturate(140%);
+    color:var(--text); font-weight:800; font-size:13px; letter-spacing:.2px;
+    transition:opacity .18s cubic-bezier(.2,.8,.2,1), transform .18s cubic-bezier(.2,.8,.2,1);
+    max-width:min(92vw, 560px);
+    text-align:center;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* ===== Logos ===== */
+  .logo{
+    width:22px;height:22px;border-radius:8px;object-fit:cover;flex:0 0 auto;
+    border:1px solid var(--border);
+    background:rgba(255,255,255,.06);
+    box-shadow:0 10px 22px rgba(0,0,0,.28);
+  }
+  .logo--lg{ width:28px; height:28px; border-radius:10px; }
+  .badge{
+    display:inline-flex; align-items:center; gap:10px; min-width:0;
+  }
+  .badge .badge-name{
+    min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    font-weight:900;
+  }
+
+  /* ===== Setup: Team list ===== */
+  .team-list{ display:grid; gap:10px; margin-top:10px; }
+  .team-item{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:10px 12px; border-radius:16px;
+    border:1px solid var(--border);
+    background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,.10));
+    box-shadow:0 10px 24px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .team-item .left{
+    display:flex; align-items:center; gap:10px; min-width:0;
+  }
+  .team-item .name{
+    font-weight:900; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .pill-small{
+    padding:6px 10px; border:1px solid var(--border); border-radius:999px;
+    font-size:12px; color:var(--muted); background:rgba(255,255,255,.02);
+  }
+
+  /* ===== Groups inline calendar ===== */
+  .group-grid{display:grid; gap:var(--space); grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+  .group-head{
+    display:flex; align-items:flex-start; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    margin-bottom:10px;
+  }
+  .gid{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:34px; height:34px; border-radius:10px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    color:#fff; font-weight:1000;
+    box-shadow:0 14px 32px rgba(0,0,0,.35);
+  }
+  .group-meta{font-size:13px; color:var(--muted)}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .chip-tag{padding:6px 10px;border:1px solid var(--border);border-radius:999px;font-size:12px;background:rgba(255,255,255,.02)}
+
+  .round-sep{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-top:14px; margin-bottom:8px;
+    font-size:12px; color:var(--muted);
+    text-transform:uppercase; letter-spacing:.12em;
+  }
+  .round-sep .pill{
+    padding:6px 10px; border:1px solid var(--border); border-radius:999px;
+    background:rgba(255,255,255,.02);
+    text-transform:none; letter-spacing:0;
+    font-weight:900; color:color-mix(in oklab, var(--text) 85%, var(--muted));
+  }
+  .match-row{
+    display:grid;
+    grid-template-columns:48px 1fr min-content min-content;
+    gap:12px;
+    align-items:center;
+    padding:12px;
+    border:1px solid var(--border);
+    border-radius:16px;
+    background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,.10));
+    box-shadow:0 10px 24px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.04);
+    cursor:pointer;
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;
+    transition:transform .12s ease, box-shadow .2s ease, border-color .2s ease;
+  }
+  .match-row:hover{ transform:translateY(-1px); border-color:color-mix(in oklab, var(--accent) 22%, var(--border)); }
+  .match-row:active{ transform:translateY(1px) }
+  .rbox{
+    width:48px;height:38px;border-radius:12px;
+    display:grid; place-items:center;
+    background:rgba(255,255,255,.03);
+    border:1px solid var(--border);
+    font-weight:1000; color:color-mix(in oklab, var(--text) 85%, var(--muted));
+  }
+  .teams{ min-width:0; display:grid; gap:8px; }
+  .tline{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    min-width:0;
+  }
+  .tleft{ display:flex; align-items:center; gap:10px; min-width:0; }
+  .tname{
+    min-width:0; overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    font-weight:900; font-size:15px; letter-spacing:.2px;
+  }
+  .subtag{ font-size:12px; color:var(--muted); font-weight:700; }
+  .score-pill{
+    min-width:96px;
+    text-align:center;
+    padding:10px 12px;
+    border-radius:999px;
+    font-weight:1000;
+    letter-spacing:.5px;
+    border:1px solid color-mix(in oklab, var(--border) 70%, transparent);
+    background:radial-gradient(120px 60px at 20% 20%, rgba(255,255,255,.08), transparent 55%),
+               linear-gradient(135deg, rgba(255,255,255,.04), rgba(0,0,0,.16));
+  }
+  .score-pill.done{
+    background:radial-gradient(140px 70px at 20% 20%, rgba(255,255,255,.10), transparent 55%),
+               linear-gradient(135deg, color-mix(in oklab, var(--ok) 35%, transparent), color-mix(in oklab, var(--accent2) 20%, transparent));
+    border-color:color-mix(in oklab, var(--ok) 30%, var(--border));
+  }
+  .ot-pill{
+    padding:8px 10px; border-radius:999px; font-size:12px; font-weight:1000;
+    border:1px solid var(--border);
+    background:rgba(255,255,255,.02);
+    color:color-mix(in oklab, var(--gold) 85%, var(--text));
+    min-width:54px; text-align:center;
+    opacity:.0;
+  }
+  .ot-pill.on{ opacity:1; }
+
+  /* ===== Season (Series) strip ===== */
+  .season-strip{
+    display:flex;
+    gap:var(--space);
+    overflow:auto;
+    padding-bottom:4px;
+    -webkit-overflow-scrolling:touch;
+    scroll-snap-type:x mandatory;
+  }
+  .season-card{
+    flex:0 0 min(520px, 92vw);
+    scroll-snap-align:start;
+  }
+  .season-head{
+    display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    margin-bottom:10px;
+  }
+  .season-title{font-weight:1000; letter-spacing:.02em}
+  .season-sub{font-size:12px;color:var(--muted)}
+  .season-groups{display:grid; gap:12px}
+  .season-group-title{display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .season-group-title .muted{font-size:12px}
+
+  /* ===== Match popup (enter both scores + OT) ===== */
+  .mm-backdrop{
+    position:fixed; inset:0;
+    background:rgba(0,0,0,.62);
+    backdrop-filter: blur(10px);
+    opacity:0; visibility:hidden; pointer-events:none;
+    transition:opacity .22s cubic-bezier(.2,.8,.2,1);
+    z-index:95;
+  }
+  .mm-backdrop.open{ opacity:1; visibility:visible; pointer-events:auto; }
+  .mm{
+    position:fixed; left:50%; top:50%;
+    transform:translate(-50%,-50%) scale(.985);
+    width:min(520px, calc(100% - 24px));
+    border-radius:22px;
+    background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(0,0,0,.18)), var(--card);
+    border:1px solid var(--border);
+    box-shadow:0 40px 120px rgba(0,0,0,.62), inset 0 1px 0 rgba(255,255,255,.06);
+    backdrop-filter: blur(14px) saturate(150%);
+    opacity:0; visibility:hidden; pointer-events:none;
+    transition: transform .24s cubic-bezier(.2,.8,.2,1), opacity .24s cubic-bezier(.2,.8,.2,1);
+    z-index:110;
+    overflow:hidden;
+  }
+  .mm.open{ opacity:1; visibility:visible; pointer-events:auto; transform:translate(-50%,-50%) scale(1); }
+  .mm-head{
+    display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+    padding:14px 16px; border-bottom:1px solid var(--border);
+    background:color-mix(in oklab, var(--card) 96%, transparent)
+  }
+  .mm-title{ font-weight:1000; letter-spacing:.02em; font-size:16px; }
+  .mm-sub{ margin-top:6px; font-size:12px; color:var(--muted); line-height:1.25; }
+  .mm-body{ padding:14px 16px 16px; display:grid; gap:12px; }
+
+  .mm-scorebox{
+    border:1px solid var(--border);
+    border-radius:18px;
+    background:rgba(255,255,255,.03);
+    padding:12px;
+    display:grid; gap:10px;
+  }
+  .mm-row{
+    display:grid;
+    grid-template-columns:1fr min-content 1fr;
+    gap:10px;
+    align-items:stretch;
+  }
+  .mm-side{
+    border:1px solid var(--border);
+    background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.10));
+    border-radius:16px;
+    padding:12px;
+    cursor:pointer;
+    touch-action:manipulation;
+    user-select:none; -webkit-user-select:none;
+    display:grid; gap:8px;
+    box-shadow:0 10px 24px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .mm-side.active{
+    border-color:color-mix(in oklab, var(--accent) 45%, var(--border));
+    box-shadow:0 0 0 6px var(--ring), 0 12px 30px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .mm-team{
+    display:flex; align-items:center; gap:10px;
+    font-weight:900; min-width:0;
+  }
+  .mm-team span{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .mm-val{
+    text-align:center;
+    font-size:clamp(44px, 10vw, 62px);
+    font-weight:1000;
+    letter-spacing:.02em;
+    line-height:1;
+    background:linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip:text; background-clip:text;
+    color:transparent;
+    text-shadow:0 18px 44px rgba(0,0,0,.35);
+  }
+  .mm-mid{ display:grid; place-items:center; font-weight:1000; opacity:.6; font-size:22px; }
+
+  .mm-meta{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+  .mm-toggle{
+    display:inline-flex; align-items:center; gap:10px;
+    padding:10px 12px;
+    border:1px solid var(--border);
+    border-radius:999px;
+    background:rgba(255,255,255,.02);
+    user-select:none; -webkit-user-select:none;
+  }
+  .switch{
+    position:relative; width:44px; height:26px; border-radius:999px;
+    border:1px solid var(--border); background:rgba(255,255,255,.04);
+    flex:0 0 auto;
+  }
+  .switch::after{
+    content:"";
+    position:absolute; top:3px; left:3px;
+    width:20px; height:20px; border-radius:50%;
+    background:rgba(255,255,255,.85);
+    transition:transform .18s cubic-bezier(.2,.8,.2,1);
+    box-shadow:0 10px 18px rgba(0,0,0,.25);
+  }
+  .mm-toggle input{ display:none; }
+  .mm-toggle input:checked + .switch{
+    border-color:transparent;
+    background:linear-gradient(135deg, var(--accent), var(--accent2));
+  }
+  .mm-toggle input:checked + .switch::after{ transform:translateX(18px); }
+  .mm-toggle b{ font-weight:1000 }
+  .mm-pad{ display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; }
+  .pad-btn{
+    appearance:none;
+    border:1px solid var(--border);
+    background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.12));
+    color:var(--text);
+    border-radius:16px;
+    padding:14px 12px;
+    font-size:18px;
+    font-weight:1000;
+    cursor:pointer;
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;
+    user-select:none;
+    box-shadow:0 12px 28px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  .pad-btn:active{ transform:translateY(1px); }
+  .pad-btn--sub{ font-size:14px; font-weight:900; color:color-mix(in oklab, var(--text) 80%, var(--muted)); }
+  .mm-actions{ display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap; }
+  .mm-actions .btn{ flex:1; min-width:140px; }
+  .mm-actions .btn--accent{ flex:1.25; }
+
+  /* ===== Team Wizard Modal (add team + image) ===== */
+  .tm-backdrop{
+    position:fixed; inset:0;
+    background:rgba(0,0,0,.62);
+    backdrop-filter: blur(10px);
+    opacity:0; visibility:hidden; pointer-events:none;
+    transition:opacity .22s cubic-bezier(.2,.8,.2,1);
+    z-index:85;
+  }
+  .tm-backdrop.open{ opacity:1; visibility:visible; pointer-events:auto; }
+
+  .tm{
+    position:fixed; left:50%; top:50%;
+    transform:translate(-50%,-50%) scale(.985);
+    width:min(560px, calc(100% - 24px));
+    border-radius:22px;
+    background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(0,0,0,.18)), var(--card);
+    border:1px solid var(--border);
+    box-shadow:0 40px 120px rgba(0,0,0,.62), inset 0 1px 0 rgba(255,255,255,.06);
+    backdrop-filter: blur(14px) saturate(150%);
+    opacity:0; visibility:hidden; pointer-events:none;
+    transition: transform .24s cubic-bezier(.2,.8,.2,1), opacity .24s cubic-bezier(.2,.8,.2,1);
+    z-index:100;
+    overflow:hidden;
+  }
+  .tm.open{ opacity:1; visibility:visible; pointer-events:auto; transform:translate(-50%,-50%) scale(1); }
+  .tm-head{
+    display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+    padding:14px 16px; border-bottom:1px solid var(--border);
+    background:color-mix(in oklab, var(--card) 96%, transparent)
+  }
+  .tm-title{ font-weight:1000; letter-spacing:.02em; font-size:16px; }
+  .tm-sub{ margin-top:6px; font-size:12px; color:var(--muted); line-height:1.25; }
+  .tm-body{ padding:14px 16px 16px; display:grid; gap:12px; }
+  .tm-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+  @media (max-width:520px){ .tm-grid{ grid-template-columns:1fr; } }
+  .preview{
+    border:1px solid var(--border);
+    border-radius:18px;
+    background:rgba(255,255,255,.03);
+    padding:12px;
+    display:grid; gap:10px;
+  }
+  .preview-box{
+    display:flex; align-items:center; gap:12px;
+    padding:12px; border-radius:16px;
+    border:1px solid var(--border);
+    background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.10));
+    box-shadow:0 10px 24px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .preview-img{
+    width:56px;height:56px;border-radius:18px;object-fit:cover;border:1px solid var(--border);
+    background:rgba(255,255,255,.06);
+  }
+  .tm-actions{ display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap; }
+  .tm-actions .btn{ flex:1; min-width:160px; }
+  .tm-actions .btn--accent{ flex:1.25; }
+</style>
+</head>
+
+<body>
+<header>
+  <div class="bar">
+    <div class="brand">
+      <span class="dot"></span>
+      <span id="brandTitle">Turnīru Aplikācija</span>
+    </div>
+    <div class="row">
+      <button type="button" class="btn" id="exportBtn">Eksportēt</button>
+      <button type="button" class="btn" id="importBtn">Importēt</button>
+      <button type="button" class="btn" id="resetBtn">Notīrīt</button>
+      <button type="button" class="btn" id="soundBtn"><span id="soundIcon">🔊</span></button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- SETUP -->
+  <section class="panel" id="setupPanel">
+    <div class="row" style="justify-content:space-between">
+      <h2>1) Ievadi komandas</h2>
+      <div class="muted">Dati glabājas lokāli (localStorage) • ar attēliem (kompresēti)</div>
+    </div>
+
+    <div class="row" style="gap:var(--space); align-items:flex-start">
+      <div style="flex:2; min-width:260px">
+        <input id="tName" placeholder="Turnīra nosaukums (neobligāts)"/>
+        <div style="height:10px"></div>
+
+        <div class="row" style="gap:10px">
+          <input id="teamQuick" placeholder="Ievadi komandas nosaukumu (viena rindiņa)" />
+          <button type="button" class="btn btn--accent" id="addTeamBtn" style="white-space:nowrap">Pievienot</button>
+        </div>
+
+        <div class="row" style="margin-top:10px; justify-content:space-between">
+          <div class="pill-small tnum" id="teamCountPill">0 komandas</div>
+          <div class="muted">Pievienošana notiek popupā (nosaukums + logo)</div>
+        </div>
+
+        <div id="teamList" class="team-list"></div>
+      </div>
+
+      <div style="flex:1; min-width:240px">
+        <label class="muted" for="groupStrategy">Grupu skaits</label>
+        <select id="groupStrategy">
+          <option value="auto" selected>Automātiski (2/4/6; ≤6 → 1 grupa)</option>
+          <option value="n1">1 grupa (tikai ja ≤6 kom.)</option>
+          <option value="n2">2 grupas</option>
+          <option value="n4">4 grupas</option>
+          <option value="n6">6 grupas</option>
+        </select>
+        <div style="height:10px"></div>
+        <button type="button" class="btn btn--accent" id="genGroups" style="width:100%">Ģenerēt grupas</button>
+
+        <div style="height:10px"></div>
+        <div class="muted">
+          Padoms: ja ieliksi logotipus, tie parādīsies grupās, playoff un PDF.
+          <br/><br/>
+          <b>Piezīme:</b> localStorage vieta ir ierobežota; logotipi tiek samazināti (max 256px), lai tas turētos rāmjos.
+          Ja reizēm sāk “neglābties”, tad nākamais līmenis ir glabāt bildes <b>IndexedDB</b> (komentārs zemāk kodā).
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GROUPS (ACTIVE SEASON) -->
+  <section class="panel" id="groupsPanel" hidden>
+    <div class="row" style="justify-content:space-between; align-items:baseline">
+      <h2>2) Grupas & ievade (spied uz spēli)</h2>
+      <div class="muted" id="activeSeasonLabel">Sezona —</div>
+    </div>
+    <div class="muted" style="margin-top:-2px">Popupā: abi rezultāti + OT</div>
+    <div style="height:8px"></div>
+    <div id="groupsHost" class="group-grid"></div>
+  </section>
+
+  <!-- SEASON (SERIES) -->
+  <section class="panel" id="seasonPanel" hidden>
+    <div class="row" style="justify-content:space-between; align-items:baseline">
+      <div>
+        <h2>Sezona (Series)</h2>
+        <div class="muted tnum" id="seriesMeta">—</div>
+      </div>
+      <div class="row">
+        <button type="button" class="btn" id="recalcBtn">Recalculate</button>
+        <button type="button" class="btn btn--accent" id="nextSeasonBtn" hidden>Nākamā sezona</button>
+      </div>
+    </div>
+    <div class="season-strip" id="seasonStrip"></div>
+  </section>
+
+  <!-- STANDINGS -->
+  <section class="panel" id="standingsPanel" hidden>
+    <h2>3) Stāvējums (Standings)</h2>
+    <div id="standingsHost" class="grid"></div>
+  </section>
+
+  <!-- PLAYOFF -->
+  <section class="panel" id="playoffPanel" hidden>
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <h2>4) Playoff (no Quarterfinals)</h2>
+      <button type="button" class="btn" id="buildBracket">Ģenerēt Bracket</button>
+    </div>
+
+    <div class="bracket" style="margin-top:var(--space)">
+      <div class="round" id="qfCol"><h3>Ceturtdaļfināli</h3></div>
+      <div class="round" id="sfCol"><h3>Pusfināli</h3></div>
+      <div class="round" id="finCol"><h3>Fināls & 3. vieta</h3></div>
+    </div>
+
+    <div class="row" style="margin-top:12px">
+      <button type="button" class="btn btn--gold" id="overallBtn" disabled>Kopsavilkums</button>
+      <button type="button" class="btn" id="downloadPdfBtn" disabled>Lejupielādēt PDF</button>
+    </div>
+
+    <div id="statsPanel" class="grid" hidden style="margin-top:var(--space)">
+      <h2>5) Turnīra kopsavilkums & apbalvojumi</h2>
+      <div id="awards" class="awards"></div>
+      <div class="panel" id="teamStatsPanel">
+        <h3>Komandu kopstatistika</h3>
+        <div id="teamStatsHost"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Team Wizard Modal -->
+<div id="tmBackdrop" class="tm-backdrop"></div>
+<div id="tm" class="tm" role="dialog" aria-modal="true" aria-labelledby="tmTitle" aria-hidden="true">
+  <div class="tm-head">
+    <div>
+      <div class="tm-title" id="tmTitle">Pievienot komandu</div>
+      <div class="tm-sub" id="tmSub">Ievadi nosaukumu un (ja gribi) pievieno logo. Pēc saglabāšanas uzreiz varēsi ievadīt nākamo.</div>
+    </div>
+    <button type="button" class="btn" id="tmCloseBtn" aria-label="Aizvērt">✕</button>
+  </div>
+
+  <div class="tm-body">
+    <div class="tm-grid">
+      <div>
+        <label class="muted" for="tmName">Komandas nosaukums</label>
+        <input id="tmName" placeholder="piem., Vezīši" />
+        <div style="height:10px"></div>
+        <label class="muted" for="tmFile">Komandas logo (neobligāts)</label>
+        <input id="tmFile" type="file" accept="image/*" />
+        <div class="muted" style="margin-top:8px">Logo tiks automātiski samazināts, lai ietilptu localStorage.</div>
+      </div>
+      <div class="preview">
+        <div class="muted">Priekšskatījums</div>
+        <div class="preview-box">
+          <img id="tmPreviewImg" class="preview-img" alt="Logo priekšskatījums" />
+          <div style="min-width:0">
+            <div style="font-weight:1000" id="tmPreviewName">—</div>
+            <div class="muted">Tā izskatīsies kalendārā un playoff</div>
+          </div>
+        </div>
+        <div class="muted" style="margin-top:4px">
+          Hotkeys: <b>Enter</b> saglabāt • <b>Esc</b> aizvērt
+        </div>
+      </div>
+    </div>
+
+    <div class="tm-actions">
+      <button type="button" class="btn" id="tmSaveCloseBtn">Saglabāt & aizvērt</button>
+      <button type="button" class="btn btn--accent" id="tmSaveNextBtn">Saglabāt & nākamā</button>
+    </div>
+  </div>
+</div>
+
+<!-- Series N Modal (first-to) -->
+<div id="snBackdrop" class="tm-backdrop"></div>
+<div id="sn" class="tm" role="dialog" aria-modal="true" aria-labelledby="snTitle" aria-hidden="true">
+  <div class="tm-head">
+    <div>
+      <div class="tm-title" id="snTitle">Series mērķis</div>
+      <div class="tm-sub">Ievadi līdz cik uzvarām spēlē sēriju (tikai 1. reizē). Pēc tam tas tiek “no-lockots”.</div>
+    </div>
+    <button type="button" class="btn" id="snCloseBtn" aria-label="Aizvērt">✕</button>
+  </div>
+  <div class="tm-body">
+    <div class="row" style="gap:12px; align-items:flex-end">
+      <div style="flex:1">
+        <label class="muted" for="snN">First to N wins</label>
+        <input id="snN" type="number" min="1" max="9" inputmode="numeric" placeholder="piem., 3" />
+      </div>
+      <button type="button" class="btn btn--accent" id="snSetBtn" style="white-space:nowrap">Iestatīt</button>
+    </div>
+    <div class="muted">Pēc iestatīšanas “Nākamā sezona” ģenerēs tikai tos pārus, kuri vēl nav sasnieguši N uzvaras savā starpā.</div>
+  </div>
+</div>
+
+<!-- Match modal -->
+<div id="mmBackdrop" class="mm-backdrop"></div>
+<div id="mm" class="mm" role="dialog" aria-modal="true" aria-labelledby="mmTitle" aria-hidden="true">
+  <div class="mm-head">
+    <div>
+      <div class="mm-title" id="mmTitle">Ievadi rezultātu</div>
+      <div class="mm-sub" id="mmSub">—</div>
+    </div>
+    <button type="button" class="btn" id="mmCloseBtn" aria-label="Aizvērt">✕</button>
+  </div>
+
+  <div class="mm-body">
+    <div class="mm-scorebox">
+      <div class="mm-row">
+        <div class="mm-side active" id="mmHomeBtn" role="button" tabindex="0" aria-label="Mājinieku rezultāts">
+          <div class="mm-team">
+            <img class="logo logo--lg" id="mmHomeLogo" alt="Mājinieku logo" />
+            <span id="mmHomeName">—</span>
+          </div>
+          <div class="mm-val tnum" id="mmHomeVal">—</div>
+        </div>
+        <div class="mm-mid">:</div>
+        <div class="mm-side" id="mmAwayBtn" role="button" tabindex="0" aria-label="Viesu rezultāts">
+          <div class="mm-team">
+            <img class="logo logo--lg" id="mmAwayLogo" alt="Viesu logo" />
+            <span id="mmAwayName">—</span>
+          </div>
+          <div class="mm-val tnum" id="mmAwayVal">—</div>
+        </div>
+      </div>
+
+      <div class="mm-meta">
+        <label class="mm-toggle" aria-label="Overtime">
+          <input type="checkbox" id="mmOt" />
+          <span class="switch" aria-hidden="true"></span>
+          <span>OT</span>
+          <b class="tnum" id="mmOtHint"></b>
+        </label>
+        <div class="muted" id="mmHint">Neizšķirtu nav — OT gadījumā ievadi uzvaras vārtus.</div>
+      </div>
+    </div>
+
+    <div class="mm-pad" id="mmPad">
+      <button type="button" class="pad-btn" data-k="1">1</button>
+      <button type="button" class="pad-btn" data-k="2">2</button>
+      <button type="button" class="pad-btn" data-k="3">3</button>
+      <button type="button" class="pad-btn" data-k="4">4</button>
+      <button type="button" class="pad-btn" data-k="5">5</button>
+      <button type="button" class="pad-btn" data-k="6">6</button>
+      <button type="button" class="pad-btn" data-k="7">7</button>
+      <button type="button" class="pad-btn" data-k="8">8</button>
+      <button type="button" class="pad-btn" data-k="9">9</button>
+      <button type="button" class="pad-btn pad-btn--sub" data-k="clr">Clear</button>
+      <button type="button" class="pad-btn" data-k="0">0</button>
+      <button type="button" class="pad-btn pad-btn--sub" data-k="bs">⌫</button>
+    </div>
+
+    <div class="mm-actions">
+      <button type="button" class="btn" id="mmResetMatchBtn">Notīrīt spēli</button>
+      <button type="button" class="btn btn--accent" id="mmSaveBtn">Saglabāt</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<!-- PDF libs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" crossorigin="anonymous"></script>
+
+<script>
+/* ===== Util ===== */
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+const uid=()=>Math.random().toString(36).slice(2,9);
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+const todayStamp = ()=> new Date().toISOString().slice(0,10);
+const slugify = s => (s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80)||'tournament';
+
+/* ===== Toast ===== */
+function toast(msg, ms=2400){
+  const el=$('#toast');
+  if(!el){ alert(msg); return; }
+  el.textContent=msg;
+  el.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t=setTimeout(()=>el.classList.remove('show'), ms);
+}
+
+/* ===== Storage ===== */
+const STORAGE_KEY='tournament_state_pro_v13_with_logos'; // keep same key for backwards compatibility
+function saveState(s){ localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
+function loadState(){ try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'null')}catch{return null} }
+function clearState(){ localStorage.removeItem(STORAGE_KEY); }
+const SOUND_PREF_KEY='tournament_sound_on';
+
+/* ===== Sounds ===== */
+let audioCtx=null; let soundOn=(localStorage.getItem(SOUND_PREF_KEY)!=='0');
+const ensureCtx=()=>{ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)() };
+function beep({freq=440,type='sine',dur=0.08,gain=0.05,a=0.005,r=0.06}={}){ if(!soundOn) return; ensureCtx();
+  const now=audioCtx.currentTime, o=audioCtx.createOscillator(), g=audioCtx.createGain();
+  o.type=type; o.frequency.setValueAtTime(freq,now); g.gain.setValueAtTime(0,now);
+  g.gain.linearRampToValueAtTime(gain,now+a); g.gain.exponentialRampToValueAtTime(0.0001,now+a+dur+r);
+  o.connect(g); g.connect(audioCtx.destination); o.start(now); o.stop(now+a+dur+r+0.02);
+}
+const sfx={
+  click:()=>beep({freq:280,type:'triangle',dur:0.05,gain:0.06}),
+  score:()=>{beep({freq:420,type:'square',dur:0.06,gain:0.06}); setTimeout(()=>beep({freq:590,type:'square',dur:0.06,gain:0.05}),70)},
+  success:()=>{beep({freq:450,type:'sine',dur:0.07,gain:0.06}); setTimeout(()=>beep({freq:650,type:'sine',dur:0.09,gain:0.05}),90)}
+};
+$('#soundBtn').addEventListener('click',()=>{
+  soundOn=!soundOn;
+  localStorage.setItem(SOUND_PREF_KEY,soundOn?'1':'0');
+  $('#soundIcon').textContent=soundOn?'🔊':'🔇';
+  sfx.click();
+});
+
+/* ===== State ===== */
+let state={
+  name:'',
+  teams:[],      // {id, name, logo(dataURL|null)}
+  series:{       // NEW: seasons + series target
+    targetWins:null,     // N (first to N wins) set only once
+    seasons:[]           // [{index:1.., groups:[{id, teams:[teamId], matches:[match]}]}]
+  },
+  standings:{},
+  bracket:null,
+  overall:null
+};
+
+/* ============================================================================
+   🚀 KOMENTĀRS: Attālinātā reģistrācija ar QR kodu (remote sign-up)
+
+   Ideja: turnīra “hosts” atver šo app un publicē reģistrācijas linku ar QR kodu.
+   Dalībnieks atver linku telefonā, ievada komandas nosaukumu + logo un nosūta.
+   Hostam app automātiski parāda jaunās komandas sarakstā.
+
+   1) Tev vajag servera “reģistrācijas endpointu”. Varianti:
+      A) Google Apps Script WebApp (ātri, bez servera)
+      B) Firebase / Supabase (foršāk: realtime / websocket)
+      C) Vienkāršs Node/Cloudflare worker
+
+   2) Plūsma (GAS piemērs):
+      - Hostam ir tournamentId (ģenerējam vienreiz un glabājam state.tournamentId)
+      - QR kods satur URL:
+          https://tavs-domens.lv/register.html?tournamentId=XYZ
+      - register.html sūta POST uz GAS:
+          action=registerTeam&tournamentId=XYZ&name=...&logo=...
+      - GAS saglabā komandu Sheet / DB un atgriež success.
+
+   3) Hosts app pusē:
+      - Ik pēc 2–5 sekundēm poll uz GAS:
+          action=listRegistrations&tournamentId=XYZ
+        un ja ir jaunas komandas → pievieno state.teams un pārzīmē.
+
+      - Labāk (realtime): ja lieto Firebase/Supabase, klausies izmaiņas un update bez polling.
+
+   4) QR koda ģenerēšana:
+      - Ātri: izmantot ārēju QR attēla servisu (vienkāršs <img src="...">)
+      - Labāk: ielikt lokālu QR generator lib (piem., qrcodejs) un ģenerēt offline.
+
+   5) Drošība:
+      - tournamentId + “admin token” (hostam) lai neviens cits nevar izdzēst/rediģēt.
+      - Rate limit, validācija, un max attēla izmērs.
+
+   NB: Ja gribi saglabāt attēlus lielākus, localStorage ātri piepildīsies.
+       Tad bildes glabā IndexedDB, bet state JSONā glabā tikai id/atsauci.
+============================================================================ */
+
+/* ===== Logos & badge helpers ===== */
+const PLACEHOLDER_LOGO = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+      <stop stop-color="#7c5cff" offset="0"/>
+      <stop stop-color="#45a2ff" offset="1"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#g)"/>
+  <circle cx="44" cy="52" r="10" fill="rgba(255,255,255,.85)"/>
+  <circle cx="84" cy="52" r="10" fill="rgba(255,255,255,.85)"/>
+  <rect x="34" y="78" width="60" height="10" rx="5" fill="rgba(255,255,255,.7)"/>
+</svg>
+`);
+
+function escapeHtml(str){
+  return String(str ?? '')
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'","&#039;");
+}
+function teamsMap(){ return Object.fromEntries(state.teams.map(t=>[t.id,t])); }
+function logoOf(id,map){
+  if(!id) return PLACEHOLDER_LOGO;
+  const t=map[id];
+  return (t && t.logo) ? t.logo : PLACEHOLDER_LOGO;
+}
+function nameOf(id,map){
+  return id ? (map[id]?.name||'?') : 'BYE';
+}
+function badgeHTML(id,map,{lg=false}={}){
+  const n = nameOf(id,map);
+  const src = logoOf(id,map);
+  const cls = lg ? 'logo logo--lg' : 'logo';
+  return `<span class="badge">
+    <img class="${cls}" alt="logo" src="${src}">
+    <span class="badge-name">${escapeHtml(n)}</span>
+  </span>`;
+}
+
+/* ===== Image compress ===== */
+async function fileToCompressedDataUrl(file, {maxSide=256, quality=0.78}={}){
+  const img = await createImageBitmap(file);
+  const w = img.width, h = img.height;
+  const scale = Math.min(1, maxSide / Math.max(w,h));
+  const cw = Math.max(1, Math.round(w*scale));
+  const ch = Math.max(1, Math.round(h*scale));
+  const canvas = document.createElement('canvas');
+  canvas.width=cw; canvas.height=ch;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0, cw, ch);
+  const blob = await new Promise(res=>canvas.toBlob(res, 'image/jpeg', quality));
+  if(!blob) throw new Error('compress_failed');
+  const dataUrl = await new Promise((resolve,reject)=>{
+    const r=new FileReader();
+    r.onload=()=>resolve(r.result);
+    r.onerror=()=>reject(new Error('read_failed'));
+    r.readAsDataURL(blob);
+  });
+  return dataUrl;
+}
+
+/* ===== Series helpers ===== */
+function getSeasons(){ return state.series?.seasons || []; }
+function setSeasons(seasons){ state.series.seasons = seasons; }
+function getTargetWins(){ return state.series?.targetWins ?? null; }
+function setTargetWins(n){ state.series.targetWins = n; }
+function activeSeasonIdx(){ return Math.max(0, getSeasons().length-1); }
+function activeSeason(){ return getSeasons()[activeSeasonIdx()] || null; }
+function activeGroups(){ return activeSeason()?.groups || []; }
+
+function isScored(m){ return Number.isFinite(m.hs) && Number.isFinite(m.as) && m.hs!==m.as; }
+function seasonComplete(season){
+  if(!season) return false;
+  for(const g of (season.groups||[])){
+    for(const m of (g.matches||[])){
+      if(!m.home || !m.away) continue; // BYE
+      if(!isScored(m)) return false;
+    }
+  }
+  return true;
+}
+function seriesPairKey(gid,a,b){
+  if(!a || !b) return null;
+  const x = a < b ? `${a}|${b}` : `${b}|${a}`;
+  return `${gid}::${x}`;
+}
+function getPairWinsFromSeasons(seasons){
+  // returns Map key-> {a,b,wA,wB} where a<b
+  const wins = new Map();
+  for(const season of seasons){
+    for(const g of (season.groups||[])){
+      const gid=g.id;
+      for(const m of (g.matches||[])){
+        if(!m.home || !m.away) continue;
+        if(!isScored(m)) continue;
+
+        const a = (m.home < m.away) ? m.home : m.away;
+        const b = (m.home < m.away) ? m.away : m.home;
+        const key = seriesPairKey(gid,a,b);
+
+        if(!wins.has(key)) wins.set(key,{gid,a,b,wA:0,wB:0});
+        const rec=wins.get(key);
+
+        // determine winner
+        const homeWins = m.hs > m.as;
+        const winner = homeWins ? m.home : m.away;
+
+        if(winner===rec.a) rec.wA++;
+        else if(winner===rec.b) rec.wB++;
+      }
+    }
+  }
+  return wins;
+}
+function anyActivePairsRemain(seasons, targetWins){
+  if(!targetWins) return true; // not started
+  const wins = getPairWinsFromSeasons(seasons);
+  const base = seasons[0]?.groups || [];
+  for(const g of base){
+    const gid=g.id;
+    const teams=g.teams || [];
+    for(let i=0;i<teams.length;i++){
+      for(let j=i+1;j<teams.length;j++){
+        const a=teams[i], b=teams[j];
+        const x = a<b?a:b, y=a<b?b:a;
+        const key=seriesPairKey(gid,x,y);
+        const rec=wins.get(key) || {wA:0,wB:0,a:x,b:y};
+        if(rec.wA<targetWins && rec.wB<targetWins) return true;
+      }
+    }
+  }
+  return false;
+}
+
+/* ===== Grouping / fixtures ===== */
+function deriveGroupCount(n,str){
+  const allowed=[2,4,6];
+  if(str==='n1') return (n<=6)?1:deriveGroupCount(n,'auto');
+  if(str==='auto' && n<=6) return Math.min(1,n);
+  if(str?.startsWith('n')){ const req=+str.slice(1); if(req===1 && n<=6) return 1; if(allowed.includes(req)) return Math.min(req,n); }
+  if(n<=6) return 1;
+  const target=Math.round(n/4); let best=2;
+  for(const k of allowed){
+    if(k>n) continue;
+    const dK=Math.abs(k-target), dB=Math.abs(best-target);
+    if(dK<dB||(dK===dB&&k>best)) best=k;
+  }
+  return best;
+}
+function makeGroups(teams,str='auto'){
+  const n=teams.length; if(n<2) return [];
+  const gCount=deriveGroupCount(n,str), shuffled=shuffle([...teams]);
+  const groups=Array.from({length:gCount},(_,i)=>({id:String.fromCharCode(65+i),teams:[],matches:[]}));
+  shuffled.forEach((t,i)=>groups[i%gCount].teams.push(t.id));
+  groups.forEach(g=>{
+    g.matches=generateRR(g.teams).map(m=>({id:uid(),round:m.round,home:m.home,away:m.away,hs:null,as:null,ot:false}));
+  });
+  return groups;
+}
+function generateRR(teamIds){
+  const t=[...teamIds]; if(t.length%2===1) t.push(null);
+  const n=t.length, rounds=n-1, half=n/2, fx=[];
+  for(let r=0;r<rounds;r++){
+    for(let i=0;i<half;i++){
+      const a=t[i], b=t[n-1-i];
+      if(a!==null && b!==null){
+        const swap=(r%2===0)===(i%2===0);
+        fx.push({round:r+1,home:swap?a:b,away:swap?b:a});
+      }
+    }
+    const fixed=t[0], rest=t.slice(1);
+    rest.unshift(rest.pop());
+    t.splice(0,t.length,fixed,...rest);
+  }
+  return fx;
+}
+
+/* ===== Standings computation across ALL seasons ===== */
+function computeStandingsFromSeasons(seasons, map, targetWins){
+  const out = {};
+  // init per group
+  const baseGroups = seasons[0]?.groups || [];
+  for(const g of baseGroups){
+    out[g.id] = g.teams.map(id=>({
+      teamId:id,
+      name:map[id]?.name||'?',
+
+      // series
+      sw:0, sl:0,
+
+      // games
+      played:0, gw:0, gl:0,
+
+      // goals and points
+      gf:0, ga:0, gd:0, pts:0
+    }));
+  }
+  const idx = {};
+  for(const gid of Object.keys(out)){
+    idx[gid] = Object.fromEntries(out[gid].map((r,i)=>[r.teamId,i]));
+  }
+
+  // 1) accumulate GAME stats from all seasons
+  for(const season of seasons){
+    for(const g of (season.groups||[])){
+      const gid=g.id;
+      if(!out[gid]) continue;
+      for(const m of (g.matches||[])){
+        if(!isScored(m)) continue;
+        const A=out[gid][idx[gid][m.home]];
+        const B=out[gid][idx[gid][m.away]];
+        A.played++; B.played++;
+        A.gf+=m.hs; A.ga+=m.as; A.gd=A.gf-A.ga;
+        B.gf+=m.as; B.ga+=m.hs; B.gd=B.gf-B.ga;
+
+        if(m.hs>m.as){
+          A.gw++; B.gl++;
+          if(m.ot){ A.pts+=2; B.pts+=1; } else { A.pts+=3; }
+        }else{
+          B.gw++; A.gl++;
+          if(m.ot){ B.pts+=2; A.pts+=1; } else { B.pts+=3; }
+        }
+      }
+    }
+  }
+
+  // 2) compute SERIES stats from pair wins if targetWins is set
+  if(Number.isFinite(targetWins) && targetWins>0){
+    const wins = getPairWinsFromSeasons(seasons);
+    for(const gid of Object.keys(out)){
+      // iterate all pairs within group
+      const teams = out[gid].map(r=>r.teamId);
+      for(let i=0;i<teams.length;i++){
+        for(let j=i+1;j<teams.length;j++){
+          const a=teams[i], b=teams[j];
+          const x = a<b?a:b, y=a<b?b:a;
+          const key = seriesPairKey(gid,x,y);
+          const rec = wins.get(key) || {a:x,b:y,wA:0,wB:0};
+
+          // if series decided
+          if(rec.wA>=targetWins || rec.wB>=targetWins){
+            const winner = (rec.wA===rec.wB) ? null : (rec.wA>rec.wB ? rec.a : rec.b);
+            const loser  = winner ? (winner===rec.a ? rec.b : rec.a) : null;
+            if(winner && loser){
+              out[gid][idx[gid][winner]].sw++;
+              out[gid][idx[gid][loser]].sl++;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // 3) sort standings (Series first, then points etc.)
+  for(const gid of Object.keys(out)){
+    out[gid].sort((a,b)=>
+      (b.sw-a.sw) ||
+      (b.pts-a.pts) ||
+      (b.gd-a.gd) ||
+      (b.gf-a.gf) ||
+      a.name.localeCompare(b.name)
+    );
+  }
+  return out;
+}
+
+/* ===== Bracket ===== */
+function buildBracketFromStandings(st){
+  const gids=Object.keys(st).sort(), c=gids.length;
+  const topN=(gid,n)=>{ const arr=st[gid]||[]; const out=[]; for(let i=0;i<n;i++) out.push(arr[i]?.teamId ?? null); return out; }
+  const pad=(a,n)=>{const k=[...a];while(k.length<n)k.push(null);return k}
+  const mk=(pairs)=>({ qf:pairs.map(p=>({id:uid(),home:p.home,away:p.away,hs:null,as:null,ot:false})),
+                       sf:[{id:uid(),home:null,away:null,hs:null,as:null,ot:false},{id:uid(),home:null,away:null,hs:null,as:null,ot:false}],
+                       fin:[{id:uid(),home:null,away:null,hs:null,as:null,ot:false}],
+                       third:[{id:uid(),home:null,away:null,hs:null,as:null,ot:false}] });
+  if(c===2){
+    const [A,B]=gids; const A4=pad(topN(A,4),4), B4=pad(topN(B,4),4);
+    return mk([{home:A4[0],away:B4[3]},{home:A4[1],away:B4[2]},{home:B4[0],away:A4[3]},{home:B4[1],away:A4[2]}]);
+  }
+  if(c===4){
+    const [A,B,C,D]=gids;
+    const A2=pad(topN(A,2),2),B2=pad(topN(B,2),2),C2=pad(topN(C,2),2),D2=pad(topN(D,2),2);
+    return mk([{home:A2[0],away:B2[1]},{home:B2[0],away:A2[1]},{home:C2[0],away:D2[1]},{home:D2[0],away:C2[1]}]);
+  }
+  if(c===6){
+    const rank=(a,b)=> (b?.sw||0)-(a?.sw||0) || (b?.pts||0)-(a?.pts||0) || (b?.gd||0)-(a?.gd||0) || (b?.gf||0)-(a?.gf||0) || (a?.name||'').localeCompare(b?.name||'');
+    const firsts=gids.map(g=>st[g][0]&&{...st[g][0],gid:g}).filter(Boolean);
+    const seconds=gids.map(g=>st[g][1]&&{...st[g][1],gid:g}).filter(Boolean).sort(rank);
+    const q=[...firsts, ...seconds.slice(0,2)];
+    while(q.length<8) q.push({teamId:null});
+    q.sort(rank);
+    const s=q.map(x=>x.teamId??null);
+    return mk([{home:s[0],away:s[7]},{home:s[1],away:s[6]},{home:s[2],away:s[5]},{home:s[3],away:s[4]}]);
+  }
+  const all=[]; for(const g of gids) all.push(...(st[g]||[]));
+  all.sort((a,b)=> (b.sw-a.sw)||(b.pts-a.pts)||(b.gd-a.gd)||(b.gf-a.gf));
+  const s=pad(all.slice(0,8).map(x=>x.teamId??null),8);
+  return mk([{home:s[0],away:s[7]},{home:s[1],away:s[6]},{home:s[2],away:s[5]},{home:s[3],away:s[4]}]);
+}
+function pickWinner(m){
+  if(!m) return null;
+  if(m.home&&!m.away) return m.home;
+  if(!m.home&&m.away) return m.away;
+  if(Number.isFinite(m.hs)&&Number.isFinite(m.as)){
+    if(m.hs>m.as) return m.home;
+    if(m.as>m.hs) return m.away;
+  }
+  return null;
+}
+function pickLoser(m){ const w=pickWinner(m); if(!w) return null; return w===m.home ? (m.away||null) : (m.home||null); }
+function propagate(br){
+  const wQF=br.qf.map(pickWinner);
+  br.sf[0].home=wQF[0]; br.sf[0].away=wQF[3];
+  br.sf[1].home=wQF[1]; br.sf[1].away=wQF[2];
+  const wSF=br.sf.map(pickWinner), lSF=br.sf.map(pickLoser);
+  br.fin[0].home=wSF[0]; br.fin[0].away=wSF[1];
+  br.third[0].home=lSF[0]; br.third[0].away=lSF[1];
+}
+
+/* ===== Team Wizard ===== */
+let tmMode='add';
+let tmEditId=null;
+let tmLogoDataUrl=null;
+
+function tmOpen({prefillName='', mode='add', editId=null}={}){
+  tmMode=mode; tmEditId=editId; tmLogoDataUrl=null;
+
+  $('#tmTitle').textContent = (mode==='edit') ? 'Rediģēt komandu' : 'Pievienot komandu';
+  $('#tmSub').textContent = (mode==='edit')
+    ? 'Maini nosaukumu/logo. Saglabā un turpini.'
+    : 'Ievadi nosaukumu un (ja gribi) pievieno logo. Pēc saglabāšanas varēsi uzreiz ievadīt nākamo.';
+
+  const existing = (mode==='edit' && editId) ? state.teams.find(t=>t.id===editId) : null;
+
+  $('#tmName').value = existing ? (existing.name||'') : (prefillName||'');
+  tmLogoDataUrl = existing ? (existing.logo||null) : null;
+
+  $('#tmFile').value = '';
+  $('#tmPreviewName').textContent = $('#tmName').value.trim() || '—';
+  $('#tmPreviewImg').src = tmLogoDataUrl || PLACEHOLDER_LOGO;
+
+  $('#tmBackdrop').classList.add('open');
+  $('#tm').classList.add('open');
+  $('#tm').setAttribute('aria-hidden','false');
+
+  setTimeout(()=>$('#tmName').focus(), 30);
+  document.addEventListener('keydown', tmKeyHandler, {capture:true});
+}
+function tmClose(){
+  $('#tmBackdrop').classList.remove('open');
+  $('#tm').classList.remove('open');
+  $('#tm').setAttribute('aria-hidden','true');
+  tmMode='add'; tmEditId=null; tmLogoDataUrl=null;
+  document.removeEventListener('keydown', tmKeyHandler, {capture:true});
+}
+function tmKeyHandler(e){
+  if(!$('#tm').classList.contains('open')) return;
+  if(e.key==='Escape'){ e.preventDefault(); tmClose(); sfx.click(); return; }
+  if(e.key==='Enter'){ e.preventDefault(); tmSave({keepOpen:true}); }
+}
+function tmResetForNext(){
+  tmMode='add'; tmEditId=null; tmLogoDataUrl=null;
+  $('#tmTitle').textContent='Pievienot komandu';
+  $('#tmName').value='';
+  $('#tmFile').value='';
+  $('#tmPreviewName').textContent='—';
+  $('#tmPreviewImg').src=PLACEHOLDER_LOGO;
+  setTimeout(()=>$('#tmName').focus(), 30);
+}
+function tmSave({keepOpen=true}={}){
+  const name = $('#tmName').value.trim();
+  if(!name){ toast('Ievadi komandas nosaukumu.'); return false; }
+
+  const same = state.teams.find(t=>t.name?.trim().toLowerCase()===name.toLowerCase() && t.id!==tmEditId);
+  if(same){ toast('Šāds nosaukums jau ir sarakstā.'); return false; }
+
+  if(tmMode==='edit' && tmEditId){
+    const t = state.teams.find(x=>x.id===tmEditId);
+    if(!t){ toast('Kļūda: komanda nav atrasta.'); return false; }
+    t.name = name;
+    t.logo = tmLogoDataUrl || null;
+  }else{
+    state.teams.push({ id: uid(), name, logo: tmLogoDataUrl || null });
+  }
+
+  saveState(state);
+  renderTeamList();
+  updateGroupOptions();
+
+  // If tournament already generated, results might now be inconsistent visually, so warn
+  if(getSeasons().length){
+    toast('Komandu saraksts mainīts. Ja vajag, pārģenerē grupas.', 3200);
+  }else{
+    sfx.success();
+  }
+
+  if(keepOpen) tmResetForNext();
+  else tmClose();
+  return true;
+}
+
+/* Team wizard bindings */
+$('#tmBackdrop').addEventListener('click', ()=>{ tmClose(); sfx.click(); });
+$('#tmCloseBtn').addEventListener('click', ()=>{ tmClose(); sfx.click(); });
+$('#tmName').addEventListener('input', ()=>{ $('#tmPreviewName').textContent = $('#tmName').value.trim() || '—'; });
+$('#tmFile').addEventListener('change', async ()=>{
+  const f = $('#tmFile').files && $('#tmFile').files[0];
+  if(!f) return;
+  if(!f.type.startsWith('image/')){ toast('Lūdzu izvēlies attēla failu.'); $('#tmFile').value=''; return; }
+  if(f.size > 15*1024*1024){ toast('Attēls par lielu (max ~15MB).'); $('#tmFile').value=''; return; }
+  try{
+    tmLogoDataUrl = await fileToCompressedDataUrl(f, {maxSide:256, quality:0.78});
+    $('#tmPreviewImg').src = tmLogoDataUrl;
+    sfx.click();
+  }catch(e){
+    console.error(e);
+    toast('Neizdevās apstrādāt attēlu.');
+  }
+});
+$('#tmSaveNextBtn').addEventListener('click', ()=>{ tmSave({keepOpen:true}); });
+$('#tmSaveCloseBtn').addEventListener('click', ()=>{ tmSave({keepOpen:false}); });
+
+/* ===== Team list UI ===== */
+function renderTeamList(){
+  const host = $('#teamList');
+  host.innerHTML = '';
+  const count = state.teams.length;
+  $('#teamCountPill').textContent = `${count} komandas`;
+
+  if(count===0){
+    const empty=document.createElement('div');
+    empty.className='muted';
+    empty.textContent='Nav pievienotu komandu. Ievadi nosaukumu un spied “Pievienot”.';
+    host.appendChild(empty);
+    return;
+  }
+
+  state.teams.forEach((t, idx)=>{
+    const item=document.createElement('div');
+    item.className='team-item';
+    item.innerHTML=`
+      <div class="left">
+        <img class="logo logo--lg" alt="logo" src="${t.logo || PLACEHOLDER_LOGO}">
+        <div style="min-width:0">
+          <div class="name">${escapeHtml(t.name)}</div>
+          <div class="muted tnum">#${idx+1}</div>
+        </div>
+      </div>
+      <div class="row" style="gap:8px">
+        <button type="button" class="btn" data-edit="${t.id}">Edit</button>
+        <button type="button" class="btn" data-del="${t.id}">Dzēst</button>
+      </div>
+    `;
+    host.appendChild(item);
+  });
+
+  // handlers
+  $$('[data-edit]', host).forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const id=b.dataset.edit;
+      const t=state.teams.find(x=>x.id===id);
+      if(!t) return;
+      tmOpen({mode:'edit', editId:id});
+      sfx.click();
+    });
+  });
+  $$('[data-del]', host).forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const id=b.dataset.del;
+      const t=state.teams.find(x=>x.id===id);
+      if(!t) return;
+      if(!confirm(`Dzēst komandu "${t.name}"?`)) return;
+      state.teams = state.teams.filter(x=>x.id!==id);
+      saveState(state);
+      renderTeamList();
+      updateGroupOptions();
+      sfx.click();
+    });
+  });
+}
+
+/* Quick add */
+$('#addTeamBtn').addEventListener('click', ()=>{
+  const name = $('#teamQuick').value.trim();
+  tmOpen({prefillName:name, mode:'add'});
+  $('#teamQuick').value='';
+  sfx.click();
+});
+$('#teamQuick').addEventListener('keydown', (e)=>{
+  if(e.key==='Enter'){
+    e.preventDefault();
+    $('#addTeamBtn').click();
+  }
+});
+
+/* ===== Series N modal ===== */
+function snOpen(){
+  $('#snN').value='';
+  $('#snBackdrop').classList.add('open');
+  $('#sn').classList.add('open');
+  $('#sn').setAttribute('aria-hidden','false');
+  setTimeout(()=>$('#snN').focus(), 30);
+}
+function snClose(){
+  $('#snBackdrop').classList.remove('open');
+  $('#sn').classList.remove('open');
+  $('#sn').setAttribute('aria-hidden','true');
+}
+$('#snBackdrop').addEventListener('click', ()=>{ snClose(); sfx.click(); });
+$('#snCloseBtn').addEventListener('click', ()=>{ snClose(); sfx.click(); });
+$('#snSetBtn').addEventListener('click', ()=>{
+  const n = parseInt($('#snN').value,10);
+  if(!Number.isFinite(n) || n<1 || n>9){ toast('Ievadi N (1..9).'); return; }
+  if(getTargetWins()!=null){ toast('N jau ir iestatīts.'); snClose(); return; }
+  setTargetWins(n);
+  saveState(state);
+  snClose();
+  toast(`Series mērķis iestatīts: first to ${n} wins.`, 2800);
+  renderSeasonPanel();
+  // After setting N, immediately generate the next season (as per your flow)
+  createNextSeason();
+});
+
+/* ===== UI helpers & hooks ===== */
+function updateGroupOptions(){
+  const n = state.teams.length;
+  const optN1=$('#groupStrategy').querySelector('option[value="n1"]');
+  if(n>6){ optN1.disabled=true; optN1.title='1 grupa atļauta tikai ja ≤6 komandas'; }
+  else { optN1.disabled=false; optN1.title=''; }
+}
+
+/* ===== Season generation / Next season ===== */
+function createSeasonFromGroups(groups, index){
+  return { index, groups: JSON.parse(JSON.stringify(groups)) };
+}
+function buildNextSeasonSchedule(seasons, targetWins){
+  const base = seasons[0]?.groups || [];
+  const wins = getPairWinsFromSeasons(seasons);
+  const nextGroups = [];
+
+  for(const baseG of base){
+    const gid=baseG.id;
+    const teams=baseG.teams.slice();
+    const activePairs = new Set();
+
+    for(let i=0;i<teams.length;i++){
+      for(let j=i+1;j<teams.length;j++){
+        const a=teams[i], b=teams[j];
+        const x=a<b?a:b, y=a<b?b:a;
+        const key = seriesPairKey(gid,x,y);
+        const rec = wins.get(key) || {a:x,b:y,wA:0,wB:0};
+        if(rec.wA<targetWins && rec.wB<targetWins){
+          activePairs.add(`${x}|${y}`);
+        }
+      }
+    }
+
+    // generate RR and filter
+    const rr = generateRR(teams);
+    const matches = rr
+      .filter(p=>{
+        const x=p.home<p.away?p.home:p.away, y=p.home<p.away?p.away:p.home;
+        return activePairs.has(`${x}|${y}`);
+      })
+      .map(p=>({id:uid(), round:p.round, home:p.home, away:p.away, hs:null, as:null, ot:false}));
+
+    nextGroups.push({ id: gid, teams, matches });
+  }
+  return nextGroups;
+}
+function createNextSeason(){
+  const seasons=getSeasons();
+  if(!seasons.length){ toast('Vispirms jāģenerē grupas.'); return; }
+  const cur = seasons[seasons.length-1];
+  if(!seasonComplete(cur)){ toast('Nākamā sezona parādās tikai, kad aktuālā sezona ir pilnībā izspēlēta.'); return; }
+
+  const target=getTargetWins();
+  if(target==null){
+    snOpen(); // will set N and then call createNextSeason again via snSetBtn handler
+    return;
+  }
+  if(!anyActivePairsRemain(seasons, target)){
+    toast('Visas sērijas jau ir pabeigtas (vairs nav aktīvu pāru).', 3200);
+    renderSeasonPanel();
+    return;
+  }
+
+  const nextGroups = buildNextSeasonSchedule(seasons, target);
+  const nextIndex = seasons.length+1;
+  seasons.push({ index: nextIndex, groups: nextGroups });
+  setSeasons(seasons);
+
+  // recompute standings after adding empty season
+  const map=teamsMap();
+  state.standings = computeStandingsFromSeasons(getSeasons(), map, getTargetWins());
+
+  saveState(state);
+  renderSeasonPanel();
+  renderGroups();      // active season view
+  renderStandings();
+  // keep playoff always available
+  $('#playoffPanel').hidden=false;
+  sfx.success();
+}
+
+/* ===== Recalculate ===== */
+function collectPairResultPool(oldSeasons){
+  // Pool of played results from seasons>=2 per group/pair, in chronological order
+  // Stored in normalized form (a<b) with goals for a/b to apply regardless of home/away in regenerated match.
+  const pool = new Map(); // key gid::a|b -> array of {a,b,ga,gb,ot}
+  for(let s=1; s<oldSeasons.length; s++){
+    const season=oldSeasons[s];
+    for(const g of (season.groups||[])){
+      const gid=g.id;
+      for(const m of (g.matches||[])){
+        if(!m.home || !m.away) continue;
+        if(!isScored(m)) continue;
+        const a = (m.home < m.away) ? m.home : m.away;
+        const b = (m.home < m.away) ? m.away : m.home;
+        const key = seriesPairKey(gid,a,b);
+        const rec = pool.get(key) || [];
+        // normalize goals relative to a/b
+        const aGoals = (m.home===a) ? m.hs : m.as;
+        const bGoals = (m.home===a) ? m.as : m.hs;
+        rec.push({a,b,aGoals,bGoals,ot:!!m.ot});
+        pool.set(key, rec);
+      }
+    }
+  }
+  return pool;
+}
+function applyNextFromPool(pool, poolPos, gid, home, away){
+  const a = (home<away)?home:away;
+  const b = (home<away)?away:home;
+  const key = seriesPairKey(gid,a,b);
+  const arr = pool.get(key) || [];
+  const pos = poolPos.get(key) || 0;
+  if(pos>=arr.length) return null;
+  poolPos.set(key, pos+1);
+  const r = arr[pos];
+  // convert back to home/away
+  const hs = (home===r.a) ? r.aGoals : r.bGoals;
+  const as = (home===r.a) ? r.bGoals : r.aGoals;
+  return {hs,as,ot:r.ot};
+}
+function recalculateSeasons(){
+  const target=getTargetWins();
+  const seasons=getSeasons();
+  if(!seasons.length){ toast('Nav ko pārrēķināt.'); return; }
+  if(target==null){ toast('Series N nav iestatīts — Recalculate šobrīd nav vajadzīgs.'); return; }
+
+  const old=JSON.parse(JSON.stringify(seasons));
+  const base=old[0]; // keep season1 as-is (with its results)
+  const pool = collectPairResultPool(old);
+  const poolPos = new Map();
+
+  const rebuilt=[base];
+  // simulate wins from rebuilt seasons so far
+  for(let s=1; s<old.length; s++){
+    const currentWins = getPairWinsFromSeasons(rebuilt);
+    // generate schedule for incomplete pairs based on currentWins
+    const nextGroups=[];
+    for(const bg of base.groups){
+      const gid=bg.id;
+      const teams=bg.teams.slice();
+      const activePairs = new Set();
+      for(let i=0;i<teams.length;i++){
+        for(let j=i+1;j<teams.length;j++){
+          const A=teams[i], B=teams[j];
+          const x=A<B?A:B, y=A<B?B:A;
+          const key = seriesPairKey(gid,x,y);
+          const rec = currentWins.get(key) || {a:x,b:y,wA:0,wB:0};
+          if(rec.wA<target && rec.wB<target) activePairs.add(`${x}|${y}`);
+        }
+      }
+
+      const rr = generateRR(teams).filter(p=>{
+        const x=p.home<p.away?p.home:p.away, y=p.home<p.away?p.away:p.home;
+        return activePairs.has(`${x}|${y}`);
+      });
+
+      const matches = rr.map(p=>{
+        const m={id:uid(), round:p.round, home:p.home, away:p.away, hs:null, as:null, ot:false};
+        const fill = applyNextFromPool(pool, poolPos, gid, m.home, m.away);
+        if(fill){
+          m.hs=fill.hs; m.as=fill.as; m.ot=fill.ot;
+        }
+        return m;
+      });
+
+      nextGroups.push({id:gid, teams, matches});
+    }
+
+    // stop if nothing left anywhere
+    const anyMatches = nextGroups.some(g=>g.matches.length>0);
+    if(!anyMatches) break;
+
+    rebuilt.push({index: rebuilt.length+1, groups: nextGroups});
+  }
+
+  // keep existing number of seasons? (if old had more, we keep until pool exhausted / no pairs)
+  // user can generate more via Next season anyway.
+
+  setSeasons(rebuilt);
+  const map=teamsMap();
+  state.standings = computeStandingsFromSeasons(getSeasons(), map, getTargetWins());
+  saveState(state);
+
+  renderSeasonPanel();
+  renderGroups();
+  renderStandings();
+  if(state.bracket){ renderBracket(); }
+  toast('Recalculate pabeigts. Sezonas saskaņotas ar aktuālajiem rezultātiem.', 3000);
+  sfx.success();
+}
+
+/* ===== Season panel render ===== */
+function renderSeasonPanel(){
+  const seasons=getSeasons();
+  const panel=$('#seasonPanel');
+  const strip=$('#seasonStrip');
+
+  if(!seasons.length){
+    panel.hidden=true;
+    return;
+  }
+  panel.hidden=false;
+
+  const target=getTargetWins();
+  const cur=seasons[seasons.length-1];
+  const complete = seasonComplete(cur);
+  const totalSeasons = seasons.length;
+
+  $('#seriesMeta').textContent =
+    `Sezonas: ${totalSeasons} • Active: ${cur.index} • First-to: ${target ?? 'nav iestatīts'} • Current complete: ${complete ? 'YES':'NO'}`;
+
+  // Next season button shown only when current season complete (your rule)
+  $('#nextSeasonBtn').hidden = !complete;
+
+  // Build season strip
+  strip.innerHTML='';
+  const map=teamsMap();
+
+  seasons.forEach((season, sIdx)=>{
+    const card=document.createElement('div');
+    card.className='panel season-card';
+    // count played
+    let played=0, total=0;
+    for(const g of season.groups){
+      for(const m of g.matches){
+        if(!m.home || !m.away) continue;
+        total++;
+        if(isScored(m)) played++;
+      }
+    }
+    card.innerHTML=`
+      <div class="season-head">
+        <div>
+          <div class="season-title">Sezona ${season.index}</div>
+          <div class="season-sub tnum">${played}/${total} spēles ievadītas</div>
+        </div>
+        <div class="season-sub">${sIdx===seasons.length-1 ? 'ACTIVE' : ''}</div>
+      </div>
+      <div class="season-groups" id="sg_${season.index}"></div>
+    `;
+    const host=card.querySelector(`#sg_${season.index}`);
+
+    season.groups.forEach(g=>{
+      const wrap=document.createElement('div');
+      wrap.innerHTML=`
+        <div class="season-group-title">
+          <div class="row" style="gap:10px; align-items:center">
+            <span class="gid">${g.id}</span>
+            <div class="muted">Grupa ${g.id}</div>
+          </div>
+          <div class="muted tnum">${(g.matches||[]).filter(isScored).length}/${(g.matches||[]).filter(m=>m.home&&m.away).length}</div>
+        </div>
+      `;
+      // list matches
+      const list=document.createElement('div');
+      list.style.display='grid';
+      list.style.gap='8px';
+      wrap.appendChild(list);
+
+      // render matches
+      // keep order by round then id
+      const matches=[...(g.matches||[])].sort((a,b)=> (a.round-b.round) || (a.id.localeCompare(b.id)));
+      matches.forEach(m=>{
+        const hs = Number.isFinite(m.hs) ? m.hs : '–';
+        const as = Number.isFinite(m.as) ? m.as : '–';
+        const done=isScored(m);
+        const row=document.createElement('div');
+        row.className='match-row';
+        row.innerHTML=`
+          <div class="rbox tnum">R${m.round}</div>
+          <div class="teams">
+            <div class="tline">
+              <div class="tleft">
+                <img class="logo" alt="logo" src="${logoOf(m.home,map)}">
+                <div class="tname">${escapeHtml(nameOf(m.home,map))}</div>
+              </div>
+              <div class="subtag">Mājinieki</div>
+            </div>
+            <div class="tline">
+              <div class="tleft">
+                <img class="logo" alt="logo" src="${logoOf(m.away,map)}">
+                <div class="tname">${escapeHtml(nameOf(m.away,map))}</div>
+              </div>
+              <div class="subtag">Viesi</div>
+            </div>
+          </div>
+          <div class="score-pill tnum ${done?'done':''}">${hs}:${as}</div>
+          <div class="ot-pill ${m.ot?'on':''}">OT</div>
+        `;
+
+        const open=()=>{
+          mmOpen({
+            type:'group',
+            seasonIdx:sIdx,
+            gid:g.id,
+            mid:m.id,
+            homeId:m.home,
+            awayId:m.away,
+            homeName:nameOf(m.home,map),
+            awayName:nameOf(m.away,map),
+            homeLogo:logoOf(m.home,map),
+            awayLogo:logoOf(m.away,map),
+            hs:m.hs, as:m.as, ot:m.ot,
+            subtitle:`Sezona ${season.index} • Grupa ${g.id} • R${m.round} • ${nameOf(m.home,map)} vs ${nameOf(m.away,map)}`
+          });
+          sfx.click();
+        };
+        row.addEventListener('click', open);
+        row.addEventListener('keydown', (e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); open(); }});
+        row.setAttribute('role','button');
+        row.setAttribute('tabindex','0');
+        list.appendChild(row);
+      });
+
+      host.appendChild(wrap);
+    });
+
+    strip.appendChild(card);
+  });
+}
+
+/* ===== Render Active Season Groups ===== */
+function renderGroups(){
+  const host=$('#groupsHost'); host.innerHTML='';
+  const seasons=getSeasons();
+  if(!seasons.length){
+    $('#groupsPanel').hidden=true;
+    return;
+  }
+  const season=activeSeason();
+  const map=teamsMap();
+  $('#activeSeasonLabel').textContent = `Sezona ${season.index}`;
+
+  season.groups.forEach(g=>{
+    const card=document.createElement('div'); card.className='panel';
+    const rounds = [...new Set(g.matches.map(m=>m.round))].sort((a,b)=>a-b);
+
+    const scored=g.matches.filter(isScored).length;
+    const chips = g.teams.map(id=>`<span class="chip-tag">${escapeHtml(nameOf(id,map))}</span>`).join('');
+
+    card.innerHTML=`
+      <div class="group-head">
+        <div>
+          <div class="row" style="gap:10px; align-items:center">
+            <span class="gid">${g.id}</span>
+            <div>
+              <div style="font-weight:1000;font-size:18px;letter-spacing:.2px">Grupa ${g.id}</div>
+              <div class="group-meta tnum">${g.teams.length} komandas • ${scored}/${g.matches.length} spēles ievadītas</div>
+            </div>
+          </div>
+          <div class="chips">${chips}</div>
+        </div>
+        <div class="muted">Spied uz spēli, lai ievadītu</div>
+      </div>
+      <div class="group-cal" id="cal_${g.id}"></div>
+    `;
+
+    const cal = card.querySelector(`#cal_${g.id}`);
+    for(const r of rounds){
+      const rm = g.matches.filter(m=>m.round===r);
+      const doneCount = rm.filter(isScored).length;
+      const sep=document.createElement('div');
+      sep.className='round-sep';
+      sep.innerHTML=`<div>Kārta ${r}</div><div class="pill tnum">${doneCount}/${rm.length}</div>`;
+      cal.appendChild(sep);
+
+      for(const m of rm){
+        const hs = Number.isFinite(m.hs) ? m.hs : '–';
+        const as = Number.isFinite(m.as) ? m.as : '–';
+        const done = isScored(m);
+
+        const row=document.createElement('div');
+        row.className='match-row';
+        row.setAttribute('role','button');
+        row.setAttribute('tabindex','0');
+
+        row.innerHTML=`
+          <div class="rbox tnum">R${m.round}</div>
+          <div class="teams">
+            <div class="tline">
+              <div class="tleft">
+                <img class="logo" alt="logo" src="${logoOf(m.home,map)}">
+                <div class="tname">${escapeHtml(nameOf(m.home,map))}</div>
+              </div>
+              <div class="subtag">Mājinieki</div>
+            </div>
+            <div class="tline">
+              <div class="tleft">
+                <img class="logo" alt="logo" src="${logoOf(m.away,map)}">
+                <div class="tname">${escapeHtml(nameOf(m.away,map))}</div>
+              </div>
+              <div class="subtag">Viesi</div>
+            </div>
+          </div>
+          <div class="score-pill tnum ${done?'done':''}">${hs}:${as}</div>
+          <div class="ot-pill ${m.ot?'on':''}">OT</div>
+        `;
+
+        const open=()=>{
+          mmOpen({
+            type:'group',
+            seasonIdx:activeSeasonIdx(),
+            gid:g.id,
+            mid:m.id,
+            homeId:m.home,
+            awayId:m.away,
+            homeName:nameOf(m.home,map),
+            awayName:nameOf(m.away,map),
+            homeLogo:logoOf(m.home,map),
+            awayLogo:logoOf(m.away,map),
+            hs:m.hs, as:m.as, ot:m.ot,
+            subtitle:`Sezona ${season.index} • Grupa ${g.id} • R${m.round} • ${nameOf(m.home,map)} vs ${nameOf(m.away,map)}`
+          });
+          sfx.click();
+        };
+        row.addEventListener('click', open);
+        row.addEventListener('keydown', (e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); open(); }});
+        cal.appendChild(row);
+      }
+    }
+
+    host.appendChild(card);
+  });
+
+  $('#groupsPanel').hidden = false;
+}
+
+/* ===== Standings render (Series W/L + Games W/L + existing) ===== */
+function renderStandings(){
+  const host=$('#standingsHost'); host.innerHTML='';
+  const st=state.standings||{}; const gids=Object.keys(st).sort();
+  const map=teamsMap();
+
+  gids.forEach(gid=>{
+    const card=document.createElement('div'); card.className='panel';
+    card.innerHTML=`<h3>Grupa ${gid} — Stāvējums</h3>`;
+
+    const tbl=document.createElement('table'); tbl.className='standings-table tnum';
+    tbl.innerHTML=`
+    <colgroup>
+      <col style="width:var(--std-w-num)"><col>
+      <col style="width:var(--std-w-num)"><col style="width:var(--std-w-num)">
+      <col class="hide-sm" style="width:var(--std-w-num)">
+      <col style="width:var(--std-w-num)"><col style="width:var(--std-w-num)">
+      <col class="hide-sm" style="width:var(--std-w-num)"><col class="hide-sm" style="width:var(--std-w-num)"><col class="hide-sm" style="width:var(--std-w-num)">
+      <col style="width:var(--std-w-num)">
+    </colgroup>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Komanda</th>
+        <th>SW</th>
+        <th>SL</th>
+        <th class="hide-sm">Sp</th>
+        <th>GW</th>
+        <th>GL</th>
+        <th class="hide-sm">GF</th>
+        <th class="hide-sm">GA</th>
+        <th class="hide-sm">GD</th>
+        <th>P</th>
+      </tr>
+    </thead>
+    <tbody></tbody>`;
+
+    const body=$('tbody',tbl);
+    (st[gid]||[]).forEach((r,i)=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML=`
+        <td style="text-align:center">${i+1}</td>
+        <td>${badgeHTML(r.teamId, map)}</td>
+        <td style="text-align:center"><b>${r.sw}</b></td>
+        <td style="text-align:center">${r.sl}</td>
+        <td class="hide-sm" style="text-align:center">${r.played}</td>
+        <td style="text-align:center">${r.gw}</td>
+        <td style="text-align:center">${r.gl}</td>
+        <td class="hide-sm" style="text-align:center">${r.gf}</td>
+        <td class="hide-sm" style="text-align:center">${r.ga}</td>
+        <td class="hide-sm" style="text-align:center">${r.gd}</td>
+        <td style="text-align:center"><b>${r.pts}</b></td>
+      `;
+      body.appendChild(tr);
+    });
+
+    card.appendChild(tbl);
+    host.appendChild(card);
+  });
+
+  $('#standingsPanel').hidden = !gids.length;
+}
+
+/* ===== Bracket rendering (click -> match modal) ===== */
+function winnerClass(m,side){
+  if(m.home && !m.away) return side==='home'?'win':'';
+  if(!m.home && m.away) return side==='away'?'win':'';
+  if(Number.isFinite(m.hs)&&Number.isFinite(m.as)){
+    if(m.hs>m.as && side==='home') return 'win';
+    if(m.as>m.hs && side==='away') return 'win';
+  } return '';
+}
+function renderBracket(){
+  const map=teamsMap();
+  $('#qfCol').innerHTML='<h3>Ceturtdaļfināli</h3>';
+  $('#sfCol').innerHTML='<h3>Pusfināli</h3>';
+  $('#finCol').innerHTML='<h3>Fināls & 3. vieta</h3>';
+
+  const mk=(m,stage,idx)=>{
+    const el=document.createElement('div'); el.className='match';
+    const hs = Number.isFinite(m.hs) ? m.hs : '';
+    const as = Number.isFinite(m.as) ? m.as : '';
+    el.innerHTML=`
+      <div class="status">${stage} ${idx!=null?('• '+(idx+1)):""}</div>
+      <div class="team ${winnerClass(m,'home')}">
+        <span class="seed">H</span>
+        ${badgeHTML(m.home,map,{lg:false})}
+        <input class="score-in tnum" type="text" readonly value="${hs}" />
+      </div>
+      <div class="team ${winnerClass(m,'away')}" style="margin-top:8px">
+        <span class="seed">A</span>
+        ${badgeHTML(m.away,map,{lg:false})}
+        <input class="score-in tnum" type="text" readonly value="${as}" />
+      </div>
+      <div class="row" style="margin-top:8px">
+        <label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)">
+          <input class="chk" type="checkbox" ${m.ot?'checked':''} data-stage="${stage}" data-id="${m.id}" data-ot="flag" /> OT
+        </label>
+        <span class="muted" style="margin-left:auto">Spied uz spēli, lai ievadītu</span>
+      </div>
+    `;
+
+    el.addEventListener('click', (e)=>{
+      if(e.target.closest('[data-ot]')) return;
+      mmOpen({
+        type:'bracket',
+        stage,
+        id:m.id,
+        homeId:m.home,
+        awayId:m.away,
+        homeName:nameOf(m.home,map),
+        awayName:nameOf(m.away,map),
+        homeLogo:logoOf(m.home,map),
+        awayLogo:logoOf(m.away,map),
+        hs:m.hs, as:m.as, ot:m.ot,
+        subtitle:`${stage} • ${nameOf(m.home,map)} vs ${nameOf(m.away,map)}`
+      });
+      sfx.click();
+    });
+    el.setAttribute('role','button');
+    el.setAttribute('tabindex','0');
+    el.addEventListener('keydown', (e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); el.click(); }});
+    return el;
+  };
+
+  state.bracket?.qf?.forEach((m,i)=>$('#qfCol').appendChild(mk(m,'QF',i)));
+  state.bracket?.sf?.forEach((m,i)=>$('#sfCol').appendChild(mk(m,'SF',i)));
+  state.bracket?.fin?.forEach(m=>$('#finCol').appendChild(mk(m,'Final')));
+  state.bracket?.third?.forEach(m=>$('#finCol').appendChild(mk(m,'3rd')));
+
+  // OT checkbox binding
+  $$('.bracket [data-ot]').forEach(el=>{
+    el.addEventListener('change', ()=>{
+      const stage=el.dataset.stage, id=el.dataset.id;
+      const col=stage==='QF'?'qf':stage==='SF'?'sf':stage==='Final'?'fin':'third';
+      const m=state.bracket[col].find(x=>x.id===id);
+      m.ot=el.checked; sfx.click();
+      if(Number.isFinite(m.hs)&&Number.isFinite(m.as)&&m.hs===m.as){
+        toast('Neizšķirtu nav. OT gadījumā jābūt uzvaras vārtiem.');
+      }
+      propagate(state.bracket); saveState(state); renderBracket(); refreshOverallButtons();
+    });
+  });
+
+  refreshOverallButtons();
+}
+
+/* ===== Overall / Awards & PDF ===== */
+function tournamentFinished(){
+  if(!state.bracket) return false;
+  const fin=state.bracket.fin[0], third=state.bracket.third[0];
+  return !!(pickWinner(fin)&&pickWinner(third));
+}
+function refreshOverallButtons(){
+  const ready=tournamentFinished();
+  $('#overallBtn').disabled=!ready;
+  $('#downloadPdfBtn').disabled=!(ready&&state.overall);
+}
+function computeOverall(){
+  const map=Object.fromEntries(state.teams.map(t=>[t.id,t.name])), ids=Object.keys(map);
+  const stats=Object.fromEntries(ids.map(id=>[id,{teamId:id,name:map[id],played:0,wins:0,losses:0,gf:0,ga:0}]));
+  const apply=m=>{
+    if(!m||!m.home||!m.away) return;
+    if(!isScored(m)) return;
+    const hs=m.hs, as=m.as, H=stats[m.home], A=stats[m.away];
+    H.played++; A.played++;
+    H.gf+=hs; H.ga+=as;
+    A.gf+=as; A.ga+=hs;
+    if(hs>as){H.wins++;A.losses++;} else {A.wins++;H.losses++;}
+  };
+  // ALL seasons
+  for(const season of getSeasons()) for(const g of season.groups) for(const m of g.matches) apply(m);
+  // bracket
+  if(state.bracket) [...state.bracket.qf,...state.bracket.sf,...state.bracket.fin,...state.bracket.third].forEach(apply);
+
+  const arr=Object.values(stats);
+  const maxGF=Math.max(...arr.map(s=>s.gf)), maxGA=Math.max(...arr.map(s=>s.ga));
+  const topGF=arr.filter(s=>s.gf===maxGF).map(s=>s.name), topGA=arr.filter(s=>s.ga===maxGA).map(s=>s.name);
+  const winId=state.bracket?pickWinner(state.bracket.fin[0]):null, winName=winId?map[winId]:'—';
+  return { winnerName:winName, topGF, maxGF, topGA, maxGA, teamStats: arr.sort((a,b)=> (b.wins-a.wins) || ((b.gf-b.ga)-(a.gf-a.ga)) || (b.gf-a.gf) || a.name.localeCompare(b.name)) };
+}
+function renderOverall(o){
+  const awards=$('#awards'); awards.innerHTML='';
+  const card=(t,c)=>{ const d=document.createElement('div'); d.className='panel'; d.innerHTML=`<div class="muted">${t}</div><div style="font-weight:900;font-size:16px;margin-top:6px">${c}</div>`; return d; };
+  awards.appendChild(card('Turnīra uzvarētājs', o.winnerName));
+  awards.appendChild(card('Visvairāk gūtie vārti', `${o.topGF.join(', ')} (${o.maxGF})`));
+  awards.appendChild(card('Visvairāk ielaistie vārti', `${o.topGA.join(', ')} (${o.maxGA})`));
+
+  const tmap=teamsMap();
+  const host=$('#teamStatsHost'); const tbl=document.createElement('table'); tbl.className='standings-table tnum';
+  tbl.innerHTML=`<colgroup>
+    <col><col style="width:var(--std-w-num)"><col style="width:var(--std-w-num)"><col style="width:var(--std-w-num)">
+    <col style="width:var(--std-w-num)"><col style="width:var(--std-w-num)"><col style="width:var(--std-w-num)">
+  </colgroup>
+  <thead><tr><th>Komanda</th><th>Sp</th><th>U</th><th>Z</th><th>GF</th><th>GA</th><th>GD</th></tr></thead><tbody></tbody>`;
+  const body=$('tbody',tbl);
+  o.teamStats.forEach(s=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${badgeHTML(s.teamId,tmap)}</td>
+      <td style="text-align:center">${s.played}</td><td style="text-align:center">${s.wins}</td><td style="text-align:center">${s.losses}</td>
+      <td style="text-align:center">${s.gf}</td><td style="text-align:center">${s.ga}</td><td style="text-align:center">${s.gf-s.ga}</td>`;
+    body.appendChild(tr);
+  });
+  host.innerHTML=''; host.appendChild(tbl);
+}
+
+function imgFormatFromDataUrl(dataUrl){
+  if(!dataUrl) return 'JPEG';
+  const m = /^data:image\/(png|jpeg|jpg);/i.exec(dataUrl);
+  if(!m) return 'JPEG';
+  const t = m[1].toLowerCase();
+  return (t==='png') ? 'PNG' : 'JPEG';
+}
+
+$('#overallBtn').addEventListener('click', ()=>{
+  if(!tournamentFinished()){ toast('Kopsavilkums pieejams pēc fināla un 3. vietas spēles.'); return; }
+  state.overall=computeOverall(); saveState(state); renderOverall(state.overall);
+  $('#statsPanel').hidden=false; $('#downloadPdfBtn').disabled=false; sfx.success();
+});
+
+$('#downloadPdfBtn').addEventListener('click', ()=>{
+  if(!state.overall){ toast('Vispirms ģenerē kopsavilkumu.'); return; }
+  try{
+    const { jsPDF } = window.jspdf;
+    const doc=new jsPDF({unit:'pt',format:'a4'});
+    const margin=36, lineH=18, pageW=doc.internal.pageSize.getWidth();
+
+    const title = state.name ? `Turnīra kopsavilkums — ${state.name}` : 'Turnīra kopsavilkums';
+    doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.text(title, margin, 52);
+    doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.text(`Datums: ${todayStamp()}`, pageW - margin - 140, 52);
+
+    const y0=78;
+    doc.text(`Uzvarētājs: ${state.overall.winnerName}`, margin, y0);
+    doc.text(`Visvairāk gūtie vārti: ${state.overall.topGF.join(', ')} (${state.overall.maxGF})`, margin, y0+lineH);
+    doc.text(`Visvairāk ielaistie vārti: ${state.overall.topGA.join(', ')} (${state.overall.maxGA})`, margin, y0+lineH*2);
+
+    const teamMap=teamsMap();
+    const rows = state.overall.teamStats.map(s=>({
+      teamId:s.teamId, name:s.name, Sp:s.played, U:s.wins, Z:s.losses, GF:s.gf, GA:s.ga, GD:(s.gf-s.ga)
+    }));
+
+    doc.autoTable({
+      startY: y0+lineH*3+10,
+      head: [['', 'Komanda','Sp','U','Z','GF','GA','GD']],
+      body: rows.map(r=>['', r.name, r.Sp, r.U, r.Z, r.GF, r.GA, r.GD]),
+      styles:{font:'helvetica',fontSize:10,cellPadding:4, valign:'middle'},
+      headStyles:{fillColor:[124,92,255],textColor:255},
+      alternateRowStyles:{fillColor:[245,245,248]},
+      margin:{left:margin,right:margin},
+      columnStyles:{ 0:{cellWidth:28}, 1:{cellWidth:'auto'} },
+      didDrawCell: (data)=>{
+        if(data.section!=='body') return;
+        if(data.column.index!==0) return;
+        const rowIndex = data.row.index;
+        const teamId = rows[rowIndex]?.teamId;
+        const logo = teamId ? (teamMap[teamId]?.logo || null) : null;
+        const src = logo || PLACEHOLDER_LOGO;
+        const fmt = imgFormatFromDataUrl(src);
+
+        const x = data.cell.x + 5;
+        const y = data.cell.y + 3;
+        const size = 18;
+        try{ doc.addImage(src, fmt, x, y, size, size); }catch(e){ /* ignore */ }
+      }
+    });
+
+    const fname=`${slugify(state.name)}_${todayStamp()}_kopsavilkums.pdf`;
+    doc.save(fname);
+    sfx.success();
+  }catch(e){
+    console.error(e);
+    toast('Neizdevās ģenerēt PDF.');
+  }
+});
+
+/* ===== Match Modal (both scores + OT) ===== */
+let mmCtx=null;                 // {type:'group'|'bracket', ...}
+let mmActive='home';            // 'home' | 'away'
+let mmBuf={home:'', away:''};   // strings
+
+function mmOpen(ctx){
+  if(!ctx.homeId || !ctx.awayId){
+    toast('BYE — šai spēlei rezultātu nevajag ievadīt.');
+    return;
+  }
+  mmCtx=ctx;
+  mmActive='home';
+  mmBuf.home = Number.isFinite(ctx.hs) ? String(ctx.hs) : '';
+  mmBuf.away = Number.isFinite(ctx.as) ? String(ctx.as) : '';
+
+  $('#mmTitle').textContent = 'Ievadi rezultātu';
+  $('#mmSub').textContent = ctx.subtitle || '';
+
+  $('#mmHomeName').textContent = ctx.homeName || '—';
+  $('#mmAwayName').textContent = ctx.awayName || '—';
+  $('#mmHomeLogo').src = ctx.homeLogo || PLACEHOLDER_LOGO;
+  $('#mmAwayLogo').src = ctx.awayLogo || PLACEHOLDER_LOGO;
+
+  $('#mmOt').checked = !!ctx.ot;
+  $('#mmOtHint').textContent = ctx.ot ? 'ON' : 'OFF';
+
+  setActiveSide('home');
+  mmRender();
+
+  $('#mmBackdrop').classList.add('open');
+  $('#mm').classList.add('open');
+  $('#mm').setAttribute('aria-hidden','false');
+
+  document.addEventListener('keydown', mmKeyHandler, {capture:true});
+}
+function mmClose(){
+  $('#mmBackdrop').classList.remove('open');
+  $('#mm').classList.remove('open');
+  $('#mm').setAttribute('aria-hidden','true');
+  mmCtx=null; mmActive='home'; mmBuf={home:'',away:''};
+  document.removeEventListener('keydown', mmKeyHandler, {capture:true});
+}
+function setActiveSide(side){
+  mmActive = side;
+  $('#mmHomeBtn').classList.toggle('active', side==='home');
+  $('#mmAwayBtn').classList.toggle('active', side==='away');
+}
+function mmRender(){
+  $('#mmHomeVal').textContent = mmBuf.home==='' ? '—' : mmBuf.home;
+  $('#mmAwayVal').textContent = mmBuf.away==='' ? '—' : mmBuf.away;
+  $('#mmOtHint').textContent = $('#mmOt').checked ? 'ON' : 'OFF';
+}
+function mmKeyHandler(e){
+  if(!$('#mm').classList.contains('open')) return;
+  if(e.key==='Escape'){ e.preventDefault(); mmClose(); sfx.click(); return; }
+  if(/^[0-9]$/.test(e.key)){ e.preventDefault(); mmDigit(e.key); return; }
+  if(e.key==='Backspace'){ e.preventDefault(); mmBack(); return; }
+  if(e.key==='Enter'){ e.preventDefault(); mmSave(); return; }
+  if(e.key==='Tab'){
+    e.preventDefault();
+    setActiveSide(mmActive==='home'?'away':'home');
+    sfx.click();
+  }
+}
+function mmDigit(d){
+  let s = mmBuf[mmActive];
+  if(s.length>=3) return;
+  if(s==='0') s=d; else s+=d;
+  mmBuf[mmActive]=s;
+  mmRender(); sfx.click();
+}
+function mmBack(){
+  mmBuf[mmActive]=mmBuf[mmActive].slice(0,-1);
+  mmRender(); sfx.click();
+}
+function mmClearSide(){ mmBuf[mmActive]=''; mmRender(); sfx.click(); }
+function mmResetMatch(){ mmBuf.home=''; mmBuf.away=''; $('#mmOt').checked=false; mmRender(); sfx.click(); }
+function parseBuf(x){ return x==='' ? null : Math.max(0, parseInt(x,10)); }
+function mmValidate(hs,as){
+  if(Number.isFinite(hs) && Number.isFinite(as) && hs===as){
+    toast('Neizšķirtu nav. OT gadījumā ievadi uzvaras vārtus.');
+    return false;
+  }
+  return true;
+}
+function mmSave(){
+  if(!mmCtx) return;
+  const hs=parseBuf(mmBuf.home);
+  const as=parseBuf(mmBuf.away);
+  const ot=!!$('#mmOt').checked;
+
+  if(!mmValidate(hs,as)) return;
+
+  if(mmCtx.type==='group'){
+    const seasons=getSeasons();
+    const sIdx=mmCtx.seasonIdx ?? activeSeasonIdx();
+    const season=seasons[sIdx];
+    if(!season) return;
+    const G=season.groups.find(g=>g.id===mmCtx.gid); if(!G) return;
+    const M=G.matches.find(m=>m.id===mmCtx.mid); if(!M) return;
+
+    M.hs=hs; M.as=as; M.ot=ot;
+
+    // recompute standings
+    const map=teamsMap();
+    state.standings = computeStandingsFromSeasons(getSeasons(), map, getTargetWins());
+    saveState(state);
+
+    renderSeasonPanel();
+    renderGroups();
+    renderStandings();
+
+    // if edited an older season - recommend recalc
+    if(sIdx < activeSeasonIdx() && getTargetWins()!=null){
+      toast('Mainīts vecāks rezultāts — spied Recalculate, lai sakārtotu sezonu ģenerāciju.', 3400);
+    }
+
+    sfx.score();
+    mmClose();
+    return;
+  }
+
+  if(mmCtx.type==='bracket'){
+    if(!state.bracket) return;
+    const col=mmCtx.stage==='QF'?'qf':mmCtx.stage==='SF'?'sf':mmCtx.stage==='Final'?'fin':'third';
+    const M=state.bracket[col].find(x=>x.id===mmCtx.id); if(!M) return;
+    M.hs=hs; M.as=as; M.ot=ot;
+
+    propagate(state.bracket);
+    state.overall=null;
+    saveState(state);
+    renderBracket();
+    refreshOverallButtons();
+    $('#statsPanel').hidden=true;
+    $('#downloadPdfBtn').disabled=true;
+    sfx.score();
+    mmClose();
+    return;
+  }
+}
+
+/* Modal bindings */
+$('#mmBackdrop').addEventListener('click', ()=>{ mmClose(); sfx.click(); });
+$('#mmCloseBtn').addEventListener('click', ()=>{ mmClose(); sfx.click(); });
+$('#mmHomeBtn').addEventListener('click', ()=>{ setActiveSide('home'); sfx.click(); });
+$('#mmAwayBtn').addEventListener('click', ()=>{ setActiveSide('away'); sfx.click(); });
+$('#mmOt').addEventListener('change', ()=>{ mmRender(); sfx.click(); });
+$('#mmSaveBtn').addEventListener('click', ()=>{ mmSave(); });
+$('#mmResetMatchBtn').addEventListener('click', ()=>{ mmResetMatch(); });
+$('#mmPad').addEventListener('click', (e)=>{
+  const b=e.target.closest('button[data-k]'); if(!b) return;
+  const k=b.dataset.k;
+  if(/^\d$/.test(k)) mmDigit(k);
+  else if(k==='bs') mmBack();
+  else if(k==='clr') mmClearSide();
+});
+
+/* ===== Season panel buttons ===== */
+$('#nextSeasonBtn').addEventListener('click', ()=>createNextSeason());
+$('#recalcBtn').addEventListener('click', ()=>recalculateSeasons());
+
+/* ===== Generate groups (Season 1) ===== */
+$('#genGroups').addEventListener('click', ()=>{
+  const name=$('#tName').value.trim();
+  if(state.teams.length<2){ toast('Pievieno vismaz 2 komandas.'); return; }
+  if($('#groupStrategy').value==='n1' && state.teams.length>6){
+    toast('“1 grupa” atļauta tikai, ja ≤6 komandas. Pārslēdzu uz automātisku (2/4/6).');
+    $('#groupStrategy').value='auto';
+  }
+
+  // If re-generating, confirm
+  if(getSeasons().length){
+    const ok = confirm('Pārgenerēt grupas? Esošie rezultāti + sezonas tiks notīrīti.');
+    if(!ok) return;
+  }
+
+  state.name=name;
+  state.bracket=null;
+  state.overall=null;
+
+  // reset series
+  state.series.targetWins=null;
+  const groups = makeGroups(state.teams, $('#groupStrategy').value);
+  setSeasons([{ index:1, groups }]);
+
+  const map=teamsMap();
+  state.standings = computeStandingsFromSeasons(getSeasons(), map, getTargetWins());
+
+  saveState(state);
+  $('#brandTitle').textContent = state.name || 'Turnīru Aplikācija';
+
+  renderSeasonPanel();
+  renderGroups();
+  renderStandings();
+
+  $('#playoffPanel').hidden=false;
+  $('#groupsPanel').hidden=false;
+  $('#seasonPanel').hidden=false;
+  $('#standingsPanel').hidden=false;
+  $('#statsPanel').hidden=true;
+  $('#downloadPdfBtn').disabled=true;
+
+  sfx.success();
+});
+
+/* ===== Build bracket (always allowed after standings exist) ===== */
+$('#buildBracket').addEventListener('click', ()=>{
+  if(!getSeasons().length){ toast('Vispirms ģenerē grupas.'); return; }
+  state.bracket = buildBracketFromStandings(state.standings);
+  propagate(state.bracket);
+  state.overall=null;
+
+  saveState(state);
+  renderBracket();
+
+  $('#statsPanel').hidden=true;
+  $('#downloadPdfBtn').disabled=true;
+  sfx.success();
+});
+
+/* ===== Export / Import ===== */
+$('#exportBtn').addEventListener('click', ()=>{
+  const data='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(state,null,2));
+  const a=document.createElement('a');
+  a.href=data;
+  a.download=(slugify(state.name)||'tournament')+'.json';
+  a.click();
+  sfx.click();
+});
+
+function migrateLoadedState(obj){
+  const s=Object.assign({name:'',teams:[],series:{targetWins:null,seasons:[]},standings:{},bracket:null,overall:null}, obj);
+
+  // backward compat:
+  // if old state had "groups" directly (rare in your current file), wrap into series.seasons
+  if(!s.series) s.series={targetWins:null,seasons:[]};
+  if(!Array.isArray(s.series.seasons)) s.series.seasons=[];
+
+  // normalize teams
+  if(!Array.isArray(s.teams)) s.teams=[];
+  s.teams = s.teams.map(t=>({id:t.id||uid(), name:t.name||'?', logo:t.logo||null}));
+
+  // if no seasons but legacy "groups" exists:
+  if(s.series.seasons.length===0 && Array.isArray(obj.groups) && obj.groups.length){
+    s.series.seasons=[{index:1, groups: obj.groups}];
+  }
+
+  // ensure season indices
+  s.series.seasons = s.series.seasons.map((se,i)=>({
+    index: se.index || (i+1),
+    groups: se.groups || []
+  }));
+
+  // recompute standings for consistency
+  const map = Object.fromEntries(s.teams.map(t=>[t.id,t]));
+  s.standings = computeStandingsFromSeasons(s.series.seasons, map, s.series.targetWins);
+
+  return s;
+}
+
+$('#importBtn').addEventListener('click', async ()=>{
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json';
+  inp.onchange=async ()=>{
+    const f=inp.files[0]; if(!f) return;
+    try{
+      const txt=await f.text();
+      const obj=JSON.parse(txt);
+
+      state = migrateLoadedState(obj);
+      saveState(state);
+
+      $('#tName').value=state.name||'';
+      $('#brandTitle').textContent = state.name || 'Turnīru Aplikācija';
+
+      renderTeamList();
+      updateGroupOptions();
+      renderSeasonPanel();
+      renderGroups();
+      renderStandings();
+      if(state.bracket){ renderBracket(); $('#playoffPanel').hidden=false } else $('#playoffPanel').hidden = (getSeasons().length===0);
+      if(state.overall){ renderOverall(state.overall); $('#statsPanel').hidden=false; $('#downloadPdfBtn').disabled=false } else $('#statsPanel').hidden=true;
+
+      $('#groupsPanel').hidden = (getSeasons().length===0);
+      $('#seasonPanel').hidden = (getSeasons().length===0);
+      $('#standingsPanel').hidden = (Object.keys(state.standings||{}).length===0);
+
+      sfx.success();
+    }catch(e){
+      console.error(e);
+      toast('Neizdevās importēt.');
+    }
+  };
+  inp.click();
+});
+
+$('#resetBtn').addEventListener('click', ()=>{
+  if(!confirm('Tiešām notīrīt turnīru?')) return;
+  clearState();
+  state={name:'',teams:[],series:{targetWins:null,seasons:[]},standings:{},bracket:null,overall:null};
+
+  $('#tName').value='';
+  $('#brandTitle').textContent='Turnīru Aplikācija';
+
+  renderTeamList();
+  updateGroupOptions();
+
+  $('#groupsHost').innerHTML='';
+  $('#seasonStrip').innerHTML='';
+  $('#standingsHost').innerHTML='';
+  $('#qfCol').innerHTML='<h3>Ceturtdaļfināli</h3>';
+  $('#sfCol').innerHTML='<h3>Pusfināli</h3>';
+  $('#finCol').innerHTML='<h3>Fināls & 3. vieta</h3>';
+
+  $('#groupsPanel').hidden=true;
+  $('#seasonPanel').hidden=true;
+  $('#standingsPanel').hidden=true;
+  $('#playoffPanel').hidden=true;
+  $('#statsPanel').hidden=true;
+
+  $('#downloadPdfBtn').disabled=true;
+  $('#overallBtn').disabled=true;
+
+  sfx.click();
+});
+
+/* ===== Boot ===== */
+(function boot(){
+  $('#soundIcon').textContent = soundOn ? '🔊' : '🔇';
+
+  const saved=loadState();
+  if(saved){
+    state = migrateLoadedState(saved);
+
+    $('#tName').value=state.name||'';
+    $('#brandTitle').textContent = state.name || 'Turnīru Aplikācija';
+
+    renderTeamList();
+    updateGroupOptions();
+
+    renderSeasonPanel();
+    renderGroups();
+    renderStandings();
+
+    if(state.bracket){ renderBracket(); $('#playoffPanel').hidden=false }
+    else $('#playoffPanel').hidden = (getSeasons().length===0);
+
+    if(state.overall){ renderOverall(state.overall); $('#statsPanel').hidden=false; $('#downloadPdfBtn').disabled=false }
+    else $('#statsPanel').hidden=true;
+
+    $('#groupsPanel').hidden = (getSeasons().length===0);
+    $('#seasonPanel').hidden = (getSeasons().length===0);
+    $('#standingsPanel').hidden = (Object.keys(state.standings||{}).length===0);
+  }else{
+    renderTeamList();
+    updateGroupOptions();
+  }
+})();
+</script>
+</body>
+</html>
