@@ -736,16 +736,43 @@
     }
 
     .protocol-wrap {
-      margin-top: 32px;
+      margin-top: 22px;
       display: grid;
       gap: 22px;
       max-width: 760px;
     }
 
-    .hold-button {
+    .protocol-arena {
       position: relative;
-      width: min(520px, 100%);
-      min-height: 110px;
+      width: 100%;
+      min-height: 330px;
+      border: 1px solid rgba(155,92,255,0.26);
+      border-radius: 26px;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(155,92,255,0.14), transparent 62%),
+        rgba(0,0,0,0.22);
+      overflow: hidden;
+      box-shadow: inset 0 0 32px rgba(155,92,255,0.06);
+    }
+
+    .protocol-arena::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, transparent 49%, rgba(0,229,255,0.09) 50%, transparent 51%),
+        linear-gradient(0deg, transparent 49%, rgba(0,255,157,0.07) 50%, transparent 51%);
+      background-size: 48px 48px;
+      opacity: 0.42;
+      pointer-events: none;
+    }
+
+    .hold-button {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: min(420px, calc(100% - 34px));
+      min-height: 104px;
       border-radius: 28px;
       border: 1px solid rgba(255,43,214,0.62);
       background:
@@ -765,6 +792,13 @@
       user-select: none;
       -webkit-user-select: none;
       touch-action: none;
+      transform: translate(-50%, -50%) rotate(0deg);
+      transition:
+        left 115ms cubic-bezier(.03,.98,.02,1),
+        top 115ms cubic-bezier(.03,.98,.02,1),
+        transform 115ms cubic-bezier(.03,.98,.02,1),
+        border-color 120ms ease,
+        box-shadow 120ms ease;
     }
 
     .hold-button::before {
@@ -806,6 +840,29 @@
         inset 0 0 28px rgba(0,255,157,0.1);
     }
 
+    .hold-button.evading {
+      animation: evadeBurst 180ms steps(2, end) both;
+    }
+
+    @keyframes evadeBurst {
+      0% {
+        filter: blur(0);
+        box-shadow:
+          0 0 42px rgba(0,255,157,0.22),
+          inset 0 0 28px rgba(0,255,157,0.1);
+      }
+      45% {
+        filter: blur(2px);
+        box-shadow:
+          0 0 58px rgba(255,43,214,0.38),
+          0 0 84px rgba(0,229,255,0.25),
+          inset 0 0 38px rgba(255,43,214,0.15);
+      }
+      100% {
+        filter: blur(0);
+      }
+    }
+
     .hold-button.failed {
       animation: shake 340ms ease;
       border-color: rgba(255,59,59,0.86);
@@ -827,6 +884,62 @@
     .protocol-status strong {
       color: var(--pink);
     }
+
+    .fail-splash {
+      position: fixed;
+      inset: 0;
+      z-index: 45;
+      display: none;
+      place-items: center;
+      pointer-events: none;
+      background:
+        radial-gradient(circle, rgba(255,43,214,0.24), transparent 38%),
+        rgba(0,0,0,0.58);
+      backdrop-filter: blur(4px);
+    }
+
+    .fail-splash.show {
+      display: grid;
+      animation: failBackdrop 980ms ease both;
+    }
+
+    @keyframes failBackdrop {
+      0% { opacity: 0; }
+      12% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    .fail-splash-inner {
+      text-align: center;
+      text-transform: uppercase;
+      font-weight: 950;
+      letter-spacing: -0.06em;
+      font-size: clamp(54px, 12vw, 152px);
+      line-height: 0.82;
+      color: var(--pink);
+      text-shadow:
+        0 0 18px rgba(255,43,214,0.95),
+        6px 0 0 rgba(0,229,255,0.75),
+        -6px 0 0 rgba(0,255,157,0.65);
+      animation: failText 900ms steps(2, end) both;
+    }
+
+    .fail-splash-inner small {
+      display: block;
+      margin-top: 24px;
+      font-size: clamp(56px, 11vw, 136px);
+      letter-spacing: 0;
+      filter: drop-shadow(0 0 18px rgba(255,255,255,0.35));
+    }
+
+    @keyframes failText {
+      0% { transform: scale(0.88) rotate(-2deg); opacity: 0; }
+      12% { transform: scale(1.05) rotate(2deg); opacity: 1; }
+      35% { transform: scale(1) translateX(-10px) skewX(-6deg); }
+      55% { transform: scale(1.04) translateX(8px) skewX(6deg); }
+      100% { transform: scale(0.9) rotate(-1deg); opacity: 0; }
+    }
+
 
     .overlay-message {
       position: fixed;
@@ -1048,7 +1161,11 @@
       }
 
       .hold-button {
-        min-height: 96px;
+        min-height: 92px;
+      }
+
+      .protocol-arena {
+        min-height: 300px;
       }
     }
   </style>
@@ -1070,6 +1187,13 @@
   </div>
 
   <div class="confetti" id="confetti"></div>
+
+  <div class="fail-splash" id="failSplash" aria-hidden="true">
+    <div class="fail-splash-inner">
+      HA, WEAK!!!
+      <small>🖕</small>
+    </div>
+  </div>
 
   <main class="app">
     <section class="screen" id="startScreen">
@@ -1310,16 +1434,12 @@
         <span class="accent">protocol</span>
       </h2>
 
-      <p class="lead">
-        Artūrs ir sasniedzis 31. līmeni, bet sistēma pieprasa pēdējo apstiprinājumu.
-        
-        .
-      </p>
-
       <div class="protocol-wrap">
-        <button class="hold-button" id="holdButton" type="button" aria-label="Hold to activate">
-          <span>Hold to activate protocol</span>
-        </button>
+        <div class="protocol-arena" id="protocolArena">
+          <button class="hold-button" id="holdButton" type="button" aria-label="Hold to activate">
+            <span>Hold to activate protocol</span>
+          </button>
+        </div>
 
         <div class="protocol-status" id="protocolStatus">
           <strong>&gt;</strong> Awaiting commitment...
@@ -1403,10 +1523,15 @@
       locked: false,
       holdStart: null,
       holdFrame: null,
-      holdComplete: false
+      holdComplete: false,
+      holdPointerId: null,
+      holdPointerX: 0,
+      holdPointerY: 0,
+      lastMoveStep: 0
     };
 
     const secretHoldRequiredMs = 15000;
+    const secretMoveEveryMs = 4000;
 
     const questions = [
       {
@@ -1482,7 +1607,9 @@
     const toastText = document.getElementById("toastText");
     const confettiEl = document.getElementById("confetti");
     const holdButton = document.getElementById("holdButton");
+    const protocolArena = document.getElementById("protocolArena");
     const protocolStatus = document.getElementById("protocolStatus");
+    const failSplash = document.getElementById("failSplash");
 
     document.getElementById("startBtn").addEventListener("click", startLoading);
     document.getElementById("skipIntroBtn").addEventListener("click", () => {
@@ -1496,9 +1623,9 @@
     document.getElementById("restartBtn").addEventListener("click", restart);
 
     holdButton.addEventListener("pointerdown", beginHold);
-    holdButton.addEventListener("pointerup", cancelHold);
-    holdButton.addEventListener("pointercancel", cancelHold);
-    holdButton.addEventListener("pointerleave", cancelHold);
+    window.addEventListener("pointermove", trackHoldPointer, { passive: false });
+    window.addEventListener("pointerup", releaseHold);
+    window.addEventListener("pointercancel", releaseHold);
     holdButton.addEventListener("contextmenu", event => event.preventDefault());
 
     function showScreen(name) {
@@ -1643,10 +1770,13 @@
     function resetHoldProtocol() {
       appState.holdStart = null;
       appState.holdComplete = false;
+      appState.holdPointerId = null;
+      appState.lastMoveStep = 0;
       cancelAnimationFrame(appState.holdFrame);
       appState.holdFrame = null;
       document.documentElement.style.setProperty("--hold-progress", "0%");
-      holdButton.classList.remove("holding", "failed");
+      holdButton.classList.remove("holding", "failed", "pulse", "evading");
+      moveHoldButtonToCenter();
       protocolStatus.innerHTML = "<strong>&gt;</strong> Awaiting commitment...";
     }
 
@@ -1654,19 +1784,38 @@
       if (appState.holdComplete) return;
 
       event.preventDefault();
-      holdButton.setPointerCapture(event.pointerId);
+
+      appState.holdStart = performance.now();
+      appState.holdPointerId = event.pointerId;
+      appState.holdPointerX = event.clientX;
+      appState.holdPointerY = event.clientY;
+      appState.lastMoveStep = 0;
+
       holdButton.classList.remove("failed");
       holdButton.classList.add("holding");
-      appState.holdStart = performance.now();
 
       protocolStatus.innerHTML = "<strong>&gt;</strong> Commitment detected... do not release.";
 
       updateHoldProgress();
     }
 
-    function cancelHold(event) {
+    function trackHoldPointer(event) {
+      if (!appState.holdStart || appState.holdComplete) return;
+      if (event.pointerId !== appState.holdPointerId) return;
+
+      event.preventDefault();
+      appState.holdPointerX = event.clientX;
+      appState.holdPointerY = event.clientY;
+
+      if (!isPointerInsideHoldButton()) {
+        failSecretProtocol();
+      }
+    }
+
+    function releaseHold(event) {
       if (appState.holdComplete) return;
       if (!appState.holdStart) return;
+      if (event.pointerId !== appState.holdPointerId) return;
 
       const elapsed = performance.now() - appState.holdStart;
 
@@ -1675,19 +1824,29 @@
         return;
       }
 
+      failSecretProtocol();
+    }
+
+    function failSecretProtocol() {
+      if (!appState.holdStart || appState.holdComplete) return;
+
       appState.holdStart = null;
+      appState.holdPointerId = null;
       cancelAnimationFrame(appState.holdFrame);
       appState.holdFrame = null;
 
       document.documentElement.style.setProperty("--hold-progress", "0%");
-      holdButton.classList.remove("holding");
+      holdButton.classList.remove("holding", "evading");
       holdButton.classList.add("failed");
 
-      protocolStatus.innerHTML = "<strong>&gt;</strong> Too weak. Artūrs would be disappointed. Try again.";
+      protocolStatus.innerHTML = "<strong>&gt;</strong> Try again.";
+
+      showFailSplash();
 
       setTimeout(() => {
         holdButton.classList.remove("failed");
-      }, 520);
+        moveHoldButtonToCenter();
+      }, 620);
     }
 
     function updateHoldProgress() {
@@ -1698,6 +1857,18 @@
 
       document.documentElement.style.setProperty("--hold-progress", progress + "%");
 
+      const currentStep = Math.floor(elapsed / secretMoveEveryMs);
+      if (currentStep > appState.lastMoveStep) {
+        appState.lastMoveStep = currentStep;
+        moveHoldButtonRandomly();
+
+        setTimeout(() => {
+          if (appState.holdStart && !appState.holdComplete && !isPointerInsideHoldButton()) {
+            failSecretProtocol();
+          }
+        }, 145);
+      }
+
       if (progress >= 100) {
         completeSecretProtocol();
         return;
@@ -1706,16 +1877,95 @@
       appState.holdFrame = requestAnimationFrame(updateHoldProgress);
     }
 
+    function isPointerInsideHoldButton() {
+      const rect = holdButton.getBoundingClientRect();
+      const margin = 4;
+
+      return (
+        appState.holdPointerX >= rect.left - margin &&
+        appState.holdPointerX <= rect.right + margin &&
+        appState.holdPointerY >= rect.top - margin &&
+        appState.holdPointerY <= rect.bottom + margin
+      );
+    }
+
+    function moveHoldButtonToCenter() {
+      holdButton.style.left = "50%";
+      holdButton.style.top = "50%";
+      holdButton.style.transform = "translate(-50%, -50%) rotate(0deg) scale(1)";
+    }
+
+    function moveHoldButtonRandomly() {
+      const arenaRect = protocolArena.getBoundingClientRect();
+      const buttonRect = holdButton.getBoundingClientRect();
+
+      const padding = 12;
+      const halfW = Math.min(buttonRect.width / 2, arenaRect.width / 2 - padding);
+      const halfH = Math.min(buttonRect.height / 2, arenaRect.height / 2 - padding);
+
+      const minX = halfW + padding;
+      const maxX = arenaRect.width - halfW - padding;
+      const minY = halfH + padding;
+      const maxY = arenaRect.height - halfH - padding;
+
+      const pointerX = appState.holdPointerX - arenaRect.left;
+      const pointerY = appState.holdPointerY - arenaRect.top;
+
+      const escapePoints = [
+        { x: minX, y: minY },
+        { x: maxX, y: minY },
+        { x: minX, y: maxY },
+        { x: maxX, y: maxY },
+        { x: arenaRect.width * 0.5, y: minY },
+        { x: arenaRect.width * 0.5, y: maxY },
+        { x: minX, y: arenaRect.height * 0.5 },
+        { x: maxX, y: arenaRect.height * 0.5 }
+      ];
+
+      escapePoints.sort((a, b) => {
+        const da = Math.hypot(a.x - pointerX, a.y - pointerY);
+        const db = Math.hypot(b.x - pointerX, b.y - pointerY);
+        return db - da;
+      });
+
+      const target = escapePoints[Math.floor(Math.random() * 2)];
+      const rotation = (Math.random() > 0.5 ? 1 : -1) * (520 + Math.random() * 620);
+      const scale = 0.78 + Math.random() * 0.22;
+
+      holdButton.classList.remove("evading");
+      void holdButton.offsetWidth;
+      holdButton.classList.add("evading");
+
+      holdButton.style.left = target.x + "px";
+      holdButton.style.top = target.y + "px";
+      holdButton.style.transform = `translate(-50%, -50%) rotate(${rotation}deg) scale(${scale})`;
+
+      setTimeout(() => {
+        holdButton.classList.remove("evading");
+      }, 220);
+    }
+
+    function showFailSplash() {
+      failSplash.classList.remove("show");
+      void failSplash.offsetWidth;
+      failSplash.classList.add("show");
+
+      setTimeout(() => {
+        failSplash.classList.remove("show");
+      }, 1000);
+    }
+
     function completeSecretProtocol() {
       if (appState.holdComplete) return;
 
       appState.holdComplete = true;
       appState.holdStart = null;
+      appState.holdPointerId = null;
       cancelAnimationFrame(appState.holdFrame);
       appState.holdFrame = null;
 
       document.documentElement.style.setProperty("--hold-progress", "100%");
-      holdButton.classList.remove("holding");
+      holdButton.classList.remove("holding", "evading");
       holdButton.classList.add("pulse");
       protocolStatus.innerHTML = `
         <strong>&gt;</strong> PROTOCOL ACCEPTED<br>
@@ -1760,6 +2010,8 @@
       appState.locked = false;
       appState.holdStart = null;
       appState.holdComplete = false;
+      appState.holdPointerId = null;
+      appState.lastMoveStep = 0;
       cancelAnimationFrame(appState.holdFrame);
       appState.holdFrame = null;
       document.documentElement.style.setProperty("--drink-fill", "0%");
