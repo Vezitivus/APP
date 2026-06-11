@@ -1,6 +1,4 @@
-from pathlib import Path
-
-html = r'''<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="lv">
 <head>
   <meta charset="UTF-8" />
@@ -22,6 +20,7 @@ html = r'''<!DOCTYPE html>
       --line: rgba(0, 255, 157, 0.25);
       --shadow: 0 0 24px rgba(0, 255, 157, 0.28);
       --drink-fill: 0%;
+      --hold-progress: 0%;
     }
 
     * {
@@ -322,6 +321,18 @@ html = r'''<!DOCTYPE html>
       100% { clip-path: inset(0 0 0 0); opacity: 0; }
     }
 
+    .danger-glitch {
+      animation: dangerFlash 880ms steps(2, end) infinite;
+    }
+
+    @keyframes dangerFlash {
+      0%, 100% { text-shadow: 0 0 16px rgba(255,59,59,0.75); transform: translateX(0); }
+      18% { text-shadow: -4px 0 0 rgba(0,229,255,0.85), 4px 0 0 rgba(255,43,214,0.75); transform: translateX(-2px); }
+      36% { text-shadow: 5px 0 0 rgba(255,43,214,0.75), -5px 0 0 rgba(0,255,157,0.7); transform: translateX(2px); }
+      54% { text-shadow: 0 0 22px rgba(255,59,59,0.95); transform: skewX(-4deg); }
+      72% { transform: skewX(4deg); }
+    }
+
     .lead {
       max-width: 720px;
       color: #cde9f1;
@@ -365,6 +376,9 @@ html = r'''<!DOCTYPE html>
         inset 0 0 20px rgba(0,255,157,0.07);
       transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
       overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
     }
 
     .btn::after {
@@ -410,6 +424,16 @@ html = r'''<!DOCTYPE html>
 
     .terminal span {
       color: var(--neon);
+    }
+
+    .terminal.danger {
+      border-color: rgba(255,59,59,0.45);
+      color: #ffd1d1;
+      box-shadow: inset 0 0 22px rgba(255,59,59,0.08), 0 0 30px rgba(255,59,59,0.12);
+    }
+
+    .terminal.danger span {
+      color: var(--danger);
     }
 
     .loading-box {
@@ -695,6 +719,115 @@ html = r'''<!DOCTYPE html>
       color: var(--neon);
     }
 
+    .fake-card {
+      margin-top: 28px;
+      border: 1px solid rgba(0,255,157,0.3);
+      border-radius: 22px;
+      padding: 22px;
+      background: rgba(0,255,157,0.06);
+      box-shadow: inset 0 0 25px rgba(0,255,157,0.05);
+      max-width: 760px;
+    }
+
+    .fake-card h3 {
+      color: var(--neon);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+    }
+
+    .protocol-wrap {
+      margin-top: 32px;
+      display: grid;
+      gap: 22px;
+      max-width: 760px;
+    }
+
+    .hold-button {
+      position: relative;
+      width: min(520px, 100%);
+      min-height: 110px;
+      border-radius: 28px;
+      border: 1px solid rgba(255,43,214,0.62);
+      background:
+        radial-gradient(circle at 50% 0%, rgba(255,43,214,0.2), transparent 55%),
+        linear-gradient(180deg, rgba(155,92,255,0.22), rgba(0,0,0,0.25)),
+        rgba(6, 8, 22, 0.94);
+      color: var(--text);
+      overflow: hidden;
+      cursor: pointer;
+      box-shadow:
+        0 0 34px rgba(255,43,214,0.18),
+        inset 0 0 28px rgba(155,92,255,0.1);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-weight: 950;
+      font-size: clamp(14px, 2.1vw, 18px);
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+
+    .hold-button::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      width: var(--hold-progress);
+      background: linear-gradient(90deg, rgba(0,255,157,0.26), rgba(0,229,255,0.28), rgba(255,43,214,0.18));
+      box-shadow: 0 0 24px rgba(0,255,157,0.35);
+      transition: width 80ms linear;
+    }
+
+    .hold-button::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+      transform: translateX(-120%);
+      animation: holdSweep 1.8s infinite;
+    }
+
+    @keyframes holdSweep {
+      to { transform: translateX(120%); }
+    }
+
+    .hold-button span {
+      position: relative;
+      z-index: 2;
+      display: block;
+      padding: 24px;
+      text-shadow: 0 0 14px rgba(255,255,255,0.25);
+    }
+
+    .hold-button.holding {
+      border-color: rgba(0,255,157,0.78);
+      box-shadow:
+        0 0 42px rgba(0,255,157,0.22),
+        inset 0 0 28px rgba(0,255,157,0.1);
+    }
+
+    .hold-button.failed {
+      animation: shake 340ms ease;
+      border-color: rgba(255,59,59,0.86);
+      box-shadow:
+        0 0 42px rgba(255,59,59,0.2),
+        inset 0 0 28px rgba(255,59,59,0.1);
+    }
+
+    .protocol-status {
+      border: 1px solid rgba(255,43,214,0.26);
+      background: rgba(255,43,214,0.06);
+      border-radius: 18px;
+      padding: 16px;
+      color: var(--muted);
+      font-family: "SFMono-Regular", Consolas, monospace;
+      line-height: 1.55;
+    }
+
+    .protocol-status strong {
+      color: var(--pink);
+    }
+
     .overlay-message {
       position: fixed;
       inset: auto 18px 28px 18px;
@@ -803,6 +936,29 @@ html = r'''<!DOCTYPE html>
       font-weight: 900;
     }
 
+    .license {
+      margin-top: 22px;
+      border: 1px solid rgba(255,209,102,0.32);
+      background:
+        linear-gradient(135deg, rgba(255,209,102,0.08), transparent 42%),
+        rgba(0,0,0,0.22);
+      border-radius: 22px;
+      padding: 22px;
+      max-width: 760px;
+    }
+
+    .license h3 {
+      color: var(--gold);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .license p {
+      color: #dfedf1;
+      line-height: 1.55;
+      margin-bottom: 0;
+    }
+
     .confetti {
       position: fixed;
       inset: 0;
@@ -889,6 +1045,10 @@ html = r'''<!DOCTYPE html>
 
       .answer {
         min-height: auto;
+      }
+
+      .hold-button {
+        min-height: 96px;
       }
     }
   </style>
@@ -1099,11 +1259,78 @@ html = r'''<!DOCTYPE html>
       </div>
     </section>
 
-    <section class="screen hidden" id="finalScreen">
+    <section class="screen hidden" id="fakeCompleteScreen">
       <div class="corner tl"></div>
       <div class="corner br"></div>
 
       <p class="kicker">Mission complete // permission granted</p>
+      <h2 class="title">
+        Drink level<br />
+        <span class="accent">100%</span>
+      </h2>
+
+      <p class="lead">
+        Artūrs ir veiksmīgi izpildījis testu. Ballītes atļauja šķietami ir aktivizēta.
+      </p>
+
+      <div class="fake-card">
+        <h3>Maximum birthday mode activated</h3>
+        <p class="muted">
+          Sistēma pārbauda pēdējo drošības slāni...
+        </p>
+      </div>
+    </section>
+
+    <section class="screen hidden" id="errorScreen">
+      <div class="corner tl"></div>
+      <div class="corner br"></div>
+
+      <p class="kicker danger-glitch">Critical override detected</p>
+      <h2 class="title danger-glitch">
+        Error<br />
+        error<br />
+        error
+      </h2>
+
+      <div class="terminal danger">
+        <div><span>&gt;</span> Birthday permission denied.</div>
+        <div><span>&gt;</span> Reason: Artūrs vēl nav pierādījis, ka nav mīkstais.</div>
+        <div><span>&gt;</span> Hidden level unlocked.</div>
+        <div><span>&gt;</span> Loading STRAPONS PROTOCOL...</div>
+      </div>
+    </section>
+
+    <section class="screen hidden" id="secretScreen">
+      <div class="corner tl"></div>
+      <div class="corner br"></div>
+
+      <p class="kicker">Hidden level unlocked</p>
+      <h2 class="title">
+        Strapons<br />
+        <span class="accent">protocol</span>
+      </h2>
+
+      <p class="lead">
+        Artūrs ir sasniedzis 31. līmeni, bet sistēma pieprasa pēdējo apstiprinājumu.
+        Šeit nav instrukciju. Te ir tikai pārbaude.
+      </p>
+
+      <div class="protocol-wrap">
+        <button class="hold-button" id="holdButton" type="button" aria-label="Hold to activate">
+          <span>Hold to activate protocol</span>
+        </button>
+
+        <div class="protocol-status" id="protocolStatus">
+          <strong>&gt;</strong> Awaiting commitment...
+        </div>
+      </div>
+    </section>
+
+    <section class="screen hidden" id="finalScreen">
+      <div class="corner tl"></div>
+      <div class="corner br"></div>
+
+      <p class="kicker">Mission complete // true permission granted</p>
       <h2 class="final-title">
         Maximum<br />
         <span>birthday mode</span><br />
@@ -1114,6 +1341,15 @@ html = r'''<!DOCTYPE html>
         Artūrs ir oficiāli sasniedzis <strong>Level 31</strong>.
         Vecums aug, bet atbildība šodien nav obligāta. Sistēma ir piešķīrusi pilnu ballītes atļauju.
       </p>
+
+      <div class="license">
+        <h3>Official birthday license</h3>
+        <p>
+          This certifies that <strong>Artūrs “Strapons”</strong> has reached
+          <strong>LEVEL 31</strong> and is officially permitted to celebrate without shame,
+          limits or unnecessary responsibility. License valid: tonight only.
+        </p>
+      </div>
 
       <div class="final-grid">
         <div class="card">
@@ -1163,8 +1399,13 @@ html = r'''<!DOCTYPE html>
     const appState = {
       currentQuestion: 0,
       drinkLevel: 0,
-      locked: false
+      locked: false,
+      holdStart: null,
+      holdFrame: null,
+      holdComplete: false
     };
+
+    const secretHoldRequiredMs = 15000;
 
     const questions = [
       {
@@ -1224,6 +1465,9 @@ html = r'''<!DOCTYPE html>
       loading: document.getElementById("loadingScreen"),
       profile: document.getElementById("profileScreen"),
       quiz: document.getElementById("quizScreen"),
+      fakeComplete: document.getElementById("fakeCompleteScreen"),
+      error: document.getElementById("errorScreen"),
+      secret: document.getElementById("secretScreen"),
       final: document.getElementById("finalScreen")
     };
 
@@ -1236,6 +1480,8 @@ html = r'''<!DOCTYPE html>
     const overlay = document.getElementById("overlayMessage");
     const toastText = document.getElementById("toastText");
     const confettiEl = document.getElementById("confetti");
+    const holdButton = document.getElementById("holdButton");
+    const protocolStatus = document.getElementById("protocolStatus");
 
     document.getElementById("startBtn").addEventListener("click", startLoading);
     document.getElementById("skipIntroBtn").addEventListener("click", () => {
@@ -1247,6 +1493,12 @@ html = r'''<!DOCTYPE html>
       renderQuestion();
     });
     document.getElementById("restartBtn").addEventListener("click", restart);
+
+    holdButton.addEventListener("pointerdown", beginHold);
+    holdButton.addEventListener("pointerup", cancelHold);
+    holdButton.addEventListener("pointercancel", cancelHold);
+    holdButton.addEventListener("pointerleave", cancelHold);
+    holdButton.addEventListener("contextmenu", event => event.preventDefault());
 
     function showScreen(name) {
       Object.values(screens).forEach(screen => screen.classList.add("hidden"));
@@ -1347,7 +1599,7 @@ html = r'''<!DOCTYPE html>
         appState.currentQuestion++;
 
         if (appState.currentQuestion >= questions.length) {
-          completeMission();
+          triggerFakeCompletion();
         } else {
           renderQuestion();
         }
@@ -1372,14 +1624,111 @@ html = r'''<!DOCTYPE html>
       }, 1120);
     }
 
-    function completeMission() {
-      showScreen("final");
+    function triggerFakeCompletion() {
+      showScreen("fakeComplete");
       showToast("Maximum birthday mode activated");
-      launchConfetti();
 
-      const glitchItems = document.querySelectorAll(".glitch");
-      glitchItems.forEach(item => item.classList.add("active"));
-      setTimeout(() => glitchItems.forEach(item => item.classList.remove("active")), 900);
+      setTimeout(() => {
+        showScreen("error");
+        showToast("Critical override detected");
+      }, 2600);
+
+      setTimeout(() => {
+        resetHoldProtocol();
+        showScreen("secret");
+      }, 6100);
+    }
+
+    function resetHoldProtocol() {
+      appState.holdStart = null;
+      appState.holdComplete = false;
+      cancelAnimationFrame(appState.holdFrame);
+      appState.holdFrame = null;
+      document.documentElement.style.setProperty("--hold-progress", "0%");
+      holdButton.classList.remove("holding", "failed");
+      protocolStatus.innerHTML = "<strong>&gt;</strong> Awaiting commitment...";
+    }
+
+    function beginHold(event) {
+      if (appState.holdComplete) return;
+
+      event.preventDefault();
+      holdButton.setPointerCapture(event.pointerId);
+      holdButton.classList.remove("failed");
+      holdButton.classList.add("holding");
+      appState.holdStart = performance.now();
+
+      protocolStatus.innerHTML = "<strong>&gt;</strong> Commitment detected... do not release.";
+
+      updateHoldProgress();
+    }
+
+    function cancelHold(event) {
+      if (appState.holdComplete) return;
+      if (!appState.holdStart) return;
+
+      const elapsed = performance.now() - appState.holdStart;
+
+      if (elapsed >= secretHoldRequiredMs) {
+        completeSecretProtocol();
+        return;
+      }
+
+      appState.holdStart = null;
+      cancelAnimationFrame(appState.holdFrame);
+      appState.holdFrame = null;
+
+      document.documentElement.style.setProperty("--hold-progress", "0%");
+      holdButton.classList.remove("holding");
+      holdButton.classList.add("failed");
+
+      protocolStatus.innerHTML = "<strong>&gt;</strong> Too weak. Artūrs would be disappointed. Try again.";
+
+      setTimeout(() => {
+        holdButton.classList.remove("failed");
+      }, 520);
+    }
+
+    function updateHoldProgress() {
+      if (!appState.holdStart || appState.holdComplete) return;
+
+      const elapsed = performance.now() - appState.holdStart;
+      const progress = Math.min(100, (elapsed / secretHoldRequiredMs) * 100);
+
+      document.documentElement.style.setProperty("--hold-progress", progress + "%");
+
+      if (progress >= 100) {
+        completeSecretProtocol();
+        return;
+      }
+
+      appState.holdFrame = requestAnimationFrame(updateHoldProgress);
+    }
+
+    function completeSecretProtocol() {
+      if (appState.holdComplete) return;
+
+      appState.holdComplete = true;
+      appState.holdStart = null;
+      cancelAnimationFrame(appState.holdFrame);
+      appState.holdFrame = null;
+
+      document.documentElement.style.setProperty("--hold-progress", "100%");
+      holdButton.classList.remove("holding");
+      holdButton.classList.add("pulse");
+      protocolStatus.innerHTML = `
+        <strong>&gt;</strong> PROTOCOL ACCEPTED<br>
+        <strong>&gt;</strong> Artūrs nav mīkstais.<br>
+        <strong>&gt;</strong> Artūrs ir Birthday Boss.<br>
+        <strong>&gt;</strong> Artūrs drīkst svinēt.
+      `;
+
+      showToast("STRAPONS PROTOCOL ACTIVATED");
+
+      setTimeout(() => {
+        showScreen("final");
+        launchConfetti();
+      }, 1400);
     }
 
     function launchConfetti() {
@@ -1387,7 +1736,7 @@ html = r'''<!DOCTYPE html>
 
       const colors = ["#00ff9d", "#00e5ff", "#9b5cff", "#ff2bd6", "#ffd166"];
 
-      for (let i = 0; i < 110; i++) {
+      for (let i = 0; i < 130; i++) {
         const piece = document.createElement("i");
         piece.style.left = Math.random() * 100 + "vw";
         piece.style.background = colors[Math.floor(Math.random() * colors.length)];
@@ -1408,7 +1757,12 @@ html = r'''<!DOCTYPE html>
       appState.currentQuestion = 0;
       appState.drinkLevel = 0;
       appState.locked = false;
+      appState.holdStart = null;
+      appState.holdComplete = false;
+      cancelAnimationFrame(appState.holdFrame);
+      appState.holdFrame = null;
       document.documentElement.style.setProperty("--drink-fill", "0%");
+      document.documentElement.style.setProperty("--hold-progress", "0%");
       drinkPercent.textContent = "0%";
       confettiEl.innerHTML = "";
       showScreen("start");
@@ -1416,10 +1770,3 @@ html = r'''<!DOCTYPE html>
   </script>
 </body>
 </html>
-'''
-
-path = Path("/mnt/data/arturs.html")
-path.write_text(html, encoding="utf-8")
-
-print(f"Fails izveidots: {path}")
-print(f"Izmērs: {path.stat().st_size} bytes")
