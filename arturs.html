@@ -1,0 +1,1425 @@
+from pathlib import Path
+
+html = r'''<!DOCTYPE html>
+<html lang="lv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LEVEL 31 — Artūrs</title>
+  <style>
+    :root {
+      --bg: #050509;
+      --panel: rgba(8, 12, 24, 0.82);
+      --panel-strong: rgba(10, 18, 35, 0.96);
+      --neon: #00ff9d;
+      --cyan: #00e5ff;
+      --purple: #9b5cff;
+      --pink: #ff2bd6;
+      --danger: #ff3b3b;
+      --gold: #ffd166;
+      --text: #e9faff;
+      --muted: #8aa7b2;
+      --line: rgba(0, 255, 157, 0.25);
+      --shadow: 0 0 24px rgba(0, 255, 157, 0.28);
+      --drink-fill: 0%;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(155, 92, 255, 0.22), transparent 28%),
+        radial-gradient(circle at 85% 10%, rgba(0, 229, 255, 0.18), transparent 30%),
+        radial-gradient(circle at 50% 90%, rgba(0, 255, 157, 0.13), transparent 28%),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 34px 34px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent 92%);
+      z-index: 0;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,0.02) 0,
+        rgba(255,255,255,0.02) 1px,
+        transparent 1px,
+        transparent 5px
+      );
+      mix-blend-mode: screen;
+      opacity: 0.33;
+      z-index: 50;
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+    }
+
+    .hud-top {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      right: 16px;
+      z-index: 20;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      pointer-events: none;
+    }
+
+    .hud-chip,
+    .drink-hud {
+      pointer-events: none;
+      border: 1px solid var(--line);
+      background: rgba(4, 8, 18, 0.78);
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow);
+    }
+
+    .hud-chip {
+      min-height: 54px;
+      padding: 12px 16px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 11px;
+    }
+
+    .hud-chip strong {
+      color: var(--neon);
+      font-size: 13px;
+      letter-spacing: 0.16em;
+    }
+
+    .drink-hud {
+      width: 154px;
+      border-radius: 18px;
+      padding: 10px 12px;
+      display: grid;
+      grid-template-columns: 38px 1fr;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .glass {
+      position: relative;
+      width: 35px;
+      height: 48px;
+      border: 2px solid rgba(233, 250, 255, 0.76);
+      border-top: 0;
+      border-radius: 5px 5px 11px 11px;
+      transform: perspective(70px) rotateX(-4deg);
+      overflow: hidden;
+      box-shadow: inset 0 0 12px rgba(255,255,255,0.14), 0 0 16px rgba(0,229,255,0.15);
+    }
+
+    .glass::before {
+      content: "";
+      position: absolute;
+      left: -4px;
+      right: -4px;
+      bottom: 0;
+      height: var(--drink-fill);
+      background:
+        linear-gradient(180deg, rgba(255, 209, 102, 0.95), rgba(255, 116, 64, 0.95)),
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.22) 0 4px, transparent 4px 10px);
+      box-shadow: 0 0 18px rgba(255, 209, 102, 0.55);
+      transition: height 700ms cubic-bezier(.2,.9,.2,1);
+    }
+
+    .glass::after {
+      content: "";
+      position: absolute;
+      left: 4px;
+      right: 4px;
+      top: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.19);
+    }
+
+    .drink-text {
+      line-height: 1.05;
+    }
+
+    .drink-label {
+      color: var(--muted);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+    }
+
+    .drink-percent {
+      margin-top: 4px;
+      color: var(--gold);
+      font-weight: 900;
+      font-size: 20px;
+      text-shadow: 0 0 12px rgba(255, 209, 102, 0.7);
+    }
+
+    .screen {
+      width: min(970px, 100%);
+      min-height: min(720px, calc(100vh - 56px));
+      border: 1px solid rgba(0, 255, 157, 0.32);
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.07), transparent 22%),
+        linear-gradient(180deg, rgba(10,18,35,0.88), rgba(3,5,14,0.92));
+      border-radius: 28px;
+      box-shadow:
+        0 0 0 1px rgba(0,229,255,0.14) inset,
+        0 0 50px rgba(0,255,157,0.17),
+        0 28px 90px rgba(0,0,0,0.62);
+      padding: clamp(28px, 5vw, 58px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .screen::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(110deg, transparent 0 38%, rgba(0,229,255,0.09) 45%, transparent 52% 100%);
+      transform: translateX(-130%);
+      animation: panelSweep 7s infinite;
+      pointer-events: none;
+    }
+
+    @keyframes panelSweep {
+      0%, 38% { transform: translateX(-130%); }
+      52%, 100% { transform: translateX(130%); }
+    }
+
+    .corner {
+      position: absolute;
+      width: 62px;
+      height: 62px;
+      border-color: var(--neon);
+      opacity: 0.65;
+    }
+
+    .corner.tl {
+      top: 16px;
+      left: 16px;
+      border-top: 2px solid;
+      border-left: 2px solid;
+      border-radius: 14px 0 0 0;
+    }
+
+    .corner.br {
+      right: 16px;
+      bottom: 16px;
+      border-right: 2px solid;
+      border-bottom: 2px solid;
+      border-radius: 0 0 14px 0;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .kicker {
+      color: var(--cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.25em;
+      font-size: 12px;
+      font-weight: 800;
+      margin: 0 0 18px;
+      text-shadow: 0 0 12px rgba(0,229,255,0.6);
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    .title {
+      position: relative;
+      font-size: clamp(42px, 8vw, 92px);
+      line-height: 0.88;
+      margin: 0 0 18px;
+      font-weight: 950;
+      letter-spacing: -0.065em;
+      text-transform: uppercase;
+    }
+
+    .title .accent {
+      color: var(--neon);
+      text-shadow:
+        0 0 12px rgba(0,255,157,0.85),
+        0 0 34px rgba(0,255,157,0.45);
+    }
+
+    .glitch {
+      position: relative;
+      display: inline-block;
+    }
+
+    .glitch::before,
+    .glitch::after {
+      content: attr(data-text);
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .glitch::before {
+      color: var(--pink);
+      transform: translateX(-2px);
+    }
+
+    .glitch::after {
+      color: var(--cyan);
+      transform: translateX(2px);
+    }
+
+    .glitch.active::before,
+    .glitch.active::after,
+    .title:hover .glitch::before,
+    .title:hover .glitch::after {
+      animation: glitch 720ms steps(2, end) both;
+    }
+
+    @keyframes glitch {
+      0% { clip-path: inset(0 0 90% 0); opacity: 0.8; }
+      15% { clip-path: inset(10% 0 62% 0); opacity: 0.8; }
+      35% { clip-path: inset(62% 0 20% 0); opacity: 0.65; }
+      55% { clip-path: inset(30% 0 40% 0); opacity: 0.72; }
+      75% { clip-path: inset(78% 0 8% 0); opacity: 0.7; }
+      100% { clip-path: inset(0 0 0 0); opacity: 0; }
+    }
+
+    .lead {
+      max-width: 720px;
+      color: #cde9f1;
+      font-size: clamp(17px, 2.2vw, 23px);
+      line-height: 1.45;
+      margin-bottom: 28px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+      margin-top: 26px;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .btn {
+      position: relative;
+      border: 1px solid rgba(0,255,157,0.65);
+      background:
+        linear-gradient(180deg, rgba(0,255,157,0.15), rgba(0,229,255,0.04)),
+        rgba(2, 8, 18, 0.95);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 15px 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 12px;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow:
+        0 0 20px rgba(0,255,157,0.2),
+        inset 0 0 20px rgba(0,255,157,0.07);
+      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+      overflow: hidden;
+    }
+
+    .btn::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.16), transparent);
+      transform: translateX(-120%);
+      transition: transform 520ms ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      border-color: var(--cyan);
+      box-shadow:
+        0 0 26px rgba(0,229,255,0.26),
+        inset 0 0 20px rgba(0,255,157,0.11);
+    }
+
+    .btn:hover::after {
+      transform: translateX(120%);
+    }
+
+    .btn.secondary {
+      border-color: rgba(155,92,255,0.65);
+      box-shadow:
+        0 0 20px rgba(155,92,255,0.18),
+        inset 0 0 20px rgba(155,92,255,0.08);
+    }
+
+    .terminal {
+      border: 1px solid rgba(0,229,255,0.24);
+      background: rgba(1, 5, 14, 0.7);
+      border-radius: 18px;
+      padding: 18px;
+      max-width: 720px;
+      color: #b9f6ff;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 13px;
+      line-height: 1.75;
+      box-shadow: inset 0 0 22px rgba(0,229,255,0.05);
+    }
+
+    .terminal span {
+      color: var(--neon);
+    }
+
+    .loading-box {
+      margin-top: 28px;
+      display: grid;
+      gap: 16px;
+      max-width: 760px;
+    }
+
+    .load-item {
+      display: grid;
+      gap: 8px;
+    }
+
+    .load-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .bar {
+      height: 14px;
+      border: 1px solid rgba(0,255,157,0.32);
+      border-radius: 99px;
+      background: rgba(255,255,255,0.04);
+      overflow: hidden;
+      box-shadow: inset 0 0 18px rgba(0,0,0,0.42);
+    }
+
+    .bar > i {
+      display: block;
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--neon), var(--cyan), var(--purple));
+      box-shadow: 0 0 18px rgba(0,255,157,0.58);
+      transition: width 900ms cubic-bezier(.19,1,.22,1);
+    }
+
+    .player-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(290px, 0.9fr);
+      gap: 22px;
+      align-items: stretch;
+      margin-top: 24px;
+    }
+
+    .card {
+      border: 1px solid rgba(0,255,157,0.26);
+      background: rgba(0,0,0,0.28);
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: inset 0 0 25px rgba(0,255,157,0.04);
+    }
+
+    .player-card {
+      position: relative;
+      min-height: 390px;
+      display: grid;
+      align-content: space-between;
+      overflow: hidden;
+    }
+
+    .player-card::before {
+      content: "31";
+      position: absolute;
+      right: -20px;
+      bottom: -60px;
+      font-size: 240px;
+      line-height: 1;
+      font-weight: 950;
+      color: rgba(0,255,157,0.07);
+      letter-spacing: -0.09em;
+    }
+
+    .avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 24px;
+      border: 1px solid rgba(0,229,255,0.36);
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle, rgba(0,255,157,0.18), transparent 58%),
+        rgba(0,229,255,0.04);
+      box-shadow: 0 0 34px rgba(0,229,255,0.15);
+      font-size: 44px;
+      font-weight: 950;
+      color: var(--neon);
+      text-shadow: 0 0 22px rgba(0,255,157,0.72);
+    }
+
+    .stats {
+      display: grid;
+      gap: 10px;
+      margin-top: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .stat {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 11px 0;
+      border-bottom: 1px dashed rgba(255,255,255,0.12);
+    }
+
+    .stat span {
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.13em;
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .stat strong {
+      text-align: right;
+      color: var(--text);
+    }
+
+    .achievement-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 0;
+    }
+
+    .achievement {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(155,92,255,0.24);
+      background: rgba(155,92,255,0.07);
+      opacity: 0;
+      transform: translateY(10px);
+      animation: popIn 560ms ease forwards;
+    }
+
+    .achievement:nth-child(2) { animation-delay: 160ms; }
+    .achievement:nth-child(3) { animation-delay: 320ms; }
+    .achievement:nth-child(4) { animation-delay: 480ms; }
+    .achievement:nth-child(5) { animation-delay: 640ms; }
+
+    @keyframes popIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .badge {
+      width: 34px;
+      height: 34px;
+      flex: 0 0 auto;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      background: rgba(0,255,157,0.12);
+      border: 1px solid rgba(0,255,157,0.3);
+      color: var(--neon);
+      font-weight: 950;
+      box-shadow: 0 0 16px rgba(0,255,157,0.16);
+    }
+
+    .achievement strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+
+    .achievement small {
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .quiz-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: flex-start;
+      margin-bottom: 22px;
+    }
+
+    .question-count {
+      color: var(--cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 11px;
+      font-weight: 900;
+      white-space: nowrap;
+      padding-top: 10px;
+    }
+
+    .question {
+      font-size: clamp(28px, 4.8vw, 54px);
+      line-height: 1.02;
+      letter-spacing: -0.045em;
+      max-width: 760px;
+      margin-bottom: 22px;
+    }
+
+    .answers {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 22px;
+    }
+
+    .answer {
+      min-height: 88px;
+      border: 1px solid rgba(0,229,255,0.25);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.035);
+      color: var(--text);
+      padding: 16px;
+      cursor: pointer;
+      text-align: left;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+    }
+
+    .answer:hover {
+      transform: translateY(-2px);
+      border-color: rgba(0,255,157,0.65);
+      background: rgba(0,255,157,0.07);
+    }
+
+    .letter {
+      width: 30px;
+      height: 30px;
+      flex: 0 0 auto;
+      border-radius: 9px;
+      background: rgba(0,229,255,0.1);
+      border: 1px solid rgba(0,229,255,0.34);
+      display: grid;
+      place-items: center;
+      color: var(--cyan);
+      font-weight: 950;
+      font-size: 12px;
+    }
+
+    .answer.correct {
+      border-color: rgba(0,255,157,0.8);
+      background: rgba(0,255,157,0.14);
+      box-shadow: 0 0 26px rgba(0,255,157,0.16);
+    }
+
+    .answer.wrong {
+      border-color: rgba(255,59,59,0.72);
+      background: rgba(255,59,59,0.09);
+      animation: shake 340ms ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-8px); }
+      50% { transform: translateX(8px); }
+      75% { transform: translateX(-4px); }
+    }
+
+    .message {
+      min-height: 68px;
+      margin-top: 20px;
+      border-radius: 18px;
+      padding: 16px;
+      border: 1px solid rgba(0,255,157,0.22);
+      background: rgba(0,0,0,0.22);
+      color: var(--muted);
+      font-family: "SFMono-Regular", Consolas, monospace;
+      line-height: 1.55;
+    }
+
+    .message strong {
+      color: var(--neon);
+    }
+
+    .overlay-message {
+      position: fixed;
+      inset: auto 18px 28px 18px;
+      z-index: 30;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(16px);
+      transition: 220ms ease;
+    }
+
+    .overlay-message.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .toast {
+      width: min(560px, 100%);
+      border: 1px solid rgba(0,255,157,0.52);
+      border-radius: 18px;
+      padding: 18px 20px;
+      background: rgba(2, 8, 18, 0.92);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 38px rgba(0,255,157,0.25);
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-weight: 950;
+      color: var(--neon);
+      text-shadow: 0 0 14px rgba(0,255,157,0.7);
+    }
+
+    .final-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(260px, 0.7fr);
+      gap: 22px;
+      margin-top: 28px;
+    }
+
+    .final-title {
+      font-size: clamp(38px, 7vw, 82px);
+      line-height: 0.92;
+      letter-spacing: -0.065em;
+      margin-bottom: 18px;
+      text-transform: uppercase;
+    }
+
+    .final-title span {
+      color: var(--gold);
+      text-shadow: 0 0 22px rgba(255,209,102,0.55);
+    }
+
+    .reward {
+      display: grid;
+      gap: 12px;
+    }
+
+    .reward-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,209,102,0.24);
+      background: rgba(255,209,102,0.07);
+    }
+
+    .reward-line span {
+      color: var(--muted);
+    }
+
+    .reward-line strong {
+      color: var(--gold);
+    }
+
+    .big-number {
+      display: grid;
+      place-items: center;
+      min-height: 250px;
+      border: 1px solid rgba(0,229,255,0.22);
+      border-radius: 22px;
+      background:
+        radial-gradient(circle, rgba(0,229,255,0.18), transparent 62%),
+        rgba(255,255,255,0.03);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .big-number strong {
+      font-size: clamp(110px, 18vw, 210px);
+      letter-spacing: -0.12em;
+      color: rgba(0,255,157,0.9);
+      text-shadow:
+        0 0 18px rgba(0,255,157,0.75),
+        0 0 44px rgba(0,229,255,0.42);
+      transform: translateX(-9px);
+    }
+
+    .big-number small {
+      position: absolute;
+      bottom: 22px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      font-weight: 900;
+    }
+
+    .confetti {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 25;
+    }
+
+    .confetti i {
+      position: absolute;
+      top: -20px;
+      width: 9px;
+      height: 16px;
+      background: var(--neon);
+      opacity: 0.9;
+      animation: fall linear forwards;
+    }
+
+    @keyframes fall {
+      to {
+        transform: translateY(calc(100vh + 40px)) rotate(820deg);
+      }
+    }
+
+    .pulse {
+      animation: pulse 650ms ease both;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      45% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+
+    .footer-note {
+      margin-top: 26px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 760px) {
+      .app {
+        padding: 84px 14px 18px;
+        place-items: start center;
+      }
+
+      .hud-top {
+        left: 10px;
+        right: 10px;
+        top: 10px;
+      }
+
+      .hud-chip {
+        display: none;
+      }
+
+      .drink-hud {
+        margin-left: auto;
+      }
+
+      .screen {
+        min-height: calc(100vh - 106px);
+        border-radius: 22px;
+        padding: 26px 18px;
+      }
+
+      .player-grid,
+      .final-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .answers {
+        grid-template-columns: 1fr;
+      }
+
+      .quiz-head {
+        display: block;
+      }
+
+      .question-count {
+        margin-bottom: 14px;
+      }
+
+      .answer {
+        min-height: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="hud-top">
+    <div class="hud-chip">
+      <span>Mission:</span>
+      <strong>Artūrs Level 31</strong>
+    </div>
+
+    <div class="drink-hud" id="drinkHud" aria-live="polite">
+      <div class="glass" aria-hidden="true"></div>
+      <div class="drink-text">
+        <div class="drink-label">Drink level</div>
+        <div class="drink-percent" id="drinkPercent">0%</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="confetti" id="confetti"></div>
+
+  <main class="app">
+    <section class="screen" id="startScreen">
+      <div class="corner tl"></div>
+      <div class="corner br"></div>
+
+      <p class="kicker">System warning // birthday event detected</p>
+      <h1 class="title">
+        <span class="glitch" data-text="LEVEL">LEVEL</span>
+        <span class="accent">31</span><br />
+        unlocked
+      </h1>
+
+      <p class="lead">
+        Sistēma ir konstatējusi, ka <strong>Artūrs</strong>, zināms arī kā
+        <strong>Strapons</strong>, ir sasniedzis bīstamu dzīves līmeni.
+        Pirms pilnas ballītes atļaujas aktivizēšanas jāiziet 5 jautājumu pārbaude.
+      </p>
+
+      <div class="terminal">
+        <div><span>&gt;</span> Scanning player profile...</div>
+        <div><span>&gt;</span> Name: Artūrs</div>
+        <div><span>&gt;</span> Alias: Strapons</div>
+        <div><span>&gt;</span> Age: 31</div>
+        <div><span>&gt;</span> Status: Birthday Boss candidate</div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn" id="startBtn">Start celebration</button>
+        <button class="btn secondary" id="skipIntroBtn">Skip to quiz</button>
+      </div>
+    </section>
+
+    <section class="screen hidden" id="loadingScreen">
+      <div class="corner tl"></div>
+      <div class="corner br"></div>
+
+      <p class="kicker">Boot sequence</p>
+      <h2 class="title">
+        Birthday<br />
+        protocol
+      </h2>
+
+      <p class="lead">
+        Notiek Artūra 31. līmeņa inicializācija. Atbildība tiek nolikta malā.
+        Ballītes atļaujas tiek pārbaudītas.
+      </p>
+
+      <div class="loading-box">
+        <div class="load-item">
+          <div class="load-label">
+            <span>Level 31 loading</span>
+            <span id="loadValue1">0%</span>
+          </div>
+          <div class="bar"><i id="bar1"></i></div>
+        </div>
+
+        <div class="load-item">
+          <div class="load-label">
+            <span>Birthday boss energy</span>
+            <span id="loadValue2">0%</span>
+          </div>
+          <div class="bar"><i id="bar2"></i></div>
+        </div>
+
+        <div class="load-item">
+          <div class="load-label">
+            <span>Alcohol permission module</span>
+            <span id="loadValue3">0%</span>
+          </div>
+          <div class="bar"><i id="bar3"></i></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen hidden" id="profileScreen">
+      <div class="corner tl"></div>
+      <div class="corner br"></div>
+
+      <p class="kicker">Player card generated</p>
+      <h2 class="title">
+        Artūrs<br />
+        <span class="accent">Strapons</span>
+      </h2>
+
+      <div class="player-grid">
+        <div class="card player-card">
+          <div>
+            <div class="avatar">A31</div>
+
+            <div class="stats">
+              <div class="stat">
+                <span>Name</span>
+                <strong>Artūrs</strong>
+              </div>
+              <div class="stat">
+                <span>Alias</span>
+                <strong>Strapons</strong>
+              </div>
+              <div class="stat">
+                <span>Class</span>
+                <strong>Birthday Boss</strong>
+              </div>
+              <div class="stat">
+                <span>Level</span>
+                <strong>31</strong>
+              </div>
+              <div class="stat">
+                <span>Special ability</span>
+                <strong>Haoss ar harizmu</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="footer-note">
+            Sistēma brīdina: Artūrs šodien nav parasts cilvēks. Artūrs ir notikums.
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Achievements unlocked</h3>
+          <div class="achievement-list">
+            <div class="achievement">
+              <div class="badge">1</div>
+              <div>
+                <strong>31 years of chaos</strong>
+                <small>Artūrs ir izdzīvojis 30 līmeņus un atvēris nākamo zonu.</small>
+              </div>
+            </div>
+
+            <div class="achievement">
+              <div class="badge">2</div>
+              <div>
+                <strong>Professional party survivor</strong>
+                <small>Viņš nav vienkārši klātesošs. Viņš paceļ vakara riska līmeni.</small>
+              </div>
+            </div>
+
+            <div class="achievement">
+              <div class="badge">3</div>
+              <div>
+                <strong>Still not acting his age</strong>
+                <small>Vecums aug, bet uzvedības versija joprojām ir testēšanas režīmā.</small>
+              </div>
+            </div>
+
+            <div class="achievement">
+              <div class="badge">4</div>
+              <div>
+                <strong>Birthday immunity activated</strong>
+                <small>Šodien viņam ir diplomātiskā imunitāte pret pārmetumiem.</small>
+              </div>
+            </div>
+
+            <div class="achievement">
+              <div class="badge">5</div>
+              <div>
+                <strong>Legendary friend status</strong>
+                <small>Oficiāli apstiprināts: Artūrs ir leģendārs elements komandā.</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn" id="beginQuizBtn">Begin permission test</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen hidden" id="quizScreen">
+      <div class="corner tl"></div>
+      <div class="corner br"></div>
+
+      <div class="quiz-head">
+        <div>
+          <p class="kicker">Alcohol permission test</p>
+          <h2 class="question" id="questionText"></h2>
+        </div>
+        <div class="question-count" id="questionCount">Question 1 / 5</div>
+      </div>
+
+      <div class="answers" id="answers"></div>
+
+      <div class="message" id="message">
+        <strong>&gt;</strong> Izvēlies pareizo atbildi. Sistēma vērtē Artūra ballītes gatavību.
+      </div>
+    </section>
+
+    <section class="screen hidden" id="finalScreen">
+      <div class="corner tl"></div>
+      <div class="corner br"></div>
+
+      <p class="kicker">Mission complete // permission granted</p>
+      <h2 class="final-title">
+        Maximum<br />
+        <span>birthday mode</span><br />
+        activated
+      </h2>
+
+      <p class="lead">
+        Artūrs ir oficiāli sasniedzis <strong>Level 31</strong>.
+        Vecums aug, bet atbildība šodien nav obligāta. Sistēma ir piešķīrusi pilnu ballītes atļauju.
+      </p>
+
+      <div class="final-grid">
+        <div class="card">
+          <h3>Birthday reward claimed</h3>
+          <div class="reward">
+            <div class="reward-line">
+              <span>Respect</span>
+              <strong>+31</strong>
+            </div>
+            <div class="reward-line">
+              <span>Party energy</span>
+              <strong>+100</strong>
+            </div>
+            <div class="reward-line">
+              <span>Legend status</span>
+              <strong>+1</strong>
+            </div>
+            <div class="reward-line">
+              <span>Excuses</span>
+              <strong>-0</strong>
+            </div>
+          </div>
+
+          <p class="footer-note">
+            Daudz laimes, Artūr. Lai šis gads ir pilns ar labiem vakariem,
+            normāliem cilvēkiem, stulbām idejām un stāstiem, ko rīt neviens līdz galam neatceras.
+          </p>
+
+          <div class="btn-row">
+            <button class="btn" id="restartBtn">Restart mission</button>
+          </div>
+        </div>
+
+        <div class="big-number">
+          <strong>31</strong>
+          <small>Level unlocked</small>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="overlay-message" id="overlayMessage">
+    <div class="toast" id="toastText">Alcohol permission upgraded</div>
+  </div>
+
+  <script>
+    const appState = {
+      currentQuestion: 0,
+      drinkLevel: 0,
+      locked: false
+    };
+
+    const questions = [
+      {
+        question: "Ko šodien drīkst darīt jubilārs?",
+        answers: [
+          "Izdzert vienu ūdeni un iet mājās",
+          "Uzvesties kā pieaugušam cilvēkam",
+          "Svinēt tā, it kā rītdienas neeksistē",
+          "Sēdēt malā un vērot citus"
+        ],
+        correct: 2
+      },
+      {
+        question: "Ko jubilārs šodien nedrīkst darīt?",
+        answers: [
+          "Pārāk labi izskatīties bildēs",
+          "Pārāk skaļi smieties par saviem jokiem",
+          "Būt mīkstais un vaidēt",
+          "Pārāk bieži teikt: “es esmu mierīgs”"
+        ],
+        correct: 2
+      },
+      {
+        question: "Kāds ir Artūra oficiālais 31. līmeņa statuss?",
+        answers: [
+          "Nedaudz saguris cilvēks ar plānu",
+          "Gandrīz pieaudzis, bet vēl nav pierādīts",
+          "Normāls viesis bez īpašām tiesībām",
+          "Birthday Boss ar pilnām tiesībām uz haosu"
+        ],
+        correct: 3
+      },
+      {
+        question: "Kas notiek, ja Artūrs saka: “Es tikai uz vienu aliņu”?",
+        answers: [
+          "Viņš tiešām izdzer vienu un aiziet mājās",
+          "Sistēma atpazīst melus un pagarina vakaru",
+          "Viņš sāk runāt par disciplīnu un miega režīmu",
+          "Visi viņam notic bez jautājumiem"
+        ],
+        correct: 1
+      },
+      {
+        question: "Kā pareizi pabeigt šo vakaru?",
+        answers: [
+          "Klusi aiziet bez atvadām",
+          "Ar leģendāru stāstu, ko rīt neviens līdz galam neatceras",
+          "Aiziet gulēt pirms pusnakts",
+          "Uzrakstīt visiem oficiālu pateicības e-pastu"
+        ],
+        correct: 1
+      }
+    ];
+
+    const screens = {
+      start: document.getElementById("startScreen"),
+      loading: document.getElementById("loadingScreen"),
+      profile: document.getElementById("profileScreen"),
+      quiz: document.getElementById("quizScreen"),
+      final: document.getElementById("finalScreen")
+    };
+
+    const drinkPercent = document.getElementById("drinkPercent");
+    const drinkHud = document.getElementById("drinkHud");
+    const questionText = document.getElementById("questionText");
+    const questionCount = document.getElementById("questionCount");
+    const answersEl = document.getElementById("answers");
+    const messageEl = document.getElementById("message");
+    const overlay = document.getElementById("overlayMessage");
+    const toastText = document.getElementById("toastText");
+    const confettiEl = document.getElementById("confetti");
+
+    document.getElementById("startBtn").addEventListener("click", startLoading);
+    document.getElementById("skipIntroBtn").addEventListener("click", () => {
+      showScreen("quiz");
+      renderQuestion();
+    });
+    document.getElementById("beginQuizBtn").addEventListener("click", () => {
+      showScreen("quiz");
+      renderQuestion();
+    });
+    document.getElementById("restartBtn").addEventListener("click", restart);
+
+    function showScreen(name) {
+      Object.values(screens).forEach(screen => screen.classList.add("hidden"));
+      screens[name].classList.remove("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function startLoading() {
+      showScreen("loading");
+      animateBootBars();
+
+      setTimeout(() => {
+        showScreen("profile");
+      }, 3350);
+    }
+
+    function animateBootBars() {
+      const bars = [
+        [document.getElementById("bar1"), document.getElementById("loadValue1"), 100, 250],
+        [document.getElementById("bar2"), document.getElementById("loadValue2"), 100, 720],
+        [document.getElementById("bar3"), document.getElementById("loadValue3"), 31, 1180]
+      ];
+
+      bars.forEach(([bar, label, target, delay]) => {
+        bar.style.width = "0%";
+        label.textContent = "0%";
+
+        setTimeout(() => {
+          let value = 0;
+          const timer = setInterval(() => {
+            value += Math.ceil(target / 22);
+            if (value >= target) {
+              value = target;
+              clearInterval(timer);
+            }
+
+            bar.style.width = value + "%";
+            label.textContent = value + "%";
+          }, 48);
+        }, delay);
+      });
+    }
+
+    function renderQuestion() {
+      appState.locked = false;
+
+      const item = questions[appState.currentQuestion];
+
+      questionText.textContent = item.question;
+      questionCount.textContent = `Question ${appState.currentQuestion + 1} / ${questions.length}`;
+
+      answersEl.innerHTML = "";
+      messageEl.innerHTML = "<strong>&gt;</strong> Izvēlies pareizo atbildi. Katrs pareizs klikšķis piepilda dzērienu par 20%.";
+
+      item.answers.forEach((answer, index) => {
+        const btn = document.createElement("button");
+        btn.className = "answer";
+        btn.type = "button";
+        btn.innerHTML = `
+          <span class="letter">${String.fromCharCode(65 + index)}</span>
+          <span>${answer}</span>
+        `;
+
+        btn.addEventListener("click", () => handleAnswer(btn, index));
+        answersEl.appendChild(btn);
+      });
+    }
+
+    function handleAnswer(button, selectedIndex) {
+      if (appState.locked) return;
+
+      const item = questions[appState.currentQuestion];
+
+      if (selectedIndex !== item.correct) {
+        button.classList.add("wrong");
+        messageEl.innerHTML = "<strong>&gt;</strong> Nepareizi. Sistēma nepieņem šo vājo izvēli. Mēģini vēlreiz.";
+        setTimeout(() => button.classList.remove("wrong"), 500);
+        return;
+      }
+
+      appState.locked = true;
+      button.classList.add("correct");
+
+      const allButtons = [...answersEl.querySelectorAll(".answer")];
+      allButtons.forEach(btn => btn.disabled = true);
+
+      upgradeDrink();
+
+      messageEl.innerHTML = `
+        <strong>&gt;</strong> CORRECT ANSWER<br>
+        <strong>&gt;</strong> ALCOHOL PERMISSION UPGRADED<br>
+        <strong>&gt;</strong> DRINK LEVEL +20%
+      `;
+
+      showToast("Correct answer // Alcohol permission upgraded");
+
+      setTimeout(() => {
+        appState.currentQuestion++;
+
+        if (appState.currentQuestion >= questions.length) {
+          completeMission();
+        } else {
+          renderQuestion();
+        }
+      }, 1450);
+    }
+
+    function upgradeDrink() {
+      appState.drinkLevel = Math.min(100, appState.drinkLevel + 20);
+      document.documentElement.style.setProperty("--drink-fill", appState.drinkLevel + "%");
+      drinkPercent.textContent = appState.drinkLevel + "%";
+      drinkHud.classList.remove("pulse");
+      void drinkHud.offsetWidth;
+      drinkHud.classList.add("pulse");
+    }
+
+    function showToast(text) {
+      toastText.textContent = text;
+      overlay.classList.add("show");
+
+      setTimeout(() => {
+        overlay.classList.remove("show");
+      }, 1120);
+    }
+
+    function completeMission() {
+      showScreen("final");
+      showToast("Maximum birthday mode activated");
+      launchConfetti();
+
+      const glitchItems = document.querySelectorAll(".glitch");
+      glitchItems.forEach(item => item.classList.add("active"));
+      setTimeout(() => glitchItems.forEach(item => item.classList.remove("active")), 900);
+    }
+
+    function launchConfetti() {
+      confettiEl.innerHTML = "";
+
+      const colors = ["#00ff9d", "#00e5ff", "#9b5cff", "#ff2bd6", "#ffd166"];
+
+      for (let i = 0; i < 110; i++) {
+        const piece = document.createElement("i");
+        piece.style.left = Math.random() * 100 + "vw";
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDuration = (2.3 + Math.random() * 3.1) + "s";
+        piece.style.animationDelay = (Math.random() * 0.9) + "s";
+        piece.style.transform = `rotate(${Math.random() * 180}deg)`;
+        piece.style.width = (6 + Math.random() * 8) + "px";
+        piece.style.height = (10 + Math.random() * 14) + "px";
+        confettiEl.appendChild(piece);
+      }
+
+      setTimeout(() => {
+        confettiEl.innerHTML = "";
+      }, 6500);
+    }
+
+    function restart() {
+      appState.currentQuestion = 0;
+      appState.drinkLevel = 0;
+      appState.locked = false;
+      document.documentElement.style.setProperty("--drink-fill", "0%");
+      drinkPercent.textContent = "0%";
+      confettiEl.innerHTML = "";
+      showScreen("start");
+    }
+  </script>
+</body>
+</html>
+'''
+
+path = Path("/mnt/data/arturs.html")
+path.write_text(html, encoding="utf-8")
+
+print(f"Fails izveidots: {path}")
+print(f"Izmērs: {path.stat().st_size} bytes")
