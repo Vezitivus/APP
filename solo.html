@@ -1,200 +1,551 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="lv">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>SOLO GAMES</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vezitivus WeekEnd Solo Games</title>
   <style>
-    *,*::before,*::after{box-sizing:border-box}
-    body {
-      margin:0; padding:16px;
-      background:#000; color:#fff;
-      font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
-      display:flex; justify-content:center;
+    :root {
+      --bg: #fff;
+      --text: #111;
+      --muted: #777;
+      --line: #e6e6e6;
+      --soft: #f6f6f6;
+      --danger: #b00020;
+      --success: #0b7a3b;
     }
-    .container {
-      width:100%; max-width:480px;
-      background:#111; border-radius:12px;
-      padding:24px; box-shadow:0 4px 20px rgba(0,0,0,0.5);
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: Arial, Helvetica, sans-serif; font-size: 14px; }
+    button, input, select { font: inherit; }
+    button { border: 0; }
+    main { width: min(920px, calc(100% - 28px)); margin: 0 auto; padding: 24px 0 40px; }
+    .screen { display: block; }
+    .screen[hidden], .modal[hidden] { display: none; }
+    .print-area { display: none; }
+
+    .hero { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 18px; }
+    h1 { margin: 0; font-size: 30px; line-height: 1.08; letter-spacing: -.7px; }
+    h2 { margin: 0 0 12px; font-size: 21px; line-height: 1.15; letter-spacing: -.3px; }
+    .subtitle { margin: 8px 0 0; color: var(--muted); font-size: 13px; line-height: 1.4; max-width: 560px; }
+    .pill { display: inline-flex; align-items: center; gap: 7px; min-height: 30px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: #fff; font-size: 12px; font-weight: 700; white-space: nowrap; }
+    .dot { width: 7px; height: 7px; border-radius: 99px; background: #28a745; }
+
+    .card { padding: 16px; margin-bottom: 14px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+    .section-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; margin-bottom: 10px; }
+    .meta { color: var(--muted); font-size: 12px; line-height: 1.4; }
+
+    .games { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+    .game-button { position: relative; min-height: 84px; padding: 13px; border: 1px solid var(--line); border-radius: 12px; background: #fff; color: var(--text); cursor: pointer; text-align: left; transition: background 120ms ease, border-color 120ms ease; overflow: hidden; }
+    .game-button:hover { background: var(--soft); border-color: #d0d0d0; }
+    .game-title { display: block; padding-right: 28px; font-size: 15px; line-height: 1.15; font-weight: 700; letter-spacing: -.2px; }
+    .game-meta { position: absolute; left: 13px; bottom: 12px; color: var(--muted); font-size: 12px; }
+    .game-arrow { position: absolute; right: 12px; top: 12px; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 99px; background: var(--soft); color: var(--muted); font-weight: 700; }
+
+    .table-wrap { overflow-x: auto; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: #fff; }
+    table { width: 100%; min-width: 780px; border-collapse: collapse; }
+    th, td { padding: 10px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+    tr:last-child td { border-bottom: 0; }
+    th { color: #666; font-size: 11px; font-weight: 700; background: #fff; }
+    td { font-size: 13px; }
+    .rank { width: 38px; font-weight: 700; color: var(--muted); }
+    .player { font-weight: 700; font-size: 14px; line-height: 1.2; }
+    .player small { display: block; margin-top: 3px; color: #999; font-size: 11px; font-weight: 400; }
+    .favorite { display: inline-flex; align-items: center; min-height: 24px; padding: 4px 8px; border-radius: 999px; background: var(--soft); color: #555; font-size: 12px; white-space: nowrap; }
+    .empty { color: var(--muted); text-align: center; padding: 24px 8px; font-size: 13px; }
+
+    .name-box { margin-top: 14px; }
+    .form { display: grid; gap: 10px; }
+    .name-form { grid-template-columns: .8fr 1.6fr auto; align-items: end; }
+    .match-form { display: grid; grid-template-columns: minmax(150px, 2fr) minmax(88px, .9fr) 54px minmax(88px, .9fr) minmax(150px, 2fr); gap: 10px; align-items: end; margin-bottom: 8px; }
+    .match-form .submit { grid-column: 1 / -1; min-height: 44px; justify-content: center; font-size: 14px; }
+    label { display: grid; gap: 5px; color: var(--muted); font-size: 12px; }
+    input, select { width: 100%; height: 44px; border: 1px solid var(--line); border-radius: 10px; padding: 0 11px; background: #fff; color: var(--text); outline: none; }
+    input:focus, select:focus { border-color: #999; }
+    .versus { height: 44px; display: flex; align-items: center; justify-content: center; }
+    .versus svg { width: 32px; height: 52px; transform: translateY(2px); overflow: visible; }
+
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .button, .submit, .small, .back { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 40px; padding: 0 13px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--text); cursor: pointer; text-align: center; font-size: 13px; font-weight: 700; transition: background 120ms ease, border-color 120ms ease; }
+    .button:hover, .small:hover, .back:hover { background: var(--soft); border-color: #d0d0d0; }
+    .button:focus-visible, .submit:focus-visible, .small:focus-visible, .back:focus-visible, .game-button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid #111; outline-offset: 2px; }
+    .submit { background: #111; color: #fff; border-color: #111; }
+    .submit:hover { background: #333; border-color: #333; }
+    .small { min-height: 36px; padding: 0 11px; font-size: 12px; }
+    .danger { color: var(--danger); }
+    .danger:hover { background: #fff5f5; border-color: #f0cccc; }
+    .topbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; margin-bottom: 14px; }
+    .back { white-space: nowrap; }
+    .message { min-height: 19px; margin: 7px 0 0; color: var(--muted); font-size: 12px; }
+    .message.error { color: var(--danger); }
+    .message.success { color: var(--success); }
+    .is-busy { opacity: .72; pointer-events: none; }
+    .toast { position: fixed; left: 50%; bottom: 22px; z-index: 80; transform: translateX(-50%) translateY(16px); max-width: min(360px, calc(100% - 32px)); border: 1px solid var(--line); border-radius: 999px; background: #fff; box-shadow: 0 8px 24px rgba(0,0,0,.12); padding: 10px 14px; opacity: 0; pointer-events: none; transition: opacity 180ms ease, transform 180ms ease; font-size: 13px; font-weight: 700; text-align: center; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .modal { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; background: rgba(0,0,0,.24); padding: 20px; }
+    .modal-box { width: min(360px, 100%); border: 1px solid var(--line); border-radius: 16px; background: #fff; box-shadow: 0 16px 48px rgba(0,0,0,.16); padding: 16px; }
+    .modal-box h2 { margin-bottom: 8px; }
+    .modal-box p { margin: 0 0 12px; color: var(--muted); font-size: 13px; line-height: 1.4; }
+    .modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .modal-error { min-height: 18px; margin-top: 7px; color: var(--danger); font-size: 12px; }
+    #confettiCanvas { position: fixed; inset: 0; z-index: 70; width: 100vw; height: 100vh; pointer-events: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
     }
-    h1 {
-      margin:0 0 24px; font-size:2.5rem; font-weight:bold;
-      text-align:center;
+
+    @media print {
+      body { background: #fff; color: #000; }
+      main, .modal, .toast, #confettiCanvas { display: none !important; }
+      .print-area { display: block; padding: 0; color: #000; font-family: Arial, Helvetica, sans-serif; }
+      @page { size: A4; margin: 12mm; }
+      .pdf-report h1 { margin: 0 0 8mm; font-size: 22pt; line-height: 1.1; }
+      .pdf-report h2 { margin: 8mm 0 3mm; font-size: 15pt; }
+      .pdf-meta { margin: 0 0 4mm; color: #555; font-size: 9pt; }
+      .pdf-section { page-break-inside: avoid; margin-bottom: 7mm; }
+      .pdf-table { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
+      .pdf-table th, .pdf-table td { border-bottom: 1px solid #ddd; padding: 2.5mm 1.8mm; text-align: left; vertical-align: top; }
+      .pdf-table th { color: #555; font-weight: 700; }
+      .pdf-empty { color: #777; font-size: 9pt; margin: 0 0 4mm; }
     }
-    .games-list {
-      display:grid;
-      grid-template-columns:repeat(2,1fr);
-      gap:12px; margin-bottom:24px;
+
+    @media (max-width: 760px) {
+      main { width: min(100% - 20px, 920px); padding: 20px 0 34px; }
+      .hero { display: grid; }
+      h1 { font-size: 25px; }
+      h2 { font-size: 19px; }
+      .pill { width: fit-content; }
+      .games { grid-template-columns: 1fr; }
+      .game-button { min-height: 74px; }
+      .topbar { grid-template-columns: 1fr; }
+      .back { width: 100%; }
+      .match-form { grid-template-columns: 1fr 1fr; }
+      .match-form .versus { grid-column: 1 / -1; height: 26px; order: 3; }
+      .match-form label:nth-child(1) { order: 1; }
+      .match-form label:nth-child(2) { order: 2; }
+      .match-form label:nth-child(4) { order: 4; }
+      .match-form label:nth-child(5) { order: 5; }
+      .match-form .submit { order: 6; }
+      .versus svg { width: 24px; height: 38px; transform: translateY(0); }
+      .name-form { grid-template-columns: 1fr; }
+      .btn-row { display: grid; }
+      .small, .button { width: 100%; }
     }
-    .game-btn {
-      padding:8px; font-size:1rem;
-      border:none; border-radius:8px;
-      background:#222; color:#fff;
-      cursor:pointer; transition:background .2s;
-      -webkit-appearance:none; white-space:nowrap;
-    }
-    .game-btn:hover { background:#333 }
-    .players-grid {
-      display:grid; grid-template-columns:1fr 1fr;
-      gap:12px; margin-bottom:20px;
-    }
-    select,input[type=number] {
-      width:100%; padding:12px;
-      font-size:1rem; border:none;
-      border-radius:8px; background:#222;
-      color:#fff; outline:none; margin-bottom:8px;
-    }
-    #submitBtn {
-      width:100%; padding:14px; font-size:1.1rem;
-      border:none; border-radius:10px;
-      background:#1a1a1a; color:#fff;
-      cursor:pointer; transition:background .2s,transform .2s;
-      -webkit-appearance:none;
-    }
-    #submitBtn:hover:not(:disabled){ background:#333 }
-    #submitBtn:disabled{ opacity:.6; cursor:default }
-    @keyframes pulse {
-      0%,100%{transform:scale(1)}50%{transform:scale(1.1)}
-    }
-    .pulse{animation:pulse 1s ease-out}
-    .hidden{display:none!important}
+
+    @media (max-width: 480px) { .match-form { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>SOLO GAMES</h1>
-
-    <!-- 1) Games -->
-    <div id="gamesList" class="games-list"></div>
-
-    <!-- 2) Players & scores -->
-    <div id="playersGrid" class="players-grid hidden">
-      <div>
-        <select id="player1">
-          <option value="" disabled selected>Spēlētājs 1</option>
-        </select>
-        <input id="score1" type="number" min="0" placeholder="Punkti" disabled/>
+  <canvas id="confettiCanvas"></canvas>
+  <main>
+    <div id="homeScreen" class="screen">
+      <div class="hero">
+        <div>
+          <h1>Vezitivus WeekEnd Solo Games</h1>
+          <p class="subtitle">Solo spēļu rezultāti, kopvērtējums un katras aktivitātes līdertabula. Viss glabājas lokāli šajā ierīcē.</p>
+        </div>
+        <div class="pill"><span class="dot"></span> Local only</div>
       </div>
-      <div>
-        <select id="player2">
-          <option value="" disabled selected>Spēlētājs 2</option>
-        </select>
-        <input id="score2" type="number" min="0" placeholder="Punkti" disabled/>
-      </div>
+
+      <section class="card">
+        <div class="section-head"><div><h2>Spēles</h2><div class="meta">Izvēlies aktivitāti un ievadi mača rezultātu.</div></div></div>
+        <div class="games" id="gameButtons"></div>
+      </section>
+
+      <section class="card">
+        <div class="section-head"><div><h2>Kopējais kopvērtējums</h2><div class="meta" id="overallMeta"></div></div></div>
+        <div class="table-wrap"><table><thead><tr><th>#</th><th>ID / vārds</th><th>Mīļākā spēle</th><th>Games</th><th>Wins</th><th>Loses</th><th>Points +</th><th>Points -</th></tr></thead><tbody id="overallRows"></tbody></table></div>
+      </section>
+
+      <section class="card name-box">
+        <div class="section-head"><div><h2>Piešķirt savam ID vārdu</h2><div class="meta">Esoša ID vārda maiņai vajadzīgs PIN.</div></div></div>
+        <form id="nameForm" class="form name-form">
+          <label>ID<select id="nameId"></select></label>
+          <label>Vārds<input id="playerName" type="text" maxlength="32" autocomplete="off" required></label>
+          <button class="submit" type="submit">Saglabāt vārdu</button>
+        </form>
+        <div class="message" id="nameMessage" role="status" aria-live="polite"></div>
+        <div class="btn-row">
+          <button class="small" id="exportPdf" type="button">Eksportēt PDF</button>
+          <button class="small danger" id="clearScores" type="button">Dzēst visus punktus</button>
+          <button class="small danger" id="clearData" type="button">Dzēst visu</button>
+        </div>
+      </section>
     </div>
 
-    <!-- 3) Submit -->
-    <button id="submitBtn" class="hidden" disabled>Nosūtīt rezultātus</button>
+    <div id="gameScreen" class="screen" hidden>
+      <div class="topbar"><h1 id="gameTitle"></h1><button class="back" id="backButton" type="button">Atpakaļ</button></div>
+      <section class="card">
+        <div class="section-head"><div><h2>Ievadīt rezultātu</h2><div class="meta">Katrs ieraksts ir viens mačs starp diviem spēlētājiem. Neizšķirts nav atļauts.</div></div></div>
+        <form id="scoreForm" class="match-form">
+          <label>Spēlētājs<select id="playerA"></select></label>
+          <label>Spēlētāja punkti<input id="scoreA" type="number" min="0" step="1" inputmode="numeric" required></label>
+          <div class="versus" aria-hidden="true"><svg viewBox="0 0 52 92" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M32 1L15 31H25L1 91L38 42H27L51 1H32Z" stroke="#111" stroke-width="1.25" fill="rgba(255,255,255,.66)"/></svg></div>
+          <label>Pretinieka punkti<input id="scoreB" type="number" min="0" step="1" inputmode="numeric" required></label>
+          <label>Pretinieks<select id="playerB"></select></label>
+          <button class="submit" type="submit">Ievadīt rezultātu</button>
+        </form>
+        <div class="message" id="scoreMessage" role="status" aria-live="polite"></div>
+      </section>
+
+      <section class="card">
+        <div class="section-head"><div><h2>Leaderboard</h2><div class="meta" id="gameMeta"></div></div></div>
+        <div class="table-wrap"><table><thead><tr><th>#</th><th>ID / vārds</th><th>Mīļākā spēle</th><th>Games</th><th>Wins</th><th>Loses</th><th>Points +</th><th>Points -</th></tr></thead><tbody id="gameRows"></tbody></table></div>
+        <div class="btn-row"><button class="small danger" id="clearCurrentGame" type="button">Dzēst šīs spēles punktus</button></div>
+      </section>
+    </div>
+  </main>
+
+  <div id="printArea" class="print-area"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div class="modal" id="pinModal" role="dialog" aria-modal="true" aria-labelledby="pinTitle" hidden>
+    <div class="modal-box">
+      <h2 id="pinTitle">PIN kods</h2>
+      <p id="pinText">Ievadi PIN kodu, lai turpinātu.</p>
+      <input id="pinInput" type="password" inputmode="numeric" maxlength="4" autocomplete="off">
+      <div class="modal-error" id="pinError"></div>
+      <div class="modal-actions"><button class="button" id="pinCancel" type="button">Atcelt</button><button id="pinConfirm" class="submit" type="button">Apstiprināt</button></div>
+    </div>
   </div>
 
   <script>
-    const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxIUgMyljIg79EVd2vC_BkEW-lOLteOkjjJbjEIaoE632jxUujKkNC3i-MmH7xgChP4/exec';
-    let gamesData = [], selectedGame = null;
+    const games = ["Galda teniss", "Fingerhockey", "Iemet.Aizvāko.Atkārto", "Novuss", "Beerpongs", "Šķīvis mērķī"];
+    const ids = Array.from({ length: 100 }, (_, i) => `VZ${String(i + 1).padStart(3, "0")}`);
+    const storageKey = "vezitivusSoloGames.polished.v1";
+    const previousKeys = ["vezitivusSoloGames.matches.v4", "vezitivusSoloGames.matches.v3", "vezitivusSoloGames.matches.v2", "vezitivusSoloGames.matches.v1"];
+    const pinCode = "6969";
+    let activeGame = "";
+    let pinResolve = null;
+    let toastTimer = null;
+    const messageTimers = {};
 
-    // 1) Load games via JSONP
-    function gamesCallback(data) {
-      gamesData = data;
-      const list = document.getElementById('gamesList');
-      data.forEach(item => {
-        const btn = document.createElement('button');
-        btn.textContent = item.name;
-        btn.className = 'game-btn';
-        btn.type = 'button';
-        btn.onclick = () => selectGame(item.name);
-        list.appendChild(btn);
-      });
-    }
-    (function loadGames(){
-      const s = document.createElement('script');
-      s.src = `${WEBAPP_URL}?callback=gamesCallback`;
-      document.body.appendChild(s);
-    })();
+    const $ = id => document.getElementById(id);
+    const emptyData = () => ({ names: {}, matches: [] });
 
-    // 2) User picks a game
-    function selectGame(name) {
-      selectedGame = name;
-      // remove other game buttons
-      document.querySelectorAll('.game-btn').forEach(b=>{
-        if (b.textContent !== name) b.remove();
-      });
-      // fill players
-      const players = gamesData.find(g=>g.name===name).players;
-      ['player1','player2'].forEach(id=>{
-        const sel = document.getElementById(id);
-        // clear old
-        for(let i=sel.options.length-1;i>0;i--) sel.remove(i);
-        // add new
-        players.forEach(nm=> sel.add(new Option(nm,nm)));
-        sel.selectedIndex = 0;
-      });
-      // reset scores & button
-      ['score1','score2'].forEach(id=>{
-        const inp = document.getElementById(id);
-        inp.value=''; inp.disabled=true;
-      });
-      const btn = document.getElementById('submitBtn');
-      btn.disabled = true; btn.classList.add('hidden');
-      document.getElementById('playersGrid').classList.remove('hidden');
+    function escapeHtml(value) {
+      return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
     }
 
-    // 3) Enable inputs & submit
-    const p1=document.getElementById('player1'),
-          p2=document.getElementById('player2'),
-          s1=document.getElementById('score1'),
-          s2=document.getElementById('score2'),
-          btn=document.getElementById('submitBtn');
+    function load() {
+      try {
+        const current = localStorage.getItem(storageKey);
+        if (current) return JSON.parse(current);
+        for (const oldKey of previousKeys) {
+          const old = localStorage.getItem(oldKey);
+          if (old) {
+            const parsed = JSON.parse(old);
+            localStorage.setItem(storageKey, JSON.stringify(parsed));
+            return parsed;
+          }
+        }
+      } catch (error) {
+        console.warn("Neizdevās nolasīt lokālos datus.", error);
+      }
+      return emptyData();
+    }
 
-    function checkPlayers(){
-      if(p1.value && p2.value && p1.value!==p2.value){
-        s1.disabled=s2.disabled=false;
-      } else {
-        s1.disabled=s2.disabled=true;
-        btn.disabled=true; btn.classList.add('hidden');
+    function save(data) {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(data));
+        return true;
+      } catch (error) {
+        console.warn("Neizdevās saglabāt datus.", error);
+        showToast("Neizdevās saglabāt datus");
+        return false;
       }
     }
-    p1.onchange = p2.onchange = checkPlayers;
 
-    function checkScores(){
-      if(s1.value!==''&&s2.value!==''){
-        btn.disabled=false; btn.classList.remove('hidden');
-      } else {
-        btn.disabled=true; btn.classList.add('hidden');
+    function requestPin(text) {
+      $("pinText").textContent = text || "Ievadi PIN kodu, lai turpinātu.";
+      $("pinInput").value = "";
+      $("pinError").textContent = "";
+      $("pinModal").hidden = false;
+      setTimeout(() => $("pinInput").focus(), 50);
+      return new Promise(resolve => { pinResolve = resolve; });
+    }
+
+    function closePinModal(result) {
+      $("pinModal").hidden = true;
+      if (pinResolve) pinResolve(result);
+      pinResolve = null;
+    }
+
+    function confirmPin() {
+      if ($("pinInput").value === pinCode) return closePinModal(true);
+      $("pinError").textContent = "Nepareizs PIN.";
+      $("pinInput").value = "";
+      $("pinInput").focus();
+    }
+
+    function showMessage(id, text, type = "") {
+      const el = $(id);
+      clearTimeout(messageTimers[id]);
+      el.textContent = text;
+      el.className = `message${type ? ` ${type}` : ""}`;
+      if (text) {
+        messageTimers[id] = setTimeout(() => {
+          el.textContent = "";
+          el.className = "message";
+        }, 2600);
       }
     }
-    s1.oninput = s2.oninput = checkScores;
 
-    // 4) Submit via JSONP
-    function postCallback(resp) {
-      if(resp.status==='success'){
-        btn.textContent = 'Rezultāti saglabāti';
-        btn.classList.add('pulse');
-        p1.selectedIndex = p2.selectedIndex = 0;
-        s1.value = s2.value = '';
-        setTimeout(()=>{
-          btn.classList.remove('pulse');
-          btn.textContent = 'Nosūtīt rezultātus';
-          btn.disabled = true; btn.classList.add('hidden');
-        },1000);
+    function showToast(text) {
+      const toast = $("toast");
+      toast.textContent = text;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 2600);
+    }
+
+    function matchToRows(match) {
+      return [
+        { id: match.playerA, game: match.game, pointsPlus: match.scoreA, pointsMinus: match.scoreB, win: match.scoreA > match.scoreB, lose: match.scoreA < match.scoreB },
+        { id: match.playerB, game: match.game, pointsPlus: match.scoreB, pointsMinus: match.scoreA, win: match.scoreB > match.scoreA, lose: match.scoreB < match.scoreA }
+      ];
+    }
+
+    function favoriteGame(id, matches) {
+      const counts = {};
+      matches.forEach(match => {
+        if (match.playerA === id || match.playerB === id) counts[match.game] = (counts[match.game] || 0) + 1;
+      });
+      const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1] || games.indexOf(a[0]) - games.indexOf(b[0]));
+      return sorted.length ? sorted[0][0] : "-";
+    }
+
+    function stats(matches, allMatches) {
+      const map = {};
+      matches.forEach(match => {
+        matchToRows(match).forEach(row => {
+          map[row.id] ??= { id: row.id, favoriteGame: favoriteGame(row.id, allMatches), games: 0, wins: 0, loses: 0, pointsPlus: 0, pointsMinus: 0 };
+          map[row.id].games += 1;
+          map[row.id].pointsPlus += row.pointsPlus;
+          map[row.id].pointsMinus += row.pointsMinus;
+          if (row.win) map[row.id].wins += 1;
+          if (row.lose) map[row.id].loses += 1;
+        });
+      });
+      return Object.values(map).sort((a, b) => b.games - a.games || b.wins - a.wins || a.loses - b.loses || b.pointsPlus - a.pointsPlus || a.pointsMinus - b.pointsMinus || a.id.localeCompare(b.id));
+    }
+
+    function renderRows(targetId, rows) {
+      const data = load();
+      if (!rows.length) {
+        $(targetId).innerHTML = '<tr><td colspan="8" class="empty">Nav ievadītu rezultātu.</td></tr>';
+        return;
       }
+      $(targetId).innerHTML = rows.map((row, index) => `
+        <tr><td class="rank">${index + 1}</td><td class="player">${escapeHtml(data.names[row.id] || "Nav vārda")}<small>${row.id}</small></td><td><span class="favorite">${escapeHtml(row.favoriteGame)}</span></td><td>${row.games}</td><td>${row.wins}</td><td>${row.loses}</td><td>${row.pointsPlus}</td><td>${row.pointsMinus}</td></tr>
+      `).join("");
     }
-    function sendResults(){
-      const v1=Number(s1.value), v2=Number(s2.value);
-      const params=[
-        'callback=postCallback',
-        'game='+encodeURIComponent(selectedGame),
-        'winner='+encodeURIComponent(v1>v2? p1.value : p2.value),
-        'loser='+encodeURIComponent(v1>v2? p2.value : p1.value),
-        'winnerPoints='+encodeURIComponent(Math.max(v1,v2)),
-        'loserPoints='+encodeURIComponent(Math.min(v1,v2))
-      ].join('&');
-      const sc=document.createElement('script');
-      sc.src = `${WEBAPP_URL}?${params}`;
-      document.body.appendChild(sc);
+
+    function mostPlayedGame(data) {
+      const counts = games.map(game => ({ game, count: data.matches.filter(match => match.game === game).length })).sort((a, b) => b.count - a.count);
+      return counts[0].count ? counts[0].game : "-";
     }
-    btn.onclick = btn.ontouchend = e=>{
-      if(e.type==='touchend') e.preventDefault();
-      sendResults();
-    };
+
+    function optionsHtml(data) {
+      return ids.map(id => `<option value="${id}">${id}${data.names[id] ? ` — ${escapeHtml(data.names[id])}` : ""}</option>`).join("");
+    }
+
+    function renderSelects() {
+      const data = load();
+      const current = { a: $("playerA").value, b: $("playerB").value, name: $("nameId").value };
+      const options = optionsHtml(data);
+      $("playerA").innerHTML = options;
+      $("playerB").innerHTML = options;
+      $("nameId").innerHTML = options;
+      if (current.a) $("playerA").value = current.a;
+      if (current.b) $("playerB").value = current.b;
+      if (current.name) $("nameId").value = current.name;
+      if ($("playerB").value === $("playerA").value) $("playerB").selectedIndex = Math.min(1, ids.length - 1);
+    }
+
+    function renderGames() {
+      const data = load();
+      $("gameButtons").innerHTML = games.map(game => {
+        const count = data.matches.filter(match => match.game === game).length;
+        return `<button class="game-button" type="button" data-game="${escapeHtml(game)}" aria-label="Atvērt spēli ${escapeHtml(game)}"><span class="game-title">${escapeHtml(game)}</span><span class="game-meta">${count} ${count === 1 ? "mačs" : "mači"}</span><span class="game-arrow" aria-hidden="true">›</span></button>`;
+      }).join("");
+    }
+
+    function renderOverall() {
+      const data = load();
+      renderRows("overallRows", stats(data.matches, data.matches));
+      $("overallMeta").textContent = `Matches: ${data.matches.length} | Player games: ${data.matches.length * 2} | Most played game: ${mostPlayedGame(data)}`;
+    }
+
+    function renderGame() {
+      if (!activeGame) return;
+      const data = load();
+      const matches = data.matches.filter(match => match.game === activeGame);
+      $("gameTitle").textContent = activeGame;
+      $("gameMeta").textContent = `Matches: ${matches.length}`;
+      renderRows("gameRows", stats(matches, data.matches));
+    }
+
+    function renderAll() { renderSelects(); renderGames(); renderOverall(); renderGame(); }
+    function openGame(game) { activeGame = game; $("homeScreen").hidden = true; $("gameScreen").hidden = false; renderAll(); window.scrollTo(0, 0); }
+    function openHome() { $("gameScreen").hidden = true; $("homeScreen").hidden = false; renderAll(); window.scrollTo(0, 0); }
+
+    function pdfRows(rows) {
+      if (!rows.length) return '<p class="pdf-empty">Nav ievadītu rezultātu.</p>';
+      const data = load();
+      return `<table class="pdf-table"><thead><tr><th>#</th><th>Vārds</th><th>ID</th><th>Mīļākā spēle</th><th>Games</th><th>Wins</th><th>Loses</th><th>Points +</th><th>Points -</th></tr></thead><tbody>${rows.map((row, index) => `<tr><td>${index + 1}</td><td>${escapeHtml(data.names[row.id] || "-")}</td><td>${escapeHtml(row.id)}</td><td>${escapeHtml(row.favoriteGame)}</td><td>${row.games}</td><td>${row.wins}</td><td>${row.loses}</td><td>${row.pointsPlus}</td><td>${row.pointsMinus}</td></tr>`).join("")}</tbody></table>`;
+    }
+
+    function pdfSection(title, meta, rows) {
+      return `<section class="pdf-section"><h2>${escapeHtml(title)}</h2><div class="pdf-meta">${escapeHtml(meta)}</div>${pdfRows(rows)}</section>`;
+    }
+
+    function exportPdf() {
+      const data = load();
+      const overallMeta = `Matches: ${data.matches.length} | Player games: ${data.matches.length * 2} | Most played game: ${mostPlayedGame(data)}`;
+      const gameSections = games.map(game => {
+        const matches = data.matches.filter(match => match.game === game);
+        return pdfSection(game, `Matches: ${matches.length}`, stats(matches, data.matches));
+      }).join("");
+      $("printArea").innerHTML = `<div class="pdf-report"><h1>Vezitivus WeekEnd Solo Games</h1><div class="pdf-meta">Eksportēts: ${escapeHtml(new Date().toLocaleString("lv-LV"))}</div>${pdfSection("Kopējais kopvērtējums", overallMeta, stats(data.matches, data.matches))}${gameSections}</div>`;
+      setTimeout(() => window.print(), 100);
+    }
+
+    function launchFireworks() {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      const canvas = $("confettiCanvas");
+      const ctx = canvas.getContext("2d");
+      const ratio = Math.max(1, window.devicePixelRatio || 1);
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      canvas.width = Math.floor(width * ratio);
+      canvas.height = Math.floor(height * ratio);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      const colors = ["#007aff", "#30d158", "#ffcc00", "#ff3b30", "#bf5af2", "#ff9f0a"];
+      const bursts = [{ x: width * .28, y: height * .32 }, { x: width * .72, y: height * .28 }, { x: width * .5, y: height * .42 }];
+      const particles = [];
+      bursts.forEach((burst, burstIndex) => {
+        const count = burstIndex === 2 ? 42 : 34;
+        for (let i = 0; i < count; i++) {
+          const angle = Math.PI * 2 * i / count + Math.random() * .12;
+          const speed = 2.2 + Math.random() * 4.2;
+          particles.push({ x: burst.x, y: burst.y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, size: 2 + Math.random() * 4, life: 1, decay: .012 + Math.random() * .014, gravity: .045 + Math.random() * .03, color: colors[Math.floor(Math.random() * colors.length)], rotation: Math.random() * Math.PI, spin: -.22 + Math.random() * .44 });
+        }
+      });
+      let frame = 0;
+      function animate() {
+        frame += 1;
+        ctx.clearRect(0, 0, width, height);
+        particles.forEach(p => {
+          p.x += p.vx; p.y += p.vy; p.vy += p.gravity; p.vx *= .991; p.vy *= .991; p.life -= p.decay; p.rotation += p.spin;
+          ctx.save(); ctx.globalAlpha = Math.max(0, p.life); ctx.translate(p.x, p.y); ctx.rotate(p.rotation); ctx.fillStyle = p.color; ctx.fillRect(-p.size / 2, -p.size / 2, p.size * 1.55, p.size); ctx.restore();
+        });
+        if (particles.some(p => p.life > 0) && frame < 140) requestAnimationFrame(animate);
+        else ctx.clearRect(0, 0, width, height);
+      }
+      animate();
+    }
+
+    $("gameButtons").addEventListener("click", event => {
+      const button = event.target.closest(".game-button");
+      if (button) openGame(button.dataset.game);
+    });
+    [$("playerA"), $("playerB")].forEach(select => {
+      select.addEventListener("change", () => {
+        if ($("playerA").value !== $("playerB").value) return;
+        const target = select.id === "playerA" ? $("playerB") : $("playerA");
+        target.selectedIndex = (select.selectedIndex + 1) % ids.length;
+      });
+    });
+    $("pinConfirm").addEventListener("click", confirmPin);
+    $("pinCancel").addEventListener("click", () => closePinModal(false));
+    $("pinInput").addEventListener("keydown", event => { if (event.key === "Enter") confirmPin(); if (event.key === "Escape") closePinModal(false); });
+    $("backButton").addEventListener("click", openHome);
+    $("exportPdf").addEventListener("click", exportPdf);
+    window.addEventListener("afterprint", () => { $("printArea").innerHTML = ""; });
+
+    $("scoreForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const submitButton = event.submitter;
+      submitButton?.classList.add("is-busy");
+      const data = load();
+      const playerA = $("playerA").value;
+      const playerB = $("playerB").value;
+      const scoreA = Number($("scoreA").value);
+      const scoreB = Number($("scoreB").value);
+      if (playerA === playerB) {
+        submitButton?.classList.remove("is-busy");
+        return showMessage("scoreMessage", "Spēlētājs un pretinieks nevar būt viens un tas pats ID.", "error");
+      }
+      if (!Number.isInteger(scoreA) || !Number.isInteger(scoreB) || scoreA < 0 || scoreB < 0) {
+        submitButton?.classList.remove("is-busy");
+        return showMessage("scoreMessage", "Punkti nav pareizi.", "error");
+      }
+      if (scoreA === scoreB) {
+        submitButton?.classList.remove("is-busy");
+        return showMessage("scoreMessage", "Neizšķirts nav atļauts.", "error");
+      }
+      data.matches.push({ game: activeGame, playerA, playerB, scoreA, scoreB, createdAt: new Date().toISOString() });
+      if (!save(data)) {
+        submitButton?.classList.remove("is-busy");
+        showMessage("scoreMessage", "Neizdevās saglabāt rezultātu.", "error");
+        return;
+      }
+      $("scoreA").value = "";
+      $("scoreB").value = "";
+      showMessage("scoreMessage", "Rezultāts saglabāts.", "success");
+      showToast("Rezultāts saglabāts");
+      launchFireworks();
+      renderAll();
+      setTimeout(() => submitButton?.classList.remove("is-busy"), 180);
+    });
+
+    $("nameForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      const data = load();
+      const id = $("nameId").value;
+      const name = $("playerName").value.trim();
+      if (!name) return showMessage("nameMessage", "Ievadi vārdu.", "error");
+      if (data.names[id] && !await requestPin("Šim ID jau ir piešķirts vārds. Ievadi PIN kodu, lai to mainītu.")) return showMessage("nameMessage", "Vārds netika mainīts.", "error");
+      data.names[id] = name;
+      if (!save(data)) {
+        showMessage("nameMessage", "Neizdevās saglabāt vārdu.", "error");
+        return;
+      }
+      $("playerName").value = "";
+      showMessage("nameMessage", "Vārds saglabāts.", "success");
+      renderAll();
+    });
+
+    $("nameId").addEventListener("change", event => { $("playerName").value = load().names[event.target.value] || ""; });
+    $("clearScores").addEventListener("click", async () => {
+      if (!await requestPin("Ievadi PIN kodu, lai dzēstu visus punktus.")) return;
+      const data = load();
+      data.matches = [];
+      if (!save(data)) return;
+      activeGame = "";
+      openHome();
+      showMessage("nameMessage", "Visi punkti dzēsti.", "success");
+    });
+    $("clearData").addEventListener("click", async () => {
+      if (!await requestPin("Ievadi PIN kodu, lai dzēstu visus datus.")) return;
+      localStorage.removeItem(storageKey);
+      previousKeys.forEach(key => localStorage.removeItem(key));
+      activeGame = "";
+      openHome();
+      showMessage("nameMessage", "Visi dati dzēsti.", "success");
+    });
+    $("clearCurrentGame").addEventListener("click", async () => {
+      if (!activeGame || !await requestPin("Ievadi PIN kodu, lai dzēstu šīs spēles punktus.")) return;
+      const data = load();
+      data.matches = data.matches.filter(match => match.game !== activeGame);
+      if (!save(data)) return;
+      showMessage("scoreMessage", "Šīs spēles punkti dzēsti.", "success");
+      renderAll();
+    });
+
+    renderAll();
   </script>
 </body>
 </html>
