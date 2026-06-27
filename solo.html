@@ -68,7 +68,6 @@
     .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
     .button, .submit, .small, .back { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 40px; padding: 0 13px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--text); cursor: pointer; text-align: center; font-size: 13px; font-weight: 700; transition: background 120ms ease, border-color 120ms ease; }
     .button:hover, .small:hover, .back:hover { background: var(--soft); border-color: #d0d0d0; }
-    .button:focus-visible, .submit:focus-visible, .small:focus-visible, .back:focus-visible, .game-button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid #111; outline-offset: 2px; }
     .submit { background: #111; color: #fff; border-color: #111; }
     .submit:hover { background: #333; border-color: #333; }
     .small { min-height: 36px; padding: 0 11px; font-size: 12px; }
@@ -79,7 +78,6 @@
     .message { min-height: 19px; margin: 7px 0 0; color: var(--muted); font-size: 12px; }
     .message.error { color: var(--danger); }
     .message.success { color: var(--success); }
-    .is-busy { opacity: .72; pointer-events: none; }
     .toast { position: fixed; left: 50%; bottom: 22px; z-index: 80; transform: translateX(-50%) translateY(16px); max-width: min(360px, calc(100% - 32px)); border: 1px solid var(--line); border-radius: 999px; background: #fff; box-shadow: 0 8px 24px rgba(0,0,0,.12); padding: 10px 14px; opacity: 0; pointer-events: none; transition: opacity 180ms ease, transform 180ms ease; font-size: 13px; font-weight: 700; text-align: center; }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     .modal { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; background: rgba(0,0,0,.24); padding: 20px; }
@@ -89,10 +87,6 @@
     .modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
     .modal-error { min-height: 18px; margin-top: 7px; color: var(--danger); font-size: 12px; }
     #confettiCanvas { position: fixed; inset: 0; z-index: 70; width: 100vw; height: 100vh; pointer-events: none; }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
-    }
 
     @media print {
       body { background: #fff; color: #000; }
@@ -164,7 +158,7 @@
           <label>Vārds<input id="playerName" type="text" maxlength="32" autocomplete="off" required></label>
           <button class="submit" type="submit">Saglabāt vārdu</button>
         </form>
-        <div class="message" id="nameMessage" role="status" aria-live="polite"></div>
+        <div class="message" id="nameMessage"></div>
         <div class="btn-row">
           <button class="small" id="exportPdf" type="button">Eksportēt PDF</button>
           <button class="small danger" id="clearScores" type="button">Dzēst visus punktus</button>
@@ -179,13 +173,13 @@
         <div class="section-head"><div><h2>Ievadīt rezultātu</h2><div class="meta">Katrs ieraksts ir viens mačs starp diviem spēlētājiem. Neizšķirts nav atļauts.</div></div></div>
         <form id="scoreForm" class="match-form">
           <label>Spēlētājs<select id="playerA"></select></label>
-          <label>Spēlētāja punkti<input id="scoreA" type="number" min="0" step="1" inputmode="numeric" required></label>
+          <label>Spēlētāja punkti<input id="scoreA" type="number" min="0" step="1" required></label>
           <div class="versus" aria-hidden="true"><svg viewBox="0 0 52 92" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M32 1L15 31H25L1 91L38 42H27L51 1H32Z" stroke="#111" stroke-width="1.25" fill="rgba(255,255,255,.66)"/></svg></div>
-          <label>Pretinieka punkti<input id="scoreB" type="number" min="0" step="1" inputmode="numeric" required></label>
+          <label>Pretinieka punkti<input id="scoreB" type="number" min="0" step="1" required></label>
           <label>Pretinieks<select id="playerB"></select></label>
           <button class="submit" type="submit">Ievadīt rezultātu</button>
         </form>
-        <div class="message" id="scoreMessage" role="status" aria-live="polite"></div>
+        <div class="message" id="scoreMessage"></div>
       </section>
 
       <section class="card">
@@ -197,10 +191,10 @@
   </main>
 
   <div id="printArea" class="print-area"></div>
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <div class="modal" id="pinModal" role="dialog" aria-modal="true" aria-labelledby="pinTitle" hidden>
+  <div id="toast" class="toast"></div>
+  <div class="modal" id="pinModal" hidden>
     <div class="modal-box">
-      <h2 id="pinTitle">PIN kods</h2>
+      <h2>PIN kods</h2>
       <p id="pinText">Ievadi PIN kodu, lai turpinātu.</p>
       <input id="pinInput" type="password" inputmode="numeric" maxlength="4" autocomplete="off">
       <div class="modal-error" id="pinError"></div>
@@ -217,7 +211,6 @@
     let activeGame = "";
     let pinResolve = null;
     let toastTimer = null;
-    const messageTimers = {};
 
     const $ = id => document.getElementById(id);
     const emptyData = () => ({ names: {}, matches: [] });
@@ -244,16 +237,7 @@
       return emptyData();
     }
 
-    function save(data) {
-      try {
-        localStorage.setItem(storageKey, JSON.stringify(data));
-        return true;
-      } catch (error) {
-        console.warn("Neizdevās saglabāt datus.", error);
-        showToast("Neizdevās saglabāt datus");
-        return false;
-      }
-    }
+    function save(data) { localStorage.setItem(storageKey, JSON.stringify(data)); }
 
     function requestPin(text) {
       $("pinText").textContent = text || "Ievadi PIN kodu, lai turpinātu.";
@@ -279,15 +263,9 @@
 
     function showMessage(id, text, type = "") {
       const el = $(id);
-      clearTimeout(messageTimers[id]);
       el.textContent = text;
       el.className = `message${type ? ` ${type}` : ""}`;
-      if (text) {
-        messageTimers[id] = setTimeout(() => {
-          el.textContent = "";
-          el.className = "message";
-        }, 2600);
-      }
+      if (text) setTimeout(() => { el.textContent = ""; el.className = "message"; }, 2600);
     }
 
     function showToast(text) {
@@ -366,8 +344,9 @@
       const data = load();
       $("gameButtons").innerHTML = games.map(game => {
         const count = data.matches.filter(match => match.game === game).length;
-        return `<button class="game-button" type="button" data-game="${escapeHtml(game)}" aria-label="Atvērt spēli ${escapeHtml(game)}"><span class="game-title">${escapeHtml(game)}</span><span class="game-meta">${count} ${count === 1 ? "mačs" : "mači"}</span><span class="game-arrow" aria-hidden="true">›</span></button>`;
+        return `<button class="game-button" type="button" data-game="${escapeHtml(game)}"><span class="game-title">${escapeHtml(game)}</span><span class="game-meta">${count} ${count === 1 ? "mačs" : "mači"}</span><span class="game-arrow">›</span></button>`;
       }).join("");
+      document.querySelectorAll(".game-button").forEach(button => button.addEventListener("click", () => openGame(button.dataset.game)));
     }
 
     function renderOverall() {
@@ -411,7 +390,6 @@
     }
 
     function launchFireworks() {
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
       const canvas = $("confettiCanvas");
       const ctx = canvas.getContext("2d");
       const ratio = Math.max(1, window.devicePixelRatio || 1);
@@ -447,17 +425,6 @@
       animate();
     }
 
-    $("gameButtons").addEventListener("click", event => {
-      const button = event.target.closest(".game-button");
-      if (button) openGame(button.dataset.game);
-    });
-    [$("playerA"), $("playerB")].forEach(select => {
-      select.addEventListener("change", () => {
-        if ($("playerA").value !== $("playerB").value) return;
-        const target = select.id === "playerA" ? $("playerB") : $("playerA");
-        target.selectedIndex = (select.selectedIndex + 1) % ids.length;
-      });
-    });
     $("pinConfirm").addEventListener("click", confirmPin);
     $("pinCancel").addEventListener("click", () => closePinModal(false));
     $("pinInput").addEventListener("keydown", event => { if (event.key === "Enter") confirmPin(); if (event.key === "Escape") closePinModal(false); });
@@ -467,38 +434,22 @@
 
     $("scoreForm").addEventListener("submit", event => {
       event.preventDefault();
-      const submitButton = event.submitter;
-      submitButton?.classList.add("is-busy");
       const data = load();
       const playerA = $("playerA").value;
       const playerB = $("playerB").value;
       const scoreA = Number($("scoreA").value);
       const scoreB = Number($("scoreB").value);
-      if (playerA === playerB) {
-        submitButton?.classList.remove("is-busy");
-        return showMessage("scoreMessage", "Spēlētājs un pretinieks nevar būt viens un tas pats ID.", "error");
-      }
-      if (!Number.isInteger(scoreA) || !Number.isInteger(scoreB) || scoreA < 0 || scoreB < 0) {
-        submitButton?.classList.remove("is-busy");
-        return showMessage("scoreMessage", "Punkti nav pareizi.", "error");
-      }
-      if (scoreA === scoreB) {
-        submitButton?.classList.remove("is-busy");
-        return showMessage("scoreMessage", "Neizšķirts nav atļauts.", "error");
-      }
+      if (playerA === playerB) return showMessage("scoreMessage", "Spēlētājs un pretinieks nevar būt viens un tas pats ID.", "error");
+      if (!Number.isInteger(scoreA) || !Number.isInteger(scoreB) || scoreA < 0 || scoreB < 0) return showMessage("scoreMessage", "Punkti nav pareizi.", "error");
+      if (scoreA === scoreB) return showMessage("scoreMessage", "Neizšķirts nav atļauts.", "error");
       data.matches.push({ game: activeGame, playerA, playerB, scoreA, scoreB, createdAt: new Date().toISOString() });
-      if (!save(data)) {
-        submitButton?.classList.remove("is-busy");
-        showMessage("scoreMessage", "Neizdevās saglabāt rezultātu.", "error");
-        return;
-      }
+      save(data);
       $("scoreA").value = "";
       $("scoreB").value = "";
       showMessage("scoreMessage", "Rezultāts saglabāts.", "success");
       showToast("Rezultāts saglabāts");
       launchFireworks();
       renderAll();
-      setTimeout(() => submitButton?.classList.remove("is-busy"), 180);
     });
 
     $("nameForm").addEventListener("submit", async event => {
@@ -509,10 +460,7 @@
       if (!name) return showMessage("nameMessage", "Ievadi vārdu.", "error");
       if (data.names[id] && !await requestPin("Šim ID jau ir piešķirts vārds. Ievadi PIN kodu, lai to mainītu.")) return showMessage("nameMessage", "Vārds netika mainīts.", "error");
       data.names[id] = name;
-      if (!save(data)) {
-        showMessage("nameMessage", "Neizdevās saglabāt vārdu.", "error");
-        return;
-      }
+      save(data);
       $("playerName").value = "";
       showMessage("nameMessage", "Vārds saglabāts.", "success");
       renderAll();
@@ -523,7 +471,7 @@
       if (!await requestPin("Ievadi PIN kodu, lai dzēstu visus punktus.")) return;
       const data = load();
       data.matches = [];
-      if (!save(data)) return;
+      save(data);
       activeGame = "";
       openHome();
       showMessage("nameMessage", "Visi punkti dzēsti.", "success");
@@ -540,7 +488,7 @@
       if (!activeGame || !await requestPin("Ievadi PIN kodu, lai dzēstu šīs spēles punktus.")) return;
       const data = load();
       data.matches = data.matches.filter(match => match.game !== activeGame);
-      if (!save(data)) return;
+      save(data);
       showMessage("scoreMessage", "Šīs spēles punkti dzēsti.", "success");
       renderAll();
     });
