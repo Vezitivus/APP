@@ -1,0 +1,53 @@
+name: Patch solo games
+
+on:
+  push:
+    branches:
+      - add-solo-games
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: add-solo-games
+
+      - name: Add requested games and commit
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("solo.html")
+          content = path.read_text(encoding="utf-8")
+
+          marker = '      { name: "Šķīvis mērķī", code: "ŠM" }\n'
+          replacement = (
+              '      { name: "Šķīvis mērķī", code: "ŠM" },\n'
+              '      { name: "Vāles hokejs", code: "VH" },\n'
+              '      { name: "Akmens, šķēres, papīrīts", code: "AŠP" },\n'
+              '      { name: "Costum spēle", code: "CS" }\n'
+          )
+
+          if 'name: "Vāles hokejs"' not in content:
+              if marker not in content:
+                  raise SystemExit("Expected games array marker was not found")
+              content = content.replace(marker, replacement, 1)
+              path.write_text(content, encoding="utf-8")
+
+          for expected in ("Vāles hokejs", "Akmens, šķēres, papīrīts", "Costum spēle"):
+              if expected not in content:
+                  raise SystemExit(f"Missing expected game: {expected}")
+
+          Path(".github/workflows/patch-solo-games.yml").unlink()
+          PY
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add solo.html .github/workflows/patch-solo-games.yml
+          git commit -m "Add three solo games"
+          git push origin add-solo-games
