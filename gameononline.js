@@ -3,7 +3,6 @@
 
   const CONFIG = Object.freeze({
     appUrl: 'https://script.google.com/macros/s/AKfycbwKXz5unPWnG4ToVpYF7hSAh-Kh0526qUaWyuNMI6plQTNUZyoJh_tZy9mydxqZrx-x/exec',
-    accessToken: 'gameononline_2026_VZ_7mQ4pK9x',
     appId: 'gameononline-v2',
     childStorageKey: 'tournament_state_series_scroll_v3',
     clientKey: 'gameononline_client_id_v2',
@@ -159,7 +158,6 @@
       const url = new URL(CONFIG.appUrl);
       url.searchParams.set('action', action);
       url.searchParams.set('appId', CONFIG.appId);
-      url.searchParams.set('token', CONFIG.accessToken);
       url.searchParams.set('prefix', callbackName);
       url.searchParams.set('_', Date.now().toString());
       for (const [key, value] of Object.entries(extra)) url.searchParams.set(key, String(value));
@@ -193,7 +191,6 @@
     const body = JSON.stringify({
       action: 'save',
       appId: CONFIG.appId,
-      token: CONFIG.accessToken,
       pin: activePin,
       clientId,
       payload,
