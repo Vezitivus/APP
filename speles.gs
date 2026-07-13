@@ -1,13 +1,11 @@
 /**
  * VEZITIVUS — spēļu rezultātu API
- * Google Apps Script faila nosaukums: speles.gs
  *
- * Datu avoti:
- *   gamehost!F4:AR4       — spēļu nosaukumi
- *   gamehost!B6:B1000     — spēlētāju ID
- *   gamehost!C6:C1000     — spēlētāju vārdi
- *   Komandas!C1004:Q1004  — komandu nosaukumi
- *   Komandas!C1005:Q1012  — līdz 8 spēlētājiem zem katras komandas
+ * Dati:
+ * - gamehost!F4:AR4      spēļu nosaukumi
+ * - gamehost!B6:C1000    spēlētāju ID un vārdi
+ * - Komandas!C1004:Q1004 komandu nosaukumi
+ * - Komandas!C1005:Q1010 6 spēlētāji zem katras komandas
  */
 
 const SPELES_CONFIG = Object.freeze({
@@ -27,7 +25,7 @@ const SPELES_CONFIG = Object.freeze({
   teamStartColumn: 3,   // C
   teamEndColumn: 17,    // Q
   teamMemberStartRow: 1005,
-  teamMemberCount: 8,
+  teamMemberCount: 6,
 
   minTeams: 2,
   maxTeams: 15,
@@ -39,28 +37,7 @@ function doGet(e) {
   const callback = String(params.callback || '');
 
   try {
-    const action = String(params.action || 'bootstrap');
-    let result;
-
-    switch (action) {
-      case 'bootstrap':
-        result = getBootstrapData_(params.force === '1');
-        break;
-      case 'saveResult':
-        result = saveResult_(params);
-        break;
-      case 'ping':
-        result = {
-          ok: true,
-          service: 'vezitivus-speles',
-          timestamp: new Date().toISOString()
-        };
-        break;
-      default:
-        throw new Error('Nezināma darbība: ' + action);
-    }
-
-    return createOutput_(result, callback);
+    return createOutput_(dispatch_(params), callback);
   } catch (error) {
     console.error(error && error.stack ? error.stack : error);
     return createOutput_({
@@ -71,27 +48,16 @@ function doGet(e) {
 }
 
 function doPost(e) {
-  let payload = {};
+  let params = {};
 
   try {
     if (e && e.postData && e.postData.contents) {
-      payload = JSON.parse(e.postData.contents);
+      params = JSON.parse(e.postData.contents);
     } else if (e && e.parameter) {
-      payload = e.parameter;
+      params = e.parameter;
     }
 
-    const action = String(payload.action || '');
-    let result;
-
-    if (action === 'saveResult') {
-      result = saveResult_(payload);
-    } else if (action === 'bootstrap') {
-      result = getBootstrapData_(payload.force === '1');
-    } else {
-      throw new Error('Nezināma darbība: ' + action);
-    }
-
-    return createOutput_(result, '');
+    return createOutput_(dispatch_(params), '');
   } catch (error) {
     console.error(error && error.stack ? error.stack : error);
     return createOutput_({
@@ -101,9 +67,31 @@ function doPost(e) {
   }
 }
 
+function dispatch_(params) {
+  const action = String(params.action || 'bootstrap');
+
+  if (action === 'bootstrap') {
+    return getBootstrapData_(params.force === '1');
+  }
+
+  if (action === 'saveResult') {
+    return saveResult_(params);
+  }
+
+  if (action === 'ping') {
+    return {
+      ok: true,
+      service: 'vezitivus-speles',
+      timestamp: new Date().toISOString()
+    };
+  }
+
+  throw new Error('Nezināma darbība: ' + action);
+}
+
 function getBootstrapData_(forceRefresh) {
   const cache = CacheService.getScriptCache();
-  const cacheKey = 'speles-bootstrap-v4';
+  const cacheKey = 'speles-bootstrap-v5';
 
   if (!forceRefresh) {
     const cached = cache.get(cacheKey);
@@ -112,14 +100,12 @@ function getBootstrapData_(forceRefresh) {
 
   const gamehostSheet = getRequiredSheet_(SPELES_CONFIG.gamehostSheetName);
   const playerIndex = getPlayerIndex_(gamehostSheet);
-  const games = getGames_(gamehostSheet);
-  const officialTeams = getOfficialTeams_(playerIndex);
 
   const response = {
     ok: true,
-    games: games,
+    games: getGames_(gamehostSheet),
     players: playerIndex.players,
-    officialTeams: officialTeams,
+    officialTeams: getOfficialTeams_(playerIndex),
     limits: {
       minTeams: SPELES_CONFIG.minTeams,
       maxTeams: SPELES_CONFIG.maxTeams
@@ -142,11 +128,13 @@ function getGames_(sheet) {
     .getDisplayValues()[0];
 
   const games = [];
-  values.forEach(function (rawName, index) {
+
+  values.forEach(function(rawName, index) {
     const name = normalizeText_(rawName);
     if (!name) return;
 
     const column = SPELES_CONFIG.gameStartColumn + index;
+
     games.push({
       name: name,
       column: column,
@@ -160,16 +148,22 @@ function getGames_(sheet) {
 function getPlayerIndex_(sheet) {
   const rowCount = SPELES_CONFIG.playerEndRow - SPELES_CONFIG.playerStartRow + 1;
   const values = sheet
-    .getRange(SPELES_CONFIG.playerStartRow, SPELES_CONFIG.playerIdColumn, rowCount, 2)
+    .getRange(
+      SPELES_CONFIG.playerStartRow,
+      SPELES_CONFIG.playerIdColumn,
+      rowCount,
+      2
+    )
     .getDisplayValues();
 
   const players = [];
   const byId = Object.create(null);
   const byName = Object.create(null);
 
-  values.forEach(function (row, index) {
+  values.forEach(function(row, index) {
     const id = normalizeText_(row[0]);
     const name = normalizeText_(row[1]);
+
     if (!id || !name || byId[id]) return;
 
     const player = {
@@ -182,12 +176,9 @@ function getPlayerIndex_(sheet) {
     byId[id] = player;
 
     const nameKey = normalizeKey_(name);
-    if (!(nameKey in byName)) {
-      byName[nameKey] = player;
-    } else {
-      // Ja diviem spēlētājiem ir vienāds vārds, tikai pēc vārda tos droši atšķirt nevar.
-      byName[nameKey] = null;
-    }
+    byName[nameKey] = Object.prototype.hasOwnProperty.call(byName, nameKey)
+      ? null
+      : player;
   });
 
   return {
@@ -200,26 +191,41 @@ function getPlayerIndex_(sheet) {
 function getOfficialTeams_(playerIndex) {
   const sheet = getRequiredSheet_(SPELES_CONFIG.teamsSheetName);
   const width = SPELES_CONFIG.teamEndColumn - SPELES_CONFIG.teamStartColumn + 1;
-  const height = 1 + SPELES_CONFIG.teamMemberCount;
-  const values = sheet
-    .getRange(SPELES_CONFIG.teamHeaderRow, SPELES_CONFIG.teamStartColumn, height, width)
+
+  const headers = sheet
+    .getRange(
+      SPELES_CONFIG.teamHeaderRow,
+      SPELES_CONFIG.teamStartColumn,
+      1,
+      width
+    )
+    .getDisplayValues()[0];
+
+  const memberValues = sheet
+    .getRange(
+      SPELES_CONFIG.teamMemberStartRow,
+      SPELES_CONFIG.teamStartColumn,
+      SPELES_CONFIG.teamMemberCount,
+      width
+    )
     .getDisplayValues();
 
   const teams = [];
 
-  for (let columnOffset = 0; columnOffset < width; columnOffset += 1) {
-    const name = normalizeText_(values[0][columnOffset]);
-    if (!name) continue;
+  headers.forEach(function(rawName, columnOffset) {
+    const name = normalizeText_(rawName);
+    if (!name) return;
 
     const members = [];
     const unresolved = [];
     const seen = Object.create(null);
 
-    for (let rowOffset = 1; rowOffset < height; rowOffset += 1) {
-      const rawValue = normalizeText_(values[rowOffset][columnOffset]);
+    for (let rowOffset = 0; rowOffset < SPELES_CONFIG.teamMemberCount; rowOffset += 1) {
+      const rawValue = normalizeText_(memberValues[rowOffset][columnOffset]);
       if (!rawValue) continue;
 
       const player = resolveTeamMember_(rawValue, playerIndex);
+
       if (!player) {
         unresolved.push(rawValue);
         continue;
@@ -241,7 +247,7 @@ function getOfficialTeams_(playerIndex) {
       members: members,
       unresolved: unresolved
     });
-  }
+  });
 
   return teams;
 }
@@ -252,17 +258,25 @@ function resolveTeamMember_(rawValue, playerIndex) {
   const exactName = playerIndex.byName[normalizeKey_(rawValue)];
   if (exactName) return exactName;
 
-  const idToken = rawValue.match(/(?:^|\s|#|ID[:\s-]*)([A-ZĀČĒĢĪĶĻŅŠŪŽ]{0,5}\d{2,})\b/i);
-  if (idToken && playerIndex.byId[idToken[1]]) return playerIndex.byId[idToken[1]];
+  const idToken = rawValue.match(
+    /(?:^|\s|#|ID[:\s-]*)([A-ZĀČĒĢĪĶĻŅŠŪŽ]{0,5}\d{2,})\b/i
+  );
 
-  const splitCandidates = rawValue
+  if (idToken && playerIndex.byId[idToken[1]]) {
+    return playerIndex.byId[idToken[1]];
+  }
+
+  const candidates = rawValue
     .split(/\s*[|;–—-]\s*/)
     .map(normalizeText_)
     .filter(Boolean);
 
-  for (let i = 0; i < splitCandidates.length; i += 1) {
-    const candidate = splitCandidates[i];
-    if (playerIndex.byId[candidate]) return playerIndex.byId[candidate];
+  for (let i = 0; i < candidates.length; i += 1) {
+    const candidate = candidates[i];
+
+    if (playerIndex.byId[candidate]) {
+      return playerIndex.byId[candidate];
+    }
 
     const byName = playerIndex.byName[normalizeKey_(candidate)];
     if (byName) return byName;
@@ -273,20 +287,31 @@ function resolveTeamMember_(rawValue, playerIndex) {
 
 function saveResult_(params) {
   const mode = String(params.mode || 'players');
+
   if (mode !== 'players' && mode !== 'officialTeams') {
     throw new Error('Nederīgs disciplīnas veids.');
   }
 
-  const gameColumn = toInteger_(params.gameColumn, 'Nav norādīta spēles kolonna.');
+  const gameColumn = toInteger_(
+    params.gameColumn,
+    'Nav norādīta spēles kolonna.'
+  );
+
   const gameNameFromClient = normalizeText_(params.gameName);
   const requestId = normalizeText_(params.requestId).slice(0, 100);
   const teams = parseTeamsPayload_(params.teams);
 
-  if (gameColumn < SPELES_CONFIG.gameStartColumn || gameColumn > SPELES_CONFIG.gameEndColumn) {
+  if (
+    gameColumn < SPELES_CONFIG.gameStartColumn ||
+    gameColumn > SPELES_CONFIG.gameEndColumn
+  ) {
     throw new Error('Izvēlētā spēles kolonna nav diapazonā F:AR.');
   }
 
-  if (teams.length < SPELES_CONFIG.minTeams || teams.length > SPELES_CONFIG.maxTeams) {
+  if (
+    teams.length < SPELES_CONFIG.minTeams ||
+    teams.length > SPELES_CONFIG.maxTeams
+  ) {
     throw new Error(
       'Komandu skaitam jābūt no ' +
       SPELES_CONFIG.minTeams +
@@ -302,7 +327,9 @@ function saveResult_(params) {
   try {
     const gamehostSheet = getRequiredSheet_(SPELES_CONFIG.gamehostSheetName);
     const actualGameName = normalizeText_(
-      gamehostSheet.getRange(SPELES_CONFIG.gameHeaderRow, gameColumn).getDisplayValue()
+      gamehostSheet
+        .getRange(SPELES_CONFIG.gameHeaderRow, gameColumn)
+        .getDisplayValue()
     );
 
     if (!actualGameName) {
@@ -310,7 +337,9 @@ function saveResult_(params) {
     }
 
     if (gameNameFromClient && actualGameName !== gameNameFromClient) {
-      throw new Error('Spēļu saraksts ir mainījies. Atjauno datus un mēģini vēlreiz.');
+      throw new Error(
+        'Spēļu saraksts ir mainījies. Atjauno datus un mēģini vēlreiz.'
+      );
     }
 
     const playerIndex = getPlayerIndex_(gamehostSheet);
@@ -321,8 +350,9 @@ function saveResult_(params) {
     validateUniquePlayersAcrossTeams_(preparedTeams);
 
     const columnLetter = columnToLetter_(gameColumn);
-    preparedTeams.forEach(function (team) {
-      const ranges = team.playerIds.map(function (playerId) {
+
+    preparedTeams.forEach(function(team) {
+      const ranges = team.playerIds.map(function(playerId) {
         return columnLetter + playerIndex.byId[playerId].row;
       });
 
@@ -337,7 +367,7 @@ function saveResult_(params) {
       game: actualGameName,
       gameColumn: gameColumn,
       teamCount: preparedTeams.length,
-      teams: preparedTeams.map(function (team) {
+      teams: preparedTeams.map(function(team) {
         return {
           label: team.label,
           score: team.score,
@@ -361,35 +391,46 @@ function parseTeamsPayload_(value) {
     throw new Error('Komandu dati nav derīgi.');
   }
 
-  if (!Array.isArray(parsed)) throw new Error('Komandu dati nav derīgi.');
+  if (!Array.isArray(parsed)) {
+    throw new Error('Komandu dati nav derīgi.');
+  }
 
-  return parsed.map(function (team, index) {
+  return parsed.map(function(team, index) {
     return {
       slot: index + 1,
-      score: parseScore_(team && team.score, 'Komandas ' + (index + 1) + ' punkti nav derīgi.'),
+      score: parseScore_(
+        team && team.score,
+        'Komandas ' + (index + 1) + ' punkti nav derīgi.'
+      ),
       playerIds: Array.isArray(team && team.playerIds)
         ? uniqueTextList_(team.playerIds)
         : [],
-      officialTeamColumn: team && team.officialTeamColumn !== undefined
-        ? Number(team.officialTeamColumn)
-        : null,
+      officialTeamColumn:
+        team && team.officialTeamColumn !== undefined
+          ? Number(team.officialTeamColumn)
+          : null,
       officialTeamName: normalizeText_(team && team.officialTeamName)
     };
   });
 }
 
 function preparePlayerTeamsForSave_(teams, playerIndex) {
-  return teams.map(function (team, index) {
+  return teams.map(function(team, index) {
     if (!team.playerIds.length) {
-      throw new Error('Komandā ' + (index + 1) + ' nav izvēlēts neviens spēlētājs.');
+      throw new Error(
+        'Komandā ' + (index + 1) + ' nav izvēlēts neviens spēlētājs.'
+      );
     }
 
-    const missingIds = team.playerIds.filter(function (id) {
+    const missingIds = team.playerIds.filter(function(id) {
       return !playerIndex.byId[id];
     });
 
     if (missingIds.length) {
-      throw new Error('Google Sheets nav atrasti spēlētāji ar ID: ' + missingIds.join(', '));
+      throw new Error(
+        'Google Sheets nav atrasti spēlētāji ar ID: ' +
+        missingIds.join(', ')
+      );
     }
 
     return {
@@ -403,47 +444,72 @@ function preparePlayerTeamsForSave_(teams, playerIndex) {
 function prepareOfficialTeamsForSave_(teams, playerIndex) {
   const officialTeams = getOfficialTeams_(playerIndex);
   const byColumn = Object.create(null);
-  officialTeams.forEach(function (team) {
+
+  officialTeams.forEach(function(team) {
     byColumn[String(team.column)] = team;
   });
 
   const usedColumns = Object.create(null);
 
-  return teams.map(function (team, index) {
+  return teams.map(function(team, index) {
     const column = team.officialTeamColumn;
+
     if (!Number.isFinite(column) || Math.floor(column) !== column) {
-      throw new Error('Komandai ' + (index + 1) + ' nav izvēlēta oficiālā komanda.');
+      throw new Error(
+        'Komandai ' + (index + 1) + ' nav izvēlēta oficiālā komanda.'
+      );
     }
 
     const officialTeam = byColumn[String(column)];
+
     if (!officialTeam) {
-      throw new Error('Izvēlētā oficiālā komanda vairs nav atrodama lapā "Komandas".');
+      throw new Error(
+        'Izvēlētā oficiālā komanda vairs nav atrodama lapā "Komandas".'
+      );
     }
 
-    if (team.officialTeamName && team.officialTeamName !== officialTeam.name) {
-      throw new Error('Komandu saraksts ir mainījies. Atjauno datus un mēģini vēlreiz.');
+    if (
+      team.officialTeamName &&
+      team.officialTeamName !== officialTeam.name
+    ) {
+      throw new Error(
+        'Komandu saraksts ir mainījies. Atjauno datus un mēģini vēlreiz.'
+      );
     }
 
     if (usedColumns[column]) {
-      throw new Error('Oficiālā komanda "' + officialTeam.name + '" izvēlēta vairākas reizes.');
+      throw new Error(
+        'Oficiālā komanda "' +
+        officialTeam.name +
+        '" izvēlēta vairākas reizes.'
+      );
     }
+
     usedColumns[column] = true;
 
     if (officialTeam.unresolved.length) {
       throw new Error(
-        'Komandai "' + officialTeam.name + '" nav atrasti šādi spēlētāji gamehost lapā: ' +
+        'Komandai "' +
+        officialTeam.name +
+        '" nav atrasti šādi spēlētāji gamehost lapā: ' +
         officialTeam.unresolved.join(', ')
       );
     }
 
     if (!officialTeam.members.length) {
-      throw new Error('Komandai "' + officialTeam.name + '" nav atrasts neviens spēlētājs.');
+      throw new Error(
+        'Komandai "' +
+        officialTeam.name +
+        '" nav atrasts neviens spēlētājs.'
+      );
     }
 
     return {
       label: officialTeam.name,
       score: team.score,
-      playerIds: officialTeam.members.map(function (member) { return member.id; })
+      playerIds: officialTeam.members.map(function(member) {
+        return member.id;
+      })
     };
   });
 }
@@ -451,15 +517,20 @@ function prepareOfficialTeamsForSave_(teams, playerIndex) {
 function validateUniquePlayersAcrossTeams_(teams) {
   const ownerByPlayer = Object.create(null);
 
-  teams.forEach(function (team, teamIndex) {
-    team.playerIds.forEach(function (playerId) {
+  teams.forEach(function(team, teamIndex) {
+    team.playerIds.forEach(function(playerId) {
       if (ownerByPlayer[playerId] !== undefined) {
         throw new Error(
-          'Spēlētājs ar ID ' + playerId +
-          ' ir izvēlēts gan komandā ' + (ownerByPlayer[playerId] + 1) +
-          ', gan komandā ' + (teamIndex + 1) + '.'
+          'Spēlētājs ar ID ' +
+          playerId +
+          ' ir izvēlēts gan komandā ' +
+          (ownerByPlayer[playerId] + 1) +
+          ', gan komandā ' +
+          (teamIndex + 1) +
+          '.'
         );
       }
+
       ownerByPlayer[playerId] = teamIndex;
     });
   });
@@ -469,9 +540,10 @@ function uniqueTextList_(values) {
   const seen = Object.create(null);
   const result = [];
 
-  values.forEach(function (value) {
+  values.forEach(function(value) {
     const text = normalizeText_(value);
     if (!text || seen[text]) return;
+
     seen[text] = true;
     result.push(text);
   });
@@ -482,22 +554,39 @@ function uniqueTextList_(values) {
 function getRequiredSheet_(sheetName) {
   const spreadsheet = SpreadsheetApp.openById(SPELES_CONFIG.spreadsheetId);
   const sheet = spreadsheet.getSheetByName(sheetName);
-  if (!sheet) throw new Error('Google Sheets lapa "' + sheetName + '" nav atrasta.');
+
+  if (!sheet) {
+    throw new Error('Google Sheets lapa "' + sheetName + '" nav atrasta.');
+  }
+
   return sheet;
 }
 
 function parseScore_(value, errorMessage) {
-  const normalized = String(value == null ? '' : value).trim().replace(',', '.');
-  if (!/^\d+(?:\.\d+)?$/.test(normalized)) throw new Error(errorMessage);
+  const normalized = String(value == null ? '' : value)
+    .trim()
+    .replace(',', '.');
+
+  if (!/^\d+(?:\.\d+)?$/.test(normalized)) {
+    throw new Error(errorMessage);
+  }
 
   const score = Number(normalized);
-  if (!isFinite(score) || score < 0) throw new Error(errorMessage);
+
+  if (!isFinite(score) || score < 0) {
+    throw new Error(errorMessage);
+  }
+
   return score;
 }
 
 function toInteger_(value, errorMessage) {
   const number = Number(value);
-  if (!isFinite(number) || Math.floor(number) !== number) throw new Error(errorMessage);
+
+  if (!isFinite(number) || Math.floor(number) !== number) {
+    throw new Error(errorMessage);
+  }
+
   return number;
 }
 
@@ -513,7 +602,9 @@ function normalizeKey_(value) {
 
 function createOutput_(payload, callback) {
   const json = JSON.stringify(payload).replace(/</g, '\\u003c');
-  const safeCallback = /^[A-Za-z_$][0-9A-Za-z_$]*$/.test(callback) ? callback : '';
+  const safeCallback = /^[A-Za-z_$][0-9A-Za-z_$]*$/.test(callback)
+    ? callback
+    : '';
 
   if (safeCallback) {
     return ContentService
