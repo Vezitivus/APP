@@ -2,16 +2,18 @@
  * VEZITIVUS — spēļu rezultātu API
  * Google Apps Script faila nosaukums: speles.gs
  *
- * Datu avots:
- *   Lapa: gamehost
- *   Spēles: F4:AR4
- *   Spēlētāju ID: B6:B1000
- *   Spēlētāju vārdi: C6:C1000
+ * Datu avoti:
+ *   gamehost!F4:AR4       — spēļu nosaukumi
+ *   gamehost!B6:B1000     — spēlētāju ID
+ *   gamehost!C6:C1000     — spēlētāju vārdi
+ *   Komandas!C1004:Q1004  — komandu nosaukumi
+ *   Komandas!C1005:Q1012  — līdz 8 spēlētājiem zem katras komandas
  */
 
 const SPELES_CONFIG = Object.freeze({
   spreadsheetId: '1KYwqQ4gpwnXuMjNGjET1KnZVh2hmgadAl1rpmCttdnk',
-  sheetName: 'gamehost',
+
+  gamehostSheetName: 'gamehost',
   gameHeaderRow: 4,
   gameStartColumn: 6,   // F
   gameEndColumn: 44,    // AR
@@ -19,6 +21,16 @@ const SPELES_CONFIG = Object.freeze({
   playerEndRow: 1000,
   playerIdColumn: 2,    // B
   playerNameColumn: 3,  // C
+
+  teamsSheetName: 'Komandas',
+  teamHeaderRow: 1004,
+  teamStartColumn: 3,   // C
+  teamEndColumn: 17,    // Q
+  teamMemberStartRow: 1005,
+  teamMemberCount: 8,
+
+  minTeams: 2,
+  maxTeams: 15,
   bootstrapCacheSeconds: 45
 });
 
@@ -58,10 +70,6 @@ function doGet(e) {
   }
 }
 
-/**
- * POST atbalsts testiem vai citām integrācijām.
- * GitHub HTML izmanto JSONP GET, lai nebūtu CORS problēmu.
- */
 function doPost(e) {
   let payload = {};
 
@@ -95,58 +103,27 @@ function doPost(e) {
 
 function getBootstrapData_(forceRefresh) {
   const cache = CacheService.getScriptCache();
-  const cacheKey = 'speles-bootstrap-v2';
+  const cacheKey = 'speles-bootstrap-v4';
 
   if (!forceRefresh) {
     const cached = cache.get(cacheKey);
-    if (cached) {
-      return JSON.parse(cached);
-    }
+    if (cached) return JSON.parse(cached);
   }
 
-  const sheet = getGamehostSheet_();
-  const gameWidth = SPELES_CONFIG.gameEndColumn - SPELES_CONFIG.gameStartColumn + 1;
-  const gameValues = sheet
-    .getRange(SPELES_CONFIG.gameHeaderRow, SPELES_CONFIG.gameStartColumn, 1, gameWidth)
-    .getDisplayValues()[0];
-
-  const games = [];
-  gameValues.forEach(function (rawName, index) {
-    const name = normalizeText_(rawName);
-    if (!name) return;
-
-    games.push({
-      name: name,
-      column: SPELES_CONFIG.gameStartColumn + index,
-      a1: columnToLetter_(SPELES_CONFIG.gameStartColumn + index) + SPELES_CONFIG.gameHeaderRow
-    });
-  });
-
-  const playerRowCount = SPELES_CONFIG.playerEndRow - SPELES_CONFIG.playerStartRow + 1;
-  const playerValues = sheet
-    .getRange(SPELES_CONFIG.playerStartRow, SPELES_CONFIG.playerIdColumn, playerRowCount, 2)
-    .getDisplayValues();
-
-  const players = [];
-  const seenIds = Object.create(null);
-
-  playerValues.forEach(function (row, index) {
-    const id = normalizeText_(row[0]);
-    const name = normalizeText_(row[1]);
-    if (!id || !name || seenIds[id]) return;
-
-    seenIds[id] = true;
-    players.push({
-      id: id,
-      name: name,
-      row: SPELES_CONFIG.playerStartRow + index
-    });
-  });
+  const gamehostSheet = getRequiredSheet_(SPELES_CONFIG.gamehostSheetName);
+  const playerIndex = getPlayerIndex_(gamehostSheet);
+  const games = getGames_(gamehostSheet);
+  const officialTeams = getOfficialTeams_(playerIndex);
 
   const response = {
     ok: true,
     games: games,
-    players: players,
+    players: playerIndex.players,
+    officialTeams: officialTeams,
+    limits: {
+      minTeams: SPELES_CONFIG.minTeams,
+      maxTeams: SPELES_CONFIG.maxTeams
+    },
     timestamp: new Date().toISOString()
   };
 
@@ -158,63 +135,215 @@ function getBootstrapData_(forceRefresh) {
   return response;
 }
 
+function getGames_(sheet) {
+  const width = SPELES_CONFIG.gameEndColumn - SPELES_CONFIG.gameStartColumn + 1;
+  const values = sheet
+    .getRange(SPELES_CONFIG.gameHeaderRow, SPELES_CONFIG.gameStartColumn, 1, width)
+    .getDisplayValues()[0];
+
+  const games = [];
+  values.forEach(function (rawName, index) {
+    const name = normalizeText_(rawName);
+    if (!name) return;
+
+    const column = SPELES_CONFIG.gameStartColumn + index;
+    games.push({
+      name: name,
+      column: column,
+      a1: columnToLetter_(column) + SPELES_CONFIG.gameHeaderRow
+    });
+  });
+
+  return games;
+}
+
+function getPlayerIndex_(sheet) {
+  const rowCount = SPELES_CONFIG.playerEndRow - SPELES_CONFIG.playerStartRow + 1;
+  const values = sheet
+    .getRange(SPELES_CONFIG.playerStartRow, SPELES_CONFIG.playerIdColumn, rowCount, 2)
+    .getDisplayValues();
+
+  const players = [];
+  const byId = Object.create(null);
+  const byName = Object.create(null);
+
+  values.forEach(function (row, index) {
+    const id = normalizeText_(row[0]);
+    const name = normalizeText_(row[1]);
+    if (!id || !name || byId[id]) return;
+
+    const player = {
+      id: id,
+      name: name,
+      row: SPELES_CONFIG.playerStartRow + index
+    };
+
+    players.push(player);
+    byId[id] = player;
+
+    const nameKey = normalizeKey_(name);
+    if (!(nameKey in byName)) {
+      byName[nameKey] = player;
+    } else {
+      // Ja diviem spēlētājiem ir vienāds vārds, tikai pēc vārda tos droši atšķirt nevar.
+      byName[nameKey] = null;
+    }
+  });
+
+  return {
+    players: players,
+    byId: byId,
+    byName: byName
+  };
+}
+
+function getOfficialTeams_(playerIndex) {
+  const sheet = getRequiredSheet_(SPELES_CONFIG.teamsSheetName);
+  const width = SPELES_CONFIG.teamEndColumn - SPELES_CONFIG.teamStartColumn + 1;
+  const height = 1 + SPELES_CONFIG.teamMemberCount;
+  const values = sheet
+    .getRange(SPELES_CONFIG.teamHeaderRow, SPELES_CONFIG.teamStartColumn, height, width)
+    .getDisplayValues();
+
+  const teams = [];
+
+  for (let columnOffset = 0; columnOffset < width; columnOffset += 1) {
+    const name = normalizeText_(values[0][columnOffset]);
+    if (!name) continue;
+
+    const members = [];
+    const unresolved = [];
+    const seen = Object.create(null);
+
+    for (let rowOffset = 1; rowOffset < height; rowOffset += 1) {
+      const rawValue = normalizeText_(values[rowOffset][columnOffset]);
+      if (!rawValue) continue;
+
+      const player = resolveTeamMember_(rawValue, playerIndex);
+      if (!player) {
+        unresolved.push(rawValue);
+        continue;
+      }
+
+      if (!seen[player.id]) {
+        seen[player.id] = true;
+        members.push({
+          id: player.id,
+          name: player.name,
+          row: player.row
+        });
+      }
+    }
+
+    teams.push({
+      name: name,
+      column: SPELES_CONFIG.teamStartColumn + columnOffset,
+      members: members,
+      unresolved: unresolved
+    });
+  }
+
+  return teams;
+}
+
+function resolveTeamMember_(rawValue, playerIndex) {
+  if (playerIndex.byId[rawValue]) return playerIndex.byId[rawValue];
+
+  const exactName = playerIndex.byName[normalizeKey_(rawValue)];
+  if (exactName) return exactName;
+
+  const idToken = rawValue.match(/(?:^|\s|#|ID[:\s-]*)([A-ZĀČĒĢĪĶĻŅŠŪŽ]{0,5}\d{2,})\b/i);
+  if (idToken && playerIndex.byId[idToken[1]]) return playerIndex.byId[idToken[1]];
+
+  const splitCandidates = rawValue
+    .split(/\s*[|;–—-]\s*/)
+    .map(normalizeText_)
+    .filter(Boolean);
+
+  for (let i = 0; i < splitCandidates.length; i += 1) {
+    const candidate = splitCandidates[i];
+    if (playerIndex.byId[candidate]) return playerIndex.byId[candidate];
+
+    const byName = playerIndex.byName[normalizeKey_(candidate)];
+    if (byName) return byName;
+  }
+
+  return null;
+}
+
 function saveResult_(params) {
+  const mode = String(params.mode || 'players');
+  if (mode !== 'players' && mode !== 'officialTeams') {
+    throw new Error('Nederīgs disciplīnas veids.');
+  }
+
   const gameColumn = toInteger_(params.gameColumn, 'Nav norādīta spēles kolonna.');
   const gameNameFromClient = normalizeText_(params.gameName);
-  const teamAIds = parseIdList_(params.teamA);
-  const teamBIds = parseIdList_(params.teamB);
-  const scoreA = parseScore_(params.scoreA, 'Komandas 1 rezultāts nav derīgs.');
-  const scoreB = parseScore_(params.scoreB, 'Komandas 2 rezultāts nav derīgs.');
   const requestId = normalizeText_(params.requestId).slice(0, 100);
+  const teams = parseTeamsPayload_(params.teams);
 
   if (gameColumn < SPELES_CONFIG.gameStartColumn || gameColumn > SPELES_CONFIG.gameEndColumn) {
     throw new Error('Izvēlētā spēles kolonna nav diapazonā F:AR.');
   }
-  if (!teamAIds.length) throw new Error('Komandā 1 nav izvēlēts neviens spēlētājs.');
-  if (!teamBIds.length) throw new Error('Komandā 2 nav izvēlēts neviens spēlētājs.');
 
-  const duplicateIds = teamAIds.filter(function (id) { return teamBIds.indexOf(id) !== -1; });
-  if (duplicateIds.length) {
-    throw new Error('Viens spēlētājs nevar būt abās komandās: ' + duplicateIds.join(', '));
+  if (teams.length < SPELES_CONFIG.minTeams || teams.length > SPELES_CONFIG.maxTeams) {
+    throw new Error(
+      'Komandu skaitam jābūt no ' +
+      SPELES_CONFIG.minTeams +
+      ' līdz ' +
+      SPELES_CONFIG.maxTeams +
+      '.'
+    );
   }
 
   const lock = LockService.getScriptLock();
   lock.waitLock(20000);
 
   try {
-    const sheet = getGamehostSheet_();
-    const actualGameName = normalizeText_(sheet.getRange(SPELES_CONFIG.gameHeaderRow, gameColumn).getDisplayValue());
-    if (!actualGameName) throw new Error('Izvēlētajā kolonnā nav spēles nosaukuma.');
+    const gamehostSheet = getRequiredSheet_(SPELES_CONFIG.gamehostSheetName);
+    const actualGameName = normalizeText_(
+      gamehostSheet.getRange(SPELES_CONFIG.gameHeaderRow, gameColumn).getDisplayValue()
+    );
+
+    if (!actualGameName) {
+      throw new Error('Izvēlētajā kolonnā nav spēles nosaukuma.');
+    }
+
     if (gameNameFromClient && actualGameName !== gameNameFromClient) {
       throw new Error('Spēļu saraksts ir mainījies. Atjauno datus un mēģini vēlreiz.');
     }
 
-    const playerMap = getPlayerRowMap_(sheet);
-    const allIds = teamAIds.concat(teamBIds);
-    const missingIds = allIds.filter(function (id) { return !playerMap[id]; });
-    if (missingIds.length) {
-      throw new Error('Google Sheets nav atrasti spēlētāji ar ID: ' + missingIds.join(', '));
-    }
+    const playerIndex = getPlayerIndex_(gamehostSheet);
+    const preparedTeams = mode === 'officialTeams'
+      ? prepareOfficialTeamsForSave_(teams, playerIndex)
+      : preparePlayerTeamsForSave_(teams, playerIndex);
 
-    const teamARanges = teamAIds.map(function (id) {
-      return columnToLetter_(gameColumn) + playerMap[id];
-    });
-    const teamBRanges = teamBIds.map(function (id) {
-      return columnToLetter_(gameColumn) + playerMap[id];
+    validateUniquePlayersAcrossTeams_(preparedTeams);
+
+    const columnLetter = columnToLetter_(gameColumn);
+    preparedTeams.forEach(function (team) {
+      const ranges = team.playerIds.map(function (playerId) {
+        return columnLetter + playerIndex.byId[playerId].row;
+      });
+
+      gamehostSheet.getRangeList(ranges).setValue(team.score);
     });
 
-    sheet.getRangeList(teamARanges).setValue(scoreA);
-    sheet.getRangeList(teamBRanges).setValue(scoreB);
     SpreadsheetApp.flush();
 
     return {
       ok: true,
+      mode: mode,
       game: actualGameName,
       gameColumn: gameColumn,
-      scoreA: scoreA,
-      scoreB: scoreB,
-      teamAPlayers: teamAIds.length,
-      teamBPlayers: teamBIds.length,
+      teamCount: preparedTeams.length,
+      teams: preparedTeams.map(function (team) {
+        return {
+          label: team.label,
+          score: team.score,
+          playerCount: team.playerIds.length
+        };
+      }),
       requestId: requestId,
       savedAt: new Date().toISOString()
     };
@@ -223,41 +352,138 @@ function saveResult_(params) {
   }
 }
 
-function getPlayerRowMap_(sheet) {
-  const rowCount = SPELES_CONFIG.playerEndRow - SPELES_CONFIG.playerStartRow + 1;
-  const ids = sheet
-    .getRange(SPELES_CONFIG.playerStartRow, SPELES_CONFIG.playerIdColumn, rowCount, 1)
-    .getDisplayValues();
+function parseTeamsPayload_(value) {
+  let parsed;
 
-  const map = Object.create(null);
-  ids.forEach(function (row, index) {
-    const id = normalizeText_(row[0]);
-    if (id && !map[id]) {
-      map[id] = SPELES_CONFIG.playerStartRow + index;
-    }
-  });
-  return map;
-}
-
-function getGamehostSheet_() {
-  const spreadsheet = SpreadsheetApp.openById(SPELES_CONFIG.spreadsheetId);
-  const sheet = spreadsheet.getSheetByName(SPELES_CONFIG.sheetName);
-  if (!sheet) {
-    throw new Error('Google Sheets lapa "' + SPELES_CONFIG.sheetName + '" nav atrasta.');
+  try {
+    parsed = JSON.parse(String(value || ''));
+  } catch (error) {
+    throw new Error('Komandu dati nav derīgi.');
   }
-  return sheet;
+
+  if (!Array.isArray(parsed)) throw new Error('Komandu dati nav derīgi.');
+
+  return parsed.map(function (team, index) {
+    return {
+      slot: index + 1,
+      score: parseScore_(team && team.score, 'Komandas ' + (index + 1) + ' punkti nav derīgi.'),
+      playerIds: Array.isArray(team && team.playerIds)
+        ? uniqueTextList_(team.playerIds)
+        : [],
+      officialTeamColumn: team && team.officialTeamColumn !== undefined
+        ? Number(team.officialTeamColumn)
+        : null,
+      officialTeamName: normalizeText_(team && team.officialTeamName)
+    };
+  });
 }
 
-function parseIdList_(value) {
-  const seen = Object.create(null);
-  return String(value || '')
-    .split(',')
-    .map(normalizeText_)
-    .filter(function (id) {
-      if (!id || seen[id]) return false;
-      seen[id] = true;
-      return true;
+function preparePlayerTeamsForSave_(teams, playerIndex) {
+  return teams.map(function (team, index) {
+    if (!team.playerIds.length) {
+      throw new Error('Komandā ' + (index + 1) + ' nav izvēlēts neviens spēlētājs.');
+    }
+
+    const missingIds = team.playerIds.filter(function (id) {
+      return !playerIndex.byId[id];
     });
+
+    if (missingIds.length) {
+      throw new Error('Google Sheets nav atrasti spēlētāji ar ID: ' + missingIds.join(', '));
+    }
+
+    return {
+      label: 'Komanda ' + (index + 1),
+      score: team.score,
+      playerIds: team.playerIds
+    };
+  });
+}
+
+function prepareOfficialTeamsForSave_(teams, playerIndex) {
+  const officialTeams = getOfficialTeams_(playerIndex);
+  const byColumn = Object.create(null);
+  officialTeams.forEach(function (team) {
+    byColumn[String(team.column)] = team;
+  });
+
+  const usedColumns = Object.create(null);
+
+  return teams.map(function (team, index) {
+    const column = team.officialTeamColumn;
+    if (!Number.isFinite(column) || Math.floor(column) !== column) {
+      throw new Error('Komandai ' + (index + 1) + ' nav izvēlēta oficiālā komanda.');
+    }
+
+    const officialTeam = byColumn[String(column)];
+    if (!officialTeam) {
+      throw new Error('Izvēlētā oficiālā komanda vairs nav atrodama lapā "Komandas".');
+    }
+
+    if (team.officialTeamName && team.officialTeamName !== officialTeam.name) {
+      throw new Error('Komandu saraksts ir mainījies. Atjauno datus un mēģini vēlreiz.');
+    }
+
+    if (usedColumns[column]) {
+      throw new Error('Oficiālā komanda "' + officialTeam.name + '" izvēlēta vairākas reizes.');
+    }
+    usedColumns[column] = true;
+
+    if (officialTeam.unresolved.length) {
+      throw new Error(
+        'Komandai "' + officialTeam.name + '" nav atrasti šādi spēlētāji gamehost lapā: ' +
+        officialTeam.unresolved.join(', ')
+      );
+    }
+
+    if (!officialTeam.members.length) {
+      throw new Error('Komandai "' + officialTeam.name + '" nav atrasts neviens spēlētājs.');
+    }
+
+    return {
+      label: officialTeam.name,
+      score: team.score,
+      playerIds: officialTeam.members.map(function (member) { return member.id; })
+    };
+  });
+}
+
+function validateUniquePlayersAcrossTeams_(teams) {
+  const ownerByPlayer = Object.create(null);
+
+  teams.forEach(function (team, teamIndex) {
+    team.playerIds.forEach(function (playerId) {
+      if (ownerByPlayer[playerId] !== undefined) {
+        throw new Error(
+          'Spēlētājs ar ID ' + playerId +
+          ' ir izvēlēts gan komandā ' + (ownerByPlayer[playerId] + 1) +
+          ', gan komandā ' + (teamIndex + 1) + '.'
+        );
+      }
+      ownerByPlayer[playerId] = teamIndex;
+    });
+  });
+}
+
+function uniqueTextList_(values) {
+  const seen = Object.create(null);
+  const result = [];
+
+  values.forEach(function (value) {
+    const text = normalizeText_(value);
+    if (!text || seen[text]) return;
+    seen[text] = true;
+    result.push(text);
+  });
+
+  return result;
+}
+
+function getRequiredSheet_(sheetName) {
+  const spreadsheet = SpreadsheetApp.openById(SPELES_CONFIG.spreadsheetId);
+  const sheet = spreadsheet.getSheetByName(sheetName);
+  if (!sheet) throw new Error('Google Sheets lapa "' + sheetName + '" nav atrasta.');
+  return sheet;
 }
 
 function parseScore_(value, errorMessage) {
@@ -281,8 +507,12 @@ function normalizeText_(value) {
     .trim();
 }
 
+function normalizeKey_(value) {
+  return normalizeText_(value).toLowerCase();
+}
+
 function createOutput_(payload, callback) {
-  const json = JSON.stringify(payload).replace(/</g, '\u003c');
+  const json = JSON.stringify(payload).replace(/</g, '\\u003c');
   const safeCallback = /^[A-Za-z_$][0-9A-Za-z_$]*$/.test(callback) ? callback : '';
 
   if (safeCallback) {
@@ -305,5 +535,6 @@ function columnToLetter_(column) {
     result = String.fromCharCode(65 + remainder) + result;
     current = Math.floor((current - 1) / 26);
   }
+
   return result;
 }
