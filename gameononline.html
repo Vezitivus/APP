@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="lv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <title>Game On Online</title>
+  <style>
+    :root{
+      color-scheme:dark;
+      --sync-bg:rgba(11,15,20,.84);
+      --sync-border:rgba(255,255,255,.14);
+      --sync-text:#eef2f7;
+      --sync-muted:#aab4c2;
+      --sync-ok:#20c987;
+      --sync-warn:#f4c542;
+      --sync-bad:#ff647c;
+    }
+    *{box-sizing:border-box}
+    html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#0b0f14}
+    #appFrame{display:block;width:100%;height:100%;border:0;background:#0b0f14}
+    .sync-pill{
+      position:fixed;
+      z-index:9999;
+      right:max(10px,env(safe-area-inset-right));
+      bottom:max(10px,env(safe-area-inset-bottom));
+      display:flex;
+      align-items:center;
+      gap:8px;
+      max-width:calc(100vw - 20px);
+      min-height:34px;
+      padding:8px 12px;
+      border:1px solid var(--sync-border);
+      border-radius:999px;
+      background:var(--sync-bg);
+      box-shadow:0 12px 36px rgba(0,0,0,.34);
+      backdrop-filter:blur(14px) saturate(145%);
+      -webkit-backdrop-filter:blur(14px) saturate(145%);
+      color:var(--sync-text);
+      font:700 12px/1.2 ui-sans-serif,-apple-system,"SF Pro Text","Segoe UI",Roboto,Arial,sans-serif;
+      letter-spacing:.01em;
+      pointer-events:none;
+      transition:opacity .2s ease,transform .2s ease;
+    }
+    .sync-dot{
+      width:8px;
+      height:8px;
+      flex:0 0 auto;
+      border-radius:50%;
+      background:var(--sync-warn);
+      box-shadow:0 0 0 4px color-mix(in srgb,var(--sync-warn) 20%,transparent);
+    }
+    .sync-pill[data-state="ok"] .sync-dot{
+      background:var(--sync-ok);
+      box-shadow:0 0 0 4px color-mix(in srgb,var(--sync-ok) 20%,transparent);
+    }
+    .sync-pill[data-state="bad"] .sync-dot{
+      background:var(--sync-bad);
+      box-shadow:0 0 0 4px color-mix(in srgb,var(--sync-bad) 20%,transparent);
+    }
+    .sync-pill[data-state="busy"] .sync-dot{animation:pulse 1s ease-in-out infinite}
+    .sync-detail{color:var(--sync-muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    @keyframes pulse{50%{opacity:.38;transform:scale(.82)}}
+    @media (prefers-color-scheme:light){
+      :root{
+        color-scheme:light;
+        --sync-bg:rgba(255,255,255,.88);
+        --sync-border:rgba(15,23,42,.12);
+        --sync-text:#111827;
+        --sync-muted:#667085;
+      }
+      html,body,#appFrame{background:#f7f8fc}
+    }
+  </style>
+</head>
+<body>
+  <iframe id="appFrame" title="Game On turnīru aplikācija"></iframe>
+
+  <div class="sync-pill" id="syncPill" data-state="busy" aria-live="polite">
+    <span class="sync-dot" aria-hidden="true"></span>
+    <span id="syncText">Savienojas ar Google Sheets</span>
+    <span class="sync-detail" id="syncDetail"></span>
+  </div>
+
+  <script>
+  (() => {
+    'use strict';
+
+    const CONFIG = Object.freeze({
+      appUrl: 'https://script.google.com/macros/s/AKfycbwKXz5unPWnG4ToVpYF7hSAh-Kh0526qUaWyuNMI6plQTNUZyoJh_tZy9mydxqZrx-x/exec',
+      accessToken: 'gameononline_2026_VZ_7mQ4pK9x',
+      appId: 'gameononline-v1',
+      storageKey: 'tournament_state_series_scroll_v3',
+      metaKey: 'gameononline_sync_meta_v1',
+      clientKey: 'gameononline_client_id_v1',
+      childPage: './gameon2.html',
+      localWatchMs: 450,
+      remotePollMs: 3000,
+      saveDebounceMs: 700,
+      confirmTimeoutMs: 12000,
+      jsonpTimeoutMs: 10000
+    });
+
+    const frame = document.getElementById('appFrame');
+    const syncPill = document.getElementById('syncPill');
+    const syncText = document.getElementById('syncText');
+    const syncDetail = document.getElementById('syncDetail');
+
+    let clientId = localStorage.getItem(CONFIG.clientKey);
+    if (!clientId) {
+      clientId = `web_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,10)}`;
+      localStorage.setItem(CONFIG.clientKey, clientId);
+    }
+
+    let syncMeta = readMeta();
+    let observedRaw = readRaw();
+    let pendingHash = null;
+    let pendingSince = 0;
+    let saveTimer = 0;
+    let pollTimer = 0;
+    let watchTimer = 0;
+    let polling = false;
+    let appLoaded = false;
+
+    function setStatus(state, text, detail = '') {
+      syncPill.dataset.state = state;
+      syncText.textContent = text;
+      syncDetail.textContent = detail;
+    }
+
+    function readRaw() {
+      return localStorage.getItem(CONFIG.storageKey);
+    }
+
+    function payloadFromRaw(raw) {
+      return raw === null ? 'null' : raw;
+    }
+
+    function rawFromPayload(payload) {
+      return payload === 'null' ? null : payload;
+    }
+
+    function readMeta() {
+      try {
+        return JSON.parse(localStorage.getItem(CONFIG.metaKey) || '{}') || {};
+      } catch {
+        return {};
+      }
+    }
+
+    function writeMeta(patch = {}) {
+      syncMeta = {...syncMeta, ...patch};
+      localStorage.setItem(CONFIG.metaKey, JSON.stringify(syncMeta));
+    }
+
+    function hashText(text) {
+      let hash = 0x811c9dc5;
+      for (let i = 0; i < text.length; i++) {
+        hash ^= text.charCodeAt(i);
+        hash = Math.imul(hash, 0x01000193);
+      }
+      return (`00000000${(hash >>> 0).toString(16)}`).slice(-8);
+    }
+
+    function validatePayload(payload) {
+      if (typeof payload !== 'string') return false;
+      try {
+        JSON.parse(payload);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function jsonp(action) {
+      return new Promise((resolve, reject) => {
+        const callbackName = `__gameonCb_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+        const script = document.createElement('script');
+        const timer = setTimeout(() => finish(new Error('timeout')), CONFIG.jsonpTimeoutMs);
+
+        function finish(error, value) {
+          clearTimeout(timer);
+          delete window[callbackName];
+          script.remove();
+          if (error) reject(error);
+          else resolve(value);
+        }
+
+        window[callbackName] = data => finish(null, data);
+        script.onerror = () => finish(new Error('network'));
+
+        const url = new URL(CONFIG.appUrl);
+        url.searchParams.set('action', action);
+        url.searchParams.set('appId', CONFIG.appId);
+        url.searchParams.set('token', CONFIG.accessToken);
+        url.searchParams.set('prefix', callbackName);
+        url.searchParams.set('_', Date.now().toString());
+        script.src = url.toString();
+        script.async = true;
+        document.head.appendChild(script);
+      });
+    }
+
+    async function getRemoteMeta() {
+      const result = await jsonp('meta');
+      if (!result || result.ok !== true) throw new Error(result?.error || 'bad_response');
+      return result;
+    }
+
+    async function getRemoteSnapshot() {
+      const result = await jsonp('load');
+      if (!result || result.ok !== true) throw new Error(result?.error || 'bad_response');
+      if (result.hasData && !validatePayload(result.payload)) throw new Error('invalid_payload');
+      return result;
+    }
+
+    async function postSnapshot(payload) {
+      const payloadHash = hashText(payload);
+      const body = JSON.stringify({
+        action: 'save',
+        appId: CONFIG.appId,
+        token: CONFIG.accessToken,
+        clientId,
+        payload,
+        payloadHash,
+        sentAt: new Date().toISOString()
+      });
+
+      await fetch(CONFIG.appUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        cache: 'no-store',
+        keepalive: body.length < 60000,
+        headers: {'Content-Type': 'text/plain;charset=utf-8'},
+        body
+      });
+
+      return payloadHash;
+    }
+
+    function applyRemotePayload(payload, remote) {
+      const raw = rawFromPayload(payload);
+
+      if (raw === null) localStorage.removeItem(CONFIG.storageKey);
+      else localStorage.setItem(CONFIG.storageKey, raw);
+
+      observedRaw = raw;
+      pendingHash = null;
+      pendingSince = 0;
+
+      writeMeta({
+        lastSyncedHash: remote.payloadHash || hashText(payload),
+        lastRemoteRevision: Number(remote.revision || 0),
+        lastRemoteUpdatedAt: remote.updatedAt || '',
+        lastSyncAt: Date.now()
+      });
+
+      setStatus('ok', 'Sinhronizēts', remote.updatedAt ? formatTime(remote.updatedAt) : '');
+
+      if (appLoaded) {
+        setTimeout(() => {
+          try {
+            frame.contentWindow.location.reload();
+          } catch {
+            frame.src = CONFIG.childPage;
+          }
+        }, 80);
+      }
+    }
+
+    function formatTime(value) {
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return '';
+      return d.toLocaleTimeString('lv-LV', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+    }
+
+    function scheduleSave(delay = CONFIG.saveDebounceMs) {
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(saveLocalNow, delay);
+      setStatus('busy', 'Gaida saglabāšanu');
+    }
+
+    async function saveLocalNow() {
+      clearTimeout(saveTimer);
+      const payload = payloadFromRaw(readRaw());
+      if (!validatePayload(payload)) {
+        setStatus('bad', 'Lokālie dati nav derīgi');
+        return;
+      }
+
+      const localHash = hashText(payload);
+      if (syncMeta.lastSyncedHash === localHash && !pendingHash) {
+        setStatus('ok', 'Sinhronizēts', syncMeta.lastRemoteUpdatedAt ? formatTime(syncMeta.lastRemoteUpdatedAt) : '');
+        return;
+      }
+
+      pendingHash = localHash;
+      pendingSince = Date.now();
+      writeMeta({lastLocalChangeAt: Date.now(), pendingHash: localHash});
+      setStatus('busy', 'Sūta uz Google Sheets');
+
+      try {
+        await postSnapshot(payload);
+        setStatus('busy', 'Pārbauda saglabāšanu');
+        setTimeout(() => pollRemote(true), 900);
+      } catch (error) {
+        console.error('GameOn sync save failed:', error);
+        setStatus('bad', 'Nav interneta — dati saglabāti ierīcē');
+        setTimeout(() => scheduleSave(1500), 3500);
+      }
+    }
+
+    function localChangedSinceSync(localHash) {
+      return Boolean(syncMeta.lastSyncedHash) && syncMeta.lastSyncedHash !== localHash;
+    }
+
+    async function handleRemoteMeta(remote, forceLoad = false) {
+      const localPayload = payloadFromRaw(readRaw());
+      const localHash = hashText(localPayload);
+      const remoteHash = remote.payloadHash || '';
+
+      if (!remote.hasData) {
+        if (localPayload !== 'null') {
+          if (!pendingHash) scheduleSave(100);
+        } else {
+          writeMeta({
+            lastSyncedHash: localHash,
+            lastRemoteRevision: Number(remote.revision || 0),
+            lastRemoteUpdatedAt: remote.updatedAt || '',
+            lastSyncAt: Date.now()
+          });
+          setStatus('ok', 'Sinhronizēts');
+        }
+        return;
+      }
+
+      if (remoteHash && remoteHash === localHash) {
+        pendingHash = null;
+        pendingSince = 0;
+        writeMeta({
+          lastSyncedHash: localHash,
+          pendingHash: '',
+          lastRemoteRevision: Number(remote.revision || 0),
+          lastRemoteUpdatedAt: remote.updatedAt || '',
+          lastSyncAt: Date.now()
+        });
+        setStatus('ok', 'Sinhronizēts', remote.updatedAt ? formatTime(remote.updatedAt) : '');
+        return;
+      }
+
+      if (pendingHash || localChangedSinceSync(localHash)) {
+        const pendingAge = pendingSince ? Date.now() - pendingSince : 0;
+        if (pendingAge > CONFIG.confirmTimeoutMs) {
+          setStatus('bad', 'Sinhronizācija kavējas — mēģina vēlreiz');
+          pendingSince = Date.now();
+          scheduleSave(150);
+        } else {
+          setStatus('busy', 'Gaida Google Sheets apstiprinājumu');
+        }
+        return;
+      }
+
+      if (!syncMeta.lastSyncedHash && !forceLoad && localPayload !== 'null') {
+        scheduleSave(100);
+        return;
+      }
+
+      setStatus('busy', 'Saņem jaunākos datus');
+      const snapshot = await getRemoteSnapshot();
+
+      const currentPayload = payloadFromRaw(readRaw());
+      const currentHash = hashText(currentPayload);
+      if (pendingHash || localChangedSinceSync(currentHash)) return;
+
+      if (snapshot.hasData) applyRemotePayload(snapshot.payload, snapshot);
+    }
+
+    async function pollRemote(immediate = false) {
+      if (polling) return;
+      polling = true;
+      clearTimeout(pollTimer);
+
+      try {
+        const remote = await getRemoteMeta();
+        await handleRemoteMeta(remote, immediate);
+      } catch (error) {
+        console.error('GameOn sync poll failed:', error);
+        if (!pendingHash) setStatus('bad', 'Bezsaistē — dati paliek ierīcē');
+      } finally {
+        polling = false;
+        pollTimer = setTimeout(pollRemote, CONFIG.remotePollMs);
+      }
+    }
+
+    function watchLocalStorage() {
+      const raw = readRaw();
+
+      if (raw !== observedRaw) {
+        observedRaw = raw;
+        pendingHash = hashText(payloadFromRaw(raw));
+        pendingSince = Date.now();
+        scheduleSave();
+      }
+
+      watchTimer = setTimeout(watchLocalStorage, CONFIG.localWatchMs);
+    }
+
+    window.addEventListener('storage', event => {
+      if (event.key === CONFIG.storageKey) {
+        observedRaw = event.newValue;
+        pendingHash = hashText(payloadFromRaw(event.newValue));
+        pendingSince = Date.now();
+        scheduleSave();
+      }
+    });
+
+    window.addEventListener('online', () => {
+      setStatus('busy', 'Atjauno savienojumu');
+      pollRemote(true);
+    });
+
+    window.addEventListener('offline', () => {
+      setStatus('bad', 'Bezsaistē — dati paliek ierīcē');
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) pollRemote(true);
+    });
+
+    async function boot() {
+      setStatus('busy', 'Savienojas ar Google Sheets');
+
+      const localRaw = readRaw();
+      const localPayload = payloadFromRaw(localRaw);
+      const localHash = hashText(localPayload);
+
+      try {
+        const remote = await getRemoteMeta();
+
+        if (!remote.hasData) {
+          if (localPayload !== 'null') {
+            pendingHash = localHash;
+            pendingSince = Date.now();
+          } else {
+            writeMeta({
+              lastSyncedHash: localHash,
+              lastRemoteRevision: Number(remote.revision || 0),
+              lastRemoteUpdatedAt: remote.updatedAt || ''
+            });
+          }
+        } else if (remote.payloadHash === localHash) {
+          writeMeta({
+            lastSyncedHash: localHash,
+            lastRemoteRevision: Number(remote.revision || 0),
+            lastRemoteUpdatedAt: remote.updatedAt || '',
+            lastSyncAt: Date.now()
+          });
+          setStatus('ok', 'Sinhronizēts', remote.updatedAt ? formatTime(remote.updatedAt) : '');
+        } else if (localRaw === null || syncMeta.lastSyncedHash === localHash) {
+          setStatus('busy', 'Ielādē jaunākos datus');
+          const snapshot = await getRemoteSnapshot();
+          if (snapshot.hasData) applyRemotePayload(snapshot.payload, snapshot);
+        } else {
+          pendingHash = localHash;
+          pendingSince = Date.now();
+        }
+      } catch (error) {
+        console.error('GameOn sync boot failed:', error);
+        setStatus('bad', 'Google Sheets nav sasniedzams — strādā lokāli');
+      }
+
+      frame.addEventListener('load', () => {
+        appLoaded = true;
+        if (pendingHash) scheduleSave(150);
+      }, {once:true});
+      frame.src = CONFIG.childPage;
+
+      observedRaw = readRaw();
+      watchLocalStorage();
+      pollTimer = setTimeout(pollRemote, 1200);
+    }
+
+    boot();
+  })();
+  </script>
+</body>
+</html>
