@@ -1,0 +1,1143 @@
+<!doctype html>
+<html lang="lv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f4f6f9">
+  <meta name="color-scheme" content="light">
+  <title>Vezitivus — rezultātu ievade</title>
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --surface: rgba(255, 255, 255, 0.88);
+      --surface-solid: #ffffff;
+      --text: #111318;
+      --muted: #747b87;
+      --line: rgba(17, 19, 24, 0.09);
+      --accent: #1677ff;
+      --accent-strong: #005fe0;
+      --accent-soft: rgba(22, 119, 255, 0.11);
+      --danger: #d92d20;
+      --success: #12805c;
+      --shadow: 0 18px 55px rgba(25, 35, 58, 0.10);
+      --shadow-soft: 0 8px 26px rgba(25, 35, 58, 0.08);
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * { box-sizing: border-box; }
+    html { min-height: 100%; background: var(--bg); }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 8% 0%, rgba(80, 142, 255, 0.13), transparent 34rem),
+        radial-gradient(circle at 100% 20%, rgba(135, 89, 255, 0.09), transparent 31rem),
+        var(--bg);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    button, input, select { font: inherit; }
+    button { -webkit-tap-highlight-color: transparent; }
+
+    .app {
+      width: min(960px, 100%);
+      margin: 0 auto;
+      padding: 28px 18px calc(120px + var(--safe-bottom));
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .eyebrow {
+      margin: 0 0 5px;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 5vw, 42px);
+      line-height: 1.02;
+      letter-spacing: -0.045em;
+    }
+
+    .connection {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 38px;
+      padding: 0 13px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.72);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      backdrop-filter: blur(16px);
+      white-space: nowrap;
+    }
+
+    .connection-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #a4aab4;
+      box-shadow: 0 0 0 4px rgba(164, 170, 180, 0.14);
+    }
+
+    .connection[data-state="ready"] { color: var(--success); }
+    .connection[data-state="ready"] .connection-dot { background: var(--success); box-shadow: 0 0 0 4px rgba(18, 128, 92, 0.12); }
+    .connection[data-state="busy"] .connection-dot { background: var(--accent); animation: pulse 1.2s infinite; }
+    .connection[data-state="error"] { color: var(--danger); }
+    .connection[data-state="error"] .connection-dot { background: var(--danger); box-shadow: 0 0 0 4px rgba(217, 45, 32, 0.12); }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(0.85); opacity: 0.65; }
+      50% { transform: scale(1.15); opacity: 1; }
+    }
+
+    .panel {
+      border: 1px solid rgba(255, 255, 255, 0.78);
+      border-radius: var(--radius-xl);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(24px) saturate(140%);
+      overflow: hidden;
+    }
+
+    .section {
+      padding: 24px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section:last-child { border-bottom: 0; }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .section-title h2 {
+      margin: 0;
+      font-size: 17px;
+      letter-spacing: -0.02em;
+    }
+
+    .step-number {
+      display: inline-grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      margin-right: 9px;
+      border-radius: 10px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .refresh-btn {
+      border: 0;
+      background: transparent;
+      color: var(--accent);
+      padding: 8px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .refresh-btn:hover { background: var(--accent-soft); }
+    .refresh-btn:disabled { opacity: 0.45; cursor: default; }
+
+    .field-label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .select-wrap { position: relative; }
+
+    .game-select {
+      width: 100%;
+      min-height: 58px;
+      appearance: none;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      outline: none;
+      background: var(--surface-solid);
+      color: var(--text);
+      padding: 0 50px 0 16px;
+      font-size: 16px;
+      font-weight: 760;
+      cursor: pointer;
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset;
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .game-select:focus {
+      border-color: rgba(22, 119, 255, 0.62);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .select-chevron {
+      position: absolute;
+      right: 17px;
+      top: 50%;
+      width: 10px;
+      height: 10px;
+      border-right: 2px solid var(--muted);
+      border-bottom: 2px solid var(--muted);
+      transform: translateY(-68%) rotate(45deg);
+      pointer-events: none;
+    }
+
+    .teams-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .team-card {
+      position: relative;
+      min-height: 190px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: var(--surface-solid);
+      padding: 17px;
+      cursor: pointer;
+      text-align: left;
+      transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+    }
+
+    .team-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(22, 119, 255, 0.30);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .team-card:focus-visible {
+      outline: 0;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .team-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 13px;
+    }
+
+    .team-name {
+      font-size: 14px;
+      font-weight: 860;
+      letter-spacing: -0.01em;
+    }
+
+    .team-count {
+      min-width: 28px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: #f0f2f6;
+      color: var(--muted);
+      text-align: center;
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .empty-team {
+      min-height: 124px;
+      display: grid;
+      place-items: center;
+      border: 1px dashed rgba(22, 119, 255, 0.32);
+      border-radius: 16px;
+      background: linear-gradient(145deg, rgba(22, 119, 255, 0.06), rgba(22, 119, 255, 0.015));
+      color: var(--accent);
+      text-align: center;
+    }
+
+    .empty-team strong { display: block; font-size: 15px; }
+    .empty-team span { display: block; margin-top: 5px; color: var(--muted); font-size: 12px; font-weight: 650; }
+
+    .member-list { display: grid; gap: 8px; }
+
+    .member-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      padding: 9px 10px;
+      border-radius: 13px;
+      background: #f5f7fa;
+    }
+
+    .avatar {
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .member-copy { min-width: 0; }
+    .member-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 820; }
+    .member-id { margin-top: 2px; color: var(--muted); font-size: 10px; font-weight: 700; }
+    .more-members { padding: 7px 10px 0; color: var(--accent); font-size: 12px; font-weight: 800; }
+
+    .score-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 54px minmax(0, 1fr);
+      align-items: end;
+      gap: 12px;
+    }
+
+    .score-field label {
+      display: block;
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .score-input {
+      width: 100%;
+      height: 74px;
+      border: 1px solid var(--line);
+      border-radius: 19px;
+      outline: 0;
+      background: var(--surface-solid);
+      color: var(--text);
+      text-align: center;
+      font-size: clamp(28px, 7vw, 38px);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .score-input:focus {
+      border-color: rgba(22, 119, 255, 0.62);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .score-input:disabled { background: #f1f3f6; color: #a1a7b0; }
+
+    .score-divider {
+      height: 74px;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: 24px;
+      font-weight: 850;
+    }
+
+    .save-dock {
+      position: fixed;
+      z-index: 30;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 13px 18px calc(13px + var(--safe-bottom));
+      background: linear-gradient(to top, rgba(244, 246, 249, 0.98) 62%, rgba(244, 246, 249, 0));
+      pointer-events: none;
+    }
+
+    .save-inner { width: min(924px, 100%); margin: 0 auto; pointer-events: auto; }
+
+    .save-btn {
+      width: 100%;
+      min-height: 62px;
+      border: 0;
+      border-radius: 20px;
+      background: linear-gradient(180deg, #2583ff, var(--accent-strong));
+      color: #fff;
+      box-shadow: 0 14px 30px rgba(0, 95, 224, 0.28), 0 1px 0 rgba(255, 255, 255, 0.36) inset;
+      font-size: 17px;
+      font-weight: 880;
+      cursor: pointer;
+      transition: transform 130ms ease, filter 130ms ease, opacity 130ms ease;
+    }
+
+    .save-btn:not(:disabled):active { transform: scale(0.985); }
+    .save-btn:not(:disabled):hover { filter: brightness(1.04); }
+    .save-btn:disabled { opacity: 0.42; cursor: default; box-shadow: none; }
+
+    .modal {
+      position: fixed;
+      z-index: 100;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 22px;
+      background: rgba(19, 25, 38, 0.38);
+      backdrop-filter: blur(14px);
+    }
+
+    .modal.open { display: flex; }
+
+    .picker {
+      width: min(900px, 100%);
+      height: min(770px, calc(100vh - 44px));
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.76);
+      border-radius: 30px;
+      background: rgba(250, 251, 253, 0.97);
+      box-shadow: 0 34px 90px rgba(19, 25, 38, 0.24);
+    }
+
+    .picker-head {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 20px 22px 14px;
+    }
+
+    .picker-title { margin: 0; font-size: 22px; letter-spacing: -0.035em; }
+    .picker-sub { margin-top: 4px; color: var(--muted); font-size: 13px; font-weight: 650; }
+
+    .close-btn {
+      flex: 0 0 auto;
+      width: 40px;
+      height: 40px;
+      border: 0;
+      border-radius: 14px;
+      background: #ebeef3;
+      color: #49505b;
+      font-size: 21px;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .picker-tools { flex: 0 0 auto; padding: 0 22px 14px; }
+
+    .search-input {
+      width: 100%;
+      height: 52px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      outline: 0;
+      background: #fff;
+      padding: 0 16px;
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 680;
+    }
+
+    .search-input:focus { border-color: rgba(22, 119, 255, 0.62); box-shadow: 0 0 0 4px var(--accent-soft); }
+
+    .players-scroll {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: 2px 22px 18px;
+    }
+
+    .players-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .player-btn {
+      min-height: 76px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+      padding: 12px 13px;
+      text-align: left;
+      cursor: pointer;
+      content-visibility: auto;
+      contain-intrinsic-size: 76px;
+      transition: border-color 130ms ease, background 130ms ease, transform 130ms ease;
+    }
+
+    .player-btn:hover { border-color: rgba(22, 119, 255, 0.32); transform: translateY(-1px); }
+    .player-btn.selected { border-color: var(--accent); background: var(--accent-soft); }
+    .player-btn.blocked { opacity: 0.40; cursor: not-allowed; background: #f1f3f6; }
+
+    .player-name {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 850;
+    }
+
+    .player-id { display: block; margin-top: 5px; color: var(--muted); font-size: 11px; font-weight: 720; }
+
+    .picker-foot {
+      flex: 0 0 auto;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 22px calc(14px + var(--safe-bottom));
+      border-top: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.92);
+    }
+
+    .selection-summary { color: var(--muted); font-size: 13px; font-weight: 720; }
+    .selection-summary strong { color: var(--text); }
+
+    .done-btn {
+      min-width: 132px;
+      min-height: 48px;
+      border: 0;
+      border-radius: 15px;
+      background: var(--text);
+      color: #fff;
+      font-weight: 850;
+      cursor: pointer;
+    }
+
+    .empty-search { grid-column: 1 / -1; padding: 50px 14px; color: var(--muted); text-align: center; font-weight: 700; }
+
+    .toast-stack {
+      position: fixed;
+      z-index: 200;
+      top: 18px;
+      left: 50%;
+      width: min(440px, calc(100% - 32px));
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+
+    .toast {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 14px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.82);
+      border-radius: 17px;
+      background: rgba(24, 27, 34, 0.94);
+      color: #fff;
+      box-shadow: 0 18px 45px rgba(19, 25, 38, 0.24);
+      animation: toastIn 220ms ease-out;
+      font-size: 13px;
+      font-weight: 720;
+    }
+
+    .toast.error { background: rgba(161, 36, 27, 0.96); }
+    .toast.success { background: rgba(14, 105, 76, 0.96); }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(-10px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .loading-cover {
+      position: fixed;
+      z-index: 150;
+      inset: 0;
+      display: none;
+      place-items: center;
+      background: rgba(244, 246, 249, 0.68);
+      backdrop-filter: blur(8px);
+    }
+
+    .loading-cover.open { display: grid; }
+
+    .loader-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 15px 18px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: var(--shadow-soft);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(22, 119, 255, 0.18);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 700px) {
+      .app { padding: 20px 12px calc(116px + var(--safe-bottom)); }
+      .topbar { align-items: flex-start; }
+      .connection { min-height: 34px; padding: 0 10px; font-size: 11px; }
+      .section { padding: 19px 15px; }
+      .teams-grid { grid-template-columns: 1fr; }
+      .team-card { min-height: 164px; }
+      .empty-team { min-height: 98px; }
+      .modal { padding: 0; align-items: stretch; }
+      .picker { width: 100%; height: 100%; max-height: none; border-radius: 0; border: 0; }
+      .picker-head { padding: 18px 16px 12px; }
+      .picker-tools { padding: 0 16px 12px; }
+      .players-scroll { padding: 2px 16px 16px; }
+      .players-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+      .picker-foot { padding-left: 16px; padding-right: 16px; }
+      .save-dock { padding-left: 12px; padding-right: 12px; }
+    }
+
+    @media (max-width: 390px) {
+      .topbar { display: block; }
+      .connection { margin-top: 13px; }
+      .score-grid { grid-template-columns: minmax(0, 1fr) 34px minmax(0, 1fr); gap: 6px; }
+      .player-btn { min-height: 70px; padding: 10px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Vezitivus</p>
+        <h1>Rezultātu ievade</h1>
+      </div>
+      <div class="connection" id="connection" data-state="busy" aria-live="polite">
+        <span class="connection-dot" aria-hidden="true"></span>
+        <span id="connectionText">Ielādē datus</span>
+      </div>
+    </header>
+
+    <div class="panel">
+      <section class="section">
+        <div class="section-title">
+          <h2><span class="step-number">1</span>Izvēlies spēli</h2>
+          <button class="refresh-btn" id="refreshBtn" type="button">Atjaunot datus</button>
+        </div>
+        <label class="field-label" for="gameSelect">Spēle</label>
+        <div class="select-wrap">
+          <select class="game-select" id="gameSelect" disabled>
+            <option value="">Ielādē spēles…</option>
+          </select>
+          <span class="select-chevron" aria-hidden="true"></span>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-title">
+          <h2><span class="step-number">2</span>Izvēlies komandas</h2>
+        </div>
+        <div class="teams-grid">
+          <button class="team-card" id="teamACard" type="button" data-team="A">
+            <div class="team-head">
+              <span class="team-name">Komanda 1</span>
+              <span class="team-count" id="teamACount">0</span>
+            </div>
+            <div id="teamAContent"></div>
+          </button>
+
+          <button class="team-card" id="teamBCard" type="button" data-team="B">
+            <div class="team-head">
+              <span class="team-name">Komanda 2</span>
+              <span class="team-count" id="teamBCount">0</span>
+            </div>
+            <div id="teamBContent"></div>
+          </button>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-title">
+          <h2><span class="step-number">3</span>Ievadi rezultātu</h2>
+        </div>
+        <div class="score-grid">
+          <div class="score-field">
+            <label for="scoreA">Komanda 1</label>
+            <input class="score-input" id="scoreA" type="text" inputmode="decimal" autocomplete="off" placeholder="0" disabled>
+          </div>
+          <div class="score-divider" aria-hidden="true">:</div>
+          <div class="score-field">
+            <label for="scoreB">Komanda 2</label>
+            <input class="score-input" id="scoreB" type="text" inputmode="decimal" autocomplete="off" placeholder="0" disabled>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div class="save-dock">
+    <div class="save-inner">
+      <button class="save-btn" id="saveBtn" type="button" disabled>Saglabāt rezultātu</button>
+    </div>
+  </div>
+
+  <div class="modal" id="playerModal" aria-hidden="true">
+    <section class="picker" role="dialog" aria-modal="true" aria-labelledby="pickerTitle">
+      <div class="picker-head">
+        <div>
+          <h2 class="picker-title" id="pickerTitle">Izvēlies spēlētājus</h2>
+          <div class="picker-sub" id="pickerSub">Komanda 1</div>
+        </div>
+        <button class="close-btn" id="closePickerBtn" type="button" aria-label="Aizvērt">×</button>
+      </div>
+      <div class="picker-tools">
+        <input class="search-input" id="playerSearch" type="search" autocomplete="off" placeholder="Meklēt pēc vārda vai ID…">
+      </div>
+      <div class="players-scroll" id="playersScroll">
+        <div class="players-grid" id="playersGrid"></div>
+      </div>
+      <div class="picker-foot">
+        <div class="selection-summary" id="selectionSummary"><strong>0</strong> spēlētāji izvēlēti</div>
+        <button class="done-btn" id="donePickerBtn" type="button">Gatavs</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
+  <div class="loading-cover" id="loadingCover" aria-hidden="true">
+    <div class="loader-card">
+      <span class="spinner" aria-hidden="true"></span>
+      <span id="loadingText">Saglabā rezultātu…</span>
+    </div>
+  </div>
+
+  <script>
+    'use strict';
+
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyRBTTPwse_9PxDoeA9EzwoVfcBlGh4vS1hirZXR4s4z6GM8PjpqGb6MhEeMiNeO7yU/exec';
+
+    const state = {
+      games: [],
+      players: [],
+      selectedGameColumn: '',
+      teams: { A: new Set(), B: new Set() },
+      activeTeam: null,
+      loading: false
+    };
+
+    const els = {
+      connection: document.getElementById('connection'),
+      connectionText: document.getElementById('connectionText'),
+      refreshBtn: document.getElementById('refreshBtn'),
+      gameSelect: document.getElementById('gameSelect'),
+      teamACard: document.getElementById('teamACard'),
+      teamBCard: document.getElementById('teamBCard'),
+      teamACount: document.getElementById('teamACount'),
+      teamBCount: document.getElementById('teamBCount'),
+      teamAContent: document.getElementById('teamAContent'),
+      teamBContent: document.getElementById('teamBContent'),
+      scoreA: document.getElementById('scoreA'),
+      scoreB: document.getElementById('scoreB'),
+      saveBtn: document.getElementById('saveBtn'),
+      playerModal: document.getElementById('playerModal'),
+      pickerTitle: document.getElementById('pickerTitle'),
+      pickerSub: document.getElementById('pickerSub'),
+      closePickerBtn: document.getElementById('closePickerBtn'),
+      donePickerBtn: document.getElementById('donePickerBtn'),
+      playerSearch: document.getElementById('playerSearch'),
+      playersGrid: document.getElementById('playersGrid'),
+      playersScroll: document.getElementById('playersScroll'),
+      selectionSummary: document.getElementById('selectionSummary'),
+      toastStack: document.getElementById('toastStack'),
+      loadingCover: document.getElementById('loadingCover'),
+      loadingText: document.getElementById('loadingText')
+    };
+
+    function setConnection(stateName, text) {
+      els.connection.dataset.state = stateName;
+      els.connectionText.textContent = text;
+    }
+
+    function showLoading(show, text = 'Saglabā rezultātu…') {
+      state.loading = show;
+      els.loadingText.textContent = text;
+      els.loadingCover.classList.toggle('open', show);
+      els.loadingCover.setAttribute('aria-hidden', String(!show));
+      updateFormState();
+    }
+
+    function toast(message, type = '') {
+      const node = document.createElement('div');
+      node.className = `toast ${type}`.trim();
+      node.textContent = message;
+      els.toastStack.replaceChildren(node);
+      window.setTimeout(() => {
+        if (node.isConnected) node.remove();
+      }, 3400);
+    }
+
+    function jsonp(params, timeoutMs = 20000) {
+      return new Promise((resolve, reject) => {
+        const callbackName = `__speles_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+        const script = document.createElement('script');
+        const timer = window.setTimeout(() => finish(new Error('Savienojuma noildze.')), timeoutMs);
+
+        function cleanup() {
+          window.clearTimeout(timer);
+          delete window[callbackName];
+          script.remove();
+        }
+
+        function finish(error, data) {
+          cleanup();
+          if (error) reject(error);
+          else resolve(data);
+        }
+
+        window[callbackName] = data => finish(null, data);
+        script.onerror = () => finish(new Error('Neizdevās sasniegt Google serveri.'));
+
+        const url = new URL(API_URL);
+        Object.entries({ ...params, callback: callbackName, _: Date.now() }).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) url.searchParams.set(key, String(value));
+        });
+        script.src = url.toString();
+        script.async = true;
+        document.head.appendChild(script);
+      });
+    }
+
+    async function loadBootstrap(force = false) {
+      setConnection('busy', 'Ielādē datus');
+      els.refreshBtn.disabled = true;
+      els.gameSelect.disabled = true;
+
+      try {
+        const response = await jsonp({ action: 'bootstrap', force: force ? '1' : '0' });
+        if (!response || response.ok !== true) throw new Error(response?.error || 'Serveris neatgrieza datus.');
+
+        state.games = Array.isArray(response.games) ? response.games : [];
+        state.players = (Array.isArray(response.players) ? response.players : [])
+          .map(player => ({ id: String(player.id), name: String(player.name), row: Number(player.row) }))
+          .sort((a, b) => a.name.localeCompare(b.name, 'lv', { sensitivity: 'base', numeric: true }));
+
+        renderGames();
+        renderTeams();
+        setConnection('ready', `${state.players.length} spēlētāji`);
+
+        if (!state.games.length) toast('F4:AR4 diapazonā nav atrasta neviena spēle.', 'error');
+        if (!state.players.length) toast('B6:C1000 diapazonā nav atrasts neviens spēlētājs.', 'error');
+      } catch (error) {
+        console.error(error);
+        setConnection('error', 'Nav savienojuma');
+        els.gameSelect.innerHTML = '<option value="">Neizdevās ielādēt spēles</option>';
+        toast(error.message || 'Neizdevās ielādēt datus.', 'error');
+      } finally {
+        els.refreshBtn.disabled = false;
+        els.gameSelect.disabled = state.games.length === 0;
+        updateFormState();
+      }
+    }
+
+    function renderGames() {
+      const previous = state.selectedGameColumn;
+      const fragment = document.createDocumentFragment();
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = 'Izvēlies spēli';
+      fragment.appendChild(placeholder);
+
+      state.games.forEach(game => {
+        const option = document.createElement('option');
+        option.value = String(game.column);
+        option.textContent = game.name;
+        fragment.appendChild(option);
+      });
+
+      els.gameSelect.replaceChildren(fragment);
+      if (previous && state.games.some(game => String(game.column) === String(previous))) {
+        els.gameSelect.value = String(previous);
+      } else {
+        state.selectedGameColumn = '';
+      }
+    }
+
+    function playerInitials(name) {
+      return name.trim().split(/\s+/).slice(0, 2).map(part => part.charAt(0).toUpperCase()).join('') || '—';
+    }
+
+    function selectedPlayers(team) {
+      const ids = state.teams[team];
+      return state.players.filter(player => ids.has(player.id));
+    }
+
+    function renderTeam(team) {
+      const players = selectedPlayers(team);
+      const countEl = team === 'A' ? els.teamACount : els.teamBCount;
+      const contentEl = team === 'A' ? els.teamAContent : els.teamBContent;
+      countEl.textContent = String(players.length);
+
+      if (!players.length) {
+        contentEl.innerHTML = `
+          <div class="empty-team">
+            <div>
+              <strong>Pievienot spēlētājus</strong>
+              <span>Uzspied un izvēlies režģī</span>
+            </div>
+          </div>`;
+        return;
+      }
+
+      const visible = players.slice(0, 4);
+      const fragment = document.createDocumentFragment();
+      const list = document.createElement('div');
+      list.className = 'member-list';
+
+      visible.forEach(player => {
+        const row = document.createElement('div');
+        row.className = 'member-row';
+        row.innerHTML = `
+          <span class="avatar">${escapeHtml(playerInitials(player.name))}</span>
+          <span class="member-copy">
+            <span class="member-name">${escapeHtml(player.name)}</span>
+            <span class="member-id">ID ${escapeHtml(player.id)}</span>
+          </span>`;
+        list.appendChild(row);
+      });
+      fragment.appendChild(list);
+
+      if (players.length > visible.length) {
+        const more = document.createElement('div');
+        more.className = 'more-members';
+        more.textContent = `+ vēl ${players.length - visible.length}`;
+        fragment.appendChild(more);
+      }
+      contentEl.replaceChildren(fragment);
+    }
+
+    function renderTeams() {
+      renderTeam('A');
+      renderTeam('B');
+      updateFormState();
+    }
+
+    function openPicker(team) {
+      if (!state.players.length || state.loading) return;
+      state.activeTeam = team;
+      els.pickerTitle.textContent = 'Izvēlies spēlētājus';
+      els.pickerSub.textContent = team === 'A' ? 'Komanda 1' : 'Komanda 2';
+      els.playerSearch.value = '';
+      renderPlayerGrid();
+      updateSelectionSummary();
+      els.playerModal.classList.add('open');
+      els.playerModal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      window.setTimeout(() => els.playerSearch.focus(), 80);
+    }
+
+    function closePicker() {
+      els.playerModal.classList.remove('open');
+      els.playerModal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      state.activeTeam = null;
+      renderTeams();
+    }
+
+    function renderPlayerGrid() {
+      const query = els.playerSearch.value.trim().toLocaleLowerCase('lv');
+      const own = state.teams[state.activeTeam];
+      const other = state.teams[state.activeTeam === 'A' ? 'B' : 'A'];
+      const matches = query
+        ? state.players.filter(player => `${player.name} ${player.id}`.toLocaleLowerCase('lv').includes(query))
+        : state.players;
+
+      const fragment = document.createDocumentFragment();
+      if (!matches.length) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-search';
+        empty.textContent = 'Neviens spēlētājs nav atrasts.';
+        fragment.appendChild(empty);
+      } else {
+        matches.forEach(player => {
+          const selected = own.has(player.id);
+          const blocked = other.has(player.id);
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = `player-btn${selected ? ' selected' : ''}${blocked ? ' blocked' : ''}`;
+          button.dataset.playerId = player.id;
+          button.disabled = blocked;
+          button.setAttribute('aria-pressed', String(selected));
+          button.innerHTML = `
+            <span class="player-name">${escapeHtml(player.name)}</span>
+            <span class="player-id">ID ${escapeHtml(player.id)}${blocked ? ' · otrā komandā' : ''}</span>`;
+          fragment.appendChild(button);
+        });
+      }
+      els.playersGrid.replaceChildren(fragment);
+      els.playersScroll.scrollTop = 0;
+    }
+
+    function togglePlayer(playerId) {
+      if (!state.activeTeam) return;
+      const own = state.teams[state.activeTeam];
+      const other = state.teams[state.activeTeam === 'A' ? 'B' : 'A'];
+      if (other.has(playerId)) return;
+      if (own.has(playerId)) own.delete(playerId);
+      else own.add(playerId);
+      renderPlayerGrid();
+      updateSelectionSummary();
+    }
+
+    function updateSelectionSummary() {
+      const count = state.activeTeam ? state.teams[state.activeTeam].size : 0;
+      els.selectionSummary.innerHTML = `<strong>${count}</strong> ${count === 1 ? 'spēlētājs izvēlēts' : 'spēlētāji izvēlēti'}`;
+    }
+
+    function normalizeScore(raw) {
+      const normalized = String(raw).trim().replace(',', '.');
+      if (!normalized) return null;
+      if (!/^\d+(?:\.\d+)?$/.test(normalized)) return NaN;
+      const value = Number(normalized);
+      return Number.isFinite(value) && value >= 0 ? value : NaN;
+    }
+
+    function updateFormState() {
+      const teamsReady = state.teams.A.size > 0 && state.teams.B.size > 0;
+      els.scoreA.disabled = !teamsReady || state.loading;
+      els.scoreB.disabled = !teamsReady || state.loading;
+
+      const scoreA = normalizeScore(els.scoreA.value);
+      const scoreB = normalizeScore(els.scoreB.value);
+      const validScores = scoreA !== null && scoreB !== null && !Number.isNaN(scoreA) && !Number.isNaN(scoreB);
+      const ready = Boolean(state.selectedGameColumn) && teamsReady && validScores && !state.loading;
+      els.saveBtn.disabled = !ready;
+      els.saveBtn.textContent = state.loading ? 'Saglabā…' : 'Saglabāt rezultātu';
+    }
+
+    function currentGame() {
+      return state.games.find(game => String(game.column) === String(state.selectedGameColumn));
+    }
+
+    async function saveResult() {
+      if (els.saveBtn.disabled || state.loading) return;
+
+      const scoreA = normalizeScore(els.scoreA.value);
+      const scoreB = normalizeScore(els.scoreB.value);
+      const game = currentGame();
+      if (!game || Number.isNaN(scoreA) || Number.isNaN(scoreB) || scoreA === null || scoreB === null) {
+        toast('Pārbaudi spēli, komandas un rezultātu.', 'error');
+        return;
+      }
+
+      showLoading(true, 'Saglabā rezultātu…');
+      setConnection('busy', 'Saglabā');
+
+      try {
+        const response = await jsonp({
+          action: 'saveResult',
+          gameColumn: game.column,
+          gameName: game.name,
+          teamA: [...state.teams.A].join(','),
+          teamB: [...state.teams.B].join(','),
+          scoreA,
+          scoreB,
+          requestId: createRequestId()
+        }, 30000);
+
+        if (!response || response.ok !== true) throw new Error(response?.error || 'Rezultātu neizdevās saglabāt.');
+
+        toast(`Saglabāts: ${game.name} — ${scoreA}:${scoreB}`, 'success');
+        setConnection('ready', 'Rezultāts saglabāts');
+        resetEntry();
+        window.setTimeout(() => setConnection('ready', `${state.players.length} spēlētāji`), 2200);
+      } catch (error) {
+        console.error(error);
+        setConnection('error', 'Saglabāšana neizdevās');
+        toast(error.message || 'Rezultātu neizdevās saglabāt.', 'error');
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    function resetEntry() {
+      state.teams.A.clear();
+      state.teams.B.clear();
+      els.scoreA.value = '';
+      els.scoreB.value = '';
+      renderTeams();
+      updateFormState();
+      els.teamACard.focus({ preventScroll: true });
+    }
+
+    function createRequestId() {
+      if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+      return `${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    els.gameSelect.addEventListener('change', () => {
+      state.selectedGameColumn = els.gameSelect.value;
+      updateFormState();
+    });
+
+    els.teamACard.addEventListener('click', () => openPicker('A'));
+    els.teamBCard.addEventListener('click', () => openPicker('B'));
+    els.closePickerBtn.addEventListener('click', closePicker);
+    els.donePickerBtn.addEventListener('click', closePicker);
+
+    els.playerModal.addEventListener('click', event => {
+      if (event.target === els.playerModal) closePicker();
+    });
+
+    els.playersGrid.addEventListener('click', event => {
+      const button = event.target.closest('[data-player-id]');
+      if (button && !button.disabled) togglePlayer(button.dataset.playerId);
+    });
+
+    els.playerSearch.addEventListener('input', renderPlayerGrid);
+    els.scoreA.addEventListener('input', updateFormState);
+    els.scoreB.addEventListener('input', updateFormState);
+    els.saveBtn.addEventListener('click', saveResult);
+    els.refreshBtn.addEventListener('click', () => loadBootstrap(true));
+
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && els.playerModal.classList.contains('open')) closePicker();
+    });
+
+    renderTeams();
+    loadBootstrap();
+  </script>
+</body>
+</html>
