@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#08090c">
+<title>VEZITIVUS QUEST</title>
+<style>
+:root{color-scheme:dark;--bg:#08090c;--line:#2a2e38;--muted:#a4a8b1;--ok:#63e39a}*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;min-height:100vh;min-height:100dvh;display:grid;place-items:center;padding:20px;background:radial-gradient(circle at 50% -10%,#2c3158 0,transparent 35rem),linear-gradient(#0d0f14,#07080a);color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.card{width:min(560px,100%);border:1px solid var(--line);border-radius:28px;background:rgba(20,22,28,.92);box-shadow:0 30px 100px #0009;overflow:hidden}.head{padding:22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}.brand{font-weight:900;letter-spacing:.14em}.id{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:7px 10px}
+.content{padding:34px 24px 26px;text-align:center}.eyebrow{color:var(--muted);font-size:12px;letter-spacing:.14em;font-weight:800}.icon{font-size:54px;margin:22px 0 14px}h1{font-size:clamp(30px,8vw,48px);line-height:1.02;margin:0 0 18px}p{color:#d6d8dd;line-height:1.6;font-size:17px;margin:0 auto 24px;max-width:440px}.points{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:9px 14px;margin-bottom:24px;font-weight:900}
+input{width:100%;border:1px solid var(--line);border-radius:14px;background:#0d0f14;color:#fff;padding:14px;margin-bottom:12px;font:inherit}.btn{width:100%;border:0;border-radius:16px;padding:17px;font:inherit;font-weight:900;background:#fff;color:#090a0d;cursor:pointer}.btn:disabled{opacity:.45;cursor:not-allowed}.note{font-size:12px;color:var(--muted);margin-top:13px}
+.state{padding:52px 24px;text-align:center}.state h2{font-size:30px;margin:14px 0}.success{position:fixed;inset:0;display:none;place-items:center;background:#07140d;z-index:5;text-align:center;padding:20px}.success.show{display:grid;animation:flash .55s ease}.success strong{font-size:clamp(42px,13vw,82px);display:block}.success p{color:#bff4d1}.burst{font-size:80px;animation:pop .55s ease}@keyframes pop{0%{transform:scale(.2) rotate(-20deg)}70%{transform:scale(1.2)}100%{transform:scale(1)}}@keyframes flash{from{filter:brightness(2)}to{filter:none}}
+.loader{width:34px;height:34px;border:3px solid #ffffff25;border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;margin:auto}@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<main id="card" class="card"><div class="state"><div class="loader"></div><p>Ielādē uzdevumu…</p></div></main>
+<section id="success" class="success"><div><div class="burst">✓</div><strong>IZPILDĪTS!</strong><p id="successText"></p></div></section>
+<script>
+const API_URL='PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE';
+const id=new URLSearchParams(location.search).get('id')?.trim().toUpperCase();
+let quest=null;
+async function api(action,payload={}){if(API_URL.startsWith('PASTE_'))throw new Error('Sistēma vēl nav pieslēgta Google Sheets');const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,...payload})});const d=await r.json();if(!d.ok)throw new Error(d.error||'Nezināma kļūda');return d}
+async function load(){if(!id)return showError('Nav norādīts uzdevuma ID.');try{const d=await api('getQuest',{id});quest=d.quest;render()}catch(e){showError(e.message)}}
+function render(){if(!quest.active)return showError('Šis uzdevums pašlaik nav aktīvs.');if(quest.completed&&quest.mode!=='REPEAT')return showDone();document.title=quest.title+' · VEZITIVUS QUEST';document.getElementById('card').innerHTML=`<div class="head"><div class="brand">VEZITIVUS</div><div class="id">${safe(quest.id)}</div></div><div class="content"><div class="eyebrow">SLEPENAIS UZDEVUMS</div><div class="icon">⚡</div><h1>${safe(quest.title)}</h1><p>${safe(quest.description)}</p><div class="points">+${Number(quest.points)||0} PUNKTI</div><input id="playerName" maxlength="40" autocomplete="name" placeholder="Tavs vārds"><button id="completeBtn" class="btn" onclick="completeQuest()">UZDEVUMS IZPILDĪTS</button><div class="note">Atzīmē tikai pēc uzdevuma izpildes.</div></div>`}
+async function completeQuest(){const name=document.getElementById('playerName').value.trim();if(!name)return alert('Ievadi savu vārdu.');const b=document.getElementById('completeBtn');b.disabled=true;b.textContent='SAGLABĀ…';try{const d=await api('completeQuest',{id,name});document.getElementById('successText').textContent=`${name} saņem +${d.points} punktus`;document.getElementById('success').classList.add('show');playWin();navigator.vibrate?.([120,60,180]);setTimeout(()=>location.reload(),4000)}catch(e){alert(e.message);b.disabled=false;b.textContent='UZDEVUMS IZPILDĪTS'}}
+function playWin(){try{const c=new (window.AudioContext||window.webkitAudioContext)();const now=c.currentTime;[523.25,659.25,783.99,1046.5].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.type='triangle';o.frequency.value=f;g.gain.setValueAtTime(0,now+i*.11);g.gain.linearRampToValueAtTime(.22,now+i*.11+.02);g.gain.exponentialRampToValueAtTime(.001,now+i*.11+.28);o.connect(g).connect(c.destination);o.start(now+i*.11);o.stop(now+i*.11+.3)})}catch(e){}}
+function showDone(){document.getElementById('card').innerHTML=`<div class="head"><div class="brand">VEZITIVUS</div><div class="id">${safe(quest.id)}</div></div><div class="state"><div style="font-size:58px">✓</div><h2>JAU IZPILDĪTS</h2><p>Šo uzdevumu izpildīja <b>${safe(quest.completedBy||'dalībnieks')}</b>.</p></div>`}
+function showError(msg){document.getElementById('card').innerHTML=`<div class="head"><div class="brand">VEZITIVUS</div><div class="id">${safe(id||'—')}</div></div><div class="state"><div style="font-size:48px">!</div><h2>UZDEVUMS NAV PIEEJAMS</h2><p>${safe(msg)}</p></div>`}
+function safe(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+load();
+</script>
+</body></html>
