@@ -18,7 +18,7 @@ dialog{width:min(620px,calc(100% - 24px));border:1px solid var(--line);border-ra
 </style>
 </head>
 <body>
-<main id="appView" class="wrap">
+<main class="wrap">
   <div class="top"><div class="brand"><b>VEZITIVUS QUEST</b><small>NFC uzdevumu administrācija</small></div><div id="connection" class="pill">SAVIENOJAS…</div></div>
   <section class="stats">
     <div class="stat"><span>KOPĀ</span><strong id="sTotal">0</strong></div>
@@ -39,7 +39,7 @@ dialog{width:min(620px,calc(100% - 24px));border:1px solid var(--line);border-ra
 <dialog id="editor">
   <div class="modal-head"><strong id="editorTitle">Jauns uzdevums</strong><button class="icon" onclick="editor.close()">✕</button></div>
   <div class="form">
-    <div class="field"><label>UZDEVUMA ID</label><input id="fId" placeholder="Q001"></div>
+    <div class="field"><label>UZDEVUMA ID</label><input id="fId" readonly></div>
     <div class="field"><label>PUNKTI</label><input id="fPoints" type="number" min="0" value="10"></div>
     <div class="field full"><label>NOSAUKUMS</label><input id="fTitle" placeholder="Atrodi slepeno vietu"></div>
     <div class="field full"><label>APRAKSTS</label><textarea id="fDescription" placeholder="Kas dalībniekam jāizdara?"></textarea></div>
@@ -58,20 +58,14 @@ const $=id=>document.getElementById(id);
 async function api(action,payload={}){const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,adminKey,...payload})});const data=await r.json();if(!data.ok)throw new Error(data.error||'Nezināma kļūda');return data}
 async function loadQuests(){try{$('connection').textContent='IELĀDĒ…';const d=await api('listQuests');quests=d.quests||[];$('connection').textContent='ONLINE';render()}catch(e){$('connection').textContent='KĻŪDA';toast(e.message)}}
 function questStatus(x){if(!x.active)return{cls:'off',text:'IZSLĒGTA'};if(x.completed)return{cls:'done',text:'IZPILDĪTA'};if(x.opened)return{cls:'found',text:'ATRASTA'};return{cls:'unfound',text:'NEATRASTA'}}
-function render(){const q=$('search').value.toLowerCase();const list=quests.filter(x=>(x.id+' '+x.title).toLowerCase().includes(q));$('rows').innerHTML=list.map(x=>{const st=questStatus(x);return `<tr>
-<td><b>${esc(x.id)}</b></td><td><b>${esc(x.title)}</b><br><small style="color:var(--muted)">${esc(shorten(x.description,70))}</small></td>
-<td>${Number(x.points)||0}</td><td><span class="status ${st.cls}">${st.text}</span></td>
-<td>${esc(x.firstOpenedAt||'—')}</td><td>${Number(x.openCount)||0}</td><td>${esc(x.completedBy||'—')}</td><td>${esc(x.completedAt||'—')}</td>
-<td><button class="icon" onclick="copyLink('${escAttr(x.id)}')">KOPĒT</button></td>
-<td><div class="actions"><button class="icon" onclick="openEditor('${escAttr(x.id)}')">REDIĢĒT</button><button class="icon" onclick="resetQuest('${escAttr(x.id)}')">RESET IZPILDI</button><button class="icon" onclick="resetQuestFully('${escAttr(x.id)}')">RESET VISU</button><button class="icon danger" onclick="deleteQuest('${escAttr(x.id)}')">DZĒST</button></div></td></tr>`}).join('');
-$('empty').classList.toggle('hidden',list.length>0);$('sTotal').textContent=quests.length;$('sFound').textContent=quests.filter(x=>x.opened).length;$('sDone').textContent=quests.filter(x=>x.completed).length;$('sUnfound').textContent=quests.filter(x=>!x.opened).length}
-function openEditor(id=''){editingOriginalId=id||null;const x=quests.find(q=>q.id===id);$('editorTitle').textContent=x?'Rediģēt uzdevumu':'Jauns uzdevums';$('fId').value=x?.id||nextId();$('fTitle').value=x?.title||'';$('fDescription').value=x?.description||'';$('fPoints').value=x?.points??10;$('fActive').value=String(x?.active??true).toUpperCase();$('fMode').value=x?.mode||'ONCE';editor.showModal()}
-async function saveQuest(){const quest={id:$('fId').value.trim().toUpperCase(),title:$('fTitle').value.trim(),description:$('fDescription').value.trim(),points:Number($('fPoints').value)||0,active:$('fActive').value==='TRUE',mode:$('fMode').value};if(!quest.id||!quest.title||!quest.description)return toast('Aizpildi ID, nosaukumu un aprakstu');try{await api('saveQuest',{quest,originalId:editingOriginalId});editor.close();toast('Saglabāts');loadQuests()}catch(e){toast(e.message)}}
+function render(){const q=$('search').value.toLowerCase();const list=quests.filter(x=>(x.id+' '+x.title).toLowerCase().includes(q));$('rows').innerHTML=list.map(x=>{const st=questStatus(x);return `<tr><td><b>${esc(x.id)}</b></td><td><b>${esc(x.title)}</b><br><small style="color:var(--muted)">${esc(shorten(x.description,70))}</small></td><td>${Number(x.points)||0}</td><td><span class="status ${st.cls}">${st.text}</span></td><td>${esc(x.firstOpenedAt||'—')}</td><td>${Number(x.openCount)||0}</td><td>${esc(x.completedBy||'—')}</td><td>${esc(x.completedAt||'—')}</td><td><button class="icon" onclick="copyLink('${escAttr(x.id)}')">KOPĒT</button></td><td><div class="actions"><button class="icon" onclick="openEditor('${escAttr(x.id)}')">REDIĢĒT</button><button class="icon" onclick="resetQuest('${escAttr(x.id)}')">RESET IZPILDI</button><button class="icon" onclick="resetQuestFully('${escAttr(x.id)}')">RESET VISU</button><button class="icon danger" onclick="deleteQuest('${escAttr(x.id)}')">DZĒST</button></div></td></tr>`}).join('');$('empty').classList.toggle('hidden',list.length>0);$('sTotal').textContent=quests.length;$('sFound').textContent=quests.filter(x=>x.opened).length;$('sDone').textContent=quests.filter(x=>x.completed).length;$('sUnfound').textContent=quests.filter(x=>!x.opened).length}
+function openEditor(id=''){editingOriginalId=id||null;const x=quests.find(q=>q.id===id);$('editorTitle').textContent=x?'Rediģēt uzdevumu':'Jauns uzdevums';$('fId').value=x?.id||randomQuestId();$('fTitle').value=x?.title||'';$('fDescription').value=x?.description||'';$('fPoints').value=x?.points??10;$('fActive').value=String(x?.active??true).toUpperCase();$('fMode').value=x?.mode||'ONCE';editor.showModal()}
+function randomQuestId(){const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let value='Q';do{value='Q';for(let i=0;i<7;i++)value+=chars[Math.floor(Math.random()*chars.length)]}while(quests.some(q=>q.id===value));return value}
+async function saveQuest(){const quest={id:$('fId').value.trim().toUpperCase(),title:$('fTitle').value.trim(),description:$('fDescription').value.trim(),points:Number($('fPoints').value)||0,active:$('fActive').value==='TRUE',mode:$('fMode').value};if(!quest.id||!quest.title||!quest.description)return toast('Aizpildi nosaukumu un aprakstu');try{await api('saveQuest',{quest,originalId:editingOriginalId});editor.close();toast('Saglabāts');loadQuests()}catch(e){toast(e.message)}}
 async function resetQuest(id){if(!confirm(`Atiestatīt ${id} izpildes statusu? Kartīte paliks atzīmēta kā atrasta.`))return;try{await api('resetQuest',{id});toast('Izpildes statuss atiestatīts');loadQuests()}catch(e){toast(e.message)}}
 async function resetQuestFully(id){if(!confirm(`Pilnībā atiestatīt ${id}? Kartīte atkal būs NEATRASTA.`))return;try{await api('resetQuestFully',{id});toast('Kartīte pilnībā atiestatīta');loadQuests()}catch(e){toast(e.message)}}
 async function deleteQuest(id){if(!confirm(`Neatgriezeniski dzēst ${id}?`))return;try{await api('deleteQuest',{id});toast('Uzdevums dzēsts');loadQuests()}catch(e){toast(e.message)}}
 function copyLink(id){navigator.clipboard.writeText(CARD_PAGE+encodeURIComponent(id));toast('NFC saite nokopēta')}
-function nextId(){const n=Math.max(0,...quests.map(x=>parseInt(String(x.id).replace(/\D/g,''))||0))+1;return 'Q'+String(n).padStart(3,'0')}
 function toast(t){$('toast').textContent=t;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),2600)}
 function shorten(s,n){s=String(s||'');return s.length>n?s.slice(0,n-1)+'…':s}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
