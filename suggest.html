@@ -2,453 +2,79 @@
 <html lang="lv">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Veitivus ieteikumi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#08090c">
+  <title>VEZITIVUS ieteikumi</title>
   <style>
-    /* Reset un bāzes stils */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    /* Fona parallax elements */
-    #parallax-bg {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      z-index: -1;
-      overflow: hidden;
-    }
-    #parallax-bg img {
-      width: 100%;
-      height: auto;
-      display: block;
-    }
-    /* Mūzikas kontroles pogas stils */
-    #music-control {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 1100;
-    }
-    #music-toggle {
-      background-color: rgba(10,132,255,0.8);
-      border: none;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      color: #fff;
-      font-size: 24px;
-      cursor: pointer;
-      animation: pulse 2s infinite;
-      transition: transform 0.3s;
-    }
-    #music-toggle:hover {
-      transform: scale(1.1);
-    }
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.2); }
-      100% { transform: scale(1); }
-    }
-    /* Satura stils */
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background: transparent;
-      color: #fff;
-      font-size: 22px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding-top: 100px;
-      min-height: 100vh;
-    }
-    header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      background: rgba(0, 0, 0, 0.1);
-      backdrop-filter: blur(10px);
-      color: #fff;
-      padding: 20px;
-      text-align: center;
-      z-index: 1000;
-      transition: background-color 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    header h1 {
-      font-size: 2.5rem;
-      margin-bottom: 10px;
-    }
-    #addCommentContainer {
-      margin-top: 80px;
-      margin-bottom: 10px;
-      text-align: center;
-      width: 100%;
-    }
-    #addCommentBtn {
-      font-size: 18px;
-      padding: 10px 20px;
-      border: none;
-      background-color: rgba(10,132,255,0.8);
-      color: #fff;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background-color 0.5s cubic-bezier(0.22, 1, 0.36, 1), transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    #addCommentBtn:hover {
-      background-color: rgba(10,132,255,1);
-      transform: scale(1.05);
-    }
-    /* Modal logs – caurredzams un ar blur efektu */
-    #modalOverlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 2000;
-      animation: fadeIn 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    #modal {
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.3);
-      color: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      width: 90%;
-      max-width: 500px;
-      animation: scaleUp 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    #modal h2 {
-      margin-bottom: 10px;
-      color: #fff;
-    }
-    #modal textarea {
-      width: 100%;
-      height: 150px;
-      font-size: 18px;
-      padding: 10px;
-      border: 1px solid rgba(255,255,255,0.3);
-      border-radius: 4px;
-      resize: vertical;
-      background-color: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(10px);
-      color: #fff;
-      word-break: break-all;
-    }
-    #modal button {
-      margin-top: 10px;
-      font-size: 18px;
-      padding: 10px 20px;
-      border: none;
-      background-color: rgba(10,132,255,0.8);
-      color: #fff;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background-color 0.5s cubic-bezier(0.22, 1, 0.36, 1), transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    #modal button:hover {
-      background-color: rgba(10,132,255,1);
-      transform: scale(1.05);
-    }
-    /* Komentāru konteineris – kartītes izvietojums */
-    #comments {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 2em;
-      width: 100%;
-      padding: 0 4%;
-      margin-top: 60px;
-      margin-bottom: 80px;
-    }
-    .comment {
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.3);
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-      overflow: hidden;
-      font-size: 18px;
-      cursor: pointer;
-      text-align: left;
-      display: -webkit-box;
-      -webkit-line-clamp: 4;
-      -webkit-box-orient: vertical;
-      color: #fff;
-      word-break: normal;
-      overflow-wrap: break-all;
-    }
-    .comment:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(0,0,0,0.5);
-    }
-    .comment.active {
-      grid-column: 1 / -1;
-      padding-bottom: 50px;
-      white-space: normal;
-      overflow: visible;
-      -webkit-line-clamp: unset;
-    }
-    /* Like sekcija */
-    .like-section {
-      margin-top: 20px;
-      display: flex;
-      align-items: center;
-    }
-    .like-section button {
-      font-size: 16px;
-      padding: 8px 12px;
-      border: none;
-      background-color: rgba(10,132,255,0.8);
-      color: #fff;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background-color 0.5s cubic-bezier(0.22, 1, 0.36, 1), transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    .like-section button:hover {
-      background-color: rgba(10,132,255,1);
-      transform: scale(1.05);
-    }
-    .like-section .close-btn {
-      margin-left: 10px;
-      background-color: rgba(68,68,68,0.8);
-      font-size: 16px;
-      padding: 8px 12px;
-      border-radius: 8px;
-      transition: background-color 0.5s cubic-bezier(0.22, 1, 0.36, 1), transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    .like-section .close-btn:hover {
-      background-color: rgba(51,51,51,0.8);
-      transform: scale(1.05);
-    }
-    .like-count {
-      display: inline-block;
-      padding: 8px;
-      background: rgba(44,44,46,0.8);
-      border-radius: 8px;
-      margin-left: 10px;
-      min-width: 40px;
-      text-align: center;
-      font-size: 16px;
-      color: #fff;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    @keyframes scaleUp {
-      from { transform: scale(0.95); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
+    :root{color-scheme:dark;--bg:#08090c;--surface:rgba(20,22,28,.82);--surface-strong:rgba(27,29,36,.96);--line:rgba(255,255,255,.11);--line-strong:rgba(255,255,255,.19);--text:#f7f7f8;--muted:#9ca0aa;--accent:#f4f4f5;--accent-text:#090a0d;--success:#35d07f;--danger:#ff6b6b;--shadow:0 24px 70px rgba(0,0,0,.46);--radius-xl:28px;--radius-lg:22px}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html{min-height:100%;background:var(--bg);scroll-behavior:smooth}
+    body{margin:0;min-height:100vh;min-height:100dvh;overflow-x:hidden;color:var(--text);background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+    body.modal-open{overflow:hidden}button,textarea{font:inherit}button{border:0}
+    #parallax-bg{position:fixed;inset:-36px 0 0;z-index:-3;overflow:hidden;pointer-events:none;will-change:transform}
+    #parallax-bg img{width:100%;height:calc(100% + 72px);display:block;object-fit:cover;filter:saturate(.72) brightness(.37) contrast(1.08);transform:scale(1.04)}
+    .background-overlay{position:fixed;inset:0;z-index:-2;pointer-events:none;background:radial-gradient(circle at 12% 0%,rgba(255,255,255,.12),transparent 31%),radial-gradient(circle at 88% 20%,rgba(122,132,175,.16),transparent 27%),linear-gradient(180deg,rgba(8,9,12,.34),rgba(8,9,12,.88) 58%,#08090c 100%)}
+    .header{position:sticky;top:0;z-index:1000;min-height:76px;padding:max(13px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) 13px max(18px,env(safe-area-inset-left));border-bottom:1px solid var(--line);background:rgba(8,9,12,.74);backdrop-filter:blur(24px) saturate(155%);-webkit-backdrop-filter:blur(24px) saturate(155%)}
+    .header-inner{width:min(1120px,100%);min-height:48px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:14px}.brand{min-width:0}.eyebrow{margin:0 0 3px;color:var(--muted);font-size:.65rem;font-weight:800;letter-spacing:.22em;text-transform:uppercase}.title{margin:0;overflow:hidden;color:var(--text);font-size:clamp(1.13rem,4vw,1.55rem);line-height:1.1;letter-spacing:-.025em;text-overflow:ellipsis;white-space:nowrap}
+    #music-toggle{width:46px;height:46px;flex:0 0 auto;display:grid;place-items:center;border:1px solid var(--line-strong);border-radius:50%;background:rgba(255,255,255,.08);color:var(--text);cursor:pointer;box-shadow:0 10px 25px rgba(0,0,0,.25);transition:transform .18s ease,background .18s ease,border-color .18s ease}#music-toggle:hover{background:rgba(255,255,255,.13);border-color:rgba(255,255,255,.28)}#music-toggle:active{transform:scale(.94)}#music-toggle.muted{color:var(--muted);background:rgba(255,255,255,.045)}
+    .content{width:min(1120px,100%);margin:0 auto;padding:34px max(16px,env(safe-area-inset-right)) max(54px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+    .hero{position:relative;overflow:hidden;padding:clamp(22px,5vw,40px);border:1px solid var(--line);border-radius:var(--radius-xl);background:radial-gradient(circle at 100% 0%,rgba(255,255,255,.13),transparent 34%),linear-gradient(145deg,rgba(31,34,42,.90),rgba(16,18,23,.83));box-shadow:var(--shadow);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}.hero:after{content:"";position:absolute;width:220px;height:220px;top:-125px;right:-90px;border-radius:50%;background:rgba(255,255,255,.08);filter:blur(8px);pointer-events:none}.hero-kicker{margin:0 0 10px;color:#c8cad1;font-size:.72rem;font-weight:800;letter-spacing:.2em;text-transform:uppercase}.hero-title{max-width:720px;margin:0;color:#fff;font-size:clamp(1.85rem,7vw,3.85rem);line-height:.99;letter-spacing:-.055em}.hero-text{max-width:680px;margin:16px 0 0;color:#b9bcc5;font-size:clamp(.94rem,2.8vw,1.08rem);line-height:1.58}.hero-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:24px}
+    #addCommentBtn{min-height:50px;padding:0 22px;border-radius:15px;background:var(--accent);color:var(--accent-text);cursor:pointer;font-weight:800;box-shadow:0 12px 28px rgba(0,0,0,.30);transition:transform .18s ease,filter .18s ease}#addCommentBtn:hover{filter:brightness(1.05);transform:translateY(-1px)}#addCommentBtn:active{transform:translateY(1px) scale(.98)}.privacy-note{margin:0;color:#9498a2;font-size:.78rem;line-height:1.4}
+    .section-head{display:flex;align-items:end;justify-content:space-between;gap:16px;margin:34px 2px 15px}.section-title{margin:0;font-size:clamp(1.18rem,4vw,1.55rem);letter-spacing:-.025em}.comment-total{margin:0;color:var(--muted);font-size:.78rem;white-space:nowrap}
+    #comments{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.state-panel{grid-column:1/-1;min-height:210px;display:grid;place-items:center;padding:28px;border:1px solid var(--line);border-radius:var(--radius-lg);background:rgba(20,22,28,.72);text-align:center;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}.state-content{max-width:360px}.loader{width:38px;height:38px;margin:0 auto 17px;border:3px solid rgba(255,255,255,.14);border-top-color:#fff;border-radius:50%;animation:spin .78s linear infinite}.state-title{margin:0;font-size:1rem;font-weight:800}.state-text{margin:7px 0 0;color:var(--muted);font-size:.84rem;line-height:1.5}.retry-button{min-height:42px;margin-top:18px;padding:0 17px;border:1px solid var(--line-strong);border-radius:12px;background:rgba(255,255,255,.08);color:var(--text);cursor:pointer;font-weight:750}
+    .comment{position:relative;min-width:0;min-height:176px;display:flex;flex-direction:column;padding:20px;border:1px solid var(--line);border-radius:var(--radius-lg);background:var(--surface);box-shadow:0 14px 35px rgba(0,0,0,.24);cursor:pointer;backdrop-filter:blur(17px);-webkit-backdrop-filter:blur(17px);transition:transform .2s ease,border-color .2s ease,background .2s ease,box-shadow .2s ease}.comment:hover{transform:translateY(-2px);border-color:var(--line-strong);background:rgba(27,29,36,.89);box-shadow:0 19px 45px rgba(0,0,0,.32)}.comment:focus-visible{outline:2px solid #fff;outline-offset:3px}.comment.active{grid-column:1/-1;min-height:0;cursor:default;border-color:rgba(255,255,255,.22);background:var(--surface-strong)}.comment-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.comment-label{color:#b9bcc5;font-size:.65rem;font-weight:800;letter-spacing:.15em;text-transform:uppercase}.like-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border:1px solid rgba(255,255,255,.10);border-radius:999px;background:rgba(255,255,255,.065);color:#dedfe3;font-size:.75rem;font-weight:750}.comment-text{margin:0;overflow:hidden;color:#f1f1f3;font-size:clamp(.94rem,2.5vw,1.04rem);line-height:1.56;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4}.comment.active .comment-text{display:block;overflow:visible;-webkit-line-clamp:unset;white-space:pre-wrap}.comment-hint{margin-top:auto;padding-top:18px;color:#828690;font-size:.71rem}.comment.active .comment-hint{display:none}
+    .like-section{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin-top:21px;padding-top:17px;border-top:1px solid var(--line)}.like-section button{min-height:42px;padding:0 15px;border-radius:12px;cursor:pointer;font-weight:800;transition:transform .17s ease,opacity .17s ease}.like-btn{background:var(--accent);color:var(--accent-text)}.like-btn:active:not(:disabled),.close-btn:active{transform:scale(.97)}.like-btn:disabled{cursor:not-allowed;opacity:.58}.close-btn{border:1px solid var(--line-strong);background:rgba(255,255,255,.075);color:var(--text)}.like-count{min-width:46px;min-height:42px;display:grid;place-items:center;padding:0 12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.05);color:#e5e6e8;font-size:.84rem;font-weight:800}
+    #modalOverlay{position:fixed;inset:0;z-index:3000;display:none;align-items:flex-end;justify-content:center;padding:16px max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));background:rgba(0,0,0,.68);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}#modalOverlay.visible{display:flex;animation:fadeIn .2s ease}#modal{width:min(620px,100%);padding:20px;border:1px solid var(--line-strong);border-radius:25px;background:var(--surface-strong);box-shadow:var(--shadow);animation:modalUp .25s ease}.modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}.modal-title{margin:0;font-size:1.25rem;letter-spacing:-.025em}.modal-subtitle{margin:6px 0 0;color:var(--muted);font-size:.82rem;line-height:1.45}#modalCloseBtn{width:40px;height:40px;flex:0 0 auto;display:grid;place-items:center;border:1px solid var(--line);border-radius:50%;background:rgba(255,255,255,.065);color:var(--text);cursor:pointer;font-size:1.35rem}#commentInput{width:100%;min-height:170px;margin-top:18px;padding:15px 16px;resize:vertical;border:1px solid var(--line-strong);border-radius:16px;outline:none;background:rgba(7,8,11,.72);color:var(--text);line-height:1.5;caret-color:#fff;transition:border-color .18s ease,box-shadow .18s ease}#commentInput:focus{border-color:rgba(255,255,255,.44);box-shadow:0 0 0 4px rgba(255,255,255,.07)}#commentInput::placeholder{color:#747881}.modal-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:9px;color:#7f838d;font-size:.72rem}.modal-actions{display:grid;grid-template-columns:.7fr 1.3fr;gap:10px;margin-top:18px}.modal-actions button{min-height:48px;border-radius:14px;cursor:pointer;font-weight:800}#cancelCommentBtn{border:1px solid var(--line-strong);background:rgba(255,255,255,.065);color:var(--text)}#saveCommentBtn{background:var(--accent);color:var(--accent-text)}#saveCommentBtn:disabled{cursor:wait;opacity:.56}
+    #toast{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));z-index:5000;max-width:calc(100vw - 28px);padding:12px 16px;border:1px solid var(--line-strong);border-radius:13px;background:rgba(28,30,37,.96);color:var(--text);box-shadow:0 16px 40px rgba(0,0,0,.42);opacity:0;pointer-events:none;transform:translate(-50%,18px);transition:opacity .2s ease,transform .2s ease;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);font-size:.84rem;text-align:center}#toast.visible{opacity:1;transform:translate(-50%,0)}#toast.success{border-color:rgba(53,208,127,.42)}#toast.error{border-color:rgba(255,107,107,.46)}
+    @keyframes spin{to{transform:rotate(360deg)}}@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes modalUp{from{opacity:0;transform:translateY(20px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+    @media(min-width:720px){#modalOverlay{align-items:center}#modal{padding:24px}}@media(min-width:1000px){#comments{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:680px){.content{padding-top:18px}.hero{border-radius:23px}#comments{grid-template-columns:1fr}.comment.active{grid-column:auto}.privacy-note{width:100%}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}#parallax-bg{transform:none!important}}
   </style>
 </head>
 <body>
-  <!-- Fona parallax elements -->
-  <div id="parallax-bg">
-    <img src="RR.jpg" alt="Fona attēls">
-  </div>
-  
-  <!-- Fona mūzikas elements -->
-  <audio id="bg-music" src="By.mp3" autoplay loop></audio>
-  
-  <!-- Mūzikas kontroles poga -->
-  <div id="music-control">
-    <button id="music-toggle" onclick="toggleMusic()">&#127925;</button>
-  </div>
-
-  <header>
-    <h1>Vezitivus ieteikumi</h1>
-  </header>
-
-  <div id="addCommentContainer">
-    <button id="addCommentBtn">Pievienot atsauksmi/ieteikumu/komentāru</button>
-  </div>
-
-  <div id="comments">Ielādē komentārus...</div>
-
-  <div id="modalOverlay">
+  <div id="parallax-bg" aria-hidden="true"><img src="RR.jpg" alt=""></div>
+  <div class="background-overlay" aria-hidden="true"></div>
+  <audio id="bg-music" src="By.mp3" autoplay loop preload="auto"></audio>
+  <header class="header"><div class="header-inner"><div class="brand"><p class="eyebrow">VEZITIVUS</p><h1 class="title">Idejas un ieteikumi</h1></div><button id="music-toggle" type="button" aria-label="Izslēgt mūziku">♫</button></div></header>
+  <main class="content">
+    <section class="hero" aria-labelledby="heroTitle">
+      <p class="hero-kicker">Tava balss ir svarīga</p>
+      <h2 class="hero-title" id="heroTitle">Palīdzi nākamo VEZITIVUS padarīt vēl labāku.</h2>
+      <p class="hero-text">Atstāj ideju, atsauksmi vai komentāru. Atver citu dalībnieku ierakstus un atbalsti labākās idejas ar “patīk”.</p>
+      <div class="hero-actions"><button id="addCommentBtn" type="button">＋ Pievienot savu ideju</button><p class="privacy-note">Raksti konkrēti un konstruktīvi. Ieraksts pēc publicēšanas būs redzams citiem.</p></div>
+    </section>
+    <div class="section-head"><h2 class="section-title">Kopienas idejas</h2><p class="comment-total" id="commentTotal">Ielādē...</p></div>
+    <section id="comments" aria-live="polite"><div class="state-panel"><div class="state-content"><div class="loader" aria-hidden="true"></div><p class="state-title">Ielādējam idejas</p><p class="state-text">Tas var aizņemt dažas sekundes.</p></div></div></section>
+  </main>
+  <div id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div id="modal">
-      <h2>Ievadi komentāru</h2>
-      <textarea id="commentInput" placeholder="Ievadi savu komentāru šeit..."></textarea>
-      <br>
-      <button id="saveCommentBtn">Saglabāt</button>
+      <div class="modal-head"><div><h2 class="modal-title" id="modalTitle">Pievieno savu ideju</h2><p class="modal-subtitle">Apraksti ieteikumu tā, lai citi to var viegli saprast un novērtēt.</p></div><button id="modalCloseBtn" type="button" aria-label="Aizvērt">×</button></div>
+      <textarea id="commentInput" maxlength="800" placeholder="Uzraksti savu ideju, atsauksmi vai komentāru..."></textarea>
+      <div class="modal-meta"><span>Ne vairāk kā 800 rakstzīmes</span><span id="characterCount">0 / 800</span></div>
+      <div class="modal-actions"><button id="cancelCommentBtn" type="button">Atcelt</button><button id="saveCommentBtn" type="button">Publicēt ideju</button></div>
     </div>
   </div>
-
+  <div id="toast" role="status" aria-live="polite"></div>
   <script>
-    // Parallax efekts: fona elements kustas 3 reizes lēnāk nekā saturs.
-    window.addEventListener('scroll', function(){
-      var scrollPos = window.pageYOffset;
-      document.getElementById('parallax-bg').style.transform = 'translateY(' + (-scrollPos/8) + 'px)';
-    });
-
-    // Mūzikas pārslēgšanas funkcija
-    function toggleMusic(){
-      var music = document.getElementById("bg-music");
-      if(music.paused){
-        music.play();
-      } else {
-        music.pause();
-      }
-    }
-
-    // Google Script URL
-    const scriptUrl = 'https://script.google.com/macros/s/AKfycbxX5l-iQNITlUQAEXV62euxLwPCVlJP7eLaUkya9KQksMC3NgY6L8iMpJXQ4lEfztdT4A/exec';
-
-    function getPageUid() {
-      const params = new URLSearchParams(window.location.search);
-      return params.has('uid') ? params.get('uid') : null;
-    }
-
-    function sendLike(row, likeButton, likeCountElem) {
-      let uid = getPageUid();
-      if (uid === null) {
-        let currentCount = parseInt(likeCountElem.textContent, 10) || 0;
-        uid = (currentCount + 1).toString();
-      }
-      fetch(scriptUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `row=${encodeURIComponent(row)}&uid=${encodeURIComponent(uid)}`
-      })
-      .then(response => response.json())
-      .then(result => {
-        if(result.result === "success") {
-          likeButton.textContent = "👍 Liked";
-          likeButton.disabled = true;
-          let count = parseInt(likeCountElem.textContent, 10) || 0;
-          likeCountElem.textContent = count + 1;
-        } else {
-          alert("Kļūda: " + result.message);
-        }
-      })
-      .catch(error => {
-        console.error("Kļūda sūtīt like:", error);
-        alert("Kļūda sūtīt like");
-      });
-    }
-
-    function collapseActiveComment(commentElem) {
-      commentElem.classList.remove("active");
-      const likeSection = commentElem.querySelector(".like-section");
-      if(likeSection) {
-        likeSection.remove();
-      }
-    }
-
-    function loadComments() {
-      fetch(scriptUrl)
-        .then(response => response.json())
-        .then(data => {
-          data = data.reverse();
-          const container = document.getElementById('comments');
-          container.innerHTML = '';
-          data.forEach(item => {
-            const commentDiv = document.createElement('div');
-            commentDiv.className = 'comment';
-            commentDiv.dataset.row = item.row;
-            commentDiv.dataset.likes = item.likes || "0";
-            commentDiv.textContent = item.text;
-            
-            commentDiv.addEventListener('click', function() {
-              if(commentDiv.classList.contains("active")) return;
-              document.querySelectorAll('.comment.active').forEach(ac => collapseActiveComment(ac));
-              commentDiv.classList.add("active");
-              
-              const likeSection = document.createElement('div');
-              likeSection.className = 'like-section';
-              likeSection.innerHTML = `<button class="like-btn">👍 Like</button><button class="close-btn">X</button>`;
-              const likeCountElem = document.createElement('div');
-              likeCountElem.className = 'like-count';
-              likeCountElem.textContent = commentDiv.dataset.likes;
-              likeSection.appendChild(likeCountElem);
-              
-              commentDiv.appendChild(likeSection);
-              
-              likeSection.querySelector('.like-btn').addEventListener('click', function(e) {
-                e.stopPropagation();
-                sendLike(commentDiv.dataset.row, e.target, likeCountElem);
-              });
-              
-              likeSection.querySelector('.close-btn').addEventListener('click', function(e) {
-                e.stopPropagation();
-                collapseActiveComment(commentDiv);
-              });
-            });
-            
-            container.appendChild(commentDiv);
-          });
-        })
-        .catch(error => {
-          console.error('Kļūda ielādējot komentārus:', error);
-          document.getElementById('comments').textContent = 'Kļūda ielādējot datus.';
-        });
-    }
-
-    const modalOverlay = document.getElementById('modalOverlay');
-    const addCommentBtn = document.getElementById('addCommentBtn');
-    const saveCommentBtn = document.getElementById('saveCommentBtn');
-    const commentInput = document.getElementById('commentInput');
-
-    addCommentBtn.addEventListener('click', function() {
-      modalOverlay.style.display = 'flex';
-    });
-
-    modalOverlay.addEventListener('click', function(e) {
-      if(e.target === modalOverlay) {
-        modalOverlay.style.display = 'none';
-      }
-    });
-
-    saveCommentBtn.addEventListener('click', function() {
-      const commentText = commentInput.value.trim();
-      if(!commentText) {
-        alert("Lūdzu ievadi komentāru!");
-        return;
-      }
-      saveCommentBtn.disabled = true;
-      saveCommentBtn.textContent = "Tavas domas tiek publicētas";
-      
-      let uid = getPageUid();
-      if(uid === null) {
-        uid = "1";
-      }
-      fetch(scriptUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `comment=${encodeURIComponent(commentText)}&uid=${encodeURIComponent(uid)}`
-      })
-      .then(response => response.json())
-      .then(result => {
-        if(result.result === "success") {
-          alert("Komentārs saglabāts!");
-          commentInput.value = "";
-          modalOverlay.style.display = 'none';
-          loadComments();
-        } else {
-          alert("Kļūda: " + result.message);
-        }
-      })
-      .catch(error => {
-        console.error("Kļūda saglabāt komentāru:", error);
-        alert("Kļūda saglabāt komentāru");
-      })
-      .finally(() => {
-        saveCommentBtn.disabled = false;
-        saveCommentBtn.textContent = "Saglabāt";
-      });
-    });
-
-    loadComments();
+    const scriptUrl='https://script.google.com/macros/s/AKfycbxX5l-iQNITlUQAEXV62euxLwPCVlJP7eLaUkya9KQksMC3NgY6L8iMpJXQ4lEfztdT4A/exec';
+    const commentsContainer=document.getElementById('comments'),commentTotal=document.getElementById('commentTotal'),modalOverlay=document.getElementById('modalOverlay'),addCommentBtn=document.getElementById('addCommentBtn'),saveCommentBtn=document.getElementById('saveCommentBtn'),cancelCommentBtn=document.getElementById('cancelCommentBtn'),modalCloseBtn=document.getElementById('modalCloseBtn'),commentInput=document.getElementById('commentInput'),characterCount=document.getElementById('characterCount'),music=document.getElementById('bg-music'),musicToggle=document.getElementById('music-toggle'),toast=document.getElementById('toast'),parallaxBg=document.getElementById('parallax-bg');
+    let toastTimer=null,musicEnabled=localStorage.getItem('vezitivusSuggestMusic')!=='off';
+    function getPageUid(){const params=new URLSearchParams(window.location.search);return params.has('uid')?params.get('uid'):null}
+    function showToast(message,type=''){clearTimeout(toastTimer);toast.textContent=message;toast.className=`${type} visible`.trim();toastTimer=setTimeout(()=>toast.className='',3000)}
+    function setCommentsState(title,text,retry=false){commentsContainer.innerHTML=`<div class="state-panel"><div class="state-content"><p class="state-title">${title}</p><p class="state-text">${text}</p>${retry?'<button class="retry-button" id="retryButton" type="button">Mēģināt vēlreiz</button>':''}</div></div>`;if(retry)document.getElementById('retryButton').addEventListener('click',loadComments)}
+    function setLoadingState(){commentsContainer.innerHTML='<div class="state-panel"><div class="state-content"><div class="loader" aria-hidden="true"></div><p class="state-title">Ielādējam idejas</p><p class="state-text">Tas var aizņemt dažas sekundes.</p></div></div>'}
+    function openModal(){modalOverlay.classList.add('visible');document.body.classList.add('modal-open');setTimeout(()=>commentInput.focus(),80)}
+    function closeModal(){modalOverlay.classList.remove('visible');document.body.classList.remove('modal-open')}
+    function updateCharacterCount(){characterCount.textContent=`${commentInput.value.length} / 800`}
+    function collapseActiveComment(commentElem){commentElem.classList.remove('active');commentElem.setAttribute('aria-expanded','false');const likeSection=commentElem.querySelector('.like-section');if(likeSection)likeSection.remove()}
+    function sendLike(row,likeButton,likeCountElem,likePillCount){let uid=getPageUid();if(uid===null){const currentCount=parseInt(likeCountElem.textContent,10)||0;uid=(currentCount+1).toString()}likeButton.disabled=true;likeButton.textContent='Saglabā...';fetch(scriptUrl,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:`row=${encodeURIComponent(row)}&uid=${encodeURIComponent(uid)}`}).then(response=>{if(!response.ok)throw new Error('Like request failed');return response.json()}).then(result=>{if(result.result==='success'){const count=(parseInt(likeCountElem.textContent,10)||0)+1;likeButton.textContent='✓ Patīk';likeCountElem.textContent=count;likePillCount.textContent=count;showToast('Tavs “patīk” ir saglabāts','success')}else{likeButton.disabled=false;likeButton.textContent='👍 Patīk';showToast(result.message||'Neizdevās saglabāt “patīk”','error')}}).catch(error=>{console.error('Kļūda sūtīt like:',error);likeButton.disabled=false;likeButton.textContent='👍 Patīk';showToast('Savienojuma kļūda. Mēģini vēlreiz.','error')})}
+    function openComment(commentDiv,likePillCount){if(commentDiv.classList.contains('active'))return;document.querySelectorAll('.comment.active').forEach(collapseActiveComment);commentDiv.classList.add('active');commentDiv.setAttribute('aria-expanded','true');const likeSection=document.createElement('div');likeSection.className='like-section';const likeButton=document.createElement('button');likeButton.className='like-btn';likeButton.type='button';likeButton.textContent='👍 Patīk';const closeButton=document.createElement('button');closeButton.className='close-btn';closeButton.type='button';closeButton.textContent='Aizvērt';const likeCountElem=document.createElement('div');likeCountElem.className='like-count';likeCountElem.textContent=commentDiv.dataset.likes;likeCountElem.setAttribute('aria-label','Patīk skaits');likeButton.addEventListener('click',event=>{event.stopPropagation();sendLike(commentDiv.dataset.row,likeButton,likeCountElem,likePillCount)});closeButton.addEventListener('click',event=>{event.stopPropagation();collapseActiveComment(commentDiv);commentDiv.focus({preventScroll:true})});likeSection.append(likeButton,closeButton,likeCountElem);commentDiv.appendChild(likeSection);setTimeout(()=>likeButton.focus({preventScroll:true}),60)}
+    function renderComments(data){commentsContainer.innerHTML='';commentTotal.textContent=`${data.length} ${data.length===1?'ieraksts':'ieraksti'}`;if(data.length===0){setCommentsState('Vēl nav nevienas idejas','Esi pirmais, kurš pievieno ieteikumu.');return}data.forEach((item,index)=>{const commentDiv=document.createElement('article');commentDiv.className='comment';commentDiv.dataset.row=item.row;commentDiv.dataset.likes=item.likes||'0';commentDiv.tabIndex=0;commentDiv.setAttribute('role','button');commentDiv.setAttribute('aria-expanded','false');commentDiv.setAttribute('aria-label',`Atvērt ideju ${index+1}`);const top=document.createElement('div');top.className='comment-top';const label=document.createElement('span');label.className='comment-label';label.textContent=`Ideja ${index+1}`;const likePill=document.createElement('span');likePill.className='like-pill';likePill.innerHTML='👍 <span></span>';const likePillCount=likePill.querySelector('span');likePillCount.textContent=commentDiv.dataset.likes;const text=document.createElement('p');text.className='comment-text';text.textContent=item.text;const hint=document.createElement('span');hint.className='comment-hint';hint.textContent='Atvērt un novērtēt';top.append(label,likePill);commentDiv.append(top,text,hint);commentDiv.addEventListener('click',()=>openComment(commentDiv,likePillCount));commentDiv.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openComment(commentDiv,likePillCount)}});commentsContainer.appendChild(commentDiv)})}
+    function loadComments(){setLoadingState();commentTotal.textContent='Ielādē...';fetch(scriptUrl).then(response=>{if(!response.ok)throw new Error('Comments request failed');return response.json()}).then(data=>renderComments(Array.isArray(data)?[...data].reverse():[])).catch(error=>{console.error('Kļūda ielādējot komentārus:',error);commentTotal.textContent='Nav pieejams';setCommentsState('Idejas neizdevās ielādēt','Pārbaudi interneta savienojumu un mēģini vēlreiz.',true)})}
+    function saveComment(){const commentText=commentInput.value.trim();if(!commentText){showToast('Lūdzu, ievadi komentāru.','error');commentInput.focus();return}saveCommentBtn.disabled=true;saveCommentBtn.textContent='Publicē...';let uid=getPageUid();if(uid===null)uid='1';fetch(scriptUrl,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:`comment=${encodeURIComponent(commentText)}&uid=${encodeURIComponent(uid)}`}).then(response=>{if(!response.ok)throw new Error('Comment request failed');return response.json()}).then(result=>{if(result.result==='success'){commentInput.value='';updateCharacterCount();closeModal();showToast('Tava ideja ir publicēta','success');loadComments()}else showToast(result.message||'Neizdevās publicēt ideju','error')}).catch(error=>{console.error('Kļūda saglabāt komentāru:',error);showToast('Savienojuma kļūda. Mēģini vēlreiz.','error')}).finally(()=>{saveCommentBtn.disabled=false;saveCommentBtn.textContent='Publicēt ideju'})}
+    function syncMusicButton(){music.muted=!musicEnabled;musicToggle.textContent=musicEnabled?'♫':'♪';musicToggle.classList.toggle('muted',!musicEnabled);musicToggle.setAttribute('aria-label',musicEnabled?'Izslēgt mūziku':'Ieslēgt mūziku')}
+    function toggleMusic(){musicEnabled=!musicEnabled;localStorage.setItem('vezitivusSuggestMusic',musicEnabled?'on':'off');syncMusicButton();if(musicEnabled){music.play().catch(()=>{musicEnabled=false;syncMusicButton();showToast('Pārlūks bloķēja automātisku mūzikas atskaņošanu.','error')})}else music.pause()}
+    let parallaxTicking=false;window.addEventListener('scroll',()=>{if(parallaxTicking||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;parallaxTicking=true;requestAnimationFrame(()=>{parallaxBg.style.transform=`translateY(${-window.scrollY/11}px)`;parallaxTicking=false})},{passive:true});
+    addCommentBtn.addEventListener('click',openModal);modalCloseBtn.addEventListener('click',closeModal);cancelCommentBtn.addEventListener('click',closeModal);saveCommentBtn.addEventListener('click',saveComment);musicToggle.addEventListener('click',toggleMusic);commentInput.addEventListener('input',updateCharacterCount);modalOverlay.addEventListener('click',event=>{if(event.target===modalOverlay)closeModal()});document.addEventListener('keydown',event=>{if(event.key==='Escape'){if(modalOverlay.classList.contains('visible'))closeModal();else document.querySelectorAll('.comment.active').forEach(collapseActiveComment)}if((event.ctrlKey||event.metaKey)&&event.key==='Enter'&&modalOverlay.classList.contains('visible'))saveComment()});document.addEventListener('pointerdown',()=>{if(musicEnabled&&music.paused)music.play().catch(()=>{})},{once:true});syncMusicButton();updateCharacterCount();loadComments();
   </script>
 </body>
 </html>
