@@ -517,12 +517,12 @@
         window.location.href = `https://vezitivus.github.io/APP/simpathy.html?uid=${uid}`;
       }
 
-      // Funkcija, lai pāradresētu uz "rats.html" ar UID no URL
+      // Funkcija, lai pāradresētu uz "book.html" ar UID no URL
       function redirectToSpin() {
         const params = new URLSearchParams(window.location.search);
         const uid = params.get("uid");
         if (uid) {
-          window.location.href = `rats.html?uid=${uid}`;
+          window.location.href = `book.html?uid=${uid}`;
         } else {
           showToast("UID nav atrasts!");
         }
