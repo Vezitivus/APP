@@ -8,7 +8,6 @@
   <style>
     :root {
       --bg: #050505;
-      --surface: rgba(20, 20, 23, 0.92);
       --surface-soft: #17171b;
       --text: #f7f7f8;
       --muted: #8d8d98;
@@ -235,12 +234,12 @@
 
     .movement {
       min-width: 27px;
-      opacity: 0;
       color: var(--muted);
       font-size: 11px;
       font-weight: 900;
+      opacity: 0;
       transform: translateY(3px);
-      transition: opacity 220ms ease, transform 220ms ease;
+      transition: opacity 260ms ease, transform 260ms ease;
     }
 
     .score-row.moved-up .movement,
@@ -262,15 +261,6 @@
       letter-spacing: -.025em;
       text-overflow: ellipsis;
       white-space: nowrap;
-    }
-
-    .player-meta {
-      margin-top: 5px;
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: 720;
-      letter-spacing: .035em;
-      text-transform: uppercase;
     }
 
     .points-cell,
@@ -374,7 +364,6 @@
       .points-cell { grid-column: 3; grid-row: 1; }
       .activities-cell { display: none; }
       .player-name { font-size: 18px; }
-      .player-meta { font-size: 10px; }
       .points-value { font-size: 29px; }
     }
 
@@ -448,7 +437,8 @@
     'use strict';
 
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCw8RaXwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec?action=scoreboard';
-    const CACHE_KEY = 'vezitivus.scoreboard.cache.v2';
+    const CACHE_KEY = 'vezitivus.scoreboard.cache.v3';
+    const LEGACY_CACHE_KEY = 'vezitivus.scoreboard.cache.v2';
     const REFRESH_INTERVAL_MS = 15000;
     const FETCH_TIMEOUT_MS = 30000;
     const SYNC_INDICATOR_DELAY_MS = 1200;
@@ -474,18 +464,8 @@
       rowNodes: new Map(),
       rowValues: new Map(),
       hasVisibleData: false,
-      cacheLoaded: false,
       lastUpdatedAt: null
     };
-
-    function escapeHtml(value) {
-      return String(value == null ? '' : value)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
 
     function formatTime(value) {
       const date = value instanceof Date ? value : new Date(value);
@@ -509,6 +489,7 @@
         const name = String(raw && raw.vards != null ? raw.vards : '').trim() || 'Nav vārda';
         const pointsNumber = Number(raw && raw.punkti);
         const activitiesNumber = Number(raw && raw.aktivitates);
+        const storedMovement = Number(raw && raw.movement);
         const baseKey = String(
           raw && (raw.id || raw.uid || raw.ID || raw.UID) || name.toLocaleLowerCase('lv')
         ).trim();
@@ -521,6 +502,7 @@
           name,
           points: Number.isFinite(pointsNumber) ? pointsNumber : 0,
           activities: Number.isFinite(activitiesNumber) ? activitiesNumber : 0,
+          movement: Number.isFinite(storedMovement) ? storedMovement : 0,
           sourceIndex
         };
       });
@@ -530,13 +512,26 @@
       return rows;
     }
 
+    function applyLastMovement(rows) {
+      return rows.map(row => {
+        const previous = state.rowValues.get(row.key);
+        if (!previous) return row;
+
+        const rankChange = previous.rank - row.rank;
+        return {
+          ...row,
+          movement: rankChange !== 0 ? rankChange : previous.movement || 0
+        };
+      });
+    }
+
     function dataSignature(rows) {
       return JSON.stringify(rows.map(row => [row.key, row.rank, row.points, row.activities, row.name]));
     }
 
     function readCache() {
       try {
-        const raw = localStorage.getItem(CACHE_KEY);
+        const raw = localStorage.getItem(CACHE_KEY) || localStorage.getItem(LEGACY_CACHE_KEY);
         if (!raw) return null;
         const cached = JSON.parse(raw);
         if (!cached || !Array.isArray(cached.rows)) return null;
@@ -546,6 +541,7 @@
         };
       } catch (error) {
         localStorage.removeItem(CACHE_KEY);
+        localStorage.removeItem(LEGACY_CACHE_KEY);
         return null;
       }
     }
@@ -558,12 +554,13 @@
             vards: row.name,
             punkti: row.points,
             aktivitates: row.activities,
+            movement: row.movement || 0,
             id: row.key
           })),
           updatedAt
         }));
       } catch (error) {
-        // Scoreboard turpina strādāt arī tad, ja pārlūks neatļauj localStorage.
+        // Lapa turpina strādāt arī tad, ja localStorage nav pieejams.
       }
     }
 
@@ -578,34 +575,25 @@
         </div>
         <div class="player-cell">
           <div class="player-name"></div>
-          <div class="player-meta"></div>
         </div>
         <div class="points-cell"><span class="points-value"></span></div>
         <div class="activities-cell"><span class="activities-value"></span></div>`;
       return node;
     }
 
-    function updateRowNode(node, row, previousRank) {
-      const rankChange = Number.isFinite(previousRank) ? previousRank - row.rank : 0;
+    function updateRowNode(node, row) {
       node.dataset.rank = String(row.rank);
-      node.classList.toggle('moved-up', rankChange > 0);
-      node.classList.toggle('moved-down', rankChange < 0);
+      node.classList.toggle('moved-up', row.movement > 0);
+      node.classList.toggle('moved-down', row.movement < 0);
       node.querySelector('.rank-badge').textContent = String(row.rank);
-      node.querySelector('.movement').textContent = rankChange > 0
-        ? '▲' + rankChange
-        : rankChange < 0
-          ? '▼' + Math.abs(rankChange)
+      node.querySelector('.movement').textContent = row.movement > 0
+        ? '▲' + row.movement
+        : row.movement < 0
+          ? '▼' + Math.abs(row.movement)
           : '';
       node.querySelector('.player-name').textContent = row.name;
-      node.querySelector('.player-meta').textContent = 'Kopvērtējums';
       node.querySelector('.points-value').textContent = String(row.points);
       node.querySelector('.activities-value').textContent = String(row.activities);
-
-      if (rankChange !== 0) {
-        window.setTimeout(() => {
-          node.classList.remove('moved-up', 'moved-down');
-        }, REORDER_DURATION_MS + 1500);
-      }
     }
 
     function capturePositions() {
@@ -677,8 +665,9 @@
       });
     }
 
-    function renderRows(rows, options) {
+    function renderRows(inputRows, options) {
       const settings = Object.assign({ animate: true, animateNewRows: true }, options || {});
+      const rows = settings.preserveMovement === false ? inputRows : applyLastMovement(inputRows);
       const oldPositions = settings.animate ? capturePositions() : new Map();
       const oldOrder = state.order.slice();
       const oldIndexByKey = new Map(oldOrder.map((key, index) => [key, index]));
@@ -689,8 +678,7 @@
 
       rows.forEach((row, index) => {
         const node = state.rowNodes.get(row.key) || createRowNode(row.key);
-        const previous = oldValues.get(row.key);
-        updateRowNode(node, row, previous && previous.rank);
+        updateRowNode(node, row);
         fragment.appendChild(node);
         nextNodes.set(row.key, node);
         nextValues.set(row.key, row);
@@ -737,6 +725,7 @@
       state.order = newOrder;
       state.signature = dataSignature(rows);
       state.hasVisibleData = true;
+      return rows;
     }
 
     function showInitialError() {
@@ -767,7 +756,7 @@
       }
 
       const controller = new AbortController();
-      const timeout = window.setTimeout(() => controller.abort('timeout'), FETCH_TIMEOUT_MS);
+      const timeout = window.setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
       try {
         const url = new URL(SCRIPT_URL);
@@ -785,20 +774,23 @@
           throw new Error(result && result.message ? result.message : 'Serveris neatgrieza rezultātus.');
         }
 
-        const rows = normalizeRows(result.data);
-        const signature = dataSignature(rows);
+        const normalizedRows = normalizeRows(result.data);
+        const signature = dataSignature(normalizedRows);
         const updatedAt = new Date().toISOString();
+        let renderedRows = normalizedRows;
 
         if (signature !== state.signature) {
-          renderRows(rows, {
+          renderedRows = renderRows(normalizedRows, {
             animate: state.hasVisibleData,
             animateNewRows: true
           });
         } else if (!state.hasVisibleData) {
-          renderRows(rows, { animate: false });
+          renderedRows = renderRows(normalizedRows, { animate: false });
+        } else {
+          renderedRows = Array.from(state.rowValues.values());
         }
 
-        writeCache(rows, updatedAt);
+        writeCache(renderedRows, updatedAt);
         state.lastUpdatedAt = updatedAt;
         setSyncStatus('ready', 'Atjaunots ' + formatTime(updatedAt));
       } catch (error) {
@@ -810,7 +802,7 @@
 
         if (state.hasVisibleData) {
           setSyncStatus(
-            navigator.onLine ? 'error' : 'error',
+            'error',
             navigator.onLine ? 'Rāda iepriekšējos datus' : 'Nav interneta · iepriekšējie dati'
           );
         } else {
@@ -827,10 +819,13 @@
 
     function startScoreboard() {
       const cached = readCache();
-      state.cacheLoaded = Boolean(cached);
 
       if (cached) {
-        renderRows(cached.rows, { animate: false, animateNewRows: false });
+        renderRows(cached.rows, {
+          animate: false,
+          animateNewRows: false,
+          preserveMovement: false
+        });
         state.lastUpdatedAt = cached.updatedAt;
         setSyncStatus(
           'ready',
