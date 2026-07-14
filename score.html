@@ -2,130 +2,806 @@
 <html lang="lv">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vezitivus Score board</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#050505">
+  <title>Vezitivus Scoreboard</title>
   <style>
-    /* Visas lapas fona iestatījumi */
-    body, html {
+    :root {
+      --bg: #050505;
+      --surface: rgba(18, 18, 20, 0.88);
+      --surface-strong: #111114;
+      --surface-soft: #17171b;
+      --text: #f7f7f8;
+      --muted: #8d8d98;
+      --line: rgba(255, 255, 255, 0.09);
+      --accent: #ffffff;
+      --success: #47d18c;
+      --warning: #ffca59;
+      --danger: #ff6b6b;
+      --gold: #e8c66a;
+      --silver: #c6cad2;
+      --bronze: #c58b62;
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      min-height: 100%;
+      background: var(--bg);
+    }
+
+    body {
       margin: 0;
-      padding: 0;
-      background: #000;  /* Melns fons */
-      color: #fff;
-      font-family: sans-serif;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 10% -10%, rgba(255,255,255,0.08), transparent 32rem),
+        radial-gradient(circle at 95% 12%, rgba(92,92,110,0.12), transparent 30rem),
+        var(--bg);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
     }
-    /* Fiksēts virsraksts lapas augšā */
-    .fixed-header {
-      position: fixed;
+
+    button { font: inherit; }
+
+    .topbar {
+      position: sticky;
+      z-index: 50;
       top: 0;
-      left: 0;
-      width: 100%;
-      background: #000;
-      padding: 20px 0;
-      text-align: center;
-      font-size: 28px;
-      font-weight: bold;
-      z-index: 1000;
-      border-bottom: 1px solid #333; /* smalka robeža, lai virsraksts izceltos */
+      border-bottom: 1px solid var(--line);
+      background: rgba(5, 5, 5, 0.76);
+      backdrop-filter: blur(22px) saturate(145%);
     }
-    /* Saturs zem fiksētā virsraksta */
-    .content {
-      margin-top: 80px;  /* atstāj vietu fiksētajam virsrakstam (pielāgo, ja nepieciešams) */
-      padding: 20px;
+
+    .topbar-inner {
+      width: min(1180px, calc(100% - 32px));
+      min-height: 92px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 22px;
     }
-    /* Score board tabulas stils */
-    .scoreboard-table {
-      width: 100%;
-      border-collapse: collapse;
+
+    .brand-kicker {
+      margin: 0 0 5px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.17em;
+      text-transform: uppercase;
     }
-    .scoreboard-table th,
-    .scoreboard-table td {
-      padding: 12px 8px;
-      text-align: left;
-      border-bottom: 1px solid #333;
+
+    h1 {
+      margin: 0;
+      font-size: clamp(26px, 4vw, 42px);
+      line-height: 0.98;
+      letter-spacing: -0.045em;
     }
-    .scoreboard-table th {
-      background: #111;
+
+    .sync-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 40px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.045);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 760;
+      white-space: nowrap;
     }
-    .scoreboard-table tr:nth-child(even) {
-      background: #111;
-    }
-    .scoreboard-table tr:nth-child(odd) {
-      background: #000;
-    }
-    /* iOS stila loading spinneris – centrēts saturs */
-    #loader {
-      border: 4px solid rgba(255, 255, 255, 0.3);
-      border-top: 4px solid #fff;
+
+    .sync-dot {
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-      margin: 40px auto;
+      background: var(--muted);
+      box-shadow: 0 0 0 4px rgba(255,255,255,0.04);
     }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+
+    .sync-status[data-state="syncing"] .sync-dot {
+      background: var(--warning);
+      box-shadow: 0 0 0 4px rgba(255,202,89,0.12);
+      animation: syncPulse 1.15s ease-in-out infinite;
+    }
+
+    .sync-status[data-state="ready"] { color: #b8f2d4; }
+    .sync-status[data-state="ready"] .sync-dot {
+      background: var(--success);
+      box-shadow: 0 0 0 4px rgba(71,209,140,0.12);
+    }
+
+    .sync-status[data-state="error"] { color: #ffb2b2; }
+    .sync-status[data-state="error"] .sync-dot {
+      background: var(--danger);
+      box-shadow: 0 0 0 4px rgba(255,107,107,0.12);
+    }
+
+    @keyframes syncPulse {
+      0%, 100% { transform: scale(.82); opacity: .58; }
+      50% { transform: scale(1.2); opacity: 1; }
+    }
+
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 30px 0 64px;
+    }
+
+    .score-panel {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      background: linear-gradient(180deg, rgba(24,24,28,.90), rgba(12,12,14,.94));
+      box-shadow: var(--shadow);
+    }
+
+    .table-head,
+    .score-row {
+      display: grid;
+      grid-template-columns: 92px minmax(240px, 1fr) 170px 170px;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .table-head {
+      min-height: 58px;
+      padding: 0 22px;
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 830;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .table-head div:nth-child(3),
+    .table-head div:nth-child(4) {
+      text-align: right;
+    }
+
+    .score-list {
+      position: relative;
+      min-height: 120px;
+      isolation: isolate;
+    }
+
+    .score-row {
+      position: relative;
+      min-height: 84px;
+      padding: 12px 22px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,0.012);
+      will-change: transform, opacity, filter;
+      transform-origin: center center;
+      backface-visibility: hidden;
+    }
+
+    .score-row:last-child { border-bottom: 0; }
+    .score-row:nth-child(even) { background: rgba(255,255,255,0.025); }
+
+    .score-row::before {
+      content: "";
+      position: absolute;
+      inset: 7px 10px;
+      z-index: -1;
+      border-radius: 18px;
+      opacity: 0;
+      background: linear-gradient(90deg, rgba(255,255,255,.08), rgba(255,255,255,.015));
+      transition: opacity 220ms ease;
+    }
+
+    .score-row:hover::before { opacity: 1; }
+
+    .rank-cell {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+    }
+
+    .rank-badge {
+      display: grid;
+      place-items: center;
+      width: 46px;
+      height: 46px;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: var(--surface-soft);
+      color: var(--text);
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -.03em;
+      box-shadow: 0 8px 22px rgba(0,0,0,.18);
+    }
+
+    .score-row[data-rank="1"] .rank-badge {
+      border-color: rgba(232,198,106,.38);
+      background: linear-gradient(145deg, rgba(232,198,106,.25), rgba(232,198,106,.06));
+      color: #ffe8a8;
+    }
+
+    .score-row[data-rank="2"] .rank-badge {
+      border-color: rgba(198,202,210,.32);
+      background: linear-gradient(145deg, rgba(198,202,210,.20), rgba(198,202,210,.04));
+      color: #e6e8ec;
+    }
+
+    .score-row[data-rank="3"] .rank-badge {
+      border-color: rgba(197,139,98,.34);
+      background: linear-gradient(145deg, rgba(197,139,98,.22), rgba(197,139,98,.05));
+      color: #efb68c;
+    }
+
+    .movement {
+      min-width: 22px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 850;
+      opacity: 0;
+      transform: translateY(3px);
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .score-row.moved-up .movement,
+    .score-row.moved-down .movement {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .score-row.moved-up .movement { color: var(--success); }
+    .score-row.moved-down .movement { color: var(--danger); }
+
+    .player-name {
+      overflow: hidden;
+      color: var(--text);
+      font-size: clamp(17px, 2.2vw, 24px);
+      font-weight: 850;
+      letter-spacing: -.025em;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .player-meta {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .035em;
+      text-transform: uppercase;
+    }
+
+    .points-cell,
+    .activities-cell {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .points-value {
+      display: inline-block;
+      font-size: clamp(25px, 3.5vw, 38px);
+      font-weight: 930;
+      line-height: 1;
+      letter-spacing: -.045em;
+    }
+
+    .activities-value {
+      display: inline-block;
+      min-width: 72px;
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: rgba(255,255,255,.035);
+      color: #c6c6ce;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .loading-state,
+    .empty-state,
+    .error-state {
+      min-height: 340px;
+      display: grid;
+      place-items: center;
+      padding: 40px 20px;
+      text-align: center;
+    }
+
+    .loading-box {
+      display: grid;
+      justify-items: center;
+      gap: 16px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .spinner {
+      width: 42px;
+      height: 42px;
+      border: 3px solid rgba(255,255,255,.10);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .9s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .state-title {
+      margin: 0 0 8px;
+      font-size: 21px;
+      font-weight: 860;
+      letter-spacing: -.025em;
+    }
+
+    .state-copy {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 760px) {
+      .topbar-inner,
+      main { width: min(100% - 20px, 1180px); }
+      .topbar-inner { min-height: 78px; }
+      .sync-status { min-height: 34px; padding: 0 10px; font-size: 10px; }
+      main { padding-top: 18px; }
+      .score-panel { border-radius: 22px; }
+      .table-head { display: none; }
+      .score-row {
+        grid-template-columns: 68px minmax(0, 1fr) 92px;
+        min-height: 82px;
+        padding: 11px 13px;
+        gap: 9px;
+      }
+      .rank-badge { width: 43px; height: 43px; border-radius: 14px; }
+      .movement { display: none; }
+      .points-cell { grid-column: 3; }
+      .activities-cell {
+        grid-column: 2 / 4;
+        grid-row: 2;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: -5px;
+        text-align: left;
+      }
+      .activities-cell::before {
+        content: "Aktivitātes";
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+      }
+      .activities-value {
+        min-width: auto;
+        padding: 5px 8px;
+        border-radius: 9px;
+        font-size: 11px;
+      }
+      .player-name { font-size: 17px; }
+      .player-meta { font-size: 9px; }
+      .points-value { font-size: 28px; }
+    }
+
+    @media (max-width: 430px) {
+      .brand-kicker { display: none; }
+      h1 { font-size: 24px; }
+      .sync-status span:last-child { max-width: 112px; overflow: hidden; text-overflow: ellipsis; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+      }
     }
   </style>
 </head>
 <body>
-  <!-- Fiksētais virsraksts -->
-  <div class="fixed-header">Vezitivus Score board</div>
-  
-  <!-- Saturs zem virsraksta -->
-  <div class="content">
-    <!-- Loading spinneris, kas redzams, kamēr tiek ielādēti dati -->
-    <div id="loader"></div>
-    
-    <!-- Score board tabula, sākumā paslēpta -->
-    <table class="scoreboard-table" id="scoreboard-table" style="display: none;">
-      <thead>
-        <tr>
-          <th>Vieta</th>
-          <th>Vārds</th>
-          <th>Punkti</th>
-          <th>Aktivitātes</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Dati tiks dinamiski ielādēti šeit -->
-      </tbody>
-    </table>
-  </div>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div>
+        <p class="brand-kicker">Vezitivus live</p>
+        <h1>Scoreboard</h1>
+      </div>
+      <div class="sync-status" id="syncStatus" data-state="syncing" aria-live="polite">
+        <span class="sync-dot" aria-hidden="true"></span>
+        <span id="syncText">Sinhronizējas…</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="score-panel" aria-labelledby="scoreboardTitle">
+      <h2 class="sr-only" id="scoreboardTitle">Vezitivus rezultātu tabula</h2>
+
+      <div class="table-head" aria-hidden="true">
+        <div>Vieta</div>
+        <div>Spēlētājs</div>
+        <div>Punkti</div>
+        <div>Aktivitātes</div>
+      </div>
+
+      <div class="loading-state" id="loadingState">
+        <div class="loading-box">
+          <span class="spinner" aria-hidden="true"></span>
+          <span>Ielādē rezultātus…</span>
+        </div>
+      </div>
+
+      <div class="score-list" id="scoreList" role="table" aria-label="Rezultātu tabula" hidden></div>
+
+      <div class="empty-state" id="emptyState" hidden>
+        <div>
+          <p class="state-title">Rezultātu vēl nav</p>
+          <p class="state-copy">Tabula automātiski atjaunosies, kad tiks ievadīti pirmie punkti.</p>
+        </div>
+      </div>
+
+      <div class="error-state" id="errorState" hidden>
+        <div>
+          <p class="state-title">Datus neizdevās ielādēt</p>
+          <p class="state-copy">Savienojums tiks mēģināts atkārtoti automātiski.</p>
+        </div>
+      </div>
+    </section>
+  </main>
 
   <script>
-    // Norādi savu Google Apps Script Web App URL ar action=scoreboard
-    const scriptUrl = "https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCw8RaXwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec?action=scoreboard";
+    'use strict';
 
-    async function fetchScoreboardData() {
-      try {
-        const response = await fetch(scriptUrl);
-        const result = await response.json();
-        if (result.status === "success") {
-          const tbody = document.querySelector("#scoreboard-table tbody");
-          tbody.innerHTML = "";
-          result.data.forEach(row => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td>${row.vieta}</td>
-              <td>${row.vards}</td>
-              <td>${row.punkti}</td>
-              <td>${row.aktivitates}</td>
-            `;
-            tbody.appendChild(tr);
-          });
-          // Paslēp spinneri un parādi tabulu
-          document.getElementById("loader").style.display = "none";
-          document.getElementById("scoreboard-table").style.display = "table";
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxoRm6W_JmWjCw8RaXwWmKDMbIgZN8jYQtKEQMxKPCg1mVRFPp3HnJ8E8b2xTaHopDo/exec?action=scoreboard';
+    const REFRESH_INTERVAL_MS = 6000;
+    const FETCH_TIMEOUT_MS = 15000;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const elements = {
+      syncStatus: document.getElementById('syncStatus'),
+      syncText: document.getElementById('syncText'),
+      loadingState: document.getElementById('loadingState'),
+      scoreList: document.getElementById('scoreList'),
+      emptyState: document.getElementById('emptyState'),
+      errorState: document.getElementById('errorState')
+    };
+
+    const state = {
+      firstLoad: true,
+      fetching: false,
+      timer: null,
+      signature: '',
+      rowNodes: new Map(),
+      rowValues: new Map(),
+      order: []
+    };
+
+    function setSyncStatus(status, text) {
+      elements.syncStatus.dataset.state = status;
+      elements.syncText.textContent = text;
+    }
+
+    function formatTime(date) {
+      return new Intl.DateTimeFormat('lv-LV', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      }).format(date);
+    }
+
+    function normalizeRows(data) {
+      const occurrences = new Map();
+
+      return (Array.isArray(data) ? data : []).map((rawRow, index) => {
+        const name = String(rawRow?.vards ?? '').trim() || 'Nav vārda';
+        const baseKey = String(rawRow?.id ?? rawRow?.uid ?? name).trim().toLocaleLowerCase('lv');
+        const occurrence = (occurrences.get(baseKey) || 0) + 1;
+        occurrences.set(baseKey, occurrence);
+
+        return {
+          key: `${baseKey}::${occurrence}`,
+          rank: Number(rawRow?.vieta) || index + 1,
+          name,
+          points: rawRow?.punkti ?? 0,
+          activities: rawRow?.aktivitates ?? 0
+        };
+      });
+    }
+
+    function dataSignature(rows) {
+      return JSON.stringify(rows.map(row => [row.key, row.rank, row.points, row.activities]));
+    }
+
+    function createRowNode(key) {
+      const row = document.createElement('div');
+      row.className = 'score-row';
+      row.dataset.key = key;
+      row.setAttribute('role', 'row');
+
+      const rankCell = document.createElement('div');
+      rankCell.className = 'rank-cell';
+      rankCell.setAttribute('role', 'cell');
+
+      const rankBadge = document.createElement('span');
+      rankBadge.className = 'rank-badge';
+
+      const movement = document.createElement('span');
+      movement.className = 'movement';
+      movement.setAttribute('aria-hidden', 'true');
+
+      rankCell.append(rankBadge, movement);
+
+      const playerCell = document.createElement('div');
+      playerCell.className = 'player-cell';
+      playerCell.setAttribute('role', 'cell');
+
+      const playerName = document.createElement('div');
+      playerName.className = 'player-name';
+
+      const playerMeta = document.createElement('div');
+      playerMeta.className = 'player-meta';
+      playerMeta.textContent = 'Kopvērtējums';
+
+      playerCell.append(playerName, playerMeta);
+
+      const pointsCell = document.createElement('div');
+      pointsCell.className = 'points-cell';
+      pointsCell.setAttribute('role', 'cell');
+
+      const pointsValue = document.createElement('span');
+      pointsValue.className = 'points-value';
+      pointsCell.append(pointsValue);
+
+      const activitiesCell = document.createElement('div');
+      activitiesCell.className = 'activities-cell';
+      activitiesCell.setAttribute('role', 'cell');
+
+      const activitiesValue = document.createElement('span');
+      activitiesValue.className = 'activities-value';
+      activitiesCell.append(activitiesValue);
+
+      row.append(rankCell, playerCell, pointsCell, activitiesCell);
+      return row;
+    }
+
+    function updateRowNode(node, row, previousRank) {
+      node.dataset.rank = String(row.rank);
+      node.querySelector('.rank-badge').textContent = String(row.rank);
+      node.querySelector('.player-name').textContent = row.name;
+      node.querySelector('.points-value').textContent = String(row.points);
+      node.querySelector('.activities-value').textContent = String(row.activities);
+
+      const movement = node.querySelector('.movement');
+      node.classList.remove('moved-up', 'moved-down');
+
+      if (Number.isFinite(previousRank) && previousRank !== row.rank) {
+        const difference = Math.abs(previousRank - row.rank);
+        if (row.rank < previousRank) {
+          node.classList.add('moved-up');
+          movement.textContent = `▲${difference}`;
         } else {
-          console.error("Kļūda: " + result.message);
+          node.classList.add('moved-down');
+          movement.textContent = `▼${difference}`;
         }
-      } catch (error) {
-        console.error("Kļūda ielādējot score board datus:", error);
+      } else {
+        movement.textContent = '';
       }
     }
 
-    document.addEventListener("DOMContentLoaded", fetchScoreboardData);
+    function capturePositions() {
+      const positions = new Map();
+      elements.scoreList.querySelectorAll('.score-row').forEach(node => {
+        positions.set(node.dataset.key, node.getBoundingClientRect());
+      });
+      return positions;
+    }
+
+    function animatePointChange(node, previousValue, nextValue) {
+      if (reduceMotion || String(previousValue) === String(nextValue)) return;
+      const target = node.querySelector('.points-value');
+      target.animate([
+        { transform: 'scale(1)', opacity: 1 },
+        { transform: 'scale(1.18)', opacity: 1, offset: .46 },
+        { transform: 'scale(1)', opacity: 1 }
+      ], {
+        duration: 520,
+        easing: 'cubic-bezier(.2,.8,.2,1)'
+      });
+    }
+
+    function animateReorder(node, oldRect, newRect, direction, delay) {
+      if (reduceMotion || !oldRect) return;
+
+      const deltaY = oldRect.top - newRect.top;
+      if (Math.abs(deltaY) < 1) return;
+
+      const movingUp = direction === 'up';
+      node.style.zIndex = movingUp ? '4' : '2';
+
+      const keyframes = movingUp
+        ? [
+            { transform: `translateY(${deltaY}px) scale(.945)`, opacity: .72, filter: 'blur(.7px)' },
+            { transform: 'translateY(-7px) scale(1.035)', opacity: 1, filter: 'blur(0)', offset: .76 },
+            { transform: 'translateY(0) scale(1)', opacity: 1, filter: 'blur(0)' }
+          ]
+        : [
+            { transform: `translateY(${deltaY}px) scale(1.035)`, opacity: 1, filter: 'blur(0)' },
+            { transform: 'translateY(7px) scale(.955)', opacity: .68, filter: 'blur(.7px)', offset: .76 },
+            { transform: 'translateY(0) scale(1)', opacity: 1, filter: 'blur(0)' }
+          ];
+
+      const animation = node.animate(keyframes, {
+        duration: 920,
+        delay,
+        easing: 'cubic-bezier(.18,.82,.18,1)',
+        fill: 'both'
+      });
+
+      animation.finished.finally(() => {
+        node.style.zIndex = '';
+      });
+    }
+
+    function animateEntrance(node, index) {
+      if (reduceMotion) return;
+      node.animate([
+        { transform: 'translateY(24px) scale(.965)', opacity: 0 },
+        { transform: 'translateY(0) scale(1)', opacity: 1 }
+      ], {
+        duration: 620,
+        delay: Math.min(index * 45, 360),
+        easing: 'cubic-bezier(.2,.8,.2,1)',
+        fill: 'both'
+      });
+    }
+
+    function renderRows(rows) {
+      const oldPositions = capturePositions();
+      const oldOrder = [...state.order];
+      const oldIndexByKey = new Map(oldOrder.map((key, index) => [key, index]));
+      const oldValues = new Map(state.rowValues);
+      const nextNodes = new Map();
+      const nextValues = new Map();
+      const fragment = document.createDocumentFragment();
+
+      rows.forEach((row, index) => {
+        const node = state.rowNodes.get(row.key) || createRowNode(row.key);
+        const previous = oldValues.get(row.key);
+        updateRowNode(node, row, previous?.rank);
+        fragment.appendChild(node);
+        nextNodes.set(row.key, node);
+        nextValues.set(row.key, row);
+      });
+
+      elements.scoreList.replaceChildren(fragment);
+      elements.scoreList.hidden = false;
+      elements.loadingState.hidden = true;
+      elements.emptyState.hidden = rows.length > 0;
+      elements.errorState.hidden = true;
+
+      const newOrder = rows.map(row => row.key);
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          rows.forEach((row, index) => {
+            const node = nextNodes.get(row.key);
+            const oldRect = oldPositions.get(row.key);
+            const newRect = node.getBoundingClientRect();
+            const oldIndex = oldIndexByKey.get(row.key);
+
+            if (oldIndex === undefined) {
+              animateEntrance(node, index);
+            } else if (oldIndex !== index) {
+              animateReorder(
+                node,
+                oldRect,
+                newRect,
+                index < oldIndex ? 'up' : 'down',
+                Math.min(index * 24, 180)
+              );
+            }
+
+            animatePointChange(node, oldValues.get(row.key)?.points, row.points);
+          });
+        });
+      });
+
+      state.rowNodes = nextNodes;
+      state.rowValues = nextValues;
+      state.order = newOrder;
+    }
+
+    function showInitialError() {
+      elements.loadingState.hidden = true;
+      elements.scoreList.hidden = true;
+      elements.emptyState.hidden = true;
+      elements.errorState.hidden = false;
+    }
+
+    async function fetchScoreboardData() {
+      if (state.fetching || document.hidden) return;
+
+      state.fetching = true;
+      setSyncStatus('syncing', state.firstLoad ? 'Ielādē datus…' : 'Sinhronizējas…');
+
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+      try {
+        const url = new URL(SCRIPT_URL);
+        url.searchParams.set('_', String(Date.now()));
+
+        const response = await fetch(url.toString(), {
+          cache: 'no-store',
+          signal: controller.signal
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const result = await response.json();
+        if (result.status !== 'success') {
+          throw new Error(result.message || 'Serveris neatgrieza rezultātus.');
+        }
+
+        const rows = normalizeRows(result.data);
+        const signature = dataSignature(rows);
+
+        if (signature !== state.signature || state.firstLoad) {
+          renderRows(rows);
+          state.signature = signature;
+        }
+
+        state.firstLoad = false;
+        setSyncStatus('ready', `Atjaunots ${formatTime(new Date())}`);
+      } catch (error) {
+        console.error('Kļūda ielādējot scoreboard datus:', error);
+        setSyncStatus('error', navigator.onLine ? 'Sinhronizācijas kļūda' : 'Nav interneta');
+        if (state.firstLoad) showInitialError();
+      } finally {
+        window.clearTimeout(timeout);
+        state.fetching = false;
+        scheduleRefresh();
+      }
+    }
+
+    function scheduleRefresh(delay = REFRESH_INTERVAL_MS) {
+      window.clearTimeout(state.timer);
+      state.timer = window.setTimeout(fetchScoreboardData, delay);
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        window.clearTimeout(state.timer);
+      } else {
+        fetchScoreboardData();
+      }
+    });
+
+    window.addEventListener('online', () => fetchScoreboardData());
+    window.addEventListener('offline', () => setSyncStatus('error', 'Nav interneta'));
+
+    document.addEventListener('DOMContentLoaded', fetchScoreboardData);
   </script>
 </body>
 </html>
