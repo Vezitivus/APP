@@ -2,178 +2,600 @@
 <html lang="lv">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#08090c">
   <title>VEZITIVUS LENTA</title>
   <style>
-    /* Fona stils – lineārs gradienta fons kā paraugā */
-    html, body {
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #1F1C2C, #928DAB);
-      background-size: cover;
-      color: #fff;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    :root {
+      color-scheme: dark;
+      --bg: #08090c;
+      --surface: rgba(22, 24, 30, 0.78);
+      --surface-strong: rgba(28, 30, 38, 0.94);
+      --line: rgba(255, 255, 255, 0.10);
+      --line-strong: rgba(255, 255, 255, 0.17);
+      --text: #f7f7f8;
+      --muted: #9ca0aa;
+      --accent: #f4f4f5;
+      --accent-text: #090a0d;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.42);
+      --radius-lg: 24px;
+      --radius-md: 18px;
+      --header-height: 76px;
     }
-    /* Fiksēts virsraksts ar 70% caurspīdīgu fona krāsu */
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--bg);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: hidden;
+      background:
+        radial-gradient(circle at 12% -10%, rgba(117, 126, 255, 0.18), transparent 34rem),
+        radial-gradient(circle at 100% 18%, rgba(255, 102, 196, 0.10), transparent 30rem),
+        linear-gradient(180deg, #0e1015 0%, var(--bg) 46%, #060709 100%);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.23;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.11'/%3E%3C/svg%3E");
+      z-index: -1;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      touch-action: manipulation;
+    }
+
     .header {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      background: rgba(0, 0, 0, 0.7);
-      padding: 20px;
-      text-align: center;
-      font-size: 28px;
-      font-weight: bold;
+      inset: 0 0 auto 0;
       z-index: 1000;
-    }
-    /* Lapas ielādes konteiners, kas aptver visu ekrānu */
-    #pageLoadingScreen {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.8);
+      height: calc(var(--header-height) + env(safe-area-inset-top));
+      padding: env(safe-area-inset-top) 20px 0;
       display: flex;
-      justify-content: center;
       align-items: center;
-      z-index: 1100;
-    }
-    /* Spinnera ikona – iOS stilā */
-    #loader {
-      width: 40px;
-      height: 40px;
-      border: 4px solid rgba(255,255,255,0.3);
-      border-top: 4px solid #fff;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    /* Augšupielādes sadaļa (parādās, ja ir uid) */
-    #uploadSection {
-      margin: 20px;
-      margin-top: 100px; /* lai netiktu aizklāts ar fiksēto header */
-      display: none;
-    }
-    #uploadVideoBtn {
-      background: #007bff;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 20px;
-      cursor: pointer;
-    }
-    /* Video un reakciju bloki */
-    .video-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 15px;
       justify-content: center;
-      padding: 20px;
-      margin-top: 100px; /* papildus telpa fiksētajam header */
+      background: rgba(8, 9, 12, 0.72);
+      border-bottom: 1px solid var(--line);
+      -webkit-backdrop-filter: blur(24px) saturate(150%);
+      backdrop-filter: blur(24px) saturate(150%);
     }
-    .video-wrapper {
-      width: 45%;
+
+    .header-inner {
+      width: min(1180px, 100%);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      flex: 0 0 38px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line-strong);
+      border-radius: 13px;
+      background: linear-gradient(145deg, rgba(255,255,255,.17), rgba(255,255,255,.04));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 10px 28px rgba(0,0,0,.3);
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .brand-copy {
+      min-width: 0;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      transition: transform 0.3s ease, margin-bottom 0.3s ease;
+      gap: 2px;
     }
-    .video-wrapper.active {
-      transform: scale(1.2);
-      z-index: 10;
-      margin-bottom: 20px;
-    }
-    .video-container {
-      width: 100%;
-      position: relative;
-      border-radius: 12px;
+
+    .brand-title {
       overflow: hidden;
-      background: black;
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.13em;
+      line-height: 1.1;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .brand-subtitle {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+
+    .header-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      flex: 0 0 auto;
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,.045);
+      color: #c8cad0;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .header-status::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #61df8b;
+      box-shadow: 0 0 0 4px rgba(97, 223, 139, 0.12);
+    }
+
+    .page-shell {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      padding: calc(var(--header-height) + env(safe-area-inset-top) + 26px) 20px calc(44px + env(safe-area-inset-bottom));
+    }
+
+    #uploadSection {
+      display: none;
+      margin: 0 0 22px;
+      padding: 0;
+    }
+
+    .upload-card {
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 22px;
+      min-height: 112px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: linear-gradient(135deg, rgba(255,255,255,.105), rgba(255,255,255,.035));
+      box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.08);
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+    }
+
+    .upload-card::after {
+      content: "";
+      position: absolute;
+      width: 220px;
+      height: 220px;
+      right: -90px;
+      top: -120px;
+      border-radius: 50%;
+      background: rgba(137, 145, 255, 0.17);
+      filter: blur(18px);
+      pointer-events: none;
+    }
+
+    .upload-copy {
+      position: relative;
+      z-index: 1;
+      min-width: 0;
+    }
+
+    .upload-eyebrow {
+      margin: 0 0 5px;
+      color: #aeb1bb;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+    }
+
+    .upload-title {
+      margin: 0;
+      font-size: clamp(18px, 3vw, 23px);
+      font-weight: 760;
+      letter-spacing: -0.035em;
+      line-height: 1.1;
+    }
+
+    .upload-description {
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    #uploadVideoBtn {
+      position: relative;
+      z-index: 1;
+      min-width: 196px;
+      min-height: 48px;
+      padding: 12px 18px;
+      border: 0;
+      border-radius: 15px;
+      background: var(--accent);
+      color: var(--accent-text);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.32), inset 0 -1px 0 rgba(0,0,0,.12);
       cursor: pointer;
-      transition: transform 0.3s ease;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      transition: transform .18s ease, filter .18s ease, opacity .18s ease;
     }
-    .video-container video {
+
+    #uploadVideoBtn:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.04);
+    }
+
+    #uploadVideoBtn:active {
+      transform: translateY(0) scale(.985);
+    }
+
+    #uploadVideoBtn:focus-visible,
+    .reaction-btn:focus-visible {
+      outline: 3px solid rgba(255,255,255,.35);
+      outline-offset: 3px;
+    }
+
+    #uploadVideoBtn:disabled {
+      cursor: wait;
+      opacity: .55;
+      transform: none;
+    }
+
+    .feed-heading {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 0 2px 14px;
+    }
+
+    .feed-heading h1 {
+      margin: 0;
+      font-size: clamp(21px, 4vw, 30px);
+      font-weight: 790;
+      letter-spacing: -0.045em;
+      line-height: 1.05;
+    }
+
+    .feed-heading p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin: 0;
+      padding: 0;
+    }
+
+    .video-wrapper {
+      width: 100% !important;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: var(--surface);
+      box-shadow: 0 14px 38px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.045);
+      transition: transform .24s ease, border-color .24s ease, box-shadow .24s ease, background .24s ease;
+      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(16px);
+    }
+
+    .video-wrapper:hover {
+      border-color: var(--line-strong);
+      transform: translateY(-2px);
+      box-shadow: 0 20px 48px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.06);
+    }
+
+    .video-wrapper.active {
+      z-index: 10;
+      border-color: rgba(255,255,255,.24);
+      background: var(--surface-strong);
+      box-shadow: 0 24px 60px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.045);
+      transform: translateY(-3px);
+    }
+
+    .video-container {
+      position: relative;
       width: 100%;
-      height: auto;
-      object-fit: cover;
-      border-radius: 12px;
-      transition: transform 0.3s ease;
+      aspect-ratio: 16 / 10;
+      overflow: hidden;
+      border-radius: calc(var(--radius-lg) - 1px) calc(var(--radius-lg) - 1px) 0 0;
+      background: #020203;
+      cursor: pointer;
+      isolation: isolate;
     }
-    /* Reakciju lauks – sākotnēji paslēpts ar max-height: 0 */
+
+    .video-container::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(180deg, transparent 62%, rgba(0,0,0,.2));
+      z-index: 2;
+    }
+
+    .video-container video {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border-radius: 0;
+      object-fit: cover;
+      background: #020203;
+    }
+
     .reaction-wrapper {
       width: 100%;
-      overflow: hidden;
-      transition: max-height 0.3s ease;
       max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      transition: max-height .28s ease, opacity .22s ease;
     }
+
     .video-wrapper.active .reaction-wrapper {
-      max-height: 60px;
+      max-height: 94px;
+      opacity: 1;
     }
+
     .reaction-container {
-      display: flex;
-      justify-content: center;
-      gap: 5px;
-      background: transparent;
-      padding: 10px 0;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      padding: 12px;
+      border-top: 1px solid var(--line);
+      background: rgba(0,0,0,.12);
     }
+
     .reaction-btn {
-      border: none;
-      background: rgba(255, 255, 255, 0.3);
-      padding: 6px 8px;
-      font-size: 14px;
-      border-radius: 20px;
+      min-width: 0;
+      min-height: 42px;
+      margin: 0;
+      padding: 8px 6px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: rgba(255,255,255,.055);
+      color: var(--text);
       cursor: pointer;
-      margin: 2px;
-      transition: 0.3s;
-      color: black;
+      font-size: 14px;
+      font-weight: 700;
+      white-space: nowrap;
+      transition: transform .16s ease, background .16s ease, border-color .16s ease;
     }
+
     .reaction-btn:hover {
-      background: rgba(255, 255, 255, 0.7);
+      border-color: var(--line-strong);
+      background: rgba(255,255,255,.11);
+      transform: translateY(-1px);
     }
-    /* Saglabāts augšupielādes loading ekrāns */
+
+    .reaction-btn:active {
+      transform: scale(.96);
+    }
+
+    #pageLoadingScreen,
     #uploadLoadingScreen {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.8);
+      inset: 0;
+      z-index: 1100;
+      align-items: center;
+      justify-content: center;
+      background: rgba(5, 6, 8, .82);
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+    }
+
+    #pageLoadingScreen {
+      display: flex;
+    }
+
+    #uploadLoadingScreen {
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+      padding: 24px;
+      color: var(--text);
+      text-align: center;
+    }
+
+    .loading-card {
+      width: min(320px, 100%);
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
-      z-index: 1100;
-      font-size: 20px;
-      color: white;
-      display: none;
+      gap: 16px;
+      padding: 28px 24px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: rgba(20,22,28,.78);
+      box-shadow: var(--shadow);
+    }
+
+    #uploadLoadingScreen p {
+      margin: 0;
+      color: #d7d9de;
+      font-size: 14px;
+      font-weight: 650;
+      line-height: 1.45;
+    }
+
+    #loader,
+    .upload-loader {
+      width: 34px;
+      height: 34px;
+      border: 3px solid rgba(255,255,255,.16);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .75s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 720px) {
+      :root {
+        --header-height: 68px;
+        --radius-lg: 20px;
+      }
+
+      .header {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .brand-mark {
+        width: 35px;
+        height: 35px;
+        flex-basis: 35px;
+        border-radius: 12px;
+      }
+
+      .header-status {
+        padding: 7px;
+        font-size: 0;
+      }
+
+      .page-shell {
+        padding-left: 12px;
+        padding-right: 12px;
+        padding-top: calc(var(--header-height) + env(safe-area-inset-top) + 16px);
+      }
+
+      .upload-card {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 17px;
+        padding: 18px;
+      }
+
+      #uploadVideoBtn {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .feed-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 5px;
+        margin-bottom: 11px;
+      }
+
+      .video-grid {
+        grid-template-columns: 1fr;
+        gap: 13px;
+      }
+
+      .video-wrapper,
+      .video-wrapper:hover,
+      .video-wrapper.active {
+        transform: none;
+      }
+
+      .video-container {
+        aspect-ratio: 16 / 10;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
     }
   </style>
 </head>
 <body>
+  <header class="header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">VZ</div>
+        <div class="brand-copy">
+          <div class="brand-title">VEZITIVUS</div>
+          <div class="brand-subtitle">Aktivitāšu lenta</div>
+        </div>
+      </div>
+      <div class="header-status">Tiešsaistē</div>
+    </div>
+  </header>
 
-  <div class="header">VEZITIVUS LENTA</div>
-  
-  <!-- Globālais lapas ielādes konteiners -->
-  <div id="pageLoadingScreen">
-    <div id="loader"></div>
+  <div id="pageLoadingScreen" role="status" aria-label="Ielādē saturu">
+    <div class="loading-card">
+      <div id="loader"></div>
+    </div>
   </div>
 
-  <div id="uploadLoadingScreen">
-    <p>Tavs video tiek augšupielādēts...</p>
+  <div id="uploadLoadingScreen" role="status" aria-live="polite">
+    <div class="loading-card">
+      <div class="upload-loader"></div>
+      <p>Tavs video tiek augšupielādēts...</p>
+    </div>
   </div>
 
-  <div id="uploadSection">
-    <input type="file" id="videoFileInput" accept="video/*" style="display: none;" />
-    <button id="uploadVideoBtn">📤 Augšupielādēt video</button>
-  </div>
+  <main class="page-shell">
+    <section id="uploadSection" aria-label="Video augšupielāde">
+      <div class="upload-card">
+        <div class="upload-copy">
+          <p class="upload-eyebrow">Dalies ar mirkli</p>
+          <h1 class="upload-title">Pievieno video lentai</h1>
+          <p class="upload-description">Izvēlies video no savas ierīces un publicē to kopējā VEZITIVUS lentā.</p>
+        </div>
+        <input type="file" id="videoFileInput" accept="video/*" style="display: none;">
+        <button id="uploadVideoBtn" type="button">＋ Pievienot video</button>
+      </div>
+    </section>
 
-  <div class="video-grid" id="videoGrid"></div>
+    <div class="feed-heading">
+      <h1>Jaunākie mirkļi</h1>
+      <p>Uzspied uz video, lai reaģētu</p>
+    </div>
+
+    <div class="video-grid" id="videoGrid"></div>
+  </main>
 
   <script src="activity.js"></script>
 </body>
