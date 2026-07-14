@@ -2,238 +2,101 @@
 <html lang="lv">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Book Of Vezitivus</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#070305">
+  <title>Book of Vezitivus</title>
   <style>
-    /* Retro slot machine un iOS stils */
-    body {
-      background: linear-gradient(135deg, #111, #333);
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      color: #eee;
-    }
-    /* Konteiners ar dinamisku perimetru – sākotnēji zils */
-    #container {
-      width: 95%;
-      max-width: 400px;
-      margin: 10px;
-      text-align: center;
-      position: relative;
-      background: #000;
-      border-radius: 20px;
-      padding: 20px;
-      border: 3px solid #007aff;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.8);
-    }
-    /* Spinning: pulsējoša zila, win: zelta, loss: sarkana */
-    #container.spinning { animation: pulseBlue 1s infinite; }
-    @keyframes pulseBlue {
-      0% { border-color: #007aff; }
-      50% { border-color: #66b3ff; }
-      100% { border-color: #007aff; }
-    }
-    #container.win { animation: pulseGold 1s infinite; }
-    @keyframes pulseGold {
-      0% { border-color: gold; }
-      50% { border-color: #ffd700; }
-      100% { border-color: gold; }
-    }
-    #container.loss { animation: pulseRed 1s infinite; }
-    @keyframes pulseRed {
-      0% { border-color: red; }
-      50% { border-color: #ff6666; }
-      100% { border-color: red; }
-    }
-    h1 {
-      font-size: 2.5em;
-      margin: 15px 0;
-      color: #0af;
-      text-shadow: 0 0 8px #0af;
-    }
-    #remainingSpins {
-      position: absolute;
-      top: 15px;
-      left: 15px;
-      font-size: 1.2em;
-      background: rgba(0,0,0,0.8);
-      padding: 6px 10px;
-      border-radius: 10px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.8);
-      z-index: 1000;
-    }
-    .reels {
-      display: flex;
-      justify-content: center;
-      margin: 30px 0;
-    }
-    .reel {
-      width: 80px;
-      height: 120px;
-      margin: 0 5px;
-      border: 2px solid #007aff;
-      background: #222;
-      border-radius: 15px;
-      box-shadow: inset 0 0 10px #007aff;
-      overflow: hidden;
-      position: relative;
-      touch-action: none;
-    }
-    .reel-inner {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      /* Ja tagad ir 20 emoji atkārtoti 10 reizes, kopā 200 simboli:
-         augstums = 200 * symbolHeight = 200 * 40 = 8000px */
-      height: 8000px;
-      transition: transform 2s ease-out;
-    }
-    .symbol {
-      height: 40px;
-      line-height: 40px;
-      font-size: 2em;
-      text-align: center;
-      color: #0af;
-      text-shadow: 0 0 8px #0af;
-    }
-    button {
-      font-size: 1.2em;
-      padding: 12px 24px;
-      cursor: pointer;
-      border: none;
-      border-radius: 10px;
-      background: #007aff;
-      color: #fff;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.8);
-      transition: background 0.3s, transform 0.2s;
-      margin-bottom: 10px;
-      width: 100%;
-    }
-    button:active {
-      transform: scale(0.98);
-    }
-    .message {
-      font-size: 1.8em;
-      margin-top: 15px;
-      height: 1.8em;
-      font-weight: bold;
-      color: #FFD700;
-      text-shadow: 0 0 5px #FFD700;
-      position: relative;
-    }
-    .controls {
-      text-align: left;
-      margin-top: 10px;
-      padding: 0 10px;
-    }
-    #multiplierContainer {
-      display: inline-block;
-      margin-top: 10px;
-    }
-    #multiplierContainer label {
-      font-size: 1em;
-      margin-right: 8px;
-    }
-    #multiplierSelect {
-      font-size: 1em;
-      padding: 5px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-      background: #eee;
-      color: #333;
-    }
-    /* Debt popup stils */
-    .debtPopup {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background-color: #444;
-      color: #fff;
-      padding: 20px;
-      border: 3px solid #ff0000;
-      border-radius: 10px;
-      text-align: center;
-      z-index: 2000;
-      animation: flash 1s infinite alternate;
-      font-size: 1.5em;
-    }
-    @keyframes flash {
-      from { border-color: #ff0000; }
-      to { border-color: #ff6666; }
-    }
-    @keyframes bounce {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.3); }
-      100% { transform: scale(1); }
-    }
-    .animateResult, .animateSpin {
-      animation: bounce 0.5s;
-    }
-    /* Jaunais stils lielam win tekstam */
-    .big-win-text {
-      font-size: 5em;
-      color: gold;
-      text-shadow: 0 0 20px gold;
-      animation: flyUp 3s forwards;
-    }
-    @keyframes flyUp {
-      0% { transform: translateY(100%); opacity: 0; }
-      20% { opacity: 1; }
-      100% { transform: translateY(-150%); opacity: 0; }
-    }
+    :root{color-scheme:dark;--bg:#070305;--gold:#f8d978;--gold2:#fff3b0;--red:#d8193f;--text:#fff9e8;--muted:#b9a99d}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;min-height:100%;background:var(--bg)}
+    body{min-height:100vh;min-height:100dvh;overflow-x:hidden;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:radial-gradient(circle at 50% -8%,rgba(222,34,70,.34),transparent 30%),radial-gradient(circle at 10% 40%,rgba(255,199,66,.12),transparent 24%),radial-gradient(circle at 92% 70%,rgba(200,18,52,.18),transparent 28%),linear-gradient(145deg,#020102,#0d0408 50%,#020102);-webkit-font-smoothing:antialiased}
+    body:before{content:"";position:fixed;inset:0;z-index:-3;pointer-events:none;opacity:.22;background-image:linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:38px 38px;mask-image:linear-gradient(#000,transparent 88%)}
+    body:after{content:"";position:fixed;inset:-45%;z-index:-2;pointer-events:none;background:conic-gradient(from 0deg,transparent 0 15%,rgba(255,226,126,.10) 18%,transparent 22% 50%,rgba(220,28,62,.10) 54%,transparent 58%);animation:roomSweep 18s linear infinite}
+    button,select{font:inherit}button{border:0}
+    .scene{position:relative;min-height:100vh;min-height:100dvh;display:grid;place-items:center;padding:max(22px,env(safe-area-inset-top)) max(9px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(9px,env(safe-area-inset-left));isolation:isolate}
+    .orb{position:fixed;width:38vw;max-width:500px;aspect-ratio:1;border-radius:50%;filter:blur(70px);opacity:.17;pointer-events:none;z-index:-1;animation:orb 9s ease-in-out infinite alternate}.orb.a{top:-12vw;left:-10vw;background:#ffbe3f}.orb.b{right:-12vw;bottom:-15vw;background:#d30e34;animation-delay:-4s}
+    #particleField,#fxLayer{position:fixed;inset:0;overflow:hidden;pointer-events:none}#particleField{z-index:-1}#fxLayer{z-index:6000}
+    .ambient-particle{position:absolute;bottom:-20px;width:var(--s);height:var(--s);border-radius:50%;background:var(--c);box-shadow:0 0 12px var(--c),0 0 28px var(--c);opacity:0;animation:rise var(--d) linear var(--delay) infinite}
+    #container{position:relative;width:min(100%,760px);padding:12px;border-radius:31px;background:linear-gradient(150deg,#fff3b7 0%,#9d651d 5%,#2a1009 11%,#090305 22%,#16070d 75%,#3a160a 90%,#d3a34b 97%,#5d3211);box-shadow:0 0 0 1px rgba(255,244,198,.38),0 0 45px rgba(255,189,54,.18),0 32px 90px rgba(0,0,0,.72);text-align:center;transform:translateZ(0)}
+    #container:before{content:"";position:absolute;inset:-3px;z-index:-2;border-radius:34px;background:conic-gradient(from var(--a,0deg),#fff3a6,#9a5f0e,#ff3b60,#6f0b20,#fff0a0,#7b4b0b,#ff2d55,#fff3a6);animation:border 5s linear infinite}
+    #container:after{content:"";position:absolute;inset:7px;z-index:-1;border-radius:25px;background:linear-gradient(#19080e,#070305 48%,#10060a);box-shadow:inset 0 0 48px rgba(0,0,0,.78)}
+    #container.spinning{animation:spinPulse .65s ease-in-out infinite alternate}#container.win{animation:win .55s ease-in-out 5}#container.loss{animation:loss .28s ease-in-out 3}
+    .machine{position:relative;overflow:hidden;padding:18px clamp(10px,3vw,28px) 22px;border:1px solid rgba(255,235,169,.20);border-radius:23px;background:radial-gradient(circle at 50% 0%,rgba(204,28,58,.24),transparent 32%),linear-gradient(rgba(37,9,17,.96),rgba(7,3,5,.98));box-shadow:inset 0 0 80px rgba(0,0,0,.54)}
+    .bulbs{height:14px;margin:-2px -8px 12px;border-radius:999px;background:radial-gradient(circle,#fffbd2 0 2px,#ffd95d 3px 5px,#6f3c05 6px 7px,transparent 8px) 0 50%/24px 14px repeat-x;filter:drop-shadow(0 0 5px rgba(255,220,84,.95));animation:bulbs .9s linear infinite}.bulbs.bottom{margin:16px -8px -3px;animation-direction:reverse}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+    #remainingSpins{min-width:118px;padding:10px 14px;border:1px solid rgba(255,224,115,.34);border-radius:14px;background:linear-gradient(rgba(44,24,5,.92),rgba(17,8,2,.96));box-shadow:inset 0 0 18px rgba(255,194,52,.08),0 8px 24px rgba(0,0,0,.36);color:var(--gold2);font-size:clamp(.92rem,2.8vw,1.05rem);font-weight:850;letter-spacing:.02em;text-align:left;white-space:nowrap}
+    #remainingSpins[style*="background-color: red"]{background:linear-gradient(rgba(112,10,31,.96),rgba(34,4,10,.98))!important;border-color:rgba(255,74,104,.6)!important}
+    #soundButton{width:44px;height:44px;display:grid;place-items:center;border:1px solid rgba(255,226,128,.30);border-radius:50%;background:linear-gradient(rgba(56,31,9,.90),rgba(17,8,3,.96));color:var(--gold2);cursor:pointer;box-shadow:inset 0 1px rgba(255,255,255,.12),0 8px 22px rgba(0,0,0,.38);transition:.18s}#soundButton:active{transform:scale(.94)}#soundButton.muted{color:#8f7b70;border-color:rgba(255,255,255,.12);background:rgba(21,13,14,.92)}
+    .kicker{margin:4px 0 5px;color:#d7bd7b;font-size:.70rem;font-weight:850;letter-spacing:.34em;text-transform:uppercase}
+    h1{margin:0;line-height:.88;text-transform:uppercase;filter:drop-shadow(0 8px 16px rgba(0,0,0,.58))}h1 .book{display:block;color:#fff2b5;font-family:Georgia,serif;font-size:clamp(1.45rem,6vw,2.7rem);font-style:italic;letter-spacing:.04em;text-shadow:0 0 12px rgba(255,229,126,.48)}h1 .vez{display:block;margin-top:7px;color:transparent;font-family:Georgia,serif;font-size:clamp(2.15rem,9vw,4.6rem);font-weight:900;letter-spacing:.045em;background:linear-gradient(#fffce7,#ffe889 25%,#d79626 58%,#fff0a6 82%,#8c5212);-webkit-background-clip:text;background-clip:text;-webkit-text-stroke:1px rgba(255,239,175,.2)}
+    .subtitle{margin:13px auto 0;color:var(--muted);font-size:clamp(.76rem,2.5vw,.9rem);letter-spacing:.09em;text-transform:uppercase}
+    .stage{position:relative;margin:21px auto 17px;padding:clamp(9px,2.6vw,17px);border:1px solid rgba(255,235,170,.36);border-radius:22px;background:linear-gradient(145deg,#c79136,#5f330d 5%,#160a05 10%,#070303 92%,#7a4919 97%,#f1ca68);box-shadow:inset 0 0 0 3px rgba(0,0,0,.42),inset 0 0 28px rgba(255,201,66,.10),0 16px 42px rgba(0,0,0,.48)}
+    .reels{position:relative;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:clamp(4px,1.5vw,10px);margin:0;padding:clamp(5px,1.5vw,10px);overflow:hidden;border:1px solid rgba(255,255,255,.12);border-radius:16px;background:#040304;box-shadow:inset 0 0 34px rgba(0,0,0,.92)}.reels:before,.reels:after{content:"";position:absolute;left:0;right:0;z-index:6;height:34%;pointer-events:none}.reels:before{top:0;background:linear-gradient(rgba(0,0,0,.76),transparent)}.reels:after{bottom:0;background:linear-gradient(transparent,rgba(0,0,0,.76))}
+    .payline{position:absolute;z-index:7;left:18px;right:18px;top:50%;height:40px;transform:translateY(-50%);pointer-events:none;border-top:1px solid rgba(255,214,80,.64);border-bottom:1px solid rgba(255,214,80,.64);box-shadow:inset 0 0 16px rgba(255,205,54,.08),0 0 12px rgba(255,205,54,.12)}.payline:before,.payline:after{content:"◆";position:absolute;top:50%;transform:translateY(-50%);color:var(--gold2);font-size:9px;text-shadow:0 0 8px #ffd95d}.payline:before{left:-4px}.payline:after{right:-4px}
+    .reel{position:relative;height:120px;min-width:0;overflow:hidden;touch-action:none;border:1px solid rgba(255,224,125,.30);border-radius:10px;background:linear-gradient(90deg,rgba(0,0,0,.22),transparent 16% 84%,rgba(0,0,0,.22)),linear-gradient(#fffdf3,#f3e6c8 48%,#fffaf0);box-shadow:inset 0 0 12px rgba(73,40,7,.28),0 0 10px rgba(255,213,84,.10)}.reel-inner{position:absolute;top:0;left:0;width:100%;height:8000px;will-change:transform}.symbol{height:40px;line-height:40px;text-align:center;font-size:clamp(1.55rem,6vw,2.15rem);filter:drop-shadow(0 2px 1px rgba(0,0,0,.16));user-select:none}
+    .controls{display:grid;grid-template-columns:minmax(0,.78fr) minmax(0,1.22fr);gap:12px;align-items:stretch;margin-top:13px}.bet{display:flex;flex-direction:column;justify-content:center;gap:7px;padding:11px 13px;border:1px solid rgba(255,231,149,.22);border-radius:16px;background:rgba(18,8,10,.88);text-align:left}.bet label{color:#cbb99b;font-size:.67rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+    #multiplierSelect{width:100%;height:40px;appearance:none;padding:0 36px 0 12px;border:1px solid rgba(255,224,117,.36);border-radius:11px;outline:none;background:linear-gradient(45deg,transparent 50%,#f9d978 50%) calc(100% - 16px) 17px/6px 6px no-repeat,linear-gradient(135deg,#f9d978 50%,transparent 50%) calc(100% - 10px) 17px/6px 6px no-repeat,linear-gradient(#33200c,#150b05);color:#fff2b8;font-size:1rem;font-weight:850;cursor:pointer}
+    #spinButton{position:relative;min-height:72px;overflow:hidden;border:1px solid rgba(255,241,180,.72);border-radius:17px;background:linear-gradient(rgba(255,255,255,.26),transparent 24%),linear-gradient(#f04458,#b70829 45%,#720719);color:#fffbe9;cursor:pointer;box-shadow:inset 0 2px rgba(255,255,255,.25),inset 0 -5px rgba(68,0,15,.54),0 7px 0 #4a0614,0 15px 30px rgba(0,0,0,.42),0 0 24px rgba(227,34,68,.2);transition:.16s}#spinButton:before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 18%,rgba(255,255,255,.32) 42%,transparent 62%);transform:translateX(-130%);animation:shine 3.2s ease-in-out infinite}#spinButton:active:not(:disabled){transform:translateY(5px);box-shadow:inset 0 2px rgba(255,255,255,.22),0 2px 0 #4a0614,0 8px 18px rgba(0,0,0,.42)}#spinButton:disabled{cursor:not-allowed;filter:grayscale(.35) brightness(.72);transform:translateY(4px);box-shadow:0 3px 0 #3b1018,0 8px 18px rgba(0,0,0,.35)}
+    .spinLabel{position:relative;z-index:1;display:block;font-family:Georgia,serif;font-size:clamp(1.35rem,4.5vw,1.8rem);font-weight:900;letter-spacing:.1em;line-height:1;text-transform:uppercase}.spinCost{position:relative;z-index:1;display:block;margin-top:5px;color:#ffd9df;font-size:.65rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+    .message{position:relative;min-height:44px;display:grid;place-items:center;margin:14px 0 0;color:var(--gold2);font-size:clamp(1.15rem,4vw,1.65rem);font-weight:900;text-shadow:0 0 14px rgba(255,216,88,.56)}.message:empty:after{content:"Veiksmi!";color:rgba(231,218,194,.52);font-size:.78rem;font-weight:750;letter-spacing:.18em;text-transform:uppercase;text-shadow:none}.note{margin:2px 0 0;color:rgba(196,180,161,.58);font-size:.68rem}
+    .debtPopup{position:fixed!important;inset:0!important;z-index:7000!important;display:grid!important;place-items:center!important;width:auto!important;height:auto!important;padding:24px!important;transform:none!important;background:rgba(3,0,1,.9)!important;backdrop-filter:blur(18px);border:0!important;border-radius:0!important;color:#ffe6ea!important;font-size:1.05rem!important;line-height:1.55!important;box-shadow:none!important}.debtPopup:before{content:"SPĒLE APTURĒTA\A";white-space:pre;display:block;color:#fff0f3;font-family:Georgia,serif;font-size:1.8rem;font-weight:900}
+    #bigWinOverlay{background:radial-gradient(circle,rgba(255,214,75,.22),transparent 52%)!important}.big-win-text{color:transparent!important;font-family:Georgia,serif!important;font-size:clamp(3.3rem,15vw,7.5rem)!important;font-weight:900!important;line-height:.92!important;background:linear-gradient(#fffef1,#ffe170 34%,#c27812 66%,#fff1a2)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-stroke:1px rgba(255,249,218,.35);text-shadow:0 0 42px rgba(255,203,52,.45)!important;animation:bigWin 3s cubic-bezier(.18,.84,.21,1) forwards!important}
+    #miniGameOverlay{backdrop-filter:blur(18px)}.miniCell{background:linear-gradient(145deg,#431527,#14070c)!important;border-color:rgba(255,220,104,.45)!important;border-radius:15px!important;box-shadow:inset 0 1px rgba(255,255,255,.07),0 8px 20px rgba(0,0,0,.30)!important}
+    .animateResult,.animateSpin{animation:bounce .5s ease}.confetti,.coin{position:absolute;left:var(--l);top:-12vh;width:var(--w);height:var(--h);opacity:0;background:var(--c);border-radius:var(--r,2px);box-shadow:0 0 8px var(--c);animation:fall var(--t) cubic-bezier(.2,.7,.25,1) var(--delay) forwards}.coin{border:2px solid #fff1a0;background:radial-gradient(circle at 35% 30%,#fff8c7,#ffc52f 48%,#a85c00);animation-name:coinFall}
+    @property --a{syntax:'<angle>';initial-value:0deg;inherits:false}@keyframes border{to{--a:360deg}}@keyframes roomSweep{to{transform:rotate(360deg)}}@keyframes orb{to{transform:translate3d(7vw,5vh,0) scale(1.12)}}@keyframes rise{0%{transform:translate(0,0) scale(.5);opacity:0}12%{opacity:.7}75%{opacity:.32}100%{transform:translate(var(--dr),-112vh) scale(1.35);opacity:0}}@keyframes bulbs{to{background-position:24px 50%}}@keyframes shine{0%,56%{transform:translateX(-130%)}78%,100%{transform:translateX(130%)}}@keyframes spinPulse{from{filter:drop-shadow(0 0 5px rgba(255,205,58,.12))}to{filter:drop-shadow(0 0 22px rgba(255,205,58,.42))}}@keyframes win{50%{transform:scale(1.012);filter:brightness(1.35) saturate(1.22)}}@keyframes loss{33%{transform:translateX(-5px)}66%{transform:translateX(5px)}}@keyframes bounce{45%{transform:scale(1.12)}}@keyframes bigWin{0%{transform:scale(.5) translateY(80px);opacity:0}18%{transform:scale(1.12);opacity:1}30%,78%{transform:scale(1);opacity:1}100%{transform:scale(1.1) translateY(-55px);opacity:0}}@keyframes fall{0%{transform:translateY(-8vh) rotate(0);opacity:0}8%{opacity:1}100%{transform:translate(var(--sw),118vh) rotate(var(--rot));opacity:.9}}@keyframes coinFall{0%{transform:translateY(-8vh) rotateY(0);opacity:0}10%{opacity:1}100%{transform:translate(var(--sw),118vh) rotateY(1080deg) rotateZ(420deg);opacity:.95}}
+    @media(max-width:560px){#container{padding:8px;border-radius:25px}.machine{padding:14px 8px 18px;border-radius:18px}.stage{margin-top:18px;padding:8px;border-radius:16px}.reels{padding:5px;border-radius:12px}.reel{border-radius:7px}.controls{grid-template-columns:1fr;gap:10px}.bet{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:12px}.payline{left:14px;right:14px}}
+    @media(max-width:370px){.machine{padding-left:5px;padding-right:5px}.stage{padding:5px}.reels{gap:3px;padding:4px}.symbol{font-size:1.42rem}#remainingSpins{min-width:106px;padding:9px 10px}}
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
   </style>
 </head>
 <body>
-  <div id="container">
-    <div id="remainingSpins">🪙 Loading...</div>
-    <h1>Book Of Vezitivus</h1>
-    <div class="reels" id="reels">
-      <div class="reel" data-reel="0">
-        <div class="reel-inner" id="reel0-inner"></div>
+  <div class="orb a"></div><div class="orb b"></div>
+  <div id="particleField" aria-hidden="true"></div><div id="fxLayer" aria-hidden="true"></div>
+  <main class="scene">
+    <section id="container" aria-label="Book of Vezitivus spēļu automāts">
+      <div class="machine">
+        <div class="bulbs" aria-hidden="true"></div>
+        <div class="topbar"><div id="remainingSpins" aria-live="polite">🪙 Ielādē...</div><button id="soundButton" type="button" aria-label="Izslēgt skaņu">🔊</button></div>
+        <p class="kicker">Vezitivus Casino</p>
+        <h1><span class="book">Book of</span><span class="vez">Vezitivus</span></h1>
+        <p class="subtitle">Pieci ruļļi · viena veiksme · neierobežots azarts</p>
+        <div class="stage">
+          <div class="reels" id="reels">
+            <div class="reel" data-reel="0"><div class="reel-inner" id="reel0-inner"></div></div>
+            <div class="reel" data-reel="1"><div class="reel-inner" id="reel1-inner"></div></div>
+            <div class="reel" data-reel="2"><div class="reel-inner" id="reel2-inner"></div></div>
+            <div class="reel" data-reel="3"><div class="reel-inner" id="reel3-inner"></div></div>
+            <div class="reel" data-reel="4"><div class="reel-inner" id="reel4-inner"></div></div>
+          </div>
+          <div class="payline" aria-hidden="true"></div>
+        </div>
+        <div class="controls">
+          <div class="bet" id="multiplierContainer"><label for="multiplierSelect">Likmes reizinātājs</label><select id="multiplierSelect"><option value="1">× 1</option><option value="2">× 2</option><option value="3">× 3</option><option value="4">× 4</option><option value="5">× 5</option><option value="6">× 6</option><option value="7">× 7</option><option value="8">× 8</option><option value="9">× 9</option><option value="10">× 10</option><option value="25">× 25</option><option value="50">× 50</option><option value="100">× 100</option><option value="1000">× 1000</option></select></div>
+          <button id="spinButton" type="button"><span class="spinLabel">Griezt</span><span class="spinCost">Likme tiek atskaitīta no bilances</span></button>
+        </div>
+        <div class="message" id="message" aria-live="assertive"></div>
+        <p class="note">Ruļļus iespējams pagriezt arī manuāli.</p>
+        <div class="bulbs bottom" aria-hidden="true"></div>
       </div>
-      <div class="reel" data-reel="1">
-        <div class="reel-inner" id="reel1-inner"></div>
-      </div>
-      <div class="reel" data-reel="2">
-        <div class="reel-inner" id="reel2-inner"></div>
-      </div>
-      <div class="reel" data-reel="3">
-        <div class="reel-inner" id="reel3-inner"></div>
-      </div>
-      <div class="reel" data-reel="4">
-        <div class="reel-inner" id="reel4-inner"></div>
-      </div>
-    </div>
-    <button id="spinButton">Kruķīt</button>
-    <div class="controls">
-      <div id="multiplierContainer">
-        <label for="multiplierSelect">Reizinātājs:</label>
-        <select id="multiplierSelect">
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-          <option value="5">5</option>
-          <option value="6">6</option>
-          <option value="7">7</option>
-          <option value="8">8</option>
-          <option value="9">9</option>
-          <option value="10">10</option>
-          <option value="25">25</option>
-          <option value="50">50</option>
-          <option value="100">100</option>
-          <option value="1000">1000</option>
-        </select>
-      </div>
-    </div>
-    <div class="message" id="message"></div>
-  </div>
+    </section>
+  </main>
+  <script>
+    window.__casinoAudio=[];window.__NativeAudio=window.Audio;window.Audio=function(...a){const x=new window.__NativeAudio(...a);window.__casinoAudio.push(x);return x};window.Audio.prototype=window.__NativeAudio.prototype;
+  </script>
   <script src="book.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded",()=>{
+      const particles=document.getElementById("particleField"),fx=document.getElementById("fxLayer"),sound=document.getElementById("soundButton"),spin=document.getElementById("spinButton"),box=document.getElementById("container");let enabled=localStorage.getItem("vezitivusCasinoSound")!=="off",ctx;
+      const sync=()=>{sound.textContent=enabled?"🔊":"🔇";sound.classList.toggle("muted",!enabled);sound.setAttribute("aria-label",enabled?"Izslēgt skaņu":"Ieslēgt skaņu");(window.__casinoAudio||[]).forEach(a=>a.muted=!enabled)};sync();
+      const ac=()=>{if(!enabled)return null;if(!ctx){const A=window.AudioContext||window.webkitAudioContext;if(A)ctx=new A}if(ctx?.state==="suspended")ctx.resume().catch(()=>{});return ctx};
+      const tone=(f,d=.07,t="triangle",v=.03,delay=0)=>{const c=ac();if(!c)return;const s=c.currentTime+delay,o=c.createOscillator(),g=c.createGain();o.type=t;o.frequency.setValueAtTime(f,s);g.gain.setValueAtTime(.0001,s);g.gain.exponentialRampToValueAtTime(v,s+.008);g.gain.exponentialRampToValueAtTime(.0001,s+d);o.connect(g);g.connect(c.destination);o.start(s);o.stop(s+d+.02)};
+      sound.addEventListener("click",()=>{enabled=!enabled;localStorage.setItem("vezitivusCasinoSound",enabled?"on":"off");sync();if(enabled){tone(330);tone(660,.08,"sine",.02,.04)}});
+      const cols=["#ffd95d","#ff3b60","#fff3b0","#b81232"];for(let i=0;i<(innerWidth<560?18:30);i++){const p=document.createElement("span");p.className="ambient-particle";p.style.setProperty("--s",`${Math.random()*3.5+1}px`);p.style.setProperty("--c",cols[Math.floor(Math.random()*cols.length)]);p.style.setProperty("--d",`${Math.random()*10+10}s`);p.style.setProperty("--delay",`${Math.random()*-18}s`);p.style.setProperty("--dr",`${Math.random()*150-75}px`);p.style.left=`${Math.random()*100}%`;particles.appendChild(p)}
+      const celebrate=(big=false)=>{fx.innerHTML="";const colors=["#ffd95d","#fff4b2","#e92c4b","#fff","#8e1730"];for(let i=0;i<(big?90:52);i++){const p=document.createElement("span");p.className="confetti";p.style.setProperty("--l",`${Math.random()*100}%`);p.style.setProperty("--w",`${Math.random()*7+4}px`);p.style.setProperty("--h",`${Math.random()*15+8}px`);p.style.setProperty("--c",colors[Math.floor(Math.random()*colors.length)]);p.style.setProperty("--t",`${Math.random()*1.5+2.5}s`);p.style.setProperty("--delay",`${Math.random()*.7}s`);p.style.setProperty("--sw",`${Math.random()*280-140}px`);p.style.setProperty("--rot",`${Math.random()*1500-750}deg`);fx.appendChild(p)}for(let i=0;i<(big?28:12);i++){const p=document.createElement("span"),s=Math.random()*10+14;p.className="coin";p.style.setProperty("--l",`${Math.random()*100}%`);p.style.setProperty("--w",`${s}px`);p.style.setProperty("--h",`${s}px`);p.style.setProperty("--r","50%");p.style.setProperty("--c","#ffd95d");p.style.setProperty("--t",`${Math.random()*1.4+2.8}s`);p.style.setProperty("--delay",`${Math.random()*.9}s`);p.style.setProperty("--sw",`${Math.random()*240-120}px`);fx.appendChild(p)}setTimeout(()=>fx.innerHTML="",5000)};
+      spin.addEventListener("click",()=>{ac();tone(245,.07,"triangle",.04);tone(490,.08,"sine",.025,.035)});document.getElementById("multiplierSelect").addEventListener("change",()=>tone(560,.06,"triangle",.027));document.querySelectorAll(".reel-inner").forEach((r,i)=>r.addEventListener("transitionend",e=>{if(e.propertyName==="transform"){tone(470-i*32,.075,"square",.025);tone(180-i*7,.095,"triangle",.018,.015)}}));
+      let prev="";new MutationObserver(()=>{const now=box.classList.contains("win")?"win":box.classList.contains("loss")?"loss":"";if(now==="win"&&prev!=="win"){celebrate();tone(880,.08,"sine",.04);tone(1175,.1,"sine",.032,.07);tone(1568,.14,"triangle",.026,.14)}prev=now}).observe(box,{attributes:true,attributeFilter:["class"]});
+      new MutationObserver(rs=>rs.forEach(r=>{r.addedNodes.forEach(n=>{if(n instanceof HTMLElement&&n.id==="bigWinOverlay")celebrate(true)});r.removedNodes.forEach(n=>{if(n instanceof HTMLElement&&n.id==="miniGameOverlay")setTimeout(()=>{if(!document.querySelector(".debtPopup"))spin.disabled=false},150)})})).observe(document.body,{childList:true});
+    });
+  </script>
 </body>
 </html>
