@@ -3,392 +3,448 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#f4f5f7">
+  <meta name="theme-color" content="#ffffff">
   <title>VEZITIVUS WeekEnd</title>
 
   <style>
-    /* =========================
-       VEZITIVUS — Clean Light Grey UI
-       IDs/links untouched; only UI/layout improved
-       ========================= */
-
-    :root{
-      --bg:#f4f5f7;
-      --bg2:#eef0f3;
-
-      --card:rgba(255,255,255,.78);
-      --card2:rgba(255,255,255,.92);
-      --border:rgba(15,23,42,.10);
-
-      --text:#0f172a;
-      --muted:rgba(15,23,42,.68);
-      --muted2:rgba(15,23,42,.50);
-
-      --shadow: 0 18px 60px rgba(15,23,42,.10);
-      --shadow-soft: 0 10px 26px rgba(15,23,42,.10);
-
-      --radius: 18px;
-      --radius-sm: 14px;
-
-      --accent:#111827;       /* dark grey */
-      --accentSoft:#374151;   /* softer dark */
-      --primaryBg: linear-gradient(180deg, #111827, #2b3446);
-
-      --tap: cubic-bezier(.2,.8,.2,1);
-
+    :root {
+      --bg: #f7f7f9;
+      --surface: rgba(255,255,255,.78);
+      --surface-strong: rgba(255,255,255,.94);
+      --line: rgba(18,18,22,.09);
+      --line-strong: rgba(18,18,22,.14);
+      --text: #161617;
+      --muted: #6e6e73;
+      --accent: #111113;
+      --shadow: 0 18px 50px rgba(20,20,30,.08);
+      --shadow-soft: 0 8px 24px rgba(20,20,30,.06);
+      --radius-xl: 30px;
+      --radius-lg: 22px;
+      --radius-md: 17px;
+      --ease: cubic-bezier(.2,.8,.2,1);
       --safe-top: env(safe-area-inset-top, 0px);
       --safe-right: env(safe-area-inset-right, 0px);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
       --safe-left: env(safe-area-inset-left, 0px);
     }
 
-    *{ box-sizing: border-box; }
-    html, body { height: 100%; }
+    * { box-sizing: border-box; }
 
-    body{
-      margin:0;
-      color:var(--text);
-      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
+    html, body { min-height: 100%; }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", sans-serif;
       background:
-        radial-gradient(900px 500px at 20% 10%, rgba(15,23,42,.06), transparent 60%),
-        radial-gradient(900px 500px at 85% 15%, rgba(15,23,42,.05), transparent 62%),
-        linear-gradient(180deg, var(--bg), var(--bg2));
-      overflow-x:hidden;
-      padding: calc(16px + var(--safe-top)) calc(16px + var(--safe-right)) calc(16px + var(--safe-bottom)) calc(16px + var(--safe-left));
+        radial-gradient(circle at 12% 5%, rgba(255,255,255,.98) 0, rgba(255,255,255,0) 36%),
+        radial-gradient(circle at 88% 15%, rgba(225,229,240,.55) 0, rgba(225,229,240,0) 34%),
+        linear-gradient(180deg, #ffffff 0%, var(--bg) 56%, #f0f1f4 100%);
+      padding:
+        calc(14px + var(--safe-top))
+        calc(14px + var(--safe-right))
+        calc(24px + var(--safe-bottom))
+        calc(14px + var(--safe-left));
+      overflow-x: hidden;
     }
 
-    .profile-page{
-      width:min(980px, 100%);
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(115deg, rgba(255,255,255,.7), rgba(255,255,255,0) 36%);
+      z-index: -1;
+    }
+
+    .profile-page {
+      width: min(760px, 100%);
       margin: 0 auto;
-      display:flex;
-      flex-direction:column;
+      display: flex;
+      flex-direction: column;
       gap: 12px;
     }
 
-    .topbar{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding: 4px 0 0;
+    .topbar {
+      display: flex;
+      justify-content: center;
+      padding: 4px 0 2px;
     }
 
-    .main-title{
-      margin: 6px 0 2px;
-      font-weight: 900;
-      letter-spacing: .2px;
-      text-align:center;
-      font-size: clamp(22px, 3.6vw, 34px);
-      line-height: 1.05;
-      color: var(--text);
+    .main-title {
+      margin: 0;
+      font-size: clamp(21px, 5vw, 30px);
+      font-weight: 750;
+      letter-spacing: -.04em;
+      line-height: 1;
     }
 
-    .glass-card{
-      border-radius: var(--radius);
-      background: var(--card);
-      border: 1px solid var(--border);
+    .glass-card {
+      background: linear-gradient(145deg, rgba(255,255,255,.93), rgba(255,255,255,.67));
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
       box-shadow: var(--shadow);
-      backdrop-filter: blur(14px) saturate(120%);
-      -webkit-backdrop-filter: blur(14px) saturate(120%);
-      overflow:hidden;
+      backdrop-filter: blur(26px) saturate(160%);
+      -webkit-backdrop-filter: blur(26px) saturate(160%);
+      overflow: hidden;
     }
 
-    .profile-section{
-      display:grid;
-      grid-template-columns: 1fr 1.2fr;
-      gap: 14px;
-      padding: 14px;
+    .profile-section {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 16px;
+      padding: 18px;
     }
 
-    .profile-left{
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      gap: 10px;
-      min-height: 220px;
+    .profile-left {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
     }
 
-    /* Image: CLEAN (no overlay “watermark” effects) */
-    .image-container{
-      width: 172px;
-      height: 172px;
-      border-radius: 999px;
+    .image-container {
       position: relative;
-      display:grid;
-      place-items:center;
-      overflow:hidden;
-      border: 1px solid var(--border);
-      background: var(--card2);
-      box-shadow: var(--shadow-soft);
+      width: 176px;
+      height: 176px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 50%;
+      border: 1px solid var(--line-strong);
+      background: rgba(255,255,255,.88);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.95), 0 12px 34px rgba(18,18,22,.10);
     }
 
-    #profile-image{
+    #profile-image {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      display:block;
-      position:relative;
-      z-index:1;
+      display: block;
+      position: relative;
+      z-index: 1;
     }
 
-    .image-placeholder{
-      position:absolute;
-      inset:0;
-      display:grid;
-      place-items:center;
+    .image-placeholder {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-content: center;
+      justify-items: center;
       gap: 10px;
-      color: var(--muted);
-      text-align:center;
       padding: 18px;
-      z-index:2;
-      background: rgba(255,255,255,.65);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-    }
-
-    .ph-icon{
-      width: 54px;
-      height: 54px;
-      border-radius: 16px;
-      background: rgba(15,23,42,.04);
-      border: 1px solid var(--border);
-      box-shadow: 0 10px 18px rgba(15,23,42,.08);
-      position:relative;
-    }
-
-    .ph-icon::before{
-      content:"";
-      position:absolute;
-      inset: 14px 10px 16px;
-      border-radius: 10px;
-      border: 2px solid rgba(15,23,42,.45);
-      opacity:.65;
-    }
-
-    .ph-text{
-      font-size: 13px;
       color: var(--muted);
-      font-weight: 700;
-      letter-spacing: .2px;
+      text-align: center;
+      background: rgba(255,255,255,.68);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      z-index: 2;
     }
 
-    .profile-right{
-      width: 100%;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      padding: 4px 6px;
+    .ph-icon {
+      width: 46px;
+      height: 46px;
+      position: relative;
+      border: 1px solid var(--line-strong);
+      border-radius: 50%;
+      background: rgba(255,255,255,.8);
     }
 
-    .info-group{
-      padding: 10px 6px;
-      border-bottom: 1px solid rgba(15,23,42,.08);
+    .ph-icon::before {
+      content: "";
+      position: absolute;
+      width: 13px;
+      height: 13px;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      background: #b5b5bb;
     }
-    .info-group:last-child{ border-bottom:none; }
 
-    .label{
-      margin:0;
+    .ph-icon::after {
+      content: "";
+      position: absolute;
+      width: 25px;
+      height: 13px;
+      bottom: 7px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 14px 14px 9px 9px;
+      background: #b5b5bb;
+    }
+
+    .ph-text {
       font-size: 12px;
-      letter-spacing: .14em;
+      font-weight: 600;
+    }
+
+    .profile-right {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 0;
+    }
+
+    .info-group {
+      padding: 12px 4px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .info-group:last-child { border-bottom: 0; }
+
+    .label {
+      margin: 0;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 650;
+      letter-spacing: .08em;
       text-transform: uppercase;
-      color: var(--muted2);
-      font-weight: 800;
     }
 
-    .value{
-      margin: 6px 0 0;
+    .value {
+      margin: 4px 0 0;
       font-size: 18px;
-      font-weight: 750;
-      color: var(--text);
+      font-weight: 650;
+      letter-spacing: -.02em;
+      overflow-wrap: anywhere;
     }
 
-    .large-value{
-      margin: 6px 0 0;
+    .large-value {
+      margin: 3px 0 0;
       font-size: 34px;
-      font-weight: 950;
-      letter-spacing: .01em;
       line-height: 1;
-      color: var(--text);
-      text-shadow: none;
+      font-weight: 780;
+      letter-spacing: -.05em;
     }
 
-    .mono{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: 15px;
-      color: rgba(15,23,42,.80);
+    .mono {
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 14px;
+      color: #4f4f54;
     }
 
-    /* Buttons – clean, consistent, no weird spacing */
+    button {
+      font: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+
     .primary-button,
     .action-button,
-    .checkin-button{
-      appearance:none;
-      border: 1px solid var(--border);
-      cursor:pointer;
-      font-weight: 800;
-      letter-spacing:.2px;
-      transition: transform .14s var(--tap), box-shadow .14s var(--tap), background .14s var(--tap), filter .14s var(--tap);
-      -webkit-tap-highlight-color: transparent;
-      user-select:none;
-      -webkit-user-select:none;
+    .checkin-button {
+      appearance: none;
+      border: 1px solid var(--line-strong);
+      cursor: pointer;
+      transition: transform .16s var(--ease), box-shadow .16s var(--ease), background .16s var(--ease);
+      user-select: none;
     }
 
-    .primary-button{
-      width: min(240px, 100%);
-      padding: 12px 14px;
-      border-radius: 14px;
-      color: #fff;
-      background: var(--primaryBg);
-      border-color: rgba(17,24,39,.20);
-      box-shadow: 0 14px 30px rgba(15,23,42,.18);
-    }
-    .primary-button:hover{ filter: brightness(1.03); }
-    .primary-button:active{ transform: translateY(1px) scale(.99); }
-
-    .action-button{
-      width: 100%;
-      padding: 12px 10px;
-      border-radius: 14px;
-      font-size: 15px;
+    .primary-button {
+      width: min(176px, 100%);
+      padding: 10px 14px;
+      border-radius: 999px;
       color: var(--text);
-      background: rgba(255,255,255,.88);
-      box-shadow: 0 12px 22px rgba(15,23,42,.10);
-    }
-    .action-button:hover{
-      transform: translateY(-1px);
-      box-shadow: 0 16px 28px rgba(15,23,42,.14);
-      background: #fff;
-    }
-    .action-button:active{
-      transform: translateY(1px) scale(.99);
+      font-size: 13px;
+      font-weight: 650;
+      background: rgba(255,255,255,.76);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.95), var(--shadow-soft);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
     }
 
-    .checkin-section{ padding: 0; }
-    .checkin-card{ padding: 12px; }
+    .navigation-card {
+      padding: 10px;
+    }
 
-    .checkin-button{
+    .buttons-stack {
+      display: grid;
+      gap: 8px;
+    }
+
+    .action-button,
+    .checkin-button {
+      position: relative;
       width: 100%;
-      padding: 14px 16px;
-      border-radius: 16px;
-      font-size: 16px;
-      font-weight: 950;
-      text-align:center;
-      color:#fff;
-      background: linear-gradient(180deg, #111827, #374151);
-      border-color: rgba(17,24,39,.20);
-      box-shadow: 0 18px 36px rgba(15,23,42,.18);
-    }
-    .checkin-button:hover{ transform: translateY(-1px); }
-    .checkin-button:active{ transform: translateY(1px) scale(.99); }
-
-    .buttons-section{ padding: 12px; }
-    .buttons-stack{
-      display:grid;
-      gap: 10px;
+      min-height: 54px;
+      padding: 14px 48px 14px 17px;
+      border-radius: var(--radius-md);
+      color: var(--text);
+      text-align: left;
+      font-size: 15px;
+      font-weight: 650;
+      letter-spacing: -.01em;
+      background: rgba(255,255,255,.72);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.98);
     }
 
-    .buttons-grid{
-      display:grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin: 0;
+    .action-button::after,
+    .checkin-button::after {
+      content: "›";
+      position: absolute;
+      right: 18px;
+      top: 50%;
+      transform: translateY(-52%);
+      color: #9a9aa0;
+      font-size: 27px;
+      font-weight: 350;
+      line-height: 1;
     }
 
-    @media (max-width: 720px){
-      .profile-section{ grid-template-columns: 1fr; }
-      .profile-left{ min-height: unset; padding-top: 6px; }
-      .image-container{ width: 168px; height: 168px; }
-      .buttons-grid{ grid-template-columns: repeat(2, 1fr); }
+    .action-button + .action-button,
+    .checkin-button + .action-button {
+      margin-top: 0;
     }
 
-    button:focus-visible{
-      outline: 2px solid rgba(17,24,39,.35);
-      outline-offset: 3px;
+    .scoreboard-button {
+      color: #fff;
+      border-color: rgba(0,0,0,.82);
+      background: linear-gradient(145deg, #27272a, #070708);
+      box-shadow: 0 12px 30px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.16);
     }
 
-    /* Loading overlay */
-    #loading-overlay{
+    .scoreboard-button::after { color: rgba(255,255,255,.64); }
+
+    .checkin-button {
+      background: rgba(245,245,247,.88);
+    }
+
+    .button-divider {
+      height: 1px;
+      margin: 2px 7px;
+      background: var(--line);
+    }
+
+    .primary-button:hover,
+    .action-button:hover,
+    .checkin-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(18,18,22,.09), inset 0 1px 0 rgba(255,255,255,.96);
+    }
+
+    .scoreboard-button:hover {
+      box-shadow: 0 14px 32px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.16);
+    }
+
+    .primary-button:active,
+    .action-button:active,
+    .checkin-button:active {
+      transform: scale(.985);
+    }
+
+    button:focus-visible {
+      outline: 3px solid rgba(0,122,255,.28);
+      outline-offset: 2px;
+    }
+
+    #loading-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(244,245,247,.72);
-      backdrop-filter: blur(12px) saturate(120%);
-      -webkit-backdrop-filter: blur(12px) saturate(120%);
       display: flex;
-      justify-content: center;
       align-items: center;
+      justify-content: center;
       z-index: 9999;
+      background: rgba(247,247,249,.72);
+      backdrop-filter: blur(22px) saturate(150%);
+      -webkit-backdrop-filter: blur(22px) saturate(150%);
     }
 
-    .loading-card{
-      padding: 18px 18px 16px;
-      border-radius: 18px;
-      background: rgba(255,255,255,.88);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow);
-      display:flex;
-      flex-direction:column;
-      align-items:center;
+    .loading-card {
+      min-width: 150px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       gap: 10px;
-      min-width: 170px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: rgba(255,255,255,.86);
+      box-shadow: var(--shadow);
     }
 
-    .spinner{
-      width: 54px;
-      height: 54px;
-      border-radius: 999px;
-      background: conic-gradient(from 0deg, rgba(15,23,42,.0), rgba(15,23,42,.60), rgba(15,23,42,.0));
-      mask: radial-gradient(circle, transparent 58%, #000 60%);
-      -webkit-mask: radial-gradient(circle, transparent 58%, #000 60%);
-      animation: spin 1s linear infinite;
-      filter: drop-shadow(0 10px 18px rgba(15,23,42,.12));
+    .spinner {
+      width: 38px;
+      height: 38px;
+      border: 3px solid rgba(18,18,22,.10);
+      border-top-color: #262629;
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
     }
 
-    @keyframes spin{ to { transform: rotate(360deg); } }
-
-    .loading-text{
+    .loading-text {
+      color: var(--muted);
       font-size: 12px;
-      color: rgba(15,23,42,.70);
-      letter-spacing: .10em;
-      text-transform: uppercase;
-      font-weight: 900;
+      font-weight: 650;
     }
 
-    /* Toast */
-    .toast{
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .toast {
       position: fixed;
       left: 50%;
       bottom: calc(18px + var(--safe-bottom));
-      transform: translateX(-50%) translateY(16px);
+      max-width: min(90vw, 480px);
+      padding: 11px 15px;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: center;
+      pointer-events: none;
       opacity: 0;
-      pointer-events:none;
-
-      padding: 12px 14px;
+      transform: translateX(-50%) translateY(14px);
+      border: 1px solid rgba(255,255,255,.16);
       border-radius: 999px;
-      background: rgba(17,24,39,.88);
-      border: 1px solid rgba(255,255,255,.12);
-      box-shadow: 0 18px 40px rgba(15,23,42,.22);
-      color: rgba(255,255,255,.92);
-      font-weight: 800;
-      letter-spacing:.2px;
-      transition: opacity .18s var(--tap), transform .18s var(--tap);
+      background: rgba(20,20,22,.88);
+      box-shadow: 0 16px 40px rgba(0,0,0,.20);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      transition: opacity .18s var(--ease), transform .18s var(--ease);
       z-index: 9998;
-      max-width: min(92vw, 520px);
-      text-align:center;
     }
 
-    .toast.show{
+    .toast.show {
       opacity: 1;
       transform: translateX(-50%) translateY(0);
     }
 
-    @media (prefers-reduced-motion: reduce){
-      *{ animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+    @media (max-width: 620px) {
+      body {
+        padding-left: calc(10px + var(--safe-left));
+        padding-right: calc(10px + var(--safe-right));
+      }
+
+      .profile-page { gap: 10px; }
+
+      .profile-section {
+        grid-template-columns: 1fr;
+        gap: 4px;
+        padding: 16px;
+      }
+
+      .image-container {
+        width: 148px;
+        height: 148px;
+      }
+
+      .profile-left { gap: 10px; }
+      .profile-right { padding-top: 4px; }
+      .info-group { padding: 10px 2px; }
+      .value { font-size: 17px; }
+      .large-value { font-size: 31px; }
+      .glass-card { border-radius: 25px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .001ms !important;
+      }
     }
   </style>
 </head>
 
 <body>
-  <!-- Loading pārklājums -->
   <div id="loading-overlay" aria-live="polite" aria-busy="true">
     <div class="loading-card">
       <div class="spinner" aria-hidden="true"></div>
@@ -396,15 +452,13 @@
     </div>
   </div>
 
-  <!-- Toast -->
   <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
-  <div class="profile-page">
+  <main class="profile-page">
     <header class="topbar">
       <h1 class="main-title">VEZITIVUS WeekEnd</h1>
     </header>
 
-    <!-- Profila sadaļa -->
     <section class="profile-section glass-card">
       <div class="profile-left">
         <div class="image-container">
@@ -416,9 +470,7 @@
           </div>
         </div>
 
-        <button id="change-button" class="primary-button" style="margin-top: 10px;">
-          Nomainīt attēlu
-        </button>
+        <button id="change-button" class="primary-button">Nomainīt attēlu</button>
       </div>
 
       <div class="profile-right">
@@ -435,124 +487,109 @@
           <p class="large-value" id="place">Ielādē...</p>
         </div>
         <div class="info-group">
-          <p class="label">TAVA KOMANDA</p>
+          <p class="label">Tava komanda</p>
           <p class="value" id="team-name">Ielādē...</p>
         </div>
       </div>
     </section>
 
-    <!-- CHECK-IN poga (tagad vizuāli sakārtota kā kartīte) -->
-    <section class="checkin-section glass-card checkin-card">
-      <button id="checkin-button" class="checkin-button">Check-In priekš aktivitātēm</button>
-    </section>
-
-    <!-- Apakšējās pogas -->
-    <section class="buttons-section glass-card">
+    <section class="navigation-card glass-card" aria-label="Profila navigācija">
       <div class="buttons-stack">
-        <div class="buttons-grid">
-          <button class="action-button" onclick="redirectToActivity()">Vezitivus lenta</button>
-          <button class="action-button" onclick="redirectToSimpathy()">Simpatijas balva</button>
-          <button class="action-button" onclick="window.location.href='score.html'">Score Board</button>
-        </div>
+        <button class="action-button scoreboard-button" onclick="window.location.href='score.html'">Scoreboard</button>
+        <button id="checkin-button" class="checkin-button">Check-in aktivitātēm</button>
 
-        <div class="buttons-grid">
-          <button class="action-button" onclick="redirectToOption()">option</button>
-          <button class="action-button" onclick="redirectToSpin()">Minigame</button>
-          <button class="action-button" onclick="redirectToSuggest()">Ieteikumi</button>
-        </div>
+        <div class="button-divider" aria-hidden="true"></div>
+
+        <button class="action-button" onclick="redirectToActivity()">Vezitivus lenta</button>
+        <button class="action-button" onclick="redirectToSimpathy()">Simpātijas balva</button>
+        <button class="action-button" onclick="redirectToSpin()">Minigame</button>
+        <button class="action-button" onclick="redirectToOption()">Option</button>
+        <button class="action-button" onclick="redirectToSuggest()">Ieteikumi</button>
       </div>
     </section>
+  </main>
 
-    <script>
-      // UI helper: smukāks paziņojums nekā alert
-      function showToast(message) {
-        const el = document.getElementById("toast");
-        if (!el) return;
-        el.textContent = message;
-        el.classList.add("show");
-        window.clearTimeout(window.__toastTimer);
-        window.__toastTimer = window.setTimeout(() => el.classList.remove("show"), 2600);
+  <script>
+    function showToast(message) {
+      const el = document.getElementById("toast");
+      if (!el) return;
+      el.textContent = message;
+      el.classList.add("show");
+      window.clearTimeout(window.__toastTimer);
+      window.__toastTimer = window.setTimeout(() => el.classList.remove("show"), 2600);
+    }
+
+    window.addEventListener("load", function() {
+      const lo = document.getElementById("loading-overlay");
+      if (lo) {
+        lo.style.display = "none";
+        lo.setAttribute("aria-busy", "false");
       }
+    });
 
-      // Noņem loading pārklājumu, kad lapa ir pilnībā ielādēta
-      window.addEventListener("load", function() {
-        const lo = document.getElementById("loading-overlay");
-        if(lo){
-          lo.style.display = "none";
-          lo.setAttribute("aria-busy", "false");
-        }
-      });
+    function syncImagePlaceholder() {
+      const img = document.getElementById("profile-image");
+      const ph = document.getElementById("image-placeholder");
+      if (!img || !ph) return;
+      const visible = img.style.display !== "none" && img.getAttribute("src");
+      ph.style.display = visible ? "none" : "grid";
+    }
 
-      // UX: placeholder, ja nav attēla
-      function syncImagePlaceholder() {
-        const img = document.getElementById("profile-image");
-        const ph = document.getElementById("image-placeholder");
-        if (!img || !ph) return;
-        const visible = img.style.display !== "none" && img.getAttribute("src");
-        ph.style.display = visible ? "none" : "grid";
+    document.addEventListener("DOMContentLoaded", () => {
+      syncImagePlaceholder();
+      const img = document.getElementById("profile-image");
+      if (img) {
+        img.addEventListener("load", syncImagePlaceholder);
+        img.addEventListener("error", syncImagePlaceholder);
       }
-      document.addEventListener("DOMContentLoaded", ()=>{
-        syncImagePlaceholder();
-        const img = document.getElementById("profile-image");
-        if(img){
-          img.addEventListener("load", syncImagePlaceholder);
-          img.addEventListener("error", syncImagePlaceholder);
-        }
-      });
+    });
 
-      // Funkcija, lai pāradresētu uz "Vezitivus lenta" ar UID no URL
-      function redirectToActivity() {
-        const params = new URLSearchParams(window.location.search);
-        const uid = params.get("uid");
-        if (uid) {
-          window.location.href = `activity.html?uid=${uid}`;
-        } else {
-          showToast("UID nav atrasts!");
-        }
+    function redirectToActivity() {
+      const params = new URLSearchParams(window.location.search);
+      const uid = params.get("uid");
+      if (uid) {
+        window.location.href = `activity.html?uid=${uid}`;
+      } else {
+        showToast("UID nav atrasts!");
       }
+    }
 
-      // Funkcija, lai pāradresētu uz "Simpatijas balva" ar UID no lapas
-      function redirectToSimpathy() {
-        const uid = document.getElementById("nfc-id").innerText.trim();
-        window.location.href = `https://vezitivus.github.io/APP/simpathy.html?uid=${uid}`;
+    function redirectToSimpathy() {
+      const uid = document.getElementById("nfc-id").innerText.trim();
+      window.location.href = `https://vezitivus.github.io/APP/simpathy.html?uid=${uid}`;
+    }
+
+    function redirectToSpin() {
+      const params = new URLSearchParams(window.location.search);
+      const uid = params.get("uid");
+      if (uid) {
+        window.location.href = `book.html?uid=${uid}`;
+      } else {
+        showToast("UID nav atrasts!");
       }
+    }
 
-      // Funkcija, lai pāradresētu uz "book.html" ar UID no URL
-      function redirectToSpin() {
-        const params = new URLSearchParams(window.location.search);
-        const uid = params.get("uid");
-        if (uid) {
-          window.location.href = `book.html?uid=${uid}`;
-        } else {
-          showToast("UID nav atrasts!");
-        }
+    function redirectToOption() {
+      const params = new URLSearchParams(window.location.search);
+      const uid = params.get("uid");
+      if (uid) {
+        window.location.href = `ch.html?uid=${uid}`;
+      } else {
+        showToast("UID nav atrasts!");
       }
+    }
 
-      // Funkcija, lai pāradresētu uz "option.html" ar UID beigās
-      function redirectToOption() {
-        const params = new URLSearchParams(window.location.search);
-        const uid = params.get("uid");
-        if (uid) {
-          window.location.href = `ch.html?uid=${uid}`;
-        } else {
-          showToast("UID nav atrasts!");
-        }
+    function redirectToSuggest() {
+      const params = new URLSearchParams(window.location.search);
+      const uid = params.get("uid");
+      if (uid) {
+        window.location.href = `suggest.html?uid=${uid}`;
+      } else {
+        showToast("UID nav atrasts!");
       }
+    }
+  </script>
 
-      // Funkcija, lai pāradresētu uz "suggest.html" ar UID beigās
-      function redirectToSuggest() {
-        const params = new URLSearchParams(window.location.search);
-        const uid = params.get("uid");
-        if (uid) {
-          window.location.href = `suggest.html?uid=${uid}`;
-        } else {
-          showToast("UID nav atrasts!");
-        }
-      }
-    </script>
-  </div>
-
-  <!-- Tava esošā loģika paliek -->
   <script src="profile.js"></script>
 </body>
 </html>
