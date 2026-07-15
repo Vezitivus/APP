@@ -9,69 +9,48 @@
     :root {
       color-scheme: dark;
       --bg: #08090c;
-      --surface: rgba(22, 24, 30, 0.82);
-      --surface-strong: rgba(29, 31, 39, 0.96);
-      --line: rgba(255, 255, 255, 0.10);
-      --line-strong: rgba(255, 255, 255, 0.18);
+      --surface: rgba(22, 24, 30, .82);
+      --line: rgba(255,255,255,.10);
+      --line-strong: rgba(255,255,255,.18);
       --text: #f7f7f8;
       --muted: #9ca0aa;
       --accent: #f4f4f5;
       --accent-text: #090a0d;
       --success: #35d07f;
       --danger: #ff6b6b;
-      --shadow: 0 24px 70px rgba(0, 0, 0, 0.48);
       --radius-xl: 28px;
       --radius-lg: 22px;
       --radius-md: 16px;
-      --header-height: 78px;
     }
 
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    html {
-      min-height: 100%;
-      background: var(--bg);
-      scroll-behavior: smooth;
-    }
-
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html { min-height: 100%; background: var(--bg); }
     body {
       margin: 0;
       min-height: 100vh;
       min-height: 100dvh;
       overflow-x: hidden;
       background:
-        radial-gradient(circle at 12% -10%, rgba(255, 255, 255, 0.08), transparent 35%),
-        radial-gradient(circle at 92% 12%, rgba(119, 123, 155, 0.12), transparent 28%),
+        radial-gradient(circle at 12% -10%, rgba(255,255,255,.08), transparent 35%),
+        radial-gradient(circle at 92% 12%, rgba(119,123,155,.12), transparent 28%),
         var(--bg);
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       -webkit-font-smoothing: antialiased;
     }
-
-    body.modal-open {
-      overflow: hidden;
-    }
-
-    button,
-    input {
-      font: inherit;
-    }
+    body.modal-open { overflow: hidden; touch-action: none; }
+    button { font: inherit; }
 
     .header {
       position: sticky;
       top: 0;
-      z-index: 1000;
-      min-height: var(--header-height);
+      z-index: 100;
       padding: max(14px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) 14px max(18px, env(safe-area-inset-left));
       border-bottom: 1px solid var(--line);
-      background: rgba(8, 9, 12, 0.78);
+      background: rgba(8,9,12,.78);
       backdrop-filter: blur(22px) saturate(150%);
       -webkit-backdrop-filter: blur(22px) saturate(150%);
     }
-
     .header-inner {
       width: min(1120px, 100%);
       min-height: 48px;
@@ -81,29 +60,9 @@
       justify-content: space-between;
       gap: 16px;
     }
-
-    .brand {
-      min-width: 0;
-    }
-
-    .eyebrow {
-      margin: 0 0 3px;
-      color: var(--muted);
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-    }
-
-    .title {
-      margin: 0;
-      font-size: clamp(20px, 4vw, 28px);
-      line-height: 1.05;
-      letter-spacing: -0.035em;
-    }
-
+    .eyebrow { margin: 0 0 3px; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .18em; }
+    .title { margin: 0; font-size: clamp(20px,4vw,28px); line-height: 1.05; letter-spacing: -.035em; }
     .vote-status {
-      flex: 0 0 auto;
       min-width: 82px;
       padding: 8px 12px;
       display: flex;
@@ -112,310 +71,73 @@
       gap: 8px;
       border: 1px solid var(--line-strong);
       border-radius: 999px;
-      background: rgba(255, 255, 255, 0.07);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      background: rgba(255,255,255,.07);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
     }
-
-    .vote-status-icon {
-      font-size: 17px;
-      line-height: 1;
-    }
-
-    .vote-status-copy {
-      display: flex;
-      flex-direction: column;
-      line-height: 1;
-    }
-
-    .vote-status-label {
-      margin-bottom: 4px;
-      color: var(--muted);
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    .vote-remaining {
-      font-size: 17px;
-      font-weight: 850;
-      font-variant-numeric: tabular-nums;
-    }
+    .vote-status-icon { font-size: 17px; }
+    .vote-status-copy { display: flex; flex-direction: column; line-height: 1; }
+    .vote-status-label { margin-bottom: 4px; color: var(--muted); font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .vote-remaining { font-size: 17px; font-weight: 850; font-variant-numeric: tabular-nums; }
 
     .content {
-      width: min(1120px, 100%);
+      width: min(1120px,100%);
       margin: 0 auto;
-      padding: 28px max(16px, env(safe-area-inset-right)) max(44px, calc(env(safe-area-inset-bottom) + 24px)) max(16px, env(safe-area-inset-left));
+      padding: 28px max(16px,env(safe-area-inset-right)) max(44px,calc(env(safe-area-inset-bottom) + 24px)) max(16px,env(safe-area-inset-left));
     }
-
     .intro {
       margin-bottom: 24px;
       padding: 20px;
       border: 1px solid var(--line);
       border-radius: var(--radius-lg);
-      background: linear-gradient(145deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.025));
-      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18);
+      background: linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.025));
+      box-shadow: 0 18px 50px rgba(0,0,0,.18);
     }
+    .intro-title { margin: 0 0 7px; font-size: clamp(18px,4vw,23px); letter-spacing: -.025em; }
+    .intro-text { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.55; }
+    .gallery-head { margin: 0 2px 14px; display: flex; align-items: end; justify-content: space-between; gap: 16px; }
+    .gallery-title { margin: 0; font-size: 15px; }
+    .gallery-hint { margin: 0; color: var(--muted); font-size: 12px; }
 
-    .intro-title {
-      margin: 0 0 7px;
-      font-size: clamp(18px, 4vw, 23px);
-      letter-spacing: -0.025em;
-    }
-
-    .intro-text {
-      margin: 0;
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.55;
-    }
-
-    .gallery-head {
-      margin: 0 2px 14px;
-      display: flex;
-      align-items: end;
-      justify-content: space-between;
-      gap: 16px;
-    }
-
-    .gallery-title {
-      margin: 0;
-      font-size: 15px;
-      letter-spacing: -0.01em;
-    }
-
-    .gallery-hint {
-      margin: 0;
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .image-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    .image-container {
+    .image-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+    .image-card {
       position: relative;
-      width: 100%;
-      height: auto !important;
-      aspect-ratio: 1 / 1;
+      aspect-ratio: 1;
       overflow: hidden;
       border: 1px solid var(--line);
       border-radius: var(--radius-md);
       background: var(--surface);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.24);
+      box-shadow: 0 12px 30px rgba(0,0,0,.24);
       cursor: pointer;
       isolation: isolate;
       transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
     }
-
-    .image-container::after {
+    .image-card::after {
       content: "";
       position: absolute;
       inset: 0;
       z-index: 1;
       pointer-events: none;
-      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.02) 48%, rgba(0, 0, 0, 0.48) 100%);
+      background: linear-gradient(to bottom,rgba(0,0,0,.02) 48%,rgba(0,0,0,.48) 100%);
     }
-
-    .image-container:hover {
-      transform: translateY(-2px);
-      border-color: var(--line-strong);
-      box-shadow: 0 18px 38px rgba(0, 0, 0, 0.30);
-    }
-
-    .image-container:focus-visible {
-      outline: 2px solid rgba(255, 255, 255, 0.85);
-      outline-offset: 3px;
-    }
-
-    .image-container img {
-      width: 100%;
-      height: 100%;
-      display: block;
-      object-fit: cover;
-      transition: transform 320ms ease, opacity 180ms ease;
-      user-select: none;
-      -webkit-user-drag: none;
-    }
-
-    .image-container:hover img {
-      transform: scale(1.025);
-    }
-
-    .image-container.image-error img {
-      opacity: 0;
-    }
-
-    .image-container.image-error::before {
+    .image-card:active { transform: scale(.985); }
+    .image-card:focus-visible { outline: 2px solid rgba(255,255,255,.85); outline-offset: 3px; }
+    .image-card img { width: 100%; height: 100%; display: block; object-fit: cover; user-select: none; -webkit-user-drag: none; }
+    .image-card.image-error img { opacity: 0; }
+    .image-card.image-error::before {
       content: "Attēlu neizdevās ielādēt";
-      position: absolute;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      padding: 20px;
-      color: var(--muted);
-      text-align: center;
-      font-size: 13px;
+      position: absolute; inset: 0; display: grid; place-items: center; padding: 20px;
+      color: var(--muted); text-align: center; font-size: 13px;
     }
-
     .vote-count {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      z-index: 3;
-      min-width: 40px;
-      min-height: 30px;
-      padding: 6px 10px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 5px;
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      border-radius: 999px;
-      background: rgba(8, 9, 12, 0.70);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      color: #fff;
-      font-size: 13px;
-      font-weight: 800;
-      font-variant-numeric: tabular-nums;
+      position: absolute; top: 10px; right: 10px; z-index: 3;
+      min-width: 40px; min-height: 30px; padding: 6px 10px;
+      display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+      border: 1px solid rgba(255,255,255,.16); border-radius: 999px;
+      background: rgba(8,9,12,.70); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      color: #fff; font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums;
     }
-
-    .vote-count::before {
-      content: "✋";
-      font-size: 12px;
-    }
-
-    .open-label {
-      position: absolute;
-      left: 12px;
-      bottom: 11px;
-      z-index: 3;
-      color: rgba(255, 255, 255, 0.88);
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.02em;
-    }
-
-    .vote-button,
-    .close-button {
-      border: 0;
-      cursor: pointer;
-      transition: transform 160ms ease, opacity 160ms ease, background 160ms ease;
-    }
-
-    .vote-button {
-      position: absolute;
-      left: 50%;
-      bottom: max(18px, env(safe-area-inset-bottom));
-      z-index: 6;
-      width: min(360px, calc(100% - 36px));
-      min-height: 52px;
-      padding: 13px 18px;
-      transform: translateX(-50%) translateY(14px);
-      border-radius: 999px;
-      background: var(--accent);
-      color: var(--accent-text);
-      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.40);
-      font-size: 15px;
-      font-weight: 850;
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .vote-button:active:not(:disabled) {
-      transform: translateX(-50%) scale(0.98);
-    }
-
-    .vote-button:disabled {
-      cursor: not-allowed;
-      opacity: 0.55 !important;
-    }
-
-    .close-button {
-      position: absolute;
-      top: 14px;
-      left: 14px;
-      z-index: 7;
-      width: 40px;
-      height: 40px;
-      display: grid;
-      place-items: center;
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      border-radius: 50%;
-      background: rgba(8, 9, 12, 0.74);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      color: #fff;
-      font-size: 20px;
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .selection-backdrop {
-      position: fixed;
-      inset: 0;
-      z-index: 1090;
-      border: 0;
-      background: rgba(0, 0, 0, 0.78);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 200ms ease;
-    }
-
-    .selection-backdrop.visible {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .image-container.selected {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      z-index: 1100;
-      width: min(92vw, 760px);
-      height: min(78vh, 760px) !important;
-      aspect-ratio: auto;
-      transform: translate(-50%, -50%);
-      border-color: var(--line-strong);
-      border-radius: var(--radius-xl);
-      background: #050608;
-      box-shadow: var(--shadow);
-      cursor: default;
-    }
-
-    .image-container.selected:hover {
-      transform: translate(-50%, -50%);
-    }
-
-    .image-container.selected::after {
-      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.16), transparent 24%, transparent 62%, rgba(0, 0, 0, 0.68));
-    }
-
-    .image-container.selected img,
-    .image-container.selected:hover img {
-      object-fit: contain;
-      transform: none;
-    }
-
-    .image-container.selected .vote-button,
-    .image-container.selected .close-button {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .image-container.selected .vote-button {
-      transform: translateX(-50%) translateY(0);
-    }
-
-    .image-container.selected .open-label {
-      display: none;
-    }
+    .vote-count::before { content: "✋"; font-size: 12px; }
+    .open-label { position: absolute; left: 12px; bottom: 11px; z-index: 3; color: rgba(255,255,255,.9); font-size: 11px; font-weight: 750; }
 
     .state-panel {
       min-height: 220px;
@@ -424,155 +146,99 @@
       padding: 28px;
       border: 1px solid var(--line);
       border-radius: var(--radius-lg);
-      background: rgba(255, 255, 255, 0.035);
+      background: rgba(255,255,255,.035);
       text-align: center;
     }
+    .state-panel[hidden] { display: none !important; }
+    .state-content { max-width: 360px; }
+    #loader { width: 38px; height: 38px; margin: 0 auto 18px; border: 3px solid rgba(255,255,255,.14); border-top-color: #fff; border-radius: 50%; animation: spin 800ms linear infinite; }
+    .state-title { margin: 0 0 7px; font-size: 16px; }
+    .state-text { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .retry-button { margin-top: 16px; min-height: 42px; padding: 10px 17px; border: 1px solid var(--line-strong); border-radius: 999px; background: rgba(255,255,255,.08); color: var(--text); cursor: pointer; font-weight: 750; }
 
-    .state-content {
-      max-width: 360px;
+    .viewer {
+      position: fixed;
+      inset: 0;
+      z-index: 1100;
+      display: none;
+      touch-action: none;
     }
-
-    #loader {
-      width: 38px;
-      height: 38px;
-      margin: 0 auto 18px;
-      border: 3px solid rgba(255, 255, 255, 0.14);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin 800ms linear infinite;
+    .viewer.visible { display: block; }
+    .viewer-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,.82);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      opacity: 0;
+      transition: opacity 320ms cubic-bezier(.22,1,.36,1);
     }
-
-    .state-title {
-      margin: 0 0 7px;
-      font-size: 16px;
-    }
-
-    .state-text {
-      margin: 0;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.5;
-    }
-
-    .retry-button {
-      margin-top: 16px;
-      min-height: 42px;
-      padding: 10px 17px;
+    .viewer.ready .viewer-backdrop { opacity: 1; }
+    .viewer-card {
+      position: fixed;
+      overflow: hidden;
       border: 1px solid var(--line-strong);
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--text);
-      cursor: pointer;
-      font-weight: 750;
+      border-radius: var(--radius-xl);
+      background: #050608;
+      box-shadow: 0 28px 90px rgba(0,0,0,.58);
+      transform-origin: center center;
+      will-change: top,left,width,height,transform,border-radius;
+      transition:
+        top 420ms cubic-bezier(.22,1,.36,1),
+        left 420ms cubic-bezier(.22,1,.36,1),
+        width 420ms cubic-bezier(.22,1,.36,1),
+        height 420ms cubic-bezier(.22,1,.36,1),
+        border-radius 420ms cubic-bezier(.22,1,.36,1),
+        transform 280ms cubic-bezier(.22,1,.36,1);
     }
+    .viewer-card.dragging { transition: none; }
+    .viewer-card::after { content:""; position:absolute; inset:0; z-index:1; pointer-events:none; background:linear-gradient(to bottom,rgba(0,0,0,.18),transparent 24%,transparent 62%,rgba(0,0,0,.72)); }
+    .viewer-image { width:100%; height:100%; display:block; object-fit:contain; user-select:none; -webkit-user-drag:none; }
+    .close-button,.vote-button { border:0; cursor:pointer; }
+    .close-button {
+      position:absolute; top:14px; left:14px; z-index:4;
+      width:42px; height:42px; display:grid; place-items:center;
+      border:1px solid rgba(255,255,255,.18); border-radius:50%;
+      background:rgba(8,9,12,.74); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+      color:#fff; font-size:22px;
+    }
+    .vote-button {
+      position:absolute; left:50%; bottom:max(18px,env(safe-area-inset-bottom)); z-index:4;
+      width:min(360px,calc(100% - 36px)); min-height:52px; padding:13px 18px;
+      transform:translateX(-50%); border-radius:999px; background:var(--accent); color:var(--accent-text);
+      box-shadow:0 16px 36px rgba(0,0,0,.4); font-size:15px; font-weight:850;
+    }
+    .vote-button:active:not(:disabled) { transform:translateX(-50%) scale(.98); }
+    .vote-button:disabled { opacity:.55; cursor:not-allowed; }
+    .drag-hint { position:absolute; top:10px; left:50%; z-index:3; width:42px; height:5px; transform:translateX(-50%); border-radius:999px; background:rgba(255,255,255,.48); pointer-events:none; }
 
     .toast {
-      position: fixed;
-      left: 50%;
-      bottom: max(22px, calc(env(safe-area-inset-bottom) + 14px));
-      z-index: 2000;
-      width: min(430px, calc(100vw - 32px));
-      padding: 13px 16px;
-      transform: translate(-50%, 18px);
-      border: 1px solid var(--line-strong);
-      border-radius: 16px;
-      background: rgba(27, 29, 36, 0.96);
-      box-shadow: 0 16px 42px rgba(0, 0, 0, 0.46);
-      color: var(--text);
-      text-align: center;
-      font-size: 13px;
-      font-weight: 700;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 180ms ease, transform 180ms ease;
+      position:fixed; left:50%; bottom:max(22px,calc(env(safe-area-inset-bottom) + 14px)); z-index:2000;
+      width:min(430px,calc(100vw - 32px)); padding:13px 16px; transform:translate(-50%,18px);
+      border:1px solid var(--line-strong); border-radius:16px; background:rgba(27,29,36,.96);
+      box-shadow:0 16px 42px rgba(0,0,0,.46); color:var(--text); text-align:center; font-size:13px; font-weight:700;
+      opacity:0; pointer-events:none; transition:opacity 180ms ease,transform 180ms ease;
     }
+    .toast.visible { opacity:1; transform:translate(-50%,0); }
+    .toast.success { border-color:rgba(53,208,127,.42); }
+    .toast.error { border-color:rgba(255,107,107,.46); }
 
-    .toast.visible {
-      opacity: 1;
-      transform: translate(-50%, 0);
-    }
-
-    .toast.success {
-      border-color: rgba(53, 208, 127, 0.42);
-    }
-
-    .toast.error {
-      border-color: rgba(255, 107, 107, 0.46);
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    @media (min-width: 600px) {
-      .content {
-        padding-top: 36px;
-      }
-
-      .image-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 16px;
-      }
-    }
-
-    @media (min-width: 920px) {
-      .image-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 18px;
-      }
-
-      .intro {
-        padding: 24px 26px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .header-inner {
-        gap: 10px;
-      }
-
-      .vote-status {
-        min-width: 72px;
-        padding: 7px 10px;
-      }
-
-      .vote-status-label {
-        display: none;
-      }
-
-      .intro {
-        padding: 17px;
-      }
-
-      .image-container.selected {
-        width: calc(100vw - 20px);
-        height: min(80vh, 720px) !important;
-        border-radius: 22px;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *,
-      *::before,
-      *::after {
-        scroll-behavior: auto !important;
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-      }
-    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    @media (min-width:600px) { .image-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; } }
+    @media (min-width:920px) { .image-grid { grid-template-columns:repeat(4,minmax(0,1fr)); gap:18px; } }
+    @media (max-width:480px) { .vote-status-label { display:none; } .intro { padding:17px; } }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms !important; transition-duration:.01ms !important; } }
   </style>
 </head>
 <body>
   <header class="header">
     <div class="header-inner">
-      <div class="brand">
+      <div>
         <p class="eyebrow">VEZITIVUS</p>
         <h1 class="title">Simpatijas balva</h1>
       </div>
-
       <div class="vote-status" aria-label="Atlikušās balsis">
-        <span class="vote-status-icon" aria-hidden="true">✋</span>
+        <span class="vote-status-icon">✋</span>
         <span class="vote-status-copy">
           <span class="vote-status-label">Atlikušas</span>
           <span id="profileVotes" class="vote-remaining">–</span>
@@ -582,100 +248,94 @@
   </header>
 
   <main class="content">
-    <section class="intro" aria-labelledby="introTitle">
-      <h2 class="intro-title" id="introTitle">Izvēlies savu favorītu</h2>
+    <section class="intro">
+      <h2 class="intro-title">Izvēlies savu favorītu</h2>
       <p class="intro-text">Atver attēlu, apskati to pilnā izmērā un nobalso. Pie katra attēla redzams pašreizējais balsu skaits.</p>
     </section>
-
     <div class="gallery-head">
       <h2 class="gallery-title">Dalībnieki</h2>
       <p class="gallery-hint">Pieskaries attēlam</p>
     </div>
-
     <section id="loadingState" class="state-panel" aria-live="polite">
       <div class="state-content">
-        <div id="loader" aria-hidden="true"></div>
+        <div id="loader"></div>
         <p class="state-title">Ielādējam attēlus</p>
         <p class="state-text">Tas var aizņemt dažas sekundes.</p>
       </div>
     </section>
-
-    <div class="image-grid" id="imageGrid" aria-live="polite"></div>
+    <div class="image-grid" id="imageGrid"></div>
   </main>
 
-  <button id="selectionBackdrop" class="selection-backdrop" type="button" aria-label="Aizvērt attēlu"></button>
+  <div id="viewer" class="viewer" aria-hidden="true">
+    <div id="viewerBackdrop" class="viewer-backdrop"></div>
+    <article id="viewerCard" class="viewer-card">
+      <img id="viewerImage" class="viewer-image" alt="Atvērtais attēls">
+      <div class="drag-hint"></div>
+      <button id="closeButton" class="close-button" type="button" aria-label="Aizvērt">&times;</button>
+      <button id="voteButton" class="vote-button" type="button">Balsot par šo attēlu</button>
+    </article>
+  </div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script>
-    // Google Apps Script Web App deploy URL — saglabāts nemainīts.
     const scriptUrl = "https://script.google.com/macros/s/AKfycby8p72BLoVvL0VwBePZ278XmJ1CW23l58ZKJgSuu1qoROM9oytJNb1zPVhJ8JDYqW9EYg/exec";
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const uid = urlParams.get("uid") || "defaultUid";
+    const uid = new URLSearchParams(location.search).get("uid") || "defaultUid";
 
     const grid = document.getElementById("imageGrid");
     const loadingState = document.getElementById("loadingState");
     const profileVotes = document.getElementById("profileVotes");
-    const selectionBackdrop = document.getElementById("selectionBackdrop");
+    const viewer = document.getElementById("viewer");
+    const viewerBackdrop = document.getElementById("viewerBackdrop");
+    const viewerCard = document.getElementById("viewerCard");
+    const viewerImage = document.getElementById("viewerImage");
+    const closeButton = document.getElementById("closeButton");
+    const voteButton = document.getElementById("voteButton");
     const toast = document.getElementById("toast");
 
     let remainingVotes = null;
-    let selectedContainer = null;
+    let activeCard = null;
+    let activeVoteCount = null;
     let toastTimer = null;
+    let closing = false;
+    let dragStartY = 0;
+    let dragY = 0;
+    let dragging = false;
 
     function showToast(message, type = "") {
       clearTimeout(toastTimer);
       toast.textContent = message;
       toast.className = `toast visible ${type}`.trim();
-      toastTimer = setTimeout(() => {
-        toast.className = "toast";
-      }, 2800);
+      toastTimer = setTimeout(() => toast.className = "toast", 2800);
     }
 
-    function setLoadingState(title, text, showSpinner = true, allowRetry = false) {
+    function setLoadingState(title, text, spinner = true, retry = false) {
       loadingState.hidden = false;
-      loadingState.innerHTML = `
-        <div class="state-content">
-          ${showSpinner ? '<div id="loader" aria-hidden="true"></div>' : ''}
-          <p class="state-title">${title}</p>
-          <p class="state-text">${text}</p>
-          ${allowRetry ? '<button class="retry-button" id="retryButton" type="button">Mēģināt vēlreiz</button>' : ''}
-        </div>
-      `;
-
-      if (allowRetry) {
-        document.getElementById("retryButton").addEventListener("click", fetchImages);
-      }
+      loadingState.innerHTML = `<div class="state-content">${spinner ? '<div id="loader"></div>' : ''}<p class="state-title">${title}</p><p class="state-text">${text}</p>${retry ? '<button id="retryButton" class="retry-button" type="button">Mēģināt vēlreiz</button>' : ''}</div>`;
+      if (retry) document.getElementById("retryButton").addEventListener("click", fetchImages);
     }
 
     function syncVoteAvailability() {
-      const noVotesLeft = Number.isFinite(remainingVotes) && remainingVotes <= 0;
-      document.querySelectorAll(".vote-button").forEach((button) => {
-        button.disabled = noVotesLeft || button.dataset.busy === "true";
-        if (noVotesLeft) {
-          button.textContent = "Balsis izlietotas";
-        } else if (button.dataset.busy !== "true") {
-          button.textContent = "Balsot par šo attēlu";
-        }
-      });
+      const noVotes = Number.isFinite(remainingVotes) && remainingVotes <= 0;
+      voteButton.disabled = noVotes || voteButton.dataset.busy === "true";
+      if (noVotes) voteButton.textContent = "Balsis izlietotas";
+      else if (voteButton.dataset.busy !== "true") voteButton.textContent = "Balsot par šo attēlu";
     }
 
     async function fetchProfile() {
       try {
-        const response = await fetch(scriptUrl + "?action=getProfile&uid=" + encodeURIComponent(uid));
+        const response = await fetch(`${scriptUrl}?action=getProfile&uid=${encodeURIComponent(uid)}`, { cache: "no-store" });
         if (!response.ok) throw new Error("Profile request failed");
-
         const result = await response.json();
         if (result.status === "success") {
-          const parsedRemaining = Number(result.remaining);
-          remainingVotes = Number.isFinite(parsedRemaining) ? parsedRemaining : null;
+          const parsed = Number(result.remaining);
+          remainingVotes = Number.isFinite(parsed) ? parsed : null;
           profileVotes.textContent = result.remaining;
         } else {
           remainingVotes = 0;
           profileVotes.textContent = "0";
         }
       } catch (error) {
-        console.error("Error fetching profile", error);
+        console.error(error);
         remainingVotes = null;
         profileVotes.textContent = "–";
       } finally {
@@ -686,178 +346,202 @@
     async function fetchImages() {
       setLoadingState("Ielādējam attēlus", "Tas var aizņemt dažas sekundes.", true, false);
       grid.innerHTML = "";
-
       try {
-        const response = await fetch(scriptUrl + "?action=getImages");
+        const response = await fetch(`${scriptUrl}?action=getImages&_=${Date.now()}`, { cache: "no-store" });
         if (!response.ok) throw new Error("Images request failed");
-
         const result = await response.json();
-        if (result.status === "success") {
-          const images = Array.isArray(result.data) ? result.data : [];
-          displayImages(images);
+        if (result.status !== "success") throw new Error(result.message || "Unable to load images");
 
-          if (images.length === 0) {
-            setLoadingState("Pašlaik nav attēlu", "Kad attēli būs pievienoti, tie parādīsies šeit.", false, false);
-          } else {
-            loadingState.hidden = true;
-          }
-        } else {
-          throw new Error(result.message || "Unable to load images");
+        const images = Array.isArray(result.data) ? result.data : [];
+        if (!images.length) {
+          setLoadingState("Pašlaik nav attēlu", "Kad attēli būs pievienoti, tie parādīsies šeit.", false, false);
+          return;
         }
+
+        // Paslēpjam ielādes paneli uzreiz pēc datu saņemšanas, pirms attēlu dekodēšanas.
+        loadingState.hidden = true;
+        displayImages(images);
       } catch (error) {
-        console.error("Error fetching images", error);
+        console.error(error);
         setLoadingState("Attēlus neizdevās ielādēt", "Pārbaudi interneta savienojumu un mēģini vēlreiz.", false, true);
       }
     }
 
-    function closeSelectedImage() {
-      if (!selectedContainer) return;
-
-      selectedContainer.classList.remove("selected");
-      selectedContainer.setAttribute("aria-expanded", "false");
-      selectedContainer = null;
-      selectionBackdrop.classList.remove("visible");
-      document.body.classList.remove("modal-open");
-    }
-
-    function openSelectedImage(container) {
-      if (selectedContainer && selectedContainer !== container) {
-        selectedContainer.classList.remove("selected");
-        selectedContainer.setAttribute("aria-expanded", "false");
-      }
-
-      selectedContainer = container;
-      container.classList.add("selected");
-      container.setAttribute("aria-expanded", "true");
-      selectionBackdrop.classList.add("visible");
-      document.body.classList.add("modal-open");
-
-      const closeButton = container.querySelector(".close-button");
-      window.setTimeout(() => closeButton?.focus({ preventScroll: true }), 80);
-    }
-
-    function toggleSelectedImage(container) {
-      if (container.classList.contains("selected")) {
-        closeSelectedImage();
-      } else {
-        openSelectedImage(container);
-      }
-    }
-
     function displayImages(images) {
-      grid.innerHTML = "";
-
+      const fragment = document.createDocumentFragment();
       images.forEach((image, index) => {
-        const container = document.createElement("article");
-        container.className = "image-container";
-        container.dataset.imageUrl = image.imageUrl;
-        container.dataset.votes = image.votes;
-        container.setAttribute("role", "button");
-        container.setAttribute("tabindex", "0");
-        container.setAttribute("aria-label", `Atvērt attēlu ${index + 1}`);
-        container.setAttribute("aria-expanded", "false");
+        const card = document.createElement("article");
+        card.className = "image-card";
+        card.dataset.imageUrl = image.imageUrl;
+        card.dataset.votes = image.votes ?? 0;
+        card.tabIndex = 0;
+        card.setAttribute("role", "button");
+        card.setAttribute("aria-label", `Atvērt attēlu ${index + 1}`);
 
         const img = document.createElement("img");
         img.src = image.imageUrl;
         img.alt = `Simpatijas balvas dalībnieks ${index + 1}`;
         img.loading = index < 4 ? "eager" : "lazy";
         img.decoding = "async";
-        img.addEventListener("error", () => container.classList.add("image-error"));
-        container.appendChild(img);
+        img.addEventListener("error", () => card.classList.add("image-error"));
 
-        const voteCount = document.createElement("div");
-        voteCount.className = "vote-count";
-        voteCount.setAttribute("aria-label", "Balsu skaits");
-        voteCount.textContent = (typeof image.votes !== "undefined" && image.votes !== null) ? image.votes : 0;
-        container.appendChild(voteCount);
+        const count = document.createElement("div");
+        count.className = "vote-count";
+        count.textContent = image.votes ?? 0;
 
-        const openLabel = document.createElement("span");
-        openLabel.className = "open-label";
-        openLabel.textContent = "Atvērt un balsot";
-        container.appendChild(openLabel);
+        const label = document.createElement("span");
+        label.className = "open-label";
+        label.textContent = "Atvērt un balsot";
 
-        const closeButton = document.createElement("button");
-        closeButton.className = "close-button";
-        closeButton.type = "button";
-        closeButton.setAttribute("aria-label", "Aizvērt attēlu");
-        closeButton.innerHTML = "&times;";
-        closeButton.addEventListener("click", (event) => {
-          event.stopPropagation();
-          closeSelectedImage();
-        });
-        container.appendChild(closeButton);
-
-        const voteButton = document.createElement("button");
-        voteButton.className = "vote-button";
-        voteButton.type = "button";
-        voteButton.textContent = "Balsot par šo attēlu";
-        voteButton.dataset.busy = "false";
-        voteButton.addEventListener("click", async (event) => {
-          event.stopPropagation();
-          if (voteButton.disabled) return;
-
-          voteButton.dataset.busy = "true";
-          voteButton.disabled = true;
-          voteButton.textContent = "Balso...";
-
-          const success = await voteForImage(container.dataset.imageUrl, container, voteCount, uid);
-
-          voteButton.dataset.busy = "false";
-          if (success) {
-            showToast("Tava balss ir saglabāta", "success");
-            closeSelectedImage();
-            await fetchProfile();
-          } else {
-            syncVoteAvailability();
-          }
-        });
-        container.appendChild(voteButton);
-
-        container.addEventListener("click", () => toggleSelectedImage(container));
-        container.addEventListener("keydown", (event) => {
+        card.append(img, count, label);
+        card.addEventListener("click", () => openViewer(card, count));
+        card.addEventListener("keydown", event => {
           if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
-            toggleSelectedImage(container);
+            openViewer(card, count);
           }
         });
-
-        grid.appendChild(container);
+        fragment.appendChild(card);
       });
-
-      syncVoteAvailability();
+      grid.appendChild(fragment);
     }
 
-    async function voteForImage(imageUrl, container, voteCountElement, voterUid) {
+    function targetRect() {
+      const margin = innerWidth <= 480 ? 10 : 24;
+      const maxW = Math.min(innerWidth - margin * 2, 760);
+      const maxH = Math.min(innerHeight * .80, 760);
+      return { left: (innerWidth - maxW) / 2, top: (innerHeight - maxH) / 2, width: maxW, height: maxH };
+    }
+
+    function applyRect(rect) {
+      viewerCard.style.left = `${rect.left}px`;
+      viewerCard.style.top = `${rect.top}px`;
+      viewerCard.style.width = `${rect.width}px`;
+      viewerCard.style.height = `${rect.height}px`;
+    }
+
+    function openViewer(card, count) {
+      if (activeCard || closing) return;
+      activeCard = card;
+      activeVoteCount = count;
+      viewerImage.src = card.dataset.imageUrl;
+      viewerImage.alt = card.querySelector("img")?.alt || "Atvērtais attēls";
+      voteButton.dataset.busy = "false";
+      syncVoteAvailability();
+
+      const start = card.getBoundingClientRect();
+      viewer.classList.add("visible");
+      viewer.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+      viewerCard.style.borderRadius = getComputedStyle(card).borderRadius;
+      applyRect(start);
+      viewerCard.getBoundingClientRect();
+
+      requestAnimationFrame(() => {
+        viewer.classList.add("ready");
+        viewerCard.style.borderRadius = "28px";
+        applyRect(targetRect());
+      });
+    }
+
+    function closeViewer(animated = true) {
+      if (!activeCard || closing) return;
+      closing = true;
+      dragging = false;
+      dragY = 0;
+      viewerCard.classList.remove("dragging");
+      viewerCard.style.transform = "translate3d(0,0,0) scale(1)";
+      viewer.classList.remove("ready");
+
+      const finish = () => {
+        viewer.classList.remove("visible");
+        viewer.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("modal-open");
+        viewerImage.removeAttribute("src");
+        activeCard = null;
+        activeVoteCount = null;
+        closing = false;
+      };
+
+      if (!animated) return finish();
+      const end = activeCard.getBoundingClientRect();
+      viewerCard.style.borderRadius = getComputedStyle(activeCard).borderRadius;
+      applyRect(end);
+      window.setTimeout(finish, 430);
+    }
+
+    function onPointerDown(event) {
+      if (!activeCard || event.target.closest("button")) return;
+      dragging = true;
+      dragStartY = event.clientY;
+      dragY = 0;
+      viewerCard.classList.add("dragging");
+      viewerCard.setPointerCapture?.(event.pointerId);
+    }
+
+    function onPointerMove(event) {
+      if (!dragging) return;
+      dragY = Math.max(0, event.clientY - dragStartY);
+      const progress = Math.min(dragY / 420, 1);
+      const scale = 1 - progress * .18;
+      viewerCard.style.transform = `translate3d(0,${dragY}px,0) scale(${scale})`;
+      viewerBackdrop.style.opacity = String(1 - progress * .85);
+    }
+
+    function onPointerUp(event) {
+      if (!dragging) return;
+      dragging = false;
+      viewerCard.releasePointerCapture?.(event.pointerId);
+      viewerCard.classList.remove("dragging");
+      viewerBackdrop.style.removeProperty("opacity");
+      if (dragY > 120) {
+        closeViewer(true);
+      } else {
+        viewerCard.style.transform = "translate3d(0,0,0) scale(1)";
+      }
+      dragY = 0;
+    }
+
+    async function voteForActiveImage() {
+      if (!activeCard || voteButton.disabled) return;
+      voteButton.dataset.busy = "true";
+      voteButton.disabled = true;
+      voteButton.textContent = "Balso...";
       try {
         const response = await fetch(scriptUrl, {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: `action=vote&imageUrl=${encodeURIComponent(imageUrl)}&uid=${encodeURIComponent(voterUid)}`
+          body: `action=vote&imageUrl=${encodeURIComponent(activeCard.dataset.imageUrl)}&uid=${encodeURIComponent(uid)}`
         });
-
         if (!response.ok) throw new Error("Vote request failed");
-
         const result = await response.json();
-        if (result.status === "success") {
-          container.dataset.votes = result.votes;
-          voteCountElement.textContent = result.votes;
-          return true;
+        if (result.status !== "success") {
+          showToast(result.message || "Balsojumu neizdevās saglabāt", "error");
+          return;
         }
-
-        showToast(result.message || "Balsojumu neizdevās saglabāt", "error");
-        return false;
+        activeCard.dataset.votes = result.votes;
+        activeVoteCount.textContent = result.votes;
+        showToast("Tava balss ir saglabāta", "success");
+        closeViewer(true);
+        await fetchProfile();
       } catch (error) {
-        console.error("Error voting", error);
+        console.error(error);
         showToast("Savienojuma kļūda. Mēģini vēlreiz.", "error");
-        return false;
+      } finally {
+        voteButton.dataset.busy = "false";
+        syncVoteAvailability();
       }
     }
 
-    selectionBackdrop.addEventListener("click", closeSelectedImage);
-
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") closeSelectedImage();
-    });
+    closeButton.addEventListener("click", () => closeViewer(true));
+    viewerBackdrop.addEventListener("click", () => closeViewer(true));
+    voteButton.addEventListener("click", voteForActiveImage);
+    viewerCard.addEventListener("pointerdown", onPointerDown);
+    viewerCard.addEventListener("pointermove", onPointerMove);
+    viewerCard.addEventListener("pointerup", onPointerUp);
+    viewerCard.addEventListener("pointercancel", onPointerUp);
+    window.addEventListener("resize", () => { if (activeCard && !dragging) applyRect(targetRect()); });
+    document.addEventListener("keydown", event => { if (event.key === "Escape") closeViewer(true); });
 
     document.addEventListener("DOMContentLoaded", () => {
       fetchProfile();
