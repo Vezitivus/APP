@@ -1,0 +1,35 @@
+name: Update solo player limit
+
+on:
+  push:
+    paths:
+      - '.github/workflows/update-solo-player-limit.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Change player limit to 200
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('solo.html')
+          text = path.read_text(encoding='utf-8')
+          old = 'Array.from({length:100}'
+          new = 'Array.from({length:200}'
+          if old not in text:
+              raise SystemExit('Expected player limit was not found')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+          rm .github/workflows/update-solo-player-limit.yml
+      - name: Commit update
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add solo.html .github/workflows/update-solo-player-limit.yml
+          git commit -m 'Increase solo player limit to 200'
+          git push
