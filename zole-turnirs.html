@@ -8,7 +8,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="format-detection" content="telephone=no">
   <title>Zoles turnīrs</title>
-  <link rel="stylesheet" href="zole-turnirs.css?v=2.0">
+  <link rel="stylesheet" href="zole-turnirs.css?v=3.0">
+  <link rel="stylesheet" href="zole-turnirs-pdf-v3.css?v=3.0">
 </head>
 <body>
   <header class="app-header">
@@ -33,7 +34,7 @@
       <div class="grid-2">
         <div>
           <article class="card">
-            <div class="card-head"><h2>Turnīra iestatījumi</h2><p>Nosaukums parādīsies aplikācijā un PDF atskaitē.</p></div>
+            <div class="card-head"><h2>Turnīra iestatījumi</h2><p>Nosaukums un logo parādīsies aplikācijā un PDF atskaitē.</p></div>
             <div class="card-body"><label>Turnīra nosaukums<input id="tournamentName" type="text" maxlength="80" placeholder="Piemēram: Zoles turnīrs 2026"></label></div>
           </article>
 
@@ -95,7 +96,7 @@
       <div class="grid-2">
         <div>
           <article class="card">
-            <div class="card-head"><h2>PDF atskaite</h2><p>Iekļauta reģistrācija ar laika zīmogiem, visu kārtu rezultāti un aktuālais kopvērtējums.</p></div>
+            <div class="card-head"><h2>PDF atskaite</h2><p>Profesionāls kopvērtējums, reģistrācija ar laika zīmogiem un visu kārtu rezultāti.</p></div>
             <div class="card-body"><button id="printBtn" class="btn btn-primary btn-wide">Eksportēt PDF</button><div class="notice">Atvērsies drukas logs. Izvēlies <strong>Saglabāt kā PDF</strong>.</div></div>
           </article>
           <article class="card">
@@ -116,9 +117,10 @@
   <div id="modalRoot" class="hidden"></div>
   <div id="toast" role="status" aria-live="polite"></div>
 
-  <script src="zole-turnirs-core.js?v=2.0"></script>
-  <script src="zole-turnirs-render.js?v=2.0"></script>
-  <script src="zole-turnirs-report.js?v=2.0"></script>
-  <script src="zole-turnirs-events.js?v=2.0"></script>
+  <script src="zole-turnirs-core.js?v=3.0"></script>
+  <script src="zole-turnirs-render.js?v=3.0"></script>
+  <script src="zole-turnirs-report.js?v=3.0"></script>
+  <script src="zole-turnirs-events.js?v=3.0"></script>
+  <script src="zole-turnirs-branding-v3.js?v=3.0"></script>
 </body>
 </html>
