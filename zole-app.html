@@ -8,6 +8,51 @@
   if(!match)throw new Error('Aplikācijas dati nav atrasti');
   const bin=atob(match[1]);const bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
   let html=new TextDecoder().decode(window.pako.ungzip(bytes));
+
+  const scoringFunction = `    function calculateBigPoints(scores) {
+      if (!scores.length || scores.some(score => !Number.isFinite(score))) return null;
+
+      const placePoints = scores.length === 3
+        ? [6, 4, 2]
+        : scores.length === 4
+          ? [6, 4, 2, 0]
+          : null;
+
+      if (!placePoints) throw new Error('Neatbalstīts galda spēlētāju skaits.');
+
+      if (scores.length === 4 && scores.every(score => score === scores[0])) {
+        return [2, 2, 2, 2];
+      }
+
+      const result = Array(scores.length).fill(0);
+      const ordered = scores
+        .map((score, originalIndex) => ({ score, originalIndex }))
+        .sort((a, b) => b.score - a.score);
+
+      let start = 0;
+      while (start < ordered.length) {
+        let end = start + 1;
+        while (end < ordered.length && ordered[end].score === ordered[start].score) end += 1;
+
+        const sharedPoints = placePoints
+          .slice(start, end)
+          .reduce((sum, points) => sum + points, 0) / (end - start);
+
+        for (let index = start; index < end; index += 1) {
+          result[ordered[index].originalIndex] = sharedPoints;
+        }
+        start = end;
+      }
+
+      return result;
+    }`;
+
+  const updatedHtml = html.replace(
+    /    function calculateBigPoints\(scores\) \{[\s\S]*?\n    \}\n\n    function evaluateTable\(table\)/,
+    scoringFunction + '\n\n    function evaluateTable(table)'
+  );
+  if (updatedHtml === html) throw new Error('Lielo punktu loģiku neizdevās atjaunināt');
+  html = updatedHtml;
   const patch=atob('KCgpPT57CiAgY29uc3QgY3NzPWRvY3VtZW50LmNyZWF0ZUVsZW1lbnQoJ3N0eWxlJyk7CiAgY3NzLnRleHRDb250ZW50PWAuc2NvcmUtaGVhZCwuc2NvcmUtcm93e2dyaWQtdGVtcGxhdGUtY29sdW1uczptaW5tYXgoMCwxZnIpIDEzMnB4IDYycHghaW1wb3J0YW50fS5zaWduZWQtc2NvcmV7ZGlzcGxheTpncmlkO2dyaWQtdGVtcGxhdGUtY29sdW1uczo0MnB4IG1pbm1heCgwLDFmcik7Z2FwOjZweDthbGlnbi1pdGVtczpjZW50ZXJ9LnNpZ25lZC1zY29yZSAuc2NvcmUtaW5wdXR7bWluLXdpZHRoOjB9Lm1pbnVzLXRvZ2dsZXttaW4td2lkdGg6NDJweDttaW4taGVpZ2h0OjQycHg7Ym9yZGVyOjFweCBzb2xpZCAjY2JkNWNmO2JvcmRlci1yYWRpdXM6MTBweDtiYWNrZ3JvdW5kOiNmNGY2ZjU7Y29sb3I6IzY2NzM2ZDtmb250LXNpemU6MjVweDtmb250LXdlaWdodDo5MDA7bGluZS1oZWlnaHQ6MX0ubWludXMtdG9nZ2xlLmFjdGl2ZXtjb2xvcjojZmZmO2JvcmRlci1jb2xvcjojYjQyMzE4O2JhY2tncm91bmQ6I2I0MjMxOH0ubWludXMtdG9nZ2xlOmRpc2FibGVke29wYWNpdHk6LjQ1fWA7CiAgZG9jdW1lbnQuaGVhZC5hcHBlbmRDaGlsZChjc3MpOwogIGZ1bmN0aW9uIGVuaGFuY2UoKXsKICAgIGRvY3VtZW50LnF1ZXJ5U2VsZWN0b3JBbGwoJ2lucHV0W2RhdGEtc2NvcmUtaW5wdXRdJykuZm9yRWFjaChpbnB1dD0+ewogICAgICBpZihpbnB1dC5wYXJlbnRFbGVtZW50JiZpbnB1dC5wYXJlbnRFbGVtZW50LmNsYXNzTGlzdC5jb250YWlucygnc2lnbmVkLXNjb3JlJykpcmV0dXJuOwogICAgICBjb25zdCB3cmFwPWRvY3VtZW50LmNyZWF0ZUVsZW1lbnQoJ2RpdicpO3dyYXAuY2xhc3NOYW1lPSdzaWduZWQtc2NvcmUnOwogICAgICBpbnB1dC5wYXJlbnROb2RlLmluc2VydEJlZm9yZSh3cmFwLGlucHV0KTt3cmFwLmFwcGVuZENoaWxkKGlucHV0KTsKICAgICAgY29uc3QgYnRuPWRvY3VtZW50LmNyZWF0ZUVsZW1lbnQoJ2J1dHRvbicpO2J0bi50eXBlPSdidXR0b24nO2J0bi5jbGFzc05hbWU9J21pbnVzLXRvZ2dsZSc7YnRuLnRleHRDb250ZW50PSfiiJInO2J0bi5zZXRBdHRyaWJ1dGUoJ2FyaWEtbGFiZWwnLCdNYWluxKt0IHJlenVsdMSBdGEgesSrbWknKTtidG4uZGlzYWJsZWQ9aW5wdXQuZGlzYWJsZWQ7CiAgICAgIHdyYXAuaW5zZXJ0QmVmb3JlKGJ0bixpbnB1dCk7CiAgICAgIGNvbnN0IHN5bmM9KCk9PmJ0bi5jbGFzc0xpc3QudG9nZ2xlKCdhY3RpdmUnLE51bWJlcihpbnB1dC52YWx1ZSk8MCk7c3luYygpOwogICAgICBidG4uYWRkRXZlbnRMaXN0ZW5lcignY2xpY2snLCgpPT57CiAgICAgICAgY29uc3QgcmF3PWlucHV0LnZhbHVlLnRyaW0oKTsKICAgICAgICBpZihyYXc9PT0nJyl7aW5wdXQuZm9jdXMoKTtyZXR1cm47fQogICAgICAgIGNvbnN0IG49TnVtYmVyKHJhdyk7aWYoIU51bWJlci5pc0Zpbml0ZShuKSlyZXR1cm47CiAgICAgICAgaW5wdXQudmFsdWU9U3RyaW5nKG49PT0wPzA6LW4pOwogICAgICAgIGlucHV0LmRpc3BhdGNoRXZlbnQobmV3IEV2ZW50KCdpbnB1dCcse2J1YmJsZXM6dHJ1ZX0pKTsKICAgICAgfSk7CiAgICB9KTsKICB9CiAgbmV3IE11dGF0aW9uT2JzZXJ2ZXIoZW5oYW5jZSkub2JzZXJ2ZShkb2N1bWVudC5kb2N1bWVudEVsZW1lbnQse2NoaWxkTGlzdDp0cnVlLHN1YnRyZWU6dHJ1ZX0pOwogIGlmKGRvY3VtZW50LnJlYWR5U3RhdGU9PT0nbG9hZGluZycpZG9jdW1lbnQuYWRkRXZlbnRMaXN0ZW5lcignRE9NQ29udGVudExvYWRlZCcsZW5oYW5jZSk7ZWxzZSBlbmhhbmNlKCk7Cn0pKCk7');
   html=html.replace('</body>','<script>'+patch.replace(/<\/script/gi,'<\\/script')+'<\/script></body>');
   document.open();document.write(html);document.close();
