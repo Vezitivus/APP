@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#10261f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="format-detection" content="telephone=no">
+  <title>Zoles turnīrs</title>
+  <link rel="stylesheet" href="zole-turnirs.css?v=2.0">
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand">
+        <h1 id="headerTitle">Zoles turnīrs</h1>
+        <p>Automātiski saglabāts šajā ierīcē</p>
+      </div>
+      <div class="status-pill" id="headerStatus">Reģistrācija</div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <nav class="tabs" aria-label="Aplikācijas sadaļas">
+      <button class="tab-btn active" data-view="registration">Reģistrācija<span class="tab-count" id="tabPlayers">0 spēlētāji</span></button>
+      <button class="tab-btn" data-view="round">Kārta<span class="tab-count" id="tabRound">Nav sākta</span></button>
+      <button class="tab-btn" data-view="leaderboard">Rezultāti<span class="tab-count" id="tabLeader">Aktuāli</span></button>
+      <button class="tab-btn" data-view="archive">Atskaites<span class="tab-count">PDF / vēsture</span></button>
+    </nav>
+
+    <section class="view active" id="view-registration">
+      <div class="grid-2">
+        <div>
+          <article class="card">
+            <div class="card-head"><h2>Turnīra iestatījumi</h2><p>Nosaukums parādīsies aplikācijā un PDF atskaitē.</p></div>
+            <div class="card-body"><label>Turnīra nosaukums<input id="tournamentName" type="text" maxlength="80" placeholder="Piemēram: Zoles turnīrs 2026"></label></div>
+          </article>
+
+          <article class="card" id="registrationFormCard">
+            <div class="card-head"><h2>Pievienot spēlētāju</h2><p>Spēlētāji 1. kārtā tiks sadalīti reģistrācijas secībā.</p></div>
+            <div class="card-body">
+              <form id="registrationForm" class="form-row" autocomplete="off">
+                <label>Vārds un uzvārds<input id="playerName" type="text" maxlength="80" required placeholder="Ievadi spēlētāja vārdu"></label>
+                <button class="btn btn-primary" type="submit">Reģistrēt</button>
+              </form>
+              <div id="registrationNotice" class="notice hidden"></div>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-head"><h2>Turnīra vadība</h2><p>Derīgi spēlētāju skaiti sadalījumam pa 3 un 4 spēlētāju galdiem.</p></div>
+            <div class="card-body"><button id="startTournamentBtn" class="btn btn-primary btn-wide">Sākt 1. kārtu</button><div id="startHelp" class="notice"></div></div>
+          </article>
+        </div>
+
+        <article class="card">
+          <div class="card-head"><h2>Reģistrētie spēlētāji</h2><p id="playersSubtitle">Nav reģistrētu spēlētāju.</p></div>
+          <div class="card-body"><div id="playerList" class="player-list"></div></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="view" id="view-round">
+      <div id="roundEmpty" class="card"><div class="empty-state">Vispirms reģistrē spēlētājus un sāc turnīru.</div></div>
+      <div id="roundContent" class="hidden">
+        <div class="summary-strip">
+          <div class="metric"><div class="metric-label">Aktīvā kārta</div><div class="metric-value" id="metricRound">1</div></div>
+          <div class="metric"><div class="metric-label">Galdi</div><div class="metric-value" id="metricTables">0</div></div>
+          <div class="metric"><div class="metric-label">Aizpildīti</div><div class="metric-value" id="metricCompleted">0/0</div></div>
+        </div>
+        <div class="round-toolbar">
+          <div><h2 id="roundTitle">1. kārta</h2><p id="roundDescription">Sadalījums reģistrācijas secībā.</p></div>
+          <div class="action-row" style="min-width:min(100%,360px)">
+            <button id="finishRoundBtn" class="btn btn-primary">Pabeigt kārtu</button>
+            <button id="nextRoundBtn" class="btn btn-primary hidden">Nākamā kārta</button>
+          </div>
+        </div>
+        <div id="roundNotice" class="notice hidden"></div>
+        <div id="tablesGrid" class="tables-grid"></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-leaderboard">
+      <article class="card">
+        <div class="card-head"><h2>Aktuālais kopvērtējums <span id="provisionalBadge" class="provisional hidden">IESKAITOT AKTĪVOS GALDUS</span></h2><p>Vieta tiek noteikta pēc lielo punktu summas, pēc tam pēc zoles punktu summas.</p></div>
+        <div class="leaderboard-wrap">
+          <table class="leaderboard"><thead><tr><th>Vieta</th><th>Spēlētājs</th><th>Lielie</th><th>Zoles</th><th>Kārtas</th></tr></thead><tbody id="leaderboardBody"></tbody></table>
+        </div>
+        <div id="leaderboardEmpty" class="empty-state">Pagaidām nav rezultātu.</div>
+      </article>
+    </section>
+
+    <section class="view" id="view-archive">
+      <div class="grid-2">
+        <div>
+          <article class="card">
+            <div class="card-head"><h2>PDF atskaite</h2><p>Iekļauta reģistrācija ar laika zīmogiem, visu kārtu rezultāti un aktuālais kopvērtējums.</p></div>
+            <div class="card-body"><button id="printBtn" class="btn btn-primary btn-wide">Eksportēt PDF</button><div class="notice">Atvērsies drukas logs. Izvēlies <strong>Saglabāt kā PDF</strong>.</div></div>
+          </article>
+          <article class="card">
+            <div class="card-head"><h2>Datu rezerves kopija</h2><p>JSON fails ļauj pārcelt vai atjaunot turnīru citā ierīcē.</p></div>
+            <div class="card-body"><div class="action-row"><button id="exportJsonBtn" class="btn btn-secondary">Lejupielādēt datus</button><button id="importJsonBtn" class="btn btn-ghost">Importēt datus</button><input id="importJsonFile" class="hidden" type="file" accept="application/json,.json"></div></div>
+          </article>
+          <article class="card danger-zone">
+            <div class="card-head"><h2>Notīrīt aplikāciju</h2><p>Dzēsīs reģistrāciju, visas kārtas un rezultātus no šīs ierīces.</p></div>
+            <div class="card-body"><button id="resetBtn" class="btn btn-danger btn-wide">Dzēst visu turnīru</button></div>
+          </article>
+        </div>
+        <article class="card"><div class="card-head"><h2>Kārtu vēsture</h2><p>Visi saglabātie galdi un rezultāti.</p></div><div class="card-body"><div id="historyList" class="history-list"></div></div></article>
+      </div>
+    </section>
+  </main>
+
+  <section id="printReport" aria-hidden="true"></section>
+  <div id="modalRoot" class="hidden"></div>
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script src="zole-turnirs-core.js?v=2.0"></script>
+  <script src="zole-turnirs-render.js?v=2.0"></script>
+  <script src="zole-turnirs-report.js?v=2.0"></script>
+  <script src="zole-turnirs-events.js?v=2.0"></script>
+</body>
+</html>
