@@ -245,53 +245,84 @@
     }).join('');
   }
 
+  function chunkRows(items, size) {
+    const chunks = [];
+    for (let index = 0; index < items.length; index += size) chunks.push(items.slice(index, index + size));
+    return chunks.length ? chunks : [[]];
+  }
+
   buildPrintReport = function buildProfessionalPrintReport() {
     const { rows: leaderboard, hasDraftScores } = getLeaderboard(true);
     const generatedAt = new Date().toISOString();
     const finalizedRounds = state.rounds.filter(round => round.finalized).length;
     const status = hasDraftScores ? 'PROVIZORISKS KOPVĒRTĒJUMS' : 'AKTUĀLAIS KOPVĒRTĒJUMS';
+    const pages = [];
 
-    const leaderboardPage = `
-      <section class="pdf-page pdf-cover-page">
-        ${reportHeader('TURNĪRA REZULTĀTI')}
-        <div class="pdf-page-meta">
-          <span>${status}</span>
-          <span>${state.players.length} SPĒLĒTĀJI</span>
-          <span>${finalizedRounds} PABEIGTAS KĀRTAS</span>
-        </div>
-        <div class="pdf-content pdf-content-main">
-          ${mainLeaderboardTable(leaderboard)}
-        </div>
-        ${reportFooter('KOPVĒRTĒJUMS', generatedAt)}
-      </section>`;
+    const leaderboardChunks = chunkRows(leaderboard, 18);
+    leaderboardChunks.forEach((rows, pageIndex) => {
+      pages.push(`
+        <section class="pdf-page pdf-cover-page">
+          ${reportHeader(pageIndex === 0 ? 'TURNĪRA REZULTĀTI' : 'KOPVĒRTĒJUMA TURPINĀJUMS')}
+          <div class="pdf-page-meta">
+            <span>${status}</span>
+            <span>${state.players.length} SPĒLĒTĀJI</span>
+            <span>${finalizedRounds} PABEIGTAS KĀRTAS</span>
+            ${leaderboardChunks.length > 1 ? `<span>${pageIndex + 1}/${leaderboardChunks.length} LAPA</span>` : ''}
+          </div>
+          <div class="pdf-content pdf-content-main">${mainLeaderboardTable(rows)}</div>
+          ${reportFooter(`KOPVĒRTĒJUMS${leaderboardChunks.length > 1 ? ` · ${pageIndex + 1}/${leaderboardChunks.length}` : ''}`, generatedAt)}
+        </section>`);
+    });
 
-    const registrationPage = `
-      <section class="pdf-page">
-        ${reportHeader('TURNĪRA ATSKAITE')}
-        <div class="pdf-section-heading">
-          <div><span>01</span><h2>REĢISTRĀCIJA</h2></div>
-          <p>${state.players.length} DALĪBNIEKI</p>
-        </div>
-        <div class="pdf-content">${registrationTable()}</div>
-        <div class="pdf-info-strip">
-          <div><small>TURNĪRS IZVEIDOTS</small><strong>${formatDateTime(state.tournament.createdAt)}</strong></div>
-          <div><small>TURNĪRS SĀKTS</small><strong>${formatDateTime(state.tournament.startedAt)}</strong></div>
-        </div>
-        ${reportFooter('REĢISTRĀCIJAS SARAKSTS', generatedAt)}
-      </section>`;
+    const registeredPlayers = [...state.players].sort((a, b) => a.registrationNo - b.registrationNo);
+    const registrationChunks = chunkRows(registeredPlayers, 23);
+    registrationChunks.forEach((players, pageIndex) => {
+      const rows = players.map(player => `
+        <tr>
+          <td class="pdf-place">${player.registrationNo}.</td>
+          <td class="pdf-name">${escapeHtml(player.name.toLocaleUpperCase('lv-LV'))}</td>
+          <td>${formatDateTime(player.registeredAt)}</td>
+        </tr>`).join('');
+      pages.push(`
+        <section class="pdf-page">
+          ${reportHeader(pageIndex === 0 ? 'TURNĪRA ATSKAITE' : 'REĢISTRĀCIJAS TURPINĀJUMS')}
+          <div class="pdf-section-heading">
+            <div><span>01</span><h2>REĢISTRĀCIJA</h2></div>
+            <p>${state.players.length} DALĪBNIEKI${registrationChunks.length > 1 ? ` · ${pageIndex + 1}/${registrationChunks.length}` : ''}</p>
+          </div>
+          <div class="pdf-content">
+            <table class="pdf-table">
+              <thead><tr><th>NR.</th><th>VĀRDS</th><th>REĢISTRĀCIJAS LAIKS</th></tr></thead>
+              <tbody>${rows || '<tr><td colspan="3" class="pdf-empty">Nav reģistrētu spēlētāju.</td></tr>'}</tbody>
+            </table>
+          </div>
+          ${pageIndex === registrationChunks.length - 1 ? `
+            <div class="pdf-info-strip">
+              <div><small>TURNĪRS IZVEIDOTS</small><strong>${formatDateTime(state.tournament.createdAt)}</strong></div>
+              <div><small>TURNĪRS SĀKTS</small><strong>${formatDateTime(state.tournament.startedAt)}</strong></div>
+            </div>` : ''}
+          ${reportFooter(`REĢISTRĀCIJAS SARAKSTS${registrationChunks.length > 1 ? ` · ${pageIndex + 1}/${registrationChunks.length}` : ''}`, generatedAt)}
+        </section>`);
+    });
 
-    const roundsPages = state.rounds.map((round, index) => `
-      <section class="pdf-page">
-        ${reportHeader('KĀRTU REZULTĀTI')}
-        <div class="pdf-section-heading">
-          <div><span>${String(index + 2).padStart(2, '0')}</span><h2>${round.number}. KĀRTA</h2></div>
-          <p>${round.finalized ? `PABEIGTA ${formatDateTime(round.finalizedAt)}` : 'AKTĪVA / NEPABEIGTA'}</p>
-        </div>
-        <div class="pdf-content pdf-rounds-content">${roundTables(round)}</div>
-        ${reportFooter(`${round.number}. KĀRTA · ${round.tables.length} GALDI`, generatedAt)}
-      </section>`).join('');
+    state.rounds.forEach((round, roundIndex) => {
+      const tableChunks = chunkRows(round.tables, 8);
+      tableChunks.forEach((tables, pageIndex) => {
+        const partialRound = { ...round, tables };
+        pages.push(`
+          <section class="pdf-page">
+            ${reportHeader(pageIndex === 0 ? 'KĀRTU REZULTĀTI' : `${round.number}. KĀRTAS TURPINĀJUMS`)}
+            <div class="pdf-section-heading">
+              <div><span>${String(roundIndex + 2).padStart(2, '0')}</span><h2>${round.number}. KĀRTA</h2></div>
+              <p>${round.finalized ? `PABEIGTA ${formatDateTime(round.finalizedAt)}` : 'AKTĪVA / NEPABEIGTA'}${tableChunks.length > 1 ? ` · ${pageIndex + 1}/${tableChunks.length}` : ''}</p>
+            </div>
+            <div class="pdf-content pdf-rounds-content">${roundTables(partialRound)}</div>
+            ${reportFooter(`${round.number}. KĀRTA · ${round.tables.length} GALDI${tableChunks.length > 1 ? ` · ${pageIndex + 1}/${tableChunks.length}` : ''}`, generatedAt)}
+          </section>`);
+      });
+    });
 
-    refs.printReport.innerHTML = `<div class="pdf-document">${leaderboardPage}${registrationPage}${roundsPages}</div>`;
+    refs.printReport.innerHTML = `<div class="pdf-document">${pages.join('')}</div>`;
   };
 
   const originalRenderAll = renderAll;
