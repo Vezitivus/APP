@@ -1,0 +1,74 @@
+.logo-settings{margin-top:18px;padding-top:18px;border-top:1px solid var(--line)}
+.logo-settings-title{color:var(--ink);font-size:13px;font-weight:850}
+.logo-settings-help{margin-top:4px;color:var(--muted);font-size:12px;line-height:1.45}
+.logo-editor{display:grid;grid-template-columns:minmax(150px,220px) minmax(0,1fr);gap:14px;align-items:center;margin-top:12px}
+.logo-preview{display:grid;place-items:center;min-height:104px;padding:12px;border:1px dashed #b9c7c0;border-radius:13px;background:#fafcfb;overflow:hidden}
+.logo-preview img{display:block;width:100%;height:82px;object-fit:contain}
+.logo-placeholder{text-align:center;color:var(--muted);font-weight:850;letter-spacing:.08em}
+.logo-placeholder span{display:block;font-size:18px}
+.logo-placeholder small{display:block;margin-top:5px;font-size:9px;letter-spacing:.03em}
+.logo-actions{display:flex;flex-wrap:wrap;gap:8px}
+.logo-actions .btn{flex:1 1 145px}
+@media(max-width:560px){.logo-editor{grid-template-columns:1fr}.logo-preview{min-height:116px}.logo-preview img{height:92px}}
+
+@media print{
+  @page{size:A4 portrait;margin:0}
+  html,body{width:210mm;margin:0!important;padding:0!important;background:#fff!important}
+  body.printing{background:#fff!important}
+  body.printing>*:not(#printReport){display:none!important}
+  body.printing #printReport{display:block!important;width:210mm!important;margin:0!important;padding:0!important;color:#07152f!important;background:#fff!important}
+  #printReport,#printReport *{box-sizing:border-box;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  #printReport{font-family:Arial,Helvetica,sans-serif!important;font-size:9pt!important}
+  .pdf-document{width:210mm;background:#fff}
+  .pdf-page{position:relative;width:210mm;min-height:297mm;padding:15mm 15mm 14mm;break-after:page;page-break-after:always;overflow:hidden;background:#fff}
+  .pdf-page:last-child{break-after:auto;page-break-after:auto}
+  .pdf-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12mm;min-height:31mm}
+  .pdf-title-lockup{display:flex;align-items:center;min-width:0;gap:7mm}
+  .pdf-slash{display:block;flex:0 0 auto;width:1.3mm;height:31mm;background:#ed1c24;transform:skew(-23deg);transform-origin:center}
+  .pdf-kicker{margin-bottom:2.5mm;color:#ed1c24;font-size:7.5pt;font-weight:800;letter-spacing:.18em}
+  .pdf-header h1{max-width:130mm;margin:0;color:#07152f;font-size:25pt;line-height:.98;font-weight:800;letter-spacing:.035em;text-transform:uppercase}
+  .pdf-logo{display:block;max-width:42mm;max-height:21mm;object-fit:contain;object-position:right top}
+  .pdf-accent-lines{display:flex;align-items:center;justify-content:space-between;margin:6mm 0 12mm;padding:0 8mm}
+  .pdf-accent-lines span{display:block;width:25mm;height:.7mm;background:#ed1c24}
+  .pdf-accent-lines span:last-child{width:10mm}
+  .pdf-page-meta{display:flex;flex-wrap:wrap;gap:4mm 9mm;margin:-4mm 0 8mm;padding:0 0 4mm;border-bottom:.45mm solid #07152f;color:#596071;font-size:7.5pt;font-weight:800;letter-spacing:.08em}
+  .pdf-content{position:relative;z-index:1}
+  .pdf-content-main{margin-top:2mm}
+  .pdf-table{width:100%;border-collapse:collapse;table-layout:fixed;color:#07152f}
+  .pdf-table thead{display:table-header-group}
+  .pdf-table tr{break-inside:avoid;page-break-inside:avoid}
+  .pdf-table th{padding:3mm 2mm 3.4mm;border-bottom:.55mm solid #07152f;color:#07152f;font-size:7.8pt;font-weight:800;letter-spacing:.045em;text-align:left;white-space:nowrap}
+  .pdf-table td{padding:3.25mm 2mm;border-bottom:.25mm solid #d9dce2;font-size:10pt;vertical-align:middle}
+  .pdf-table th:first-child,.pdf-table td:first-child{width:17mm;text-align:center}
+  .pdf-table th:nth-child(3),.pdf-table td:nth-child(3){width:38mm;text-align:center}
+  .pdf-table th:nth-child(4),.pdf-table td:nth-child(4){width:38mm;text-align:center}
+  .pdf-leaderboard-table td{padding-top:3.6mm;padding-bottom:3.6mm}
+  .pdf-place{font-weight:800}
+  .pdf-name{font-weight:700;letter-spacing:.08em;overflow-wrap:anywhere}
+  .pdf-small-score{color:#ed1c24!important;font-size:12pt!important;font-weight:850!important}
+  .pdf-big-score{color:#07152f!important;font-size:11pt!important;font-weight:850!important}
+  .pdf-red-heading{color:#ed1c24!important}
+  .pdf-empty{padding:14mm!important;color:#737988!important;text-align:center!important}
+  .pdf-section-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:8mm;margin-bottom:7mm;padding-bottom:4mm;border-bottom:.55mm solid #07152f}
+  .pdf-section-heading>div{display:flex;align-items:baseline;gap:4mm}
+  .pdf-section-heading span{color:#ed1c24;font-size:8pt;font-weight:850;letter-spacing:.1em}
+  .pdf-section-heading h2{margin:0;color:#07152f;font-size:17pt;font-weight:800;letter-spacing:.06em}
+  .pdf-section-heading p{margin:0;color:#606777;font-size:7.5pt;font-weight:800;letter-spacing:.07em;text-align:right}
+  .pdf-info-strip{display:grid;grid-template-columns:1fr 1fr;gap:7mm;margin-top:9mm;padding:5mm 0;border-top:.35mm solid #d9dce2}
+  .pdf-info-strip div{display:grid;gap:1.5mm}
+  .pdf-info-strip small{color:#ed1c24;font-size:6.8pt;font-weight:850;letter-spacing:.1em}
+  .pdf-info-strip strong{color:#07152f;font-size:8.5pt}
+  .pdf-rounds-content{display:grid;grid-template-columns:1fr 1fr;gap:7mm 8mm;align-items:start}
+  .pdf-table-block{break-inside:avoid;page-break-inside:avoid}
+  .pdf-table-title{display:flex;align-items:center;justify-content:space-between;gap:4mm;margin-bottom:1.5mm}
+  .pdf-table-title span{color:#07152f;font-size:9pt;font-weight:850;letter-spacing:.08em}
+  .pdf-table-title small{color:#ed1c24;font-size:6.4pt;font-weight:850;letter-spacing:.07em}
+  .pdf-round-table th,.pdf-round-table td{padding-left:1.4mm;padding-right:1.4mm}
+  .pdf-round-table th{font-size:6.3pt}
+  .pdf-round-table td{font-size:8.2pt}
+  .pdf-round-table th:first-child,.pdf-round-table td:first-child{width:15mm}
+  .pdf-round-table th:nth-child(3),.pdf-round-table td:nth-child(3),.pdf-round-table th:nth-child(4),.pdf-round-table td:nth-child(4){width:27mm}
+  .pdf-round-table .pdf-small-score{font-size:9pt!important}
+  .pdf-round-table .pdf-big-score{font-size:9pt!important}
+  .pdf-footer{position:absolute;left:15mm;right:15mm;bottom:7mm;display:flex;justify-content:space-between;gap:8mm;padding-top:2.5mm;border-top:.25mm solid #d9dce2;color:#777d89;font-size:6.5pt;font-weight:700;letter-spacing:.045em}
+}
