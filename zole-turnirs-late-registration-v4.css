@@ -1,0 +1,13 @@
+.late-registration-card{border-color:#b9d8cb}
+.late-registration-summary{display:grid;gap:4px;margin-top:12px;padding:11px 12px;border-radius:10px;font-size:12px;line-height:1.4}
+.late-registration-summary.valid{color:var(--success);background:var(--success-soft)}
+.late-registration-summary.invalid{color:var(--danger);background:var(--danger-soft)}
+.late-registration-summary strong{font-size:13px}
+.join-round-badge{display:inline-flex;margin-top:5px;padding:3px 7px;border-radius:999px;color:var(--brand-dark);background:var(--brand-soft);font-size:9px;font-weight:850;letter-spacing:.02em}
+
+@media print{
+  .pdf-registration-table th:first-child,.pdf-registration-table td:first-child{width:14mm}
+  .pdf-registration-table th:nth-child(3),.pdf-registration-table td:nth-child(3){width:50mm;text-align:left}
+  .pdf-registration-table th:nth-child(4),.pdf-registration-table td:nth-child(4){width:27mm;text-align:center}
+  .pdf-registration-table .pdf-join-round{color:#ed1c24!important;font-size:8pt!important;font-weight:850!important;letter-spacing:.04em;white-space:nowrap}
+}
