@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#0b0d10" />
+  <title>YARD — GPS uzmērīšana</title>
+  <link rel="preconnect" href="https://unpkg.com" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQ3ynM8TLiMZ2Kl5OlqaziqmoimwLwQ=" crossorigin="" />
+  <style>
+    :root {
+      --bg:#0b0d10;
+      --panel:rgba(17,20,25,.94);
+      --panel2:#161a20;
+      --text:#f7f8fa;
+      --muted:#8d96a4;
+      --line:#2b323d;
+      --accent:#ff3b30;
+      --accent2:#ff7a00;
+      --good:#2bd576;
+      --warn:#ffb020;
+      --shadow:0 16px 42px rgba(0,0,0,.36);
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{height:100%;margin:0;background:var(--bg);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);overflow:hidden}
+    button,input{font:inherit}
+    button{border:0}
+    #app{position:relative;width:100%;height:100%;overflow:hidden;background:#101318}
+    #map{position:absolute;inset:0;z-index:1;background:#171b20}
+    .leaflet-control-attribution{font-size:9px!important;background:rgba(255,255,255,.8)!important}
+    .leaflet-control-zoom{display:none}
+    .topbar{position:absolute;z-index:500;top:calc(env(safe-area-inset-top) + 12px);left:12px;right:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;pointer-events:none}
+    .brand,.gps-pill,.icon-btn{pointer-events:auto;background:var(--panel);border:1px solid rgba(255,255,255,.08);box-shadow:var(--shadow);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+    .brand{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:16px;font-weight:900;letter-spacing:.11em;font-size:13px}
+    .brand-mark{width:9px;height:22px;border-radius:3px;background:linear-gradient(180deg,var(--accent),var(--accent2));transform:skew(-10deg)}
+    .gps-pill{display:flex;align-items:center;gap:7px;padding:9px 11px;border-radius:999px;font-size:12px;font-weight:800;white-space:nowrap}
+    .gps-dot{width:8px;height:8px;border-radius:50%;background:var(--warn);box-shadow:0 0 0 4px rgba(255,176,32,.14)}
+    .gps-dot.good{background:var(--good);box-shadow:0 0 0 4px rgba(43,213,118,.13)}
+    .gps-dot.bad{background:var(--accent);box-shadow:0 0 0 4px rgba(255,59,48,.13)}
+    .map-tools{position:absolute;z-index:500;right:12px;top:calc(env(safe-area-inset-top) + 66px);display:grid;gap:8px}
+    .icon-btn{width:46px;height:46px;border-radius:15px;color:#fff;display:grid;place-items:center;font-size:20px;cursor:pointer}
+    .icon-btn.active{background:var(--accent);border-color:transparent}
+    .crosshair{position:absolute;z-index:300;left:50%;top:50%;width:28px;height:28px;transform:translate(-50%,-50%);pointer-events:none;opacity:.6;display:none}
+    .crosshair:before,.crosshair:after{content:"";position:absolute;background:#fff;box-shadow:0 1px 5px #000}
+    .crosshair:before{width:28px;height:1px;left:0;top:13px}.crosshair:after{width:1px;height:28px;left:13px;top:0}
+    .measurement{position:absolute;z-index:500;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom) + 160px);pointer-events:none;display:flex;justify-content:center}
+    .measure-card{min-width:188px;max-width:calc(100vw - 24px);background:rgba(9,11,14,.9);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:10px 16px;text-align:center;box-shadow:var(--shadow);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);opacity:0;transform:translateY(10px);transition:.2s ease}
+    .measure-card.show{opacity:1;transform:none}
+    .measure-title{text-transform:uppercase;letter-spacing:.12em;font-size:10px;color:var(--muted);font-weight:900}
+    .measure-value{font-size:28px;font-weight:950;letter-spacing:-.04em;margin-top:2px}
+    .measure-sub{font-size:12px;color:#cbd1d9;font-weight:700;margin-top:1px}
+    .bottom{position:absolute;z-index:600;left:0;right:0;bottom:0;padding:0 12px calc(env(safe-area-inset-bottom) + 12px);pointer-events:none}
+    .sheet{pointer-events:auto;background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:12px;box-shadow:0 -14px 46px rgba(0,0,0,.34);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+    .status-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:2px 4px 10px}
+    .status-title{font-size:13px;font-weight:900}.status-sub{font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .point-count{font-size:12px;color:#dbe0e6;background:#252b34;border-radius:999px;padding:6px 9px;font-weight:800}
+    .actions{display:grid;grid-template-columns:1fr 1fr 1.55fr;gap:8px}
+    .btn{min-height:54px;border-radius:17px;padding:8px 10px;font-weight:900;color:#fff;background:#252b34;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;text-align:center}
+    .btn:disabled{opacity:.35;cursor:not-allowed}.btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 9px 22px rgba(255,59,48,.25)}
+    .btn.danger{background:#3b1c20;color:#ffb1ac}.btn.secondary{background:#20262e}
+    .btn small{font-size:10px;display:block;color:rgba(255,255,255,.67);font-weight:700}
+    .more{display:none;grid-template-columns:1fr 1fr 1fr;gap:8px;padding-top:8px}.more.open{display:grid}
+    .segment-label{background:rgba(7,9,11,.93);color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:4px 7px;font-size:11px;font-weight:900;white-space:nowrap;box-shadow:0 5px 14px rgba(0,0,0,.28)}
+    .segment-label.live{background:var(--accent);border-color:rgba(255,255,255,.25)}
+    .leaflet-div-icon{background:transparent!important;border:0!important}
+    .gps-marker{width:18px;height:18px;background:#198cff;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 7px rgba(25,140,255,.18),0 3px 12px rgba(0,0,0,.35)}
+    .point-marker{width:17px;height:17px;background:#fff;border:4px solid var(--accent);border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.45)}
+    .start-marker{width:20px;height:20px;background:var(--good);border:4px solid #fff;border-radius:50%;box-shadow:0 2px 9px rgba(0,0,0,.45)}
+    .modal-backdrop{position:absolute;inset:0;z-index:1000;background:rgba(0,0,0,.62);display:none;align-items:flex-end;justify-content:center;padding:16px 12px calc(env(safe-area-inset-bottom) + 12px)}
+    .modal-backdrop.show{display:flex}
+    .modal{width:min(520px,100%);background:#14181e;border:1px solid rgba(255,255,255,.1);border-radius:26px;padding:18px;box-shadow:0 30px 90px rgba(0,0,0,.55)}
+    .modal h2{margin:0;font-size:22px}.modal p{margin:6px 0 16px;color:var(--muted);font-size:13px;line-height:1.4}
+    .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+    .summary{background:#20252d;border-radius:16px;padding:12px}.summary span{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:800}.summary strong{display:block;font-size:22px;margin-top:2px}
+    .field-label{display:block;font-size:11px;color:var(--muted);font-weight:800;margin:2px 0 6px}.field{width:100%;background:#0d1014;color:#fff;border:1px solid #333b47;border-radius:15px;padding:13px 14px;outline:none}.field:focus{border-color:var(--accent)}
+    .modal-actions{display:grid;grid-template-columns:1fr 1.4fr;gap:8px;margin-top:12px}
+    .toast{position:absolute;z-index:1200;top:calc(env(safe-area-inset-top) + 70px);left:50%;transform:translate(-50%,-12px);background:#14181e;color:#fff;border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:10px 14px;font-size:12px;font-weight:800;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.2s;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis}.toast.show{opacity:1;transform:translate(-50%,0)}
+    .saved-panel{position:absolute;z-index:800;inset:0;background:var(--bg);display:none;overflow:auto;padding:calc(env(safe-area-inset-top) + 18px) 14px calc(env(safe-area-inset-bottom) + 22px)}
+    .saved-panel.show{display:block}.saved-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}.saved-head h2{margin:0;font-size:24px}.saved-list{display:grid;gap:10px}.saved-item{background:#15191f;border:1px solid #292f38;border-radius:18px;padding:14px}.saved-item-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.saved-item h3{margin:0;font-size:16px}.saved-meta{font-size:12px;color:var(--muted);margin-top:5px}.saved-actions{display:flex;gap:7px;margin-top:12px}.saved-actions button{flex:1;min-height:42px;border-radius:12px;background:#252b34;color:#fff;font-weight:800}.saved-actions .delete{color:#ff9e98;background:#321b1f}
+    .empty{padding:44px 18px;text-align:center;color:var(--muted);border:1px dashed #333b44;border-radius:20px}
+    @media(min-width:700px){.bottom{left:50%;transform:translateX(-50%);width:620px}.measurement{bottom:178px}.topbar{left:50%;transform:translateX(-50%);width:620px}.map-tools{right:calc((100vw - 620px)/2 + 12px)}}
+  </style>
+</head>
+<body>
+<div id="app">
+  <div id="map"></div>
+
+  <div class="topbar">
+    <div class="brand"><span class="brand-mark"></span>YARD</div>
+    <div class="gps-pill"><span id="gpsDot" class="gps-dot"></span><span id="gpsText">GPS meklē…</span></div>
+  </div>
+
+  <div class="map-tools">
+    <button class="icon-btn active" id="followBtn" aria-label="Sekot GPS" title="Sekot GPS">⌖</button>
+    <button class="icon-btn" id="savedBtn" aria-label="Saglabātie mērījumi" title="Saglabātie mērījumi">▤</button>
+    <button class="icon-btn" id="moreBtn" aria-label="Papildu darbības" title="Papildu darbības">•••</button>
+  </div>
+
+  <div class="measurement">
+    <div class="measure-card" id="measureCard">
+      <div class="measure-title">Aktīvā līnija</div>
+      <div class="measure-value" id="liveMeters">0.00 m</div>
+      <div class="measure-sub" id="liveMetric">0 m 0 cm</div>
+    </div>
+  </div>
+
+  <div class="bottom">
+    <div class="sheet">
+      <div class="status-row">
+        <div>
+          <div class="status-title" id="statusTitle">Gaida GPS signālu</div>
+          <div class="status-sub" id="statusSub">Atļauj atrašanās vietas piekļuvi pārlūkā</div>
+        </div>
+        <div class="point-count" id="pointCount">0 punkti</div>
+      </div>
+      <div class="actions">
+        <button class="btn secondary" id="undoBtn" disabled>↶ Atsaukt</button>
+        <button class="btn secondary" id="finishLineBtn" disabled>Beigt līniju</button>
+        <button class="btn primary" id="mainBtn" disabled>Uzlikt sākuma punktu</button>
+      </div>
+      <div class="more" id="moreMenu">
+        <button class="btn secondary" id="closeShapeBtn" disabled>Noslēgt figūru</button>
+        <button class="btn secondary" id="resetBtn">Jauns mērījums</button>
+        <button class="btn secondary" id="exportBtn" disabled>GeoJSON</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="nameModal">
+    <div class="modal">
+      <h2>Figūra gatava</h2>
+      <p>Pievieno nosaukumu, lai mērījumu saglabātu šajā telefonā.</p>
+      <div class="summary-grid">
+        <div class="summary"><span>Platība</span><strong id="modalArea">0 m²</strong></div>
+        <div class="summary"><span>Perimetrs</span><strong id="modalPerimeter">0 m</strong></div>
+      </div>
+      <label class="field-label" for="shapeName">Nosaukums</label>
+      <input class="field" id="shapeName" maxlength="60" placeholder="Piem., Māja, Terase, Zāliens" />
+      <div class="modal-actions">
+        <button class="btn secondary" id="cancelSaveBtn">Atcelt</button>
+        <button class="btn primary" id="saveShapeBtn">Saglabāt figūru</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="saved-panel" id="savedPanel">
+    <div class="saved-head"><h2>Saglabātie mērījumi</h2><button class="icon-btn" id="closeSavedBtn">×</button></div>
+    <div id="savedList" class="saved-list"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+(() => {
+  'use strict';
+
+  const STORAGE_KEY = 'yard_measure_shapes_v1';
+  const map = L.map('map', { zoomControl:false, attributionControl:true, preferCanvas:true }).setView([56.9496,24.1052], 18);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom:21,
+    maxNativeZoom:19,
+    attribution:'© OpenStreetMap'
+  }).addTo(map);
+
+  const els = {
+    gpsDot:document.getElementById('gpsDot'), gpsText:document.getElementById('gpsText'),
+    statusTitle:document.getElementById('statusTitle'), statusSub:document.getElementById('statusSub'),
+    pointCount:document.getElementById('pointCount'), mainBtn:document.getElementById('mainBtn'),
+    undoBtn:document.getElementById('undoBtn'), finishLineBtn:document.getElementById('finishLineBtn'),
+    closeShapeBtn:document.getElementById('closeShapeBtn'), resetBtn:document.getElementById('resetBtn'),
+    exportBtn:document.getElementById('exportBtn'), followBtn:document.getElementById('followBtn'),
+    savedBtn:document.getElementById('savedBtn'), moreBtn:document.getElementById('moreBtn'),
+    moreMenu:document.getElementById('moreMenu'), measureCard:document.getElementById('measureCard'),
+    liveMeters:document.getElementById('liveMeters'), liveMetric:document.getElementById('liveMetric'),
+    nameModal:document.getElementById('nameModal'), shapeName:document.getElementById('shapeName'),
+    modalArea:document.getElementById('modalArea'), modalPerimeter:document.getElementById('modalPerimeter'),
+    cancelSaveBtn:document.getElementById('cancelSaveBtn'), saveShapeBtn:document.getElementById('saveShapeBtn'),
+    savedPanel:document.getElementById('savedPanel'), savedList:document.getElementById('savedList'),
+    closeSavedBtn:document.getElementById('closeSavedBtn'), toast:document.getElementById('toast')
+  };
+
+  let currentPos = null;
+  let followGps = true;
+  let measuring = false;
+  let lineFinished = false;
+  let closed = false;
+  let points = [];
+  let pointMarkers = [];
+  let segmentLines = [];
+  let segmentLabels = [];
+  let previewLine = null;
+  let previewLabel = null;
+  let polygon = null;
+  let gpsMarker = null;
+  let accuracyCircle = null;
+  let lastSavedGeometry = null;
+  let toastTimer = null;
+
+  function rad(v){ return v * Math.PI / 180; }
+  function distance(a,b){
+    const R=6371008.8;
+    const dLat=rad(b.lat-a.lat), dLon=rad(b.lng-a.lng);
+    const lat1=rad(a.lat), lat2=rad(b.lat);
+    const h=Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2;
+    return 2*R*Math.asin(Math.min(1,Math.sqrt(h)));
+  }
+  function midpoint(a,b){ return {lat:(a.lat+b.lat)/2,lng:(a.lng+b.lng)/2}; }
+  function prettyDistance(m){
+    const totalCm=Math.max(0,Math.round(m*100));
+    const meters=Math.floor(totalCm/100), cm=totalCm%100;
+    return { decimal:(totalCm/100).toFixed(2)+' m', metric:meters+' m '+cm+' cm' };
+  }
+  function areaMeters2(list){
+    if(list.length<3) return 0;
+    const meanLat=rad(list.reduce((s,p)=>s+p.lat,0)/list.length);
+    const R=6371008.8;
+    const projected=list.map(p=>({x:R*rad(p.lng)*Math.cos(meanLat),y:R*rad(p.lat)}));
+    let sum=0;
+    for(let i=0;i<projected.length;i++){
+      const a=projected[i], b=projected[(i+1)%projected.length];
+      sum += a.x*b.y - b.x*a.y;
+    }
+    return Math.abs(sum)/2;
+  }
+  function perimeter(list, isClosed){
+    let s=0;
+    for(let i=1;i<list.length;i++) s+=distance(list[i-1],list[i]);
+    if(isClosed && list.length>2) s+=distance(list[list.length-1],list[0]);
+    return s;
+  }
+  function esc(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+  function showToast(msg){ clearTimeout(toastTimer); els.toast.textContent=msg; els.toast.classList.add('show'); toastTimer=setTimeout(()=>els.toast.classList.remove('show'),2200); }
+
+  function makeDivIcon(cls){ return L.divIcon({className:'',html:'<div class="'+cls+'"></div>',iconSize:[20,20],iconAnchor:[10,10]}); }
+  function makeLabel(text, live=false){
+    return L.divIcon({className:'',html:'<div class="segment-label'+(live?' live':'')+'">'+text+'</div>',iconSize:null,iconAnchor:[34,12]});
+  }
+
+  function updateGpsUi(acc){
+    els.gpsText.textContent='± '+Math.round(acc)+' m';
+    els.gpsDot.className='gps-dot '+(acc<=5?'good':acc<=15?'':'bad');
+  }
+
+  function onPosition(pos){
+    currentPos={lat:pos.coords.latitude,lng:pos.coords.longitude,accuracy:pos.coords.accuracy,timestamp:pos.timestamp};
+    updateGpsUi(currentPos.accuracy);
+    const ll=[currentPos.lat,currentPos.lng];
+    if(!gpsMarker) gpsMarker=L.marker(ll,{icon:makeDivIcon('gps-marker'),interactive:false,zIndexOffset:1000}).addTo(map);
+    else gpsMarker.setLatLng(ll);
+    if(!accuracyCircle) accuracyCircle=L.circle(ll,{radius:currentPos.accuracy,color:'#198cff',weight:1,fillColor:'#198cff',fillOpacity:.08,interactive:false}).addTo(map);
+    else accuracyCircle.setLatLng(ll).setRadius(currentPos.accuracy);
+    if(followGps) map.setView(ll, Math.max(map.getZoom(),19), {animate:true});
+    if(!measuring){
+      els.mainBtn.disabled=false;
+      els.statusTitle.textContent='GPS gatavs';
+      els.statusSub.textContent='Nostājies sākuma punktā un nospied pogu';
+    }
+    if(measuring && !lineFinished && !closed) updatePreview();
+    updateUi();
+  }
+
+  function onPositionError(err){
+    els.gpsDot.className='gps-dot bad';
+    if(err.code===1){els.gpsText.textContent='GPS bloķēts';els.statusTitle.textContent='Nav GPS piekļuves';els.statusSub.textContent='Atļauj Location piekļuvi Safari/Chrome iestatījumos';}
+    else {els.gpsText.textContent='GPS kļūda';els.statusTitle.textContent='Neizdevās noteikt atrašanās vietu';els.statusSub.textContent='Pārvietojies ārā un pārbaudi GPS signālu';}
+  }
+
+  function startGps(){
+    if(!navigator.geolocation){ onPositionError({code:0}); return; }
+    navigator.geolocation.watchPosition(onPosition,onPositionError,{enableHighAccuracy:true,maximumAge:0,timeout:15000});
+  }
+
+  function addPointMarker(p,index){
+    const icon=makeDivIcon(index===0?'start-marker':'point-marker');
+    const marker=L.marker([p.lat,p.lng],{icon,interactive:false,zIndexOffset:900}).addTo(map);
+    pointMarkers.push(marker);
+  }
+
+  function addFixedSegment(a,b){
+    const line=L.polyline([[a.lat,a.lng],[b.lat,b.lng]],{color:'#ff3b30',weight:5,opacity:.95,lineCap:'round'}).addTo(map);
+    const d=distance(a,b), f=prettyDistance(d), mid=midpoint(a,b);
+    const label=L.marker([mid.lat,mid.lng],{icon:makeLabel(f.decimal),interactive:false,zIndexOffset:800}).addTo(map);
+    segmentLines.push(line); segmentLabels.push(label);
+  }
+
+  function clearPreview(){
+    if(previewLine){map.removeLayer(previewLine);previewLine=null;}
+    if(previewLabel){map.removeLayer(previewLabel);previewLabel=null;}
+    els.measureCard.classList.remove('show');
+  }
+
+  function updatePreview(){
+    if(!currentPos || points.length===0 || lineFinished || closed) return clearPreview();
+    const a=points[points.length-1], b=currentPos;
+    const d=distance(a,b), f=prettyDistance(d);
+    const coords=[[a.lat,a.lng],[b.lat,b.lng]];
+    if(!previewLine) previewLine=L.polyline(coords,{color:'#ff7a00',weight:4,opacity:.95,dashArray:'10 9',lineCap:'round'}).addTo(map);
+    else previewLine.setLatLngs(coords);
+    const mid=midpoint(a,b);
+    if(!previewLabel) previewLabel=L.marker([mid.lat,mid.lng],{icon:makeLabel(f.decimal,true),interactive:false,zIndexOffset:850}).addTo(map);
+    else previewLabel.setLatLng([mid.lat,mid.lng]).setIcon(makeLabel(f.decimal,true));
+    els.liveMeters.textContent=f.decimal;
+    els.liveMetric.textContent=f.metric;
+    els.measureCard.classList.add('show');
+  }
+
+  function startMeasurement(){
+    if(!currentPos) return;
+    resetMeasurement(false);
+    measuring=true; lineFinished=false; closed=false;
+    const p={lat:currentPos.lat,lng:currentPos.lng,accuracy:currentPos.accuracy};
+    points.push(p); addPointMarker(p,0); updatePreview(); updateUi();
+    showToast('Sākuma punkts fiksēts');
+  }
+
+  function addPoint(){
+    if(!currentPos || !measuring || lineFinished || closed) return;
+    const last=points[points.length-1];
+    const p={lat:currentPos.lat,lng:currentPos.lng,accuracy:currentPos.accuracy};
+    const d=distance(last,p);
+    if(d<0.15){showToast('Pārvietojies vismaz 15 cm no iepriekšējā punkta');return;}
+    points.push(p); addPointMarker(p,points.length-1); addFixedSegment(last,p); clearPreview(); updatePreview(); updateUi();
+    showToast('Punkts '+points.length+' fiksēts');
+  }
+
+  function finishLine(){
+    if(points.length<2) return;
+    lineFinished=true; clearPreview(); updateUi(); showToast('Līnija pabeigta');
+  }
+
+  function closeShape(){
+    if(points.length<3) return showToast('Figūrai vajag vismaz 3 punktus');
+    lineFinished=true; closed=true; clearPreview();
+    addFixedSegment(points[points.length-1],points[0]);
+    polygon=L.polygon(points.map(p=>[p.lat,p.lng]),{color:'#ff3b30',weight:3,fillColor:'#ff3b30',fillOpacity:.12}).addTo(map);
+    const area=areaMeters2(points), per=perimeter(points,true);
+    els.modalArea.textContent=area.toFixed(2)+' m²';
+    els.modalPerimeter.textContent=per.toFixed(2)+' m';
+    els.shapeName.value='';
+    els.nameModal.classList.add('show');
+    setTimeout(()=>els.shapeName.focus(),150);
+    updateUi();
+  }
+
+  function undo(){
+    if(points.length===0) return;
+    if(closed){
+      closed=false; lineFinished=false;
+      if(polygon){map.removeLayer(polygon);polygon=null;}
+      if(segmentLines.length){map.removeLayer(segmentLines.pop());map.removeLayer(segmentLabels.pop());}
+      updatePreview(); updateUi(); return;
+    }
+    if(lineFinished){lineFinished=false;updatePreview();updateUi();return;}
+    if(points.length===1){resetMeasurement(false);updateUi();return;}
+    clearPreview();
+    map.removeLayer(pointMarkers.pop()); points.pop();
+    if(segmentLines.length){map.removeLayer(segmentLines.pop());map.removeLayer(segmentLabels.pop());}
+    updatePreview(); updateUi();
+  }
+
+  function resetMeasurement(confirmFirst=true){
+    if(confirmFirst && points.length>1 && !confirm('Dzēst pašreizējo mērījumu?')) return;
+    clearPreview();
+    pointMarkers.forEach(x=>map.removeLayer(x)); segmentLines.forEach(x=>map.removeLayer(x)); segmentLabels.forEach(x=>map.removeLayer(x));
+    if(polygon) map.removeLayer(polygon);
+    points=[];pointMarkers=[];segmentLines=[];segmentLabels=[];polygon=null;measuring=false;lineFinished=false;closed=false;lastSavedGeometry=null;
+    els.nameModal.classList.remove('show'); updateUi();
+  }
+
+  function updateUi(){
+    els.pointCount.textContent=points.length+' '+(points.length===1?'punkts':'punkti');
+    els.undoBtn.disabled=points.length===0;
+    els.finishLineBtn.disabled=points.length<2 || lineFinished || closed;
+    els.closeShapeBtn.disabled=points.length<3 || closed;
+    els.exportBtn.disabled=points.length<2;
+    if(!currentPos){els.mainBtn.disabled=true;return;}
+    if(!measuring){els.mainBtn.textContent='Uzlikt sākuma punktu';els.mainBtn.disabled=false;}
+    else if(lineFinished || closed){els.mainBtn.textContent='Jauns mērījums';els.mainBtn.disabled=false;}
+    else {els.mainBtn.textContent='Fiksēt punktu';els.mainBtn.disabled=false;}
+
+    if(measuring && !closed){
+      els.statusTitle.textContent=lineFinished?'Līnija pabeigta':'Mērīšana aktīva';
+      els.statusSub.textContent=lineFinished?'Vari sākt jaunu mērījumu vai atsaukt':'Ej uz nākamo stūri — līnija seko GPS';
+    }
+    if(closed){els.statusTitle.textContent='Figūra noslēgta';els.statusSub.textContent='Platība '+areaMeters2(points).toFixed(2)+' m²';}
+  }
+
+  function saveShape(){
+    const name=els.shapeName.value.trim() || 'Figūra '+new Date().toLocaleTimeString('lv-LV',{hour:'2-digit',minute:'2-digit'});
+    const shape={id:Date.now(),name,createdAt:new Date().toISOString(),closed:true,area:areaMeters2(points),perimeter:perimeter(points,true),points:points.map(({lat,lng,accuracy})=>({lat,lng,accuracy}))};
+    const all=loadShapes(); all.unshift(shape); localStorage.setItem(STORAGE_KEY,JSON.stringify(all));
+    lastSavedGeometry=shape; els.nameModal.classList.remove('show'); showToast('Saglabāts: '+name); renderSaved(); updateUi();
+  }
+
+  function loadShapes(){
+    try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');}catch(e){return[];}
+  }
+
+  function renderSaved(){
+    const items=loadShapes();
+    if(!items.length){els.savedList.innerHTML='<div class="empty">Vēl nav saglabātu mērījumu.</div>';return;}
+    els.savedList.innerHTML=items.map(s=>`<article class="saved-item" data-id="${s.id}"><div class="saved-item-top"><div><h3>${esc(s.name)}</h3><div class="saved-meta">${s.area.toFixed(2)} m² · ${s.perimeter.toFixed(2)} m · ${s.points.length} punkti</div></div><div class="point-count">${new Date(s.createdAt).toLocaleDateString('lv-LV')}</div></div><div class="saved-actions"><button data-action="show">Rādīt kartē</button><button data-action="geo">GeoJSON</button><button class="delete" data-action="delete">Dzēst</button></div></article>`).join('');
+  }
+
+  function showSavedShape(shape){
+    resetMeasurement(false); measuring=true; lineFinished=true; closed=true; points=shape.points.map(p=>({...p}));
+    points.forEach((p,i)=>addPointMarker(p,i));
+    for(let i=1;i<points.length;i++) addFixedSegment(points[i-1],points[i]);
+    addFixedSegment(points[points.length-1],points[0]);
+    polygon=L.polygon(points.map(p=>[p.lat,p.lng]),{color:'#ff3b30',weight:3,fillColor:'#ff3b30',fillOpacity:.12}).addTo(map);
+    map.fitBounds(polygon.getBounds(),{padding:[50,50]}); followGps=false;els.followBtn.classList.remove('active');els.savedPanel.classList.remove('show');updateUi();
+  }
+
+  function geoJsonFor(shape){
+    const pts=shape?shape.points:points; const isClosed=shape?shape.closed:closed;
+    const coords=pts.map(p=>[p.lng,p.lat]);
+    if(isClosed && coords.length) coords.push(coords[0]);
+    return {type:'FeatureCollection',features:[{type:'Feature',properties:{name:shape?.name||'YARD mērījums',area_m2:isClosed?areaMeters2(pts):null,perimeter_m:perimeter(pts,isClosed),created_at:new Date().toISOString()},geometry:{type:isClosed?'Polygon':'LineString',coordinates:isClosed?[coords]:coords}}]};
+  }
+
+  function downloadGeoJson(shape=null){
+    const data=geoJsonFor(shape); const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/geo+json'}); const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=((shape?.name||'yard-measure').replace(/[^a-z0-9āčēģīķļņōŗšūž_-]+/gi,'_'))+'.geojson';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+
+  els.mainBtn.addEventListener('click',()=>{if(!measuring)startMeasurement();else if(lineFinished||closed)startMeasurement();else addPoint();});
+  els.undoBtn.addEventListener('click',undo);
+  els.finishLineBtn.addEventListener('click',finishLine);
+  els.closeShapeBtn.addEventListener('click',closeShape);
+  els.resetBtn.addEventListener('click',()=>resetMeasurement(true));
+  els.exportBtn.addEventListener('click',()=>downloadGeoJson());
+  els.moreBtn.addEventListener('click',()=>els.moreMenu.classList.toggle('open'));
+  els.followBtn.addEventListener('click',()=>{followGps=!followGps;els.followBtn.classList.toggle('active',followGps);if(followGps&&currentPos)map.setView([currentPos.lat,currentPos.lng],Math.max(map.getZoom(),19),{animate:true});});
+  map.on('dragstart zoomstart',()=>{if(followGps){followGps=false;els.followBtn.classList.remove('active');}});
+  els.cancelSaveBtn.addEventListener('click',()=>els.nameModal.classList.remove('show'));
+  els.saveShapeBtn.addEventListener('click',saveShape);
+  els.shapeName.addEventListener('keydown',e=>{if(e.key==='Enter')saveShape();});
+  els.savedBtn.addEventListener('click',()=>{renderSaved();els.savedPanel.classList.add('show');});
+  els.closeSavedBtn.addEventListener('click',()=>els.savedPanel.classList.remove('show'));
+  els.savedList.addEventListener('click',e=>{
+    const btn=e.target.closest('button'); if(!btn)return; const card=btn.closest('.saved-item'); const id=Number(card.dataset.id); const items=loadShapes(); const shape=items.find(x=>x.id===id); if(!shape)return;
+    const action=btn.dataset.action;
+    if(action==='show')showSavedShape(shape);
+    if(action==='geo')downloadGeoJson(shape);
+    if(action==='delete'&&confirm('Dzēst “'+shape.name+'”?')){localStorage.setItem(STORAGE_KEY,JSON.stringify(items.filter(x=>x.id!==id)));renderSaved();}
+  });
+
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden && currentPos) updatePreview(); });
+  updateUi(); renderSaved(); startGps();
+})();
+</script>
+</body>
+</html>
