@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f5f5f7" />
+  <title>Live Building AR</title>
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.3.1/model-viewer.min.js"></script>
+  <style>
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;background:#f5f5f7;color:#111}
+    body{min-height:100svh;overflow:hidden}
+    .app{height:100svh;display:flex;flex-direction:column;position:relative;background:radial-gradient(circle at 50% 5%,#fff 0,#f7f7f8 42%,#ececef 100%)}
+    header{position:absolute;z-index:10;top:0;left:0;right:0;padding:calc(env(safe-area-inset-top) + 16px) 18px 0;display:flex;justify-content:space-between;align-items:center;pointer-events:none}
+    .brand{font-size:18px;font-weight:750;letter-spacing:-.03em}
+    .badge{font-size:11px;font-weight:700;padding:7px 10px;border:1px solid rgba(0,0,0,.08);border-radius:999px;background:rgba(255,255,255,.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:#5b5b62}
+    model-viewer{width:100%;height:100%;background:transparent;--poster-color:transparent}
+    .hud{position:absolute;z-index:10;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom) + 14px);display:flex;flex-direction:column;gap:10px;pointer-events:none}
+    .panel{pointer-events:auto;padding:14px;border-radius:24px;border:1px solid rgba(255,255,255,.8);background:rgba(255,255,255,.72);box-shadow:0 12px 40px rgba(0,0,0,.10);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%)}
+    .row{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .title{font-size:17px;font-weight:760;letter-spacing:-.03em}
+    .sub{font-size:12px;color:#707078;margin-top:3px}
+    .dims{font-variant-numeric:tabular-nums;font-size:13px;font-weight:700;color:#33343a;background:#f1f1f3;border-radius:12px;padding:8px 10px;white-space:nowrap}
+    .start{margin-top:12px;width:100%;height:54px;border:0;border-radius:18px;background:#111;color:#fff;font-size:16px;font-weight:760;letter-spacing:-.02em;box-shadow:0 8px 20px rgba(0,0,0,.16);cursor:pointer}
+    .start:active{transform:scale(.985)}
+    .tips{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+    .tip{padding:9px 8px;border-radius:14px;background:rgba(245,245,247,.86);font-size:10px;color:#686870;text-align:center;line-height:1.25}
+    .tip b{display:block;color:#202024;font-size:11px;margin-bottom:2px}
+    .ar-button{position:absolute;inset:0;border:0;background:transparent;color:transparent;cursor:pointer}
+    .error{display:none;margin-top:9px;font-size:12px;color:#b42318;text-align:center}
+    .status{position:absolute;z-index:5;top:calc(env(safe-area-inset-top) + 70px);left:50%;transform:translateX(-50%);padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.7);border:1px solid rgba(0,0,0,.06);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);font-size:11px;color:#666;white-space:nowrap}
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">Live Building</div>
+    <div class="badge">AR • 1:1</div>
+  </header>
+
+  <div class="status" id="status">20 m testa māja gatava</div>
+
+  <model-viewer
+    id="viewer"
+    src="./livebuilding.gltf"
+    alt="20 metrus gara testa māja"
+    ar
+    ar-modes="quick-look scene-viewer webxr"
+    ar-scale="fixed"
+    ar-placement="floor"
+    camera-controls
+    shadow-intensity="1"
+    shadow-softness=".8"
+    exposure="1.05"
+    environment-image="neutral"
+    interaction-prompt="none"
+    camera-orbit="35deg 70deg 30m"
+    min-camera-orbit="auto auto 10m"
+    max-camera-orbit="auto auto 100m">
+    <button slot="ar-button" class="ar-button" id="hiddenAr">AR</button>
+  </model-viewer>
+
+  <div class="hud">
+    <div class="panel">
+      <div class="row">
+        <div>
+          <div class="title">Testa māja</div>
+          <div class="sub">Fiksēts reālais izmērs</div>
+        </div>
+        <div class="dims">20 × 12 × 7 m</div>
+      </div>
+      <button class="start" id="startBtn">START LIVE AR</button>
+      <div class="tips">
+        <div class="tip"><b>1. Noskenē zemi</b>kustini telefonu lēni</div>
+        <div class="tip"><b>2. Novieto māju</b>piesien to vietai</div>
+        <div class="tip"><b>3. Ej prom</b>testē līdz 50 m</div>
+      </div>
+      <div class="error" id="error">AR šajā pārlūkā netika palaists. Atver lapu Safari uz iPhone.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const viewer = document.getElementById('viewer');
+  const startBtn = document.getElementById('startBtn');
+  const hiddenAr = document.getElementById('hiddenAr');
+  const status = document.getElementById('status');
+  const error = document.getElementById('error');
+
+  startBtn.addEventListener('click', () => {
+    error.style.display = 'none';
+    status.textContent = 'Palaižu AR kameru…';
+    hiddenAr.click();
+  });
+
+  viewer.addEventListener('load', () => {
+    status.textContent = '20 m testa māja gatava';
+  });
+
+  viewer.addEventListener('ar-status', (e) => {
+    if (e.detail.status === 'failed') {
+      status.textContent = 'AR nav pieejams';
+      error.style.display = 'block';
+    }
+  });
+
+  viewer.addEventListener('error', () => {
+    status.textContent = 'Neizdevās ielādēt 3D modeli';
+  });
+</script>
+</body>
+</html>
