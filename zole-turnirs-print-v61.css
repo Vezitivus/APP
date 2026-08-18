@@ -1,0 +1,55 @@
+@media print {
+  /* v6.1 — denser registration pages: 36 players per logical A4 page. */
+  .pdf-registration-table th {
+    padding-top: 1.05mm !important;
+    padding-bottom: 1.15mm !important;
+    font-size: 5.2pt !important;
+  }
+
+  .pdf-registration-table td {
+    height: 4.65mm !important;
+    padding-top: .55mm !important;
+    padding-bottom: .55mm !important;
+    font-size: 6.85pt !important;
+    line-height: 1 !important;
+  }
+
+  .pdf-registration-table .pdf-name {
+    font-size: 6.75pt !important;
+    letter-spacing: .018em !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .pdf-registration-table th:first-child,
+  .pdf-registration-table td:first-child {
+    width: 11mm !important;
+  }
+
+  .pdf-registration-table th:nth-child(3),
+  .pdf-registration-table td:nth-child(3) {
+    width: 42mm !important;
+  }
+
+  .pdf-registration-table th:nth-child(4),
+  .pdf-registration-table td:nth-child(4) {
+    width: 23mm !important;
+  }
+
+  .pdf-registration-table .pdf-join-round {
+    font-size: 6.4pt !important;
+    white-space: nowrap !important;
+  }
+
+  .pdf-page.registration-repacked .pdf-section-heading {
+    margin-bottom: 2.5mm !important;
+    padding-bottom: 2mm !important;
+  }
+
+  .pdf-page.registration-repacked .pdf-info-strip {
+    margin-top: 4mm !important;
+    padding-top: 3mm !important;
+    padding-bottom: 0 !important;
+  }
+}
