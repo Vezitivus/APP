@@ -1,0 +1,75 @@
+/* PDF typography override v7.1. Must mirror both measuring and print modes. */
+body.flow-measuring .pdf-table th,
+body.flow-measuring .pdf-table td {
+  font-size:14px!important;
+  line-height:1.12!important;
+}
+body.flow-measuring .pdf-table th {
+  padding:1.45mm 1.1mm 1.6mm!important;
+  font-size:14px!important;
+}
+body.flow-measuring .pdf-table td {
+  height:7.2mm!important;
+  padding:1.15mm 1.1mm!important;
+}
+body.flow-measuring .pdf-small-score,
+body.flow-measuring .pdf-big-score {
+  font-size:15px!important;
+}
+body.flow-measuring .pdf-round-table th,
+body.flow-measuring .pdf-round-table td {
+  font-size:14px!important;
+}
+body.flow-measuring .pdf-round-table td {
+  height:7.2mm!important;
+}
+body.flow-measuring .pdf-table-title span {font-size:14px!important}
+body.flow-measuring .pdf-table-title small {font-size:11px!important}
+body.flow-measuring .pdf-page-meta,
+body.flow-measuring .pdf-section-heading p {font-size:11px!important}
+body.flow-measuring .pdf-footer {font-size:10px!important}
+
+@media print {
+  .flow-document .pdf-table th,
+  .flow-document .pdf-table td {
+    font-size:14px!important;
+    line-height:1.12!important;
+  }
+  .flow-document .pdf-table th {
+    padding:1.45mm 1.1mm 1.6mm!important;
+    font-size:14px!important;
+  }
+  .flow-document .pdf-table td {
+    height:7.2mm!important;
+    padding:1.15mm 1.1mm!important;
+  }
+  .flow-document .pdf-small-score,
+  .flow-document .pdf-big-score {
+    font-size:15px!important;
+  }
+  .flow-document .pdf-round-table th,
+  .flow-document .pdf-round-table td {
+    font-size:14px!important;
+  }
+  .flow-document .pdf-round-table td {
+    height:7.2mm!important;
+  }
+  .flow-document .pdf-table-title span {font-size:14px!important}
+  .flow-document .pdf-table-title small {font-size:11px!important}
+  .flow-document .pdf-page-meta,
+  .flow-document .pdf-section-heading p {font-size:11px!important}
+  .flow-document .pdf-footer {font-size:10px!important}
+
+  /* Keep names on one line; only exceptionally long names may compress horizontally. */
+  .flow-document .pdf-name {
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    font-size:14px!important;
+    letter-spacing:.01em!important;
+  }
+  .flow-document .pdf-name-fit-xxlong {
+    transform:scaleX(.94)!important;
+    transform-origin:left center!important;
+  }
+}
