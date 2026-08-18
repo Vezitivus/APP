@@ -1,0 +1,389 @@
+@media print {
+  @page { size: A4 portrait; margin: 0; }
+
+  html, body {
+    width: 210mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  body.printing > *:not(#printReport) { display: none !important; }
+  body.printing #printReport {
+    display: block !important;
+    width: 210mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    color: #07152f !important;
+  }
+
+  #printReport, #printReport * {
+    box-sizing: border-box !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  #printReport {
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-size: 7.4pt !important;
+  }
+
+  .pdf-document {
+    width: 210mm !important;
+    margin: 0 !important;
+    background: #fff !important;
+  }
+
+  /* 260 mm keeps one logical page inside one physical A4 page on iOS/Safari,
+     which reserves extra space for its own print header/footer. */
+  .pdf-page {
+    position: relative !important;
+    width: 210mm !important;
+    height: 260mm !important;
+    min-height: 260mm !important;
+    max-height: 260mm !important;
+    margin: 0 !important;
+    padding: 9mm 12mm 10mm !important;
+    overflow: hidden !important;
+    break-after: page !important;
+    page-break-after: always !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    background: #fff !important;
+  }
+
+  .pdf-page:last-child {
+    break-after: auto !important;
+    page-break-after: auto !important;
+  }
+
+  .pdf-header {
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    gap: 7mm !important;
+    min-height: 21mm !important;
+  }
+
+  .pdf-title-lockup {
+    display: flex !important;
+    align-items: center !important;
+    min-width: 0 !important;
+    gap: 4mm !important;
+  }
+
+  .pdf-slash {
+    flex: 0 0 auto !important;
+    width: 1mm !important;
+    height: 22mm !important;
+    background: #ed1c24 !important;
+    transform: skew(-23deg) !important;
+  }
+
+  .pdf-kicker {
+    margin: 0 0 1.2mm !important;
+    color: #ed1c24 !important;
+    font-size: 5.7pt !important;
+    line-height: 1 !important;
+    font-weight: 800 !important;
+    letter-spacing: .16em !important;
+  }
+
+  .pdf-header h1 {
+    max-width: 136mm !important;
+    margin: 0 !important;
+    color: #07152f !important;
+    font-size: 18.5pt !important;
+    line-height: 1 !important;
+    font-weight: 800 !important;
+    letter-spacing: .025em !important;
+    white-space: nowrap !important;
+  }
+
+  .pdf-logo {
+    display: block !important;
+    max-width: 35mm !important;
+    max-height: 15mm !important;
+    object-fit: contain !important;
+    object-position: right top !important;
+  }
+
+  .pdf-accent-lines {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin: 2.5mm 0 5mm !important;
+    padding: 0 5mm !important;
+  }
+
+  .pdf-accent-lines span {
+    display: block !important;
+    width: 18mm !important;
+    height: .55mm !important;
+    background: #ed1c24 !important;
+  }
+
+  .pdf-accent-lines span:last-child { width: 8mm !important; }
+
+  .pdf-page-meta {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 2mm 6mm !important;
+    margin: 0 0 4mm !important;
+    padding: 0 0 2.2mm !important;
+    border-bottom: .4mm solid #07152f !important;
+    color: #596071 !important;
+    font-size: 5.7pt !important;
+    line-height: 1.15 !important;
+    font-weight: 800 !important;
+    letter-spacing: .065em !important;
+  }
+
+  .pdf-section-heading {
+    display: flex !important;
+    align-items: flex-end !important;
+    justify-content: space-between !important;
+    gap: 5mm !important;
+    margin: 0 0 3.5mm !important;
+    padding: 0 0 2.5mm !important;
+    border-bottom: .45mm solid #07152f !important;
+  }
+
+  .pdf-section-heading > div {
+    display: flex !important;
+    align-items: baseline !important;
+    gap: 2.5mm !important;
+  }
+
+  .pdf-section-heading span {
+    color: #ed1c24 !important;
+    font-size: 6pt !important;
+    font-weight: 850 !important;
+  }
+
+  .pdf-section-heading h2 {
+    margin: 0 !important;
+    color: #07152f !important;
+    font-size: 12.5pt !important;
+    line-height: 1 !important;
+    font-weight: 800 !important;
+    letter-spacing: .04em !important;
+  }
+
+  .pdf-section-heading p {
+    margin: 0 !important;
+    color: #606777 !important;
+    font-size: 5.4pt !important;
+    line-height: 1.1 !important;
+    font-weight: 800 !important;
+    letter-spacing: .045em !important;
+    text-align: right !important;
+  }
+
+  .pdf-content { position: relative !important; z-index: 1 !important; }
+  .pdf-content-main { margin-top: 0 !important; }
+
+  .pdf-table {
+    width: 100% !important;
+    margin: 0 !important;
+    border-collapse: collapse !important;
+    table-layout: fixed !important;
+    color: #07152f !important;
+  }
+
+  .pdf-table thead { display: table-header-group !important; }
+  .pdf-table tr {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .pdf-table th {
+    padding: 1.45mm 1.25mm 1.6mm !important;
+    border-bottom: .42mm solid #07152f !important;
+    color: #07152f !important;
+    font-size: 5.6pt !important;
+    line-height: 1 !important;
+    font-weight: 800 !important;
+    letter-spacing: .025em !important;
+    text-align: left !important;
+    white-space: nowrap !important;
+  }
+
+  .pdf-table td {
+    height: 5.8mm !important;
+    padding: 1mm 1.25mm !important;
+    border-bottom: .18mm solid #d9dce2 !important;
+    font-size: 7.7pt !important;
+    line-height: 1 !important;
+    vertical-align: middle !important;
+  }
+
+  .pdf-table th:first-child,
+  .pdf-table td:first-child {
+    width: 13mm !important;
+    text-align: center !important;
+  }
+
+  .pdf-table th:nth-child(3),
+  .pdf-table td:nth-child(3) {
+    width: 29mm !important;
+    text-align: center !important;
+  }
+
+  .pdf-table th:nth-child(4),
+  .pdf-table td:nth-child(4) {
+    width: 29mm !important;
+    text-align: center !important;
+  }
+
+  .pdf-place { font-weight: 800 !important; }
+
+  .pdf-name {
+    font-weight: 700 !important;
+    letter-spacing: .035em !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    overflow-wrap: normal !important;
+    word-break: normal !important;
+  }
+
+  .pdf-small-score {
+    color: #ed1c24 !important;
+    font-size: 8.7pt !important;
+    font-weight: 850 !important;
+  }
+
+  .pdf-big-score {
+    color: #07152f !important;
+    font-size: 8.4pt !important;
+    font-weight: 850 !important;
+  }
+
+  .pdf-red-heading { color: #ed1c24 !important; }
+  .pdf-empty { padding: 8mm !important; color: #737988 !important; text-align: center !important; }
+
+  .pdf-leaderboard-table td {
+    height: 6.4mm !important;
+    padding-top: 1.1mm !important;
+    padding-bottom: 1.1mm !important;
+  }
+
+  .pdf-registration-table th:first-child,
+  .pdf-registration-table td:first-child { width: 12mm !important; }
+
+  .pdf-registration-table th:nth-child(3),
+  .pdf-registration-table td:nth-child(3) {
+    width: 42mm !important;
+    text-align: left !important;
+  }
+
+  .pdf-registration-table th:nth-child(4),
+  .pdf-registration-table td:nth-child(4) {
+    width: 23mm !important;
+    text-align: center !important;
+  }
+
+  .pdf-registration-table .pdf-join-round {
+    color: #ed1c24 !important;
+    font-size: 6.3pt !important;
+    font-weight: 850 !important;
+    white-space: nowrap !important;
+  }
+
+  .pdf-info-strip {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 4mm !important;
+    margin-top: 3mm !important;
+    padding: 2.5mm 0 0 !important;
+    border-top: .2mm solid #d9dce2 !important;
+  }
+
+  .pdf-info-strip div { display: grid !important; gap: .8mm !important; }
+  .pdf-info-strip small { color: #ed1c24 !important; font-size: 5pt !important; font-weight: 850 !important; }
+  .pdf-info-strip strong { color: #07152f !important; font-size: 6.3pt !important; }
+
+  .pdf-rounds-content {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 4mm 6mm !important;
+    align-items: start !important;
+  }
+
+  .pdf-table-block {
+    margin: 0 !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .pdf-table-title {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 2mm !important;
+    margin: 0 0 .8mm !important;
+  }
+
+  .pdf-table-title span {
+    color: #07152f !important;
+    font-size: 6.8pt !important;
+    line-height: 1 !important;
+    font-weight: 850 !important;
+    letter-spacing: .045em !important;
+  }
+
+  .pdf-table-title small {
+    color: #ed1c24 !important;
+    font-size: 4.5pt !important;
+    line-height: 1 !important;
+    font-weight: 850 !important;
+    letter-spacing: .025em !important;
+  }
+
+  .pdf-round-table th,
+  .pdf-round-table td {
+    padding-left: .75mm !important;
+    padding-right: .75mm !important;
+  }
+
+  .pdf-round-table th { font-size: 4.45pt !important; }
+  .pdf-round-table td {
+    height: 4.8mm !important;
+    font-size: 6.35pt !important;
+  }
+
+  .pdf-round-table th:first-child,
+  .pdf-round-table td:first-child { width: 10mm !important; }
+
+  .pdf-round-table th:nth-child(3),
+  .pdf-round-table td:nth-child(3),
+  .pdf-round-table th:nth-child(4),
+  .pdf-round-table td:nth-child(4) { width: 19mm !important; }
+
+  .pdf-round-table .pdf-small-score,
+  .pdf-round-table .pdf-big-score { font-size: 7pt !important; }
+
+  .pdf-round-table .pdf-name { font-size: 6pt !important; }
+  .pdf-round-table .pdf-name-fit-long { font-size: 5.6pt !important; }
+  .pdf-round-table .pdf-name-fit-xlong { font-size: 5.1pt !important; }
+  .pdf-round-table .pdf-name-fit-xxlong { font-size: 4.7pt !important; }
+
+  .pdf-footer {
+    position: absolute !important;
+    left: 12mm !important;
+    right: 12mm !important;
+    bottom: 4.5mm !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    gap: 5mm !important;
+    padding-top: 1.4mm !important;
+    border-top: .18mm solid #d9dce2 !important;
+    color: #777d89 !important;
+    font-size: 4.6pt !important;
+    line-height: 1 !important;
+    font-weight: 700 !important;
+    letter-spacing: .025em !important;
+  }
+}
