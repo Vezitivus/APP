@@ -1,0 +1,40 @@
+@media print {
+  .leaderboard-repacked .pdf-header {
+    min-height: 19mm !important;
+  }
+
+  .leaderboard-repacked .pdf-accent-lines {
+    margin: 2mm 0 3.5mm !important;
+  }
+
+  .leaderboard-repacked .pdf-page-meta {
+    margin-bottom: 2.8mm !important;
+    padding-bottom: 1.8mm !important;
+  }
+
+  .leaderboard-repacked .pdf-leaderboard-table th {
+    padding-top: 1.1mm !important;
+    padding-bottom: 1.25mm !important;
+    font-size: 5.2pt !important;
+  }
+
+  .leaderboard-repacked .pdf-leaderboard-table td {
+    height: 4.75mm !important;
+    padding-top: .55mm !important;
+    padding-bottom: .55mm !important;
+    font-size: 7pt !important;
+  }
+
+  .leaderboard-repacked .pdf-leaderboard-table .pdf-small-score {
+    font-size: 7.8pt !important;
+  }
+
+  .leaderboard-repacked .pdf-leaderboard-table .pdf-big-score {
+    font-size: 7.6pt !important;
+  }
+
+  .leaderboard-repacked .pdf-leaderboard-table .pdf-name {
+    font-size: 6.8pt !important;
+    line-height: 1 !important;
+  }
+}
