@@ -1,0 +1,81 @@
+/* Screen-only hidden A4 measuring canvas. It mirrors the print geometry so JS can
+   decide where a physical page is actually full before window.print() opens. */
+body.flow-measuring #printReport{
+  display:block!important;
+  position:absolute!important;
+  left:-10000px!important;
+  top:0!important;
+  width:210mm!important;
+  margin:0!important;
+  padding:0!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+  background:#fff!important;
+}
+body.flow-measuring #printReport,#printReport *{box-sizing:border-box}
+body.flow-measuring .pdf-document{width:210mm!important;margin:0!important}
+body.flow-measuring .pdf-page{
+  position:relative!important;
+  width:210mm!important;
+  height:260mm!important;
+  min-height:260mm!important;
+  max-height:260mm!important;
+  margin:0!important;
+  padding:9mm 12mm 10mm!important;
+  overflow:hidden!important;
+  background:#fff!important;
+  font-family:Arial,Helvetica,sans-serif!important;
+  font-size:7.4pt!important;
+}
+body.flow-measuring .pdf-header{display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:7mm!important;min-height:21mm!important}
+body.flow-measuring .pdf-title-lockup{display:flex!important;align-items:center!important;min-width:0!important;gap:4mm!important}
+body.flow-measuring .pdf-slash{display:block!important;flex:0 0 auto!important;width:1mm!important;height:22mm!important;transform:skew(-23deg)!important}
+body.flow-measuring .pdf-kicker{margin:0 0 1.2mm!important;font-size:5.7pt!important;line-height:1!important;letter-spacing:.16em!important}
+body.flow-measuring .pdf-header h1{max-width:136mm!important;margin:0!important;font-size:18.5pt!important;line-height:1!important;letter-spacing:.025em!important;white-space:nowrap!important}
+body.flow-measuring .pdf-logo{display:block!important;max-width:35mm!important;max-height:15mm!important;object-fit:contain!important}
+body.flow-measuring .pdf-accent-lines{display:flex!important;justify-content:space-between!important;align-items:center!important;margin:2.5mm 0 5mm!important;padding:0 5mm!important}
+body.flow-measuring .pdf-accent-lines span{display:block!important;width:18mm!important;height:.55mm!important}
+body.flow-measuring .pdf-accent-lines span:last-child{width:8mm!important}
+body.flow-measuring .pdf-page-meta{display:flex!important;flex-wrap:wrap!important;gap:2mm 6mm!important;margin:0 0 4mm!important;padding:0 0 2.2mm!important;font-size:5.7pt!important;line-height:1.15!important}
+body.flow-measuring .pdf-section-heading{display:flex!important;align-items:flex-end!important;justify-content:space-between!important;gap:5mm!important;margin:0 0 3.5mm!important;padding:0 0 2.5mm!important}
+body.flow-measuring .pdf-section-heading>div{display:flex!important;align-items:baseline!important;gap:2.5mm!important}
+body.flow-measuring .pdf-section-heading span{font-size:6pt!important}
+body.flow-measuring .pdf-section-heading h2{margin:0!important;font-size:12.5pt!important;line-height:1!important;letter-spacing:.04em!important}
+body.flow-measuring .pdf-section-heading p{margin:0!important;font-size:5.4pt!important;line-height:1.1!important;text-align:right!important}
+body.flow-measuring .pdf-table{width:100%!important;margin:0!important;border-collapse:collapse!important;table-layout:fixed!important}
+body.flow-measuring .pdf-table th{padding:1.3mm 1.1mm 1.45mm!important;font-size:5.4pt!important;line-height:1!important;white-space:nowrap!important}
+body.flow-measuring .pdf-table td{height:5.15mm!important;padding:.7mm 1.1mm!important;font-size:7.25pt!important;line-height:1!important;vertical-align:middle!important}
+body.flow-measuring .pdf-table th:first-child,body.flow-measuring .pdf-table td:first-child{width:13mm!important;text-align:center!important}
+body.flow-measuring .pdf-table th:nth-child(3),body.flow-measuring .pdf-table td:nth-child(3),body.flow-measuring .pdf-table th:nth-child(4),body.flow-measuring .pdf-table td:nth-child(4){width:29mm!important;text-align:center!important}
+body.flow-measuring .pdf-name{white-space:nowrap!important;overflow:hidden!important;overflow-wrap:normal!important;word-break:normal!important}
+body.flow-measuring .pdf-small-score{font-size:8.1pt!important}
+body.flow-measuring .pdf-big-score{font-size:7.9pt!important}
+body.flow-measuring .pdf-info-strip{display:grid!important;grid-template-columns:1fr 1fr!important;gap:5mm!important;margin-top:4mm!important;padding:3mm 0!important}
+body.flow-measuring .pdf-info-strip div{display:grid!important;gap:.8mm!important}
+body.flow-measuring .pdf-info-strip small{font-size:5.4pt!important}
+body.flow-measuring .pdf-info-strip strong{font-size:6.6pt!important}
+body.flow-measuring .pdf-rounds-content{display:grid!important;grid-template-columns:1fr 1fr!important;gap:4mm 6mm!important;align-items:start!important}
+body.flow-measuring .pdf-table-block{break-inside:avoid!important}
+body.flow-measuring .pdf-table-title{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:3mm!important;margin-bottom:.8mm!important}
+body.flow-measuring .pdf-table-title span{font-size:7.2pt!important}
+body.flow-measuring .pdf-table-title small{font-size:5.1pt!important}
+body.flow-measuring .pdf-round-table th,body.flow-measuring .pdf-round-table td{padding-left:.7mm!important;padding-right:.7mm!important}
+body.flow-measuring .pdf-round-table th{font-size:5pt!important}
+body.flow-measuring .pdf-round-table td{height:5mm!important;font-size:6.7pt!important}
+body.flow-measuring .pdf-round-table th:first-child,body.flow-measuring .pdf-round-table td:first-child{width:11mm!important}
+body.flow-measuring .pdf-round-table th:nth-child(3),body.flow-measuring .pdf-round-table td:nth-child(3),body.flow-measuring .pdf-round-table th:nth-child(4),body.flow-measuring .pdf-round-table td:nth-child(4){width:22mm!important}
+body.flow-measuring .pdf-footer{position:absolute!important;left:12mm!important;right:12mm!important;bottom:5mm!important;display:flex!important;justify-content:space-between!important;gap:6mm!important;padding-top:1.5mm!important;font-size:5.4pt!important}
+
+@media print{
+  .flow-document .pdf-page{height:260mm!important;min-height:260mm!important;max-height:260mm!important;padding:9mm 12mm 10mm!important}
+  .flow-document .pdf-header{min-height:21mm!important}
+  .flow-document .pdf-accent-lines{margin:2.5mm 0 5mm!important}
+  .flow-document .pdf-table th{padding:1.3mm 1.1mm 1.45mm!important;font-size:5.4pt!important}
+  .flow-document .pdf-table td{height:5.15mm!important;padding:.7mm 1.1mm!important;font-size:7.25pt!important;line-height:1!important}
+  .flow-document .pdf-small-score{font-size:8.1pt!important}
+  .flow-document .pdf-big-score{font-size:7.9pt!important}
+  .flow-document .pdf-info-strip{margin-top:4mm!important;padding:3mm 0!important}
+  .flow-document .pdf-rounds-content{gap:4mm 6mm!important}
+  .flow-document .pdf-round-table td{height:5mm!important;font-size:6.7pt!important}
+  .flow-document .pdf-footer{left:12mm!important;right:12mm!important;bottom:5mm!important;padding-top:1.5mm!important;font-size:5.4pt!important}
+}
