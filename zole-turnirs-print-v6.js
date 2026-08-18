@@ -195,7 +195,7 @@
     const totalPages = pages.length;
     refs.printReport.innerHTML = `<div class="pdf-document">${pages.map((page, index) => {
       const pageHtml = page.html.replace(
-        '</section>',
+        /<\/section>\s*$/,
         `${reportFooter(page.label, generatedAt, index + 1, totalPages)}</section>`
       );
       return pageHtml;
