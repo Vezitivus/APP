@@ -1,8 +1,0 @@
-/* After Top 3 are shown in the podium, the visible table starts at 4th place.
-   Remove inherited podium/highlight tones from the first visible rows (4th–6th). */
-#view-leaderboard .leaderboard-wrap.podium-followup .leaderboard tbody tr:nth-child(-n+3),
-#view-leaderboard .leaderboard-wrap.podium-followup .leaderboard tbody tr:nth-child(-n+3) td {
-  background: #fff !important;
-  background-image: none !important;
-  box-shadow: none !important;
-}
