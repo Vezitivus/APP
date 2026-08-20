@@ -1,2 +1,2 @@
-#view-leaderboard .leaderboard-wrap.podium-followup{margin-top:18px}
-@media(max-width:560px){#view-leaderboard .leaderboard-wrap.podium-followup{margin-top:14px}}
+#view-leaderboard .leaderboard-wrap.podium-followup{margin-top:10px}
+@media(max-width:560px){#view-leaderboard .leaderboard-wrap.podium-followup{margin-top:8px}}
