@@ -113,6 +113,12 @@
     button.classList.toggle('hidden', !isFinished());
   }
 
+  const baseRenderRound = renderRound;
+  renderRound = function renderRoundWithFinaleLock() {
+    baseRenderRound();
+    enforceFinishedUi();
+  };
+
   const baseRenderAll = renderAll;
   renderAll = function renderAllWithFinale() {
     baseRenderAll();
