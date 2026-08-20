@@ -64,6 +64,7 @@
     document.body.appendChild(overlay);
     requestAnimationFrame(() => overlay.classList.add('show'));
 
+    // Paziņojums paliek redzams pilnas 4 sekundes. Tikai pēc tam sākas galdu atklāšana.
     setTimeout(() => {
       overlay.classList.add('leave');
       [...refs.tablesGrid.querySelectorAll('.game-table')].forEach((card, index) => {
@@ -72,7 +73,7 @@
         requestAnimationFrame(() => card.classList.add('round-card-enter'));
       });
       setTimeout(() => overlay.remove(), 650);
-    }, 900);
+    }, 4000);
   }
 
   const baseRenderRound = renderRound;
