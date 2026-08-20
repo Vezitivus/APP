@@ -1,0 +1,54 @@
+/* Registration number is an internal sequencing field only. Never show it. */
+.player-no{display:none!important}
+.player-row{grid-template-columns:minmax(0,1fr) auto!important}
+#view-round .score-name small{display:none!important}
+#view-leaderboard .leader-name + br,
+#view-leaderboard .leader-name ~ small{display:none!important}
+
+@media print{
+  /* The first column is physically removed by zole-turnirs-no-regno-v9.js. */
+  .pdf-registration-table th:first-child,
+  .pdf-registration-table td:first-child{
+    width:auto!important;
+    text-align:left!important;
+  }
+  .pdf-registration-table th:nth-child(2),
+  .pdf-registration-table td:nth-child(2){
+    width:52mm!important;
+    text-align:left!important;
+  }
+  .pdf-registration-table th:nth-child(3),
+  .pdf-registration-table td:nth-child(3){
+    width:30mm!important;
+    text-align:center!important;
+  }
+
+  .pdf-round-table th:first-child,
+  .pdf-round-table td:first-child{
+    width:auto!important;
+    text-align:left!important;
+  }
+  .pdf-round-table th:nth-child(2),
+  .pdf-round-table td:nth-child(2),
+  .pdf-round-table th:nth-child(3),
+  .pdf-round-table td:nth-child(3){
+    width:24mm!important;
+    text-align:center!important;
+  }
+}
+
+body.flow-measuring .pdf-registration-table th:first-child,
+body.flow-measuring .pdf-registration-table td:first-child{
+  width:auto!important;
+  text-align:left!important;
+}
+body.flow-measuring .pdf-registration-table th:nth-child(2),
+body.flow-measuring .pdf-registration-table td:nth-child(2){width:52mm!important;text-align:left!important}
+body.flow-measuring .pdf-registration-table th:nth-child(3),
+body.flow-measuring .pdf-registration-table td:nth-child(3){width:30mm!important;text-align:center!important}
+body.flow-measuring .pdf-round-table th:first-child,
+body.flow-measuring .pdf-round-table td:first-child{width:auto!important;text-align:left!important}
+body.flow-measuring .pdf-round-table th:nth-child(2),
+body.flow-measuring .pdf-round-table td:nth-child(2),
+body.flow-measuring .pdf-round-table th:nth-child(3),
+body.flow-measuring .pdf-round-table td:nth-child(3){width:24mm!important;text-align:center!important}
