@@ -25,6 +25,13 @@
 .event-table-message{font-weight:750}
 .event-table-ready .table-state{color:#167a46}
 .event-table-error .table-state{color:#b33434}
+#view-round .game-table .table-head h3{
+  color:#10261f!important;
+  opacity:1!important;
+  font-weight:950!important;
+  font-size:18px!important;
+  letter-spacing:-.01em!important;
+}
 
 /* Podium */
 .event-podium-wrap{padding:14px 18px 2px}
@@ -60,7 +67,7 @@
 .event-finale-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
 .event-finale .btn-ghost{color:#fff;border-color:rgba(255,255,255,.25)}
 
-/* TV mode */
+/* TV mode styles kept inert for old cached markup; TV script is no longer loaded. */
 body.tv-mode-open{overflow:hidden}
 .event-tv-mode{position:fixed;inset:0;z-index:6500;display:grid;grid-template-rows:auto 1fr auto;min-height:100dvh;background:#07152f;color:#fff}
 .tv-header{display:flex;align-items:center;justify-content:space-between;gap:28px;padding:24px 34px;border-bottom:1px solid rgba(255,255,255,.12)}
