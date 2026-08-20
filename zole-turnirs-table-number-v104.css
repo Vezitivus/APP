@@ -1,0 +1,14 @@
+/* Force round table numbers to stay clearly visible on iOS/Safari and all table states. */
+#view-round #tablesGrid .game-table .table-head h3,
+#view-round #tablesGrid .game-table.event-table-ready .table-head h3,
+#view-round #tablesGrid .game-table.event-table-error .table-head h3,
+#view-round #tablesGrid .game-table.event-table-pending .table-head h3 {
+  color: #10261f !important;
+  -webkit-text-fill-color: #10261f !important;
+  opacity: 1 !important;
+  font-weight: 950 !important;
+  font-size: 18px !important;
+  text-shadow: none !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+}
