@@ -46,9 +46,9 @@
   function decorateRows(rows) {
     const domRows = [...refs.leaderboardBody.querySelectorAll('tr')];
     domRows.forEach((tr, index) => {
+      if (tr.dataset.playerId) return;
       const row = rows[index];
-      if (!row) return;
-      tr.dataset.playerId = row.id;
+      if (row) tr.dataset.playerId = row.id;
     });
     return domRows;
   }
@@ -71,20 +71,34 @@
   }
 
   function animateLeaderboard(previousRows, rows) {
-    const domRows = decorateRows(rows);
+    const domRows = [...refs.leaderboardBody.querySelectorAll('tr')];
     if (!domRows.length) return;
 
-    const previousById = new Map(previousRows.map((row, index) => [row.id, { ...row, index }]));
+    const currentById = new Map(rows.map(row => [row.id, row]));
+    const previousById = new Map(previousRows.map(row => [row.id, row]));
+    const visibleIndexById = new Map(domRows.map((tr, index) => [tr.dataset.playerId, index]));
     const rects = domRows.map(row => row.getBoundingClientRect());
     const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
 
     domRows.forEach((tr, newIndex) => {
-      const current = rows[newIndex];
-      const previous = previousById.get(current.id);
+      const playerId = tr.dataset.playerId;
+      const current = currentById.get(playerId);
+      const previous = previousById.get(playerId);
+      if (!current) return;
+
       addMovementBadge(tr, previous, current);
       if (!previous || reduceMotion) return;
 
-      const oldIndex = Math.max(0, Math.min(previous.index, rects.length - 1));
+      // Animate position only when the player was outside the podium before and after.
+      // Players crossing the Top 3 still get the correct movement badge, without a false jump.
+      if (Number(previous.place) <= 3 || Number(current.place) <= 3) return;
+
+      const previousVisibleOrder = previousRows
+        .filter(row => Number(row.place) > 3)
+        .findIndex(row => row.id === playerId);
+      if (previousVisibleOrder < 0) return;
+
+      const oldIndex = Math.max(0, Math.min(previousVisibleOrder, rects.length - 1));
       const deltaY = rects[oldIndex].top - rects[newIndex].top;
       if (Math.abs(deltaY) < 1) return;
 
@@ -129,7 +143,7 @@
 
       if (signature(previousRows) === signature(rows)) return;
 
-      saveSnapshot(rows); // mark this change as viewed immediately, so it never replays on the next open
+      saveSnapshot(rows);
       requestAnimationFrame(() => animateLeaderboard(previousRows, rows));
     });
   }
