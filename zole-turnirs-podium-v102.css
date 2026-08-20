@@ -1,2 +1,11 @@
 #view-leaderboard .leaderboard-wrap.podium-followup{margin-top:10px}
 @media(max-width:560px){#view-leaderboard .leaderboard-wrap.podium-followup{margin-top:8px}}
+
+/* Top 3 live only in the podium. The table now starts at place 4,
+   so its first three visible rows must not inherit old Top-3 highlights. */
+#view-leaderboard .leaderboard-wrap.podium-followup .leaderboard tbody tr:nth-child(-n+3),
+#view-leaderboard .leaderboard-wrap.podium-followup .leaderboard tbody tr:nth-child(-n+3) td{
+  background:#fff!important;
+  background-image:none!important;
+  box-shadow:none!important;
+}
