@@ -19,6 +19,20 @@
     }).join('');
   }
 
+  function trimTopThreeFromTable(topRows) {
+    const wrap = document.querySelector('#view-leaderboard .leaderboard-wrap');
+    if (!wrap) return;
+
+    const topIds = new Set(topRows.slice(0, 3).map(row => row.id));
+    [...refs.leaderboardBody.querySelectorAll('tr')].forEach(row => {
+      if (topIds.has(row.dataset.playerId)) row.remove();
+    });
+
+    const hasRemainingRows = refs.leaderboardBody.querySelector('tr');
+    wrap.classList.toggle('podium-followup', Boolean(topRows.length && hasRemainingRows));
+    wrap.classList.toggle('hidden', Boolean(topRows.length && !hasRemainingRows));
+  }
+
   function renderPodium() {
     const card = document.querySelector('#view-leaderboard > .card');
     const wrap = card?.querySelector('.leaderboard-wrap');
@@ -35,6 +49,11 @@
     const rows = meaningfulRows();
     podium.classList.toggle('hidden', rows.length === 0);
     podium.innerHTML = rows.length ? `<div class="event-podium">${podiumHtml(rows)}</div>` : '';
+
+    if (rows.length) trimTopThreeFromTable(rows);
+    else {
+      wrap.classList.remove('podium-followup', 'hidden');
+    }
   }
 
   const baseRenderLeaderboard = renderLeaderboard;
@@ -43,5 +62,5 @@
     renderPodium();
   };
 
-  renderPodium();
+  renderLeaderboard();
 })();
