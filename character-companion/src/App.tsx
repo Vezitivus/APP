@@ -6,6 +6,7 @@ import './App.css'
 
 export default function App() {
   const [prompt, setPrompt] = useState('')
+  const [ready, setReady] = useState(false)
   const [state, setState] = useState<CharacterState>(DEFAULT_STATE)
   const controlsRef = useRef<any>(null)
   const debounceRef = useRef<number | null>(null)
@@ -14,6 +15,11 @@ export default function App() {
 
   const applyPrompt = useCallback((text: string) => {
     setState((prev) => mergeState(prev, parsePrompt(text, prev)))
+  }, [])
+
+  useEffect(() => {
+    const id = window.setTimeout(() => setReady(true), 600)
+    return () => window.clearTimeout(id)
   }, [])
 
   useEffect(() => {
@@ -44,6 +50,8 @@ export default function App() {
       <div className="canvas-wrap">
         <Scene state={state} controlsRef={controlsRef} />
       </div>
+
+      <div className={`boot${ready ? " hide" : ""}`}>Ielādē companion…</div>
 
       <header className="top">
         <div>
