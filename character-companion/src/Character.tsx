@@ -43,7 +43,7 @@ function outfitParts(outfit: OutfitId, color: string) {
 export function Character({ state }: Props) {
   const group = useRef<THREE.Group>(null)
   const target = useRef(poseTransform(state.pose))
-  const texture = useLoader(THREE.TextureLoader, '/character-ref.jpg')
+  const texture = useLoader(THREE.TextureLoader, `${import.meta.env.BASE_URL}character-ref.jpg`)
 
   useMemo(() => {
     texture.colorSpace = THREE.SRGBColorSpace
