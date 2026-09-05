@@ -140,3 +140,18 @@
   padding: 0.3rem 0.7rem;
   opacity: 0.85;
 }
+
+
+.boot {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  background: #0c0a0e;
+  color: #f3ece4;
+  font-size: 0.95rem;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+.boot.hide { opacity: 0; }
