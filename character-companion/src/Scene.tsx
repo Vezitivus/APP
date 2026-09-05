@@ -1,9 +1,9 @@
-import { Canvas } from "@react-three/fiber"
-import { OrbitControls } from "@react-three/drei"
-import { Suspense, useMemo } from "react"
-import * as THREE from "three"
-import { Character } from "./Character"
-import type { CharacterState, LightingId } from "./types"
+import { Canvas } from '@react-three/fiber'
+import { OrbitControls } from '@react-three/drei'
+import { useMemo } from 'react'
+import * as THREE from 'three'
+import { Character } from './Character'
+import type { CharacterState, LightingId } from './types'
 
 type Props = {
   state: CharacterState
@@ -12,13 +12,13 @@ type Props = {
 
 function Lights({ mode }: { mode: LightingId }) {
   const cfg = useMemo(() => {
-    if (mode === "bright") {
-      return { ambient: 0.7, key: 1.5, keyColor: "#fff5e6", fill: 0.55, rim: 0.4, bg: "#1a1a22" }
+    if (mode === 'bright') {
+      return { ambient: 0.7, key: 1.5, keyColor: '#fff5e6', fill: 0.55, rim: 0.4, bg: '#1a1a22' }
     }
-    if (mode === "sunset") {
-      return { ambient: 0.4, key: 1.3, keyColor: "#ff8a4c", fill: 0.35, rim: 0.55, bg: "#1a1018" }
+    if (mode === 'sunset') {
+      return { ambient: 0.4, key: 1.3, keyColor: '#ff8a4c', fill: 0.35, rim: 0.55, bg: '#1a1018' }
     }
-    return { ambient: 0.35, key: 1.25, keyColor: "#ffc07a", fill: 0.35, rim: 0.4, bg: "#0c0a0e" }
+    return { ambient: 0.45, key: 1.35, keyColor: '#ffc07a', fill: 0.4, rim: 0.45, bg: '#141018' }
   }, [mode])
 
   return (
@@ -28,7 +28,7 @@ function Lights({ mode }: { mode: LightingId }) {
       <directionalLight position={[2.2, 3.2, 2]} intensity={cfg.key} color={cfg.keyColor} />
       <pointLight position={[-1.5, 1.2, 1]} intensity={cfg.fill} color="#8ab4ff" />
       <pointLight position={[0.5, 0.8, -1.5]} intensity={cfg.rim} color="#ff6b8a" />
-      <pointLight position={[1.15, 0.55, -0.6]} intensity={0.9} color="#ffc07a" distance={5} />
+      <pointLight position={[1.15, 0.55, -0.6]} intensity={1} color="#ffc07a" distance={5} />
     </>
   )
 }
@@ -36,7 +36,7 @@ function Lights({ mode }: { mode: LightingId }) {
 function Bed() {
   return (
     <group>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[4, 4]} />
         <meshStandardMaterial color="#1a1520" roughness={0.9} />
       </mesh>
@@ -59,23 +59,24 @@ function Bed() {
 export function Scene({ state, controlsRef }: Props) {
   return (
     <Canvas
-      dpr={[1, 1.5]}
+      dpr={[1, 1.25]}
       camera={{ position: [1.4, 1.6, 2.4], fov: 40, near: 0.1, far: 50 }}
-      gl={{ antialias: true, powerPreference: "high-performance", toneMapping: THREE.ACESFilmicToneMapping }}
+      gl={{ antialias: true, powerPreference: 'high-performance', toneMapping: THREE.ACESFilmicToneMapping, failIfMajorPerformanceCaveat: false }}
+      onCreated={({ gl }) => {
+        gl.setClearColor('#141018')
+      }}
     >
-      <Suspense fallback={null}>
-        <Lights mode={state.lighting} />
-        <Bed />
-        <Character state={state} />
-        <OrbitControls
-          ref={controlsRef}
-          target={[0, 0.9, 0]}
-          maxPolarAngle={Math.PI * 0.85}
-          minDistance={1.2}
-          maxDistance={6}
-          enablePan
-        />
-      </Suspense>
+      <Lights mode={state.lighting} />
+      <Bed />
+      <Character state={state} />
+      <OrbitControls
+        ref={controlsRef}
+        target={[0, 0.9, 0]}
+        maxPolarAngle={Math.PI * 0.85}
+        minDistance={1.2}
+        maxDistance={6}
+        enablePan
+      />
     </Canvas>
   )
 }

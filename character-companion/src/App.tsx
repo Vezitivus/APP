@@ -1,8 +1,27 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Component, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Scene } from './Scene'
 import { DEFAULT_STATE, type CharacterState } from './types'
 import { describeState, mergeState, parsePrompt } from './promptParser'
 import './App.css'
+
+class SceneErrorBoundary extends Component<{ children: ReactNode }, { error: string | null }> {
+  state = { error: null as string | null }
+  static getDerivedStateFromError(err: Error) {
+    return { error: err.message || '3D failed' }
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="webgl-fallback">
+          <img src={`${import.meta.env.BASE_URL}character-ref.jpg`} alt="Character" />
+          <p>3D nav pieejams šajā ierīcē. Prompti joprojām strādā statusā apakšā.</p>
+          <p className="err">{this.state.error}</p>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
 
 export default function App() {
   const [prompt, setPrompt] = useState('')
@@ -18,7 +37,7 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    const id = window.setTimeout(() => setReady(true), 600)
+    const id = window.setTimeout(() => setReady(true), 400)
     return () => window.clearTimeout(id)
   }, [])
 
@@ -48,15 +67,17 @@ export default function App() {
   return (
     <div className="app">
       <div className="canvas-wrap">
-        <Scene state={state} controlsRef={controlsRef} />
+        <SceneErrorBoundary>
+          <Scene state={state} controlsRef={controlsRef} />
+        </SceneErrorBoundary>
       </div>
 
-      <div className={`boot${ready ? " hide" : ""}`}>Ielādē companion…</div>
+      {!ready && <div className="boot">Ielādē companion…</div>}
 
       <header className="top">
         <div>
           <h1>Character Companion</h1>
-          <p className="sub">Type and she reacts live — clothes, shape, pose, hair, light</p>
+          <p className="sub">Raksti promptu — mainās clothes / shape / pose live</p>
         </div>
         <div className="top-actions">
           <button type="button" onClick={resetCamera}>
@@ -82,7 +103,7 @@ export default function App() {
         <input
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder='Try: "put on a red dress" · "stand up" · "more muscular" · "sunset vibe"'
+          placeholder='Try: "put on a red dress" · "stand up" · "more muscular"'
           autoComplete="off"
           spellCheck={false}
         />

@@ -1,5 +1,5 @@
-import { useMemo, useRef } from 'react'
-import { useFrame, useLoader } from '@react-three/fiber'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import type { CharacterState, OutfitId, PoseId } from './types'
 
@@ -26,16 +26,12 @@ function hairColor(hair: CharacterState['hair']) {
 }
 
 function outfitParts(outfit: OutfitId, color: string) {
-  const skinHide = outfit === 'bare'
   return {
     showThong: outfit === 'thong' || outfit === 'swimwear',
-    showTop: outfit === 'dress' || outfit === 'casual' || outfit === 'athletic' || outfit === 'swimwear',
-    showPants: outfit === 'casual' || outfit === 'athletic' || outfit === 'dress',
     dress: outfit === 'dress',
     hoodie: outfit === 'casual',
     athletic: outfit === 'athletic',
     bikini: outfit === 'swimwear',
-    bare: skinHide,
     color,
   }
 }
@@ -43,12 +39,29 @@ function outfitParts(outfit: OutfitId, color: string) {
 export function Character({ state }: Props) {
   const group = useRef<THREE.Group>(null)
   const target = useRef(poseTransform(state.pose))
-  const texture = useLoader(THREE.TextureLoader, `${import.meta.env.BASE_URL}character-ref.jpg`)
+  const [texture, setTexture] = useState<THREE.Texture | null>(null)
 
-  useMemo(() => {
-    texture.colorSpace = THREE.SRGBColorSpace
-    texture.anisotropy = 8
-  }, [texture])
+  useEffect(() => {
+    const url = `${import.meta.env.BASE_URL}character-ref.jpg`
+    const loader = new THREE.TextureLoader()
+    let alive = true
+    loader.load(
+      url,
+      (tex) => {
+        if (!alive) return
+        tex.colorSpace = THREE.SRGBColorSpace
+        tex.anisotropy = 4
+        setTexture(tex)
+      },
+      undefined,
+      () => {
+        console.warn('character texture failed', url)
+      },
+    )
+    return () => {
+      alive = false
+    }
+  }, [])
 
   target.current = poseTransform(state.pose)
   const parts = outfitParts(state.outfit, state.outfitColor)
@@ -58,6 +71,8 @@ export function Character({ state }: Props) {
   const waistW = 0.16 + state.waist * 0.12
   const hipW = 0.26 + (1 - state.waist) * 0.04
   const scaleY = state.height
+  const skin = '#c6866a'
+  const glossy = useMemo(() => ({ roughness: 0.35, metalness: 0.05 }), [])
 
   useFrame((clock) => {
     const g = group.current
@@ -71,8 +86,6 @@ export function Character({ state }: Props) {
     g.rotation.y = THREE.MathUtils.lerp(g.rotation.y, t.rot[1], 0.08)
     g.rotation.z = THREE.MathUtils.lerp(g.rotation.z, t.rot[2], 0.08)
     g.scale.set(1, scaleY * breath, 1)
-
-    // wave arm bob
     const arm = g.getObjectByName('rightArm')
     if (arm && state.pose === 'wave') {
       arm.rotation.z = -0.6 + Math.sin(clock.clock.elapsedTime * 5) * 0.45
@@ -81,144 +94,133 @@ export function Character({ state }: Props) {
     }
   })
 
-  const skin = '#c6866a'
-  const glossy = { roughness: 0.35, metalness: 0.05 }
-
   return (
     <group ref={group} position={[0, 0.95, 0]}>
-      {/* Photo likeness card — face/torso from reference */}
-      <mesh position={[0, 0.55, 0.18]} castShadow>
-        <planeGeometry args={[0.55, 0.85]} />
-        <meshStandardMaterial map={texture} roughness={0.55} metalness={0.02} transparent opacity={0.98} />
-      </mesh>
+      {texture ? (
+        <mesh position={[0, 0.55, 0.18]}>
+          <planeGeometry args={[0.55, 0.85]} />
+          <meshStandardMaterial map={texture} roughness={0.55} metalness={0.02} transparent opacity={0.98} />
+        </mesh>
+      ) : (
+        <mesh position={[0, 0.55, 0.18]}>
+          <planeGeometry args={[0.55, 0.85]} />
+          <meshStandardMaterial color={skin} {...glossy} />
+        </mesh>
+      )}
 
-      {/* Head */}
-      <mesh position={[0, 1.05, 0]} castShadow>
-        <sphereGeometry args={[0.16, 32, 32]} />
+      <mesh position={[0, 1.05, 0]}>
+        <sphereGeometry args={[0.16, 24, 24]} />
         <meshStandardMaterial color={skin} {...glossy} />
       </mesh>
-
-      {/* Hair volume */}
-      <mesh position={[0, 1.12, -0.02]} castShadow>
-        <sphereGeometry args={[0.175, 32, 32]} />
+      <mesh position={[0, 1.12, -0.02]}>
+        <sphereGeometry args={[0.175, 24, 24]} />
         <meshStandardMaterial color={hair} roughness={0.7} />
       </mesh>
       {state.hair === 'ponytail' && (
-        <mesh position={[0, 0.95, -0.18]} rotation={[0.6, 0, 0]} castShadow>
-          <capsuleGeometry args={[0.04, 0.28, 8, 16]} />
+        <mesh position={[0, 0.95, -0.18]} rotation={[0.6, 0, 0]}>
+          <capsuleGeometry args={[0.04, 0.28, 6, 12]} />
           <meshStandardMaterial color={hair} roughness={0.7} />
         </mesh>
       )}
       {state.hair === 'wet' && (
         <>
-          <mesh position={[-0.12, 1.0, 0.08]} castShadow>
-            <capsuleGeometry args={[0.025, 0.2, 6, 12]} />
+          <mesh position={[-0.12, 1.0, 0.08]}>
+            <capsuleGeometry args={[0.025, 0.2, 4, 8]} />
             <meshStandardMaterial color={hair} roughness={0.4} metalness={0.15} />
           </mesh>
-          <mesh position={[0.1, 0.98, 0.1]} castShadow>
-            <capsuleGeometry args={[0.022, 0.18, 6, 12]} />
+          <mesh position={[0.1, 0.98, 0.1]}>
+            <capsuleGeometry args={[0.022, 0.18, 4, 8]} />
             <meshStandardMaterial color={hair} roughness={0.4} metalness={0.15} />
           </mesh>
         </>
       )}
 
-      {/* Torso */}
-      <mesh position={[0, 0.55, 0]} castShadow>
-        <capsuleGeometry args={[torsoW * 0.55, 0.45, 8, 16]} />
+      <mesh position={[0, 0.55, 0]}>
+        <capsuleGeometry args={[torsoW * 0.55, 0.45, 6, 12]} />
+        <meshStandardMaterial color={skin} {...glossy} />
+      </mesh>
+      <mesh position={[0, 0.22, 0]} scale={[waistW / 0.22, 1, 0.9]}>
+        <sphereGeometry args={[0.18, 16, 16]} />
+        <meshStandardMaterial color={skin} {...glossy} />
+      </mesh>
+      <mesh position={[0, 0.05, 0]} scale={[hipW / 0.24, 0.7, 1]}>
+        <sphereGeometry args={[0.22, 16, 16]} />
         <meshStandardMaterial color={skin} {...glossy} />
       </mesh>
 
-      {/* Waist / hips */}
-      <mesh position={[0, 0.22, 0]} scale={[waistW / 0.22, 1, 0.9]} castShadow>
-        <sphereGeometry args={[0.18, 24, 24]} />
+      <mesh position={[-shoulder, 0.78, 0]}>
+        <sphereGeometry args={[0.09, 12, 12]} />
         <meshStandardMaterial color={skin} {...glossy} />
       </mesh>
-      <mesh position={[0, 0.05, 0]} scale={[hipW / 0.24, 0.7, 1]} castShadow>
-        <sphereGeometry args={[0.22, 24, 24]} />
-        <meshStandardMaterial color={skin} {...glossy} />
-      </mesh>
-
-      {/* Shoulders */}
-      <mesh position={[-shoulder, 0.78, 0]} castShadow>
-        <sphereGeometry args={[0.09, 16, 16]} />
-        <meshStandardMaterial color={skin} {...glossy} />
-      </mesh>
-      <mesh position={[shoulder, 0.78, 0]} castShadow>
-        <sphereGeometry args={[0.09, 16, 16]} />
+      <mesh position={[shoulder, 0.78, 0]}>
+        <sphereGeometry args={[0.09, 12, 12]} />
         <meshStandardMaterial color={skin} {...glossy} />
       </mesh>
 
-      {/* Arms */}
-      <mesh name="leftArm" position={[-shoulder - 0.05, 0.45, 0]} rotation={[0, 0, 0.25]} castShadow>
-        <capsuleGeometry args={[0.045, 0.42, 6, 12]} />
+      <mesh name="leftArm" position={[-shoulder - 0.05, 0.45, 0]} rotation={[0, 0, 0.25]}>
+        <capsuleGeometry args={[0.045, 0.42, 4, 8]} />
         <meshStandardMaterial color={skin} {...glossy} />
       </mesh>
-      <mesh name="rightArm" position={[shoulder + 0.05, 0.45, 0]} rotation={[0, 0, -0.25]} castShadow>
-        <capsuleGeometry args={[0.045, 0.42, 6, 12]} />
-        <meshStandardMaterial color={skin} {...glossy} />
-      </mesh>
-
-      {/* Legs */}
-      <mesh position={[-0.09, -0.35, 0]} castShadow>
-        <capsuleGeometry args={[0.07, 0.55, 6, 12]} />
-        <meshStandardMaterial color={skin} {...glossy} />
-      </mesh>
-      <mesh position={[0.09, -0.35, 0]} castShadow>
-        <capsuleGeometry args={[0.07, 0.55, 6, 12]} />
+      <mesh name="rightArm" position={[shoulder + 0.05, 0.45, 0]} rotation={[0, 0, -0.25]}>
+        <capsuleGeometry args={[0.045, 0.42, 4, 8]} />
         <meshStandardMaterial color={skin} {...glossy} />
       </mesh>
 
-      {/* Clothing layers */}
+      <mesh position={[-0.09, -0.35, 0]}>
+        <capsuleGeometry args={[0.07, 0.55, 4, 8]} />
+        <meshStandardMaterial color={skin} {...glossy} />
+      </mesh>
+      <mesh position={[0.09, -0.35, 0]}>
+        <capsuleGeometry args={[0.07, 0.55, 4, 8]} />
+        <meshStandardMaterial color={skin} {...glossy} />
+      </mesh>
+
       {parts.showThong && !parts.dress && (
-        <mesh position={[0, 0.02, 0.02]} scale={[hipW / 0.24, 0.35, 1.05]} castShadow>
-          <sphereGeometry args={[0.2, 24, 16, 0, Math.PI * 2, 0, Math.PI * 0.55]} />
+        <mesh position={[0, 0.02, 0.02]} scale={[hipW / 0.24, 0.35, 1.05]}>
+          <sphereGeometry args={[0.2, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.55]} />
           <meshStandardMaterial color={parts.bikini ? parts.color : '#111111'} roughness={0.45} />
         </mesh>
       )}
-
       {parts.bikini && (
-        <mesh position={[0, 0.62, 0.02]} scale={[1, 0.55, 1]} castShadow>
-          <sphereGeometry args={[0.2, 24, 16]} />
+        <mesh position={[0, 0.62, 0.02]} scale={[1, 0.55, 1]}>
+          <sphereGeometry args={[0.2, 16, 12]} />
           <meshStandardMaterial color={parts.color} roughness={0.4} />
         </mesh>
       )}
-
       {parts.dress && (
-        <mesh position={[0, 0.25, 0]} castShadow>
-          <coneGeometry args={[0.32, 0.85, 24]} />
+        <mesh position={[0, 0.25, 0]}>
+          <coneGeometry args={[0.32, 0.85, 16]} />
           <meshStandardMaterial color={parts.color} roughness={0.5} side={THREE.DoubleSide} />
         </mesh>
       )}
-
       {parts.hoodie && (
         <>
-          <mesh position={[0, 0.55, 0]} castShadow>
-            <capsuleGeometry args={[torsoW * 0.62, 0.4, 8, 16]} />
+          <mesh position={[0, 0.55, 0]}>
+            <capsuleGeometry args={[torsoW * 0.62, 0.4, 6, 12]} />
             <meshStandardMaterial color={parts.color} roughness={0.75} />
           </mesh>
-          <mesh position={[-0.09, -0.15, 0.01]} castShadow>
-            <capsuleGeometry args={[0.085, 0.35, 6, 12]} />
+          <mesh position={[-0.09, -0.15, 0.01]}>
+            <capsuleGeometry args={[0.085, 0.35, 4, 8]} />
             <meshStandardMaterial color="#2a3a55" roughness={0.7} />
           </mesh>
-          <mesh position={[0.09, -0.15, 0.01]} castShadow>
-            <capsuleGeometry args={[0.085, 0.35, 6, 12]} />
+          <mesh position={[0.09, -0.15, 0.01]}>
+            <capsuleGeometry args={[0.085, 0.35, 4, 8]} />
             <meshStandardMaterial color="#2a3a55" roughness={0.7} />
           </mesh>
         </>
       )}
-
       {parts.athletic && (
         <>
-          <mesh position={[0, 0.55, 0]} castShadow>
-            <capsuleGeometry args={[torsoW * 0.58, 0.38, 8, 16]} />
+          <mesh position={[0, 0.55, 0]}>
+            <capsuleGeometry args={[torsoW * 0.58, 0.38, 6, 12]} />
             <meshStandardMaterial color={parts.color} roughness={0.55} />
           </mesh>
-          <mesh position={[-0.09, -0.2, 0]} castShadow>
-            <capsuleGeometry args={[0.08, 0.4, 6, 12]} />
+          <mesh position={[-0.09, -0.2, 0]}>
+            <capsuleGeometry args={[0.08, 0.4, 4, 8]} />
             <meshStandardMaterial color="#1a1a1a" roughness={0.6} />
           </mesh>
-          <mesh position={[0.09, -0.2, 0]} castShadow>
-            <capsuleGeometry args={[0.08, 0.4, 6, 12]} />
+          <mesh position={[0.09, -0.2, 0]}>
+            <capsuleGeometry args={[0.08, 0.4, 4, 8]} />
             <meshStandardMaterial color="#1a1a1a" roughness={0.6} />
           </mesh>
         </>
