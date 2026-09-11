@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="lv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#111827" />
+  <meta name="description" content="Rīgas būvniecību apsekošanas karte ar GPS braucieniem un objektu karodziņiem." />
+  <title>Būvju Radars</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="topbar"><div><small>RĪGAS APSEKOŠANA</small><h1>Būvju Radars</h1></div><div><button id="settingsBtn">⚙</button><button id="logoutBtn" class="hidden">↪</button></div></header>
+  <main>
+    <section id="authView" class="panel auth-panel">
+      <h2>Pieslēgšanās</h2>
+      <p>Dati glabājas tavā Supabase projektā. Pirmajā reizē ievadi projekta adresi un publishable key.</p>
+      <label>Supabase URL<input id="supabaseUrl" type="url" placeholder="https://xxxx.supabase.co"></label>
+      <label>Publishable key<input id="supabaseKey" type="password" placeholder="sb_publishable_… / anon key"></label>
+      <button id="saveBackendBtn" class="btn secondary">Saglabāt backendu</button>
+      <hr>
+      <label>E-pasts<input id="emailInput" type="email" placeholder="mans@epasts.lv"></label>
+      <button id="loginBtn" class="btn primary">Saņemt pieslēgšanās saiti</button><div id="authStatus" class="status"></div>
+    </section>
+
+    <section id="mapView" class="hidden">
+      <div id="map"></div>
+      <div class="stats glass"><div><b id="tripCount">0</b><span>braucieni</span></div><div><b id="totalKm">0.0</b><span>km</span></div><div><b id="objectCount">0</b><span>objekti</span></div></div>
+      <div class="maptools glass"><button id="locateBtn">◎</button><button id="fitBtn">⌗</button><button id="filtersBtn">☰</button></div>
+      <aside id="filtersPanel" class="side hidden"><div class="head"><h3>Kartes filtri</h3><button id="closeFiltersBtn">×</button></div><label><input id="showTrips" type="checkbox" checked> Braucienu līnijas</label><label><input id="showObjects" type="checkbox" checked> Būvniecības objekti</label><label>Periods<select id="tripPeriod"><option value="all">Visi braucieni</option><option value="30">30 dienas</option><option value="90">90 dienas</option><option value="365">1 gads</option></select></label><button id="exportBtn" class="btn secondary">Eksportēt GeoJSON</button></aside>
+      <div id="tripHud" class="trip-hud hidden"><strong>● IERAKSTA BRAUCIENU</strong><div><span id="liveKm">0.00 km</span><span id="liveTime">00:00</span><span id="liveAccuracy">± — m</span></div></div>
+      <div class="bottom"><button id="tripBtn" class="btn primary big">▶ SĀKT BRAUCIENU</button><button id="addObjectBtn" class="btn flag big">⚑ OBJEKTS</button></div>
+    </section>
+  </main>
+
+  <dialog id="objectDialog"><form id="objectForm" method="dialog"><div class="head"><div><small>JAUNS KARODZIŅŠ</small><h2>Objekts</h2></div><button type="button" id="closeObjectBtn">×</button></div><input id="objectLat" type="hidden"><input id="objectLng" type="hidden"><label>Adrese<input id="objectAddress" type="text" placeholder="Tiks mēģināts noteikt automātiski"></label><div class="cols"><label>Objekta tips<select id="objectType"><option>Privātmāja</option><option>Daudzdzīvokļu ēka</option><option>Komercobjekts</option><option>Sabiedriska ēka</option><option>Cits</option></select></label><label>Stadija<select id="objectStage"><option>Pamati</option><option>Karkass</option><option>Jumts</option><option>Logi</option><option>Fasāde</option><option>Iekšdarbi</option><option>Gatavs</option><option>Nav zināms</option></select></label></div><div class="cols"><label>Statuss<select id="objectStatus"><option>Jauns</option><option>Jāseko</option><option>Prioritārs</option><option>Sazināties</option><option>Noslēgts</option></select></label><label>Fasāde<input id="objectFacade" type="text" placeholder="piem. vēl nav / koks"></label></div><label>Piezīmes<textarea id="objectNotes" rows="4"></textarea></label><label>Foto<input id="objectPhotos" type="file" accept="image/*" capture="environment" multiple></label><div id="objectCoords" class="coords"></div><button id="saveObjectBtn" type="submit" class="btn primary">Saglabāt objektu</button><div id="objectStatusText" class="status"></div></form></dialog>
+
+  <dialog id="settingsDialog"><form method="dialog"><div class="head"><h2>Iestatījumi</h2><button type="button" id="closeSettingsBtn">×</button></div><label>Supabase URL<input id="settingsUrl" type="url"></label><label>Publishable key<input id="settingsKey" type="password"></label><button id="settingsSaveBtn" type="button" class="btn primary">Saglabāt</button><button id="clearLocalBtn" type="button" class="btn danger">Notīrīt lokālo GPS rezervi</button></form></dialog>
+  <div id="toast" class="toast hidden"></div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./app.js" defer></script>
+</body>
+</html>
