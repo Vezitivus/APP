@@ -1,0 +1,10 @@
+{
+  "name":"Būvju Radars",
+  "short_name":"Radars",
+  "description":"GPS braucienu un būvniecības objektu apsekošanas karte.",
+  "start_url":"./",
+  "display":"standalone",
+  "background_color":"#0b1020",
+  "theme_color":"#111827",
+  "icons":[]
+}
