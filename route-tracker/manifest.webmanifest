@@ -1,0 +1,10 @@
+{
+  "name": "Spalle Route Tracker",
+  "short_name": "Route Tracker",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#111827",
+  "description": "Vienkāršs GPS maršruta ierakstītājs ar lokālu maršrutu saglabāšanu ierīcē."
+}
