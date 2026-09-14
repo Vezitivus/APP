@@ -2,408 +2,696 @@
 <html lang="lv">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#111827" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Route Tracker" />
   <title>Route Tracker</title>
   <link rel="manifest" href="./manifest.webmanifest" />
-  <link rel="preconnect" href="https://unpkg.com" crossorigin />
-  <link rel="preconnect" href="https://tile.openstreetmap.org" crossorigin />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQ3ynS44wRpucB9Vc7FQ5yF8IVTVkFQ=" crossorigin="" />
   <style>
-    :root { color-scheme: light; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    :root {
+      --app-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color-scheme: light;
+    }
+
     * { box-sizing: border-box; }
-    html, body, #app, #map { width: 100%; height: 100%; margin: 0; }
-    body { overflow: hidden; background: #e5e7eb; }
-    #app { position: relative; }
-    #map { position: absolute; inset: 0; z-index: 1; }
-    .topbar { position: absolute; z-index: 500; top: calc(env(safe-area-inset-top) + 12px); left: 12px; right: 12px; display: flex; gap: 8px; align-items: stretch; pointer-events: none; }
-    .status { min-width: 0; flex: 1; background: rgba(17,24,39,.92); color: #fff; border-radius: 16px; padding: 10px 14px; box-shadow: 0 6px 24px rgba(0,0,0,.18); backdrop-filter: blur(12px); }
-    .status-line { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; }
-    .dot { width: 9px; height: 9px; border-radius: 50%; background: #9ca3af; flex: 0 0 auto; }
-    .dot.live { background: #22c55e; box-shadow: 0 0 0 5px rgba(34,197,94,.15); }
-    .metrics { margin-top: 4px; display: flex; gap: 12px; color: #d1d5db; font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; }
-    .icon-btn { pointer-events: auto; width: 48px; min-width: 48px; border: 0; border-radius: 16px; background: rgba(255,255,255,.96); color: #111827; font-size: 20px; font-weight: 800; box-shadow: 0 6px 24px rgba(0,0,0,.16); }
-    .icon-btn:active { transform: scale(.97); }
-    .controls { position: absolute; z-index: 500; left: 12px; right: 12px; bottom: calc(env(safe-area-inset-bottom) + 14px); display: flex; gap: 10px; align-items: center; }
-    .main-btn { flex: 1; min-height: 58px; border: 0; border-radius: 18px; font-size: 18px; font-weight: 900; letter-spacing: .4px; color: white; background: #16a34a; box-shadow: 0 8px 28px rgba(0,0,0,.22); }
-    .main-btn.stop { background: #dc2626; }
-    .main-btn:active { transform: scale(.985); }
-    .locate { width: 58px; min-width: 58px; min-height: 58px; border: 0; border-radius: 18px; background: rgba(255,255,255,.97); color: #111827; font-size: 24px; box-shadow: 0 8px 28px rgba(0,0,0,.18); }
-    .leaflet-control-zoom { display: none; }
-    .leaflet-control-attribution { font-size: 10px; }
-    .gps-marker { width: 20px; height: 20px; border-radius: 50%; background: #2563eb; border: 4px solid white; box-shadow: 0 2px 12px rgba(0,0,0,.35); }
-    .gps-pulse { width: 40px; height: 40px; border-radius: 50%; background: rgba(37,99,235,.14); border: 1px solid rgba(37,99,235,.32); }
-    .toast { position: absolute; z-index: 700; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 86px); transform: translateX(-50%); max-width: calc(100% - 32px); padding: 10px 14px; border-radius: 12px; background: rgba(17,24,39,.94); color: white; font-size: 13px; font-weight: 700; text-align: center; opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #dfe3e8;
+      overscroll-behavior: none;
+    }
+
+    body {
+      position: fixed;
+      inset: 0;
+    }
+
+    #app {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: var(--app-height);
+      overflow: hidden;
+    }
+
+    #map {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      background: #e5e7eb;
+    }
+
+    .leaflet-container {
+      width: 100% !important;
+      height: 100% !important;
+      font-family: inherit;
+    }
+
+    .topbar {
+      position: absolute;
+      z-index: 1000;
+      top: calc(env(safe-area-inset-top, 0px) + 10px);
+      left: 10px;
+      right: 10px;
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+      pointer-events: none;
+    }
+
+    .status {
+      min-width: 0;
+      flex: 1;
+      padding: 10px 12px;
+      border-radius: 15px;
+      background: rgba(17, 24, 39, .92);
+      color: #fff;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, .18);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .status-line {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #9ca3af;
+      flex: 0 0 auto;
+    }
+
+    .dot.live {
+      background: #22c55e;
+      box-shadow: 0 0 0 5px rgba(34, 197, 94, .16);
+    }
+
+    .metrics {
+      display: flex;
+      gap: 10px;
+      margin-top: 4px;
+      overflow: hidden;
+      white-space: nowrap;
+      color: #d1d5db;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    button {
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    .icon-btn,
+    .locate-btn {
+      border: 0;
+      background: rgba(255, 255, 255, .97);
+      color: #111827;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, .18);
+      pointer-events: auto;
+    }
+
+    .icon-btn {
+      width: 48px;
+      min-width: 48px;
+      border-radius: 15px;
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .controls {
+      position: absolute;
+      z-index: 1000;
+      left: 10px;
+      right: 10px;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+      display: flex;
+      gap: 9px;
+      align-items: center;
+    }
+
+    .track-btn {
+      min-height: 58px;
+      flex: 1;
+      border: 0;
+      border-radius: 17px;
+      background: #16a34a;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: .35px;
+      box-shadow: 0 7px 24px rgba(0, 0, 0, .22);
+    }
+
+    .track-btn.stop { background: #dc2626; }
+
+    .locate-btn {
+      width: 58px;
+      min-width: 58px;
+      height: 58px;
+      border-radius: 17px;
+      font-size: 24px;
+      font-weight: 900;
+    }
+
+    .track-btn:active,
+    .locate-btn:active,
+    .icon-btn:active { transform: scale(.98); }
+
+    .gps-dot {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #2563eb;
+      border: 4px solid #fff;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, .35);
+    }
+
+    .toast {
+      position: absolute;
+      z-index: 1200;
+      left: 50%;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 82px);
+      transform: translateX(-50%);
+      max-width: calc(100% - 30px);
+      padding: 10px 13px;
+      border-radius: 12px;
+      background: rgba(17, 24, 39, .95);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease;
+    }
+
     .toast.show { opacity: 1; }
-    .confirm { position: absolute; z-index: 800; inset: 0; display: none; align-items: flex-end; background: rgba(0,0,0,.26); padding: 16px 16px calc(env(safe-area-inset-bottom) + 16px); }
+
+    .confirm {
+      position: absolute;
+      z-index: 1300;
+      inset: 0;
+      display: none;
+      align-items: flex-end;
+      padding: 16px 16px calc(env(safe-area-inset-bottom, 0px) + 16px);
+      background: rgba(0, 0, 0, .28);
+    }
+
     .confirm.show { display: flex; }
-    .sheet { width: 100%; background: white; border-radius: 22px; padding: 18px; box-shadow: 0 18px 50px rgba(0,0,0,.28); }
-    .sheet h2 { margin: 0 0 8px; font-size: 18px; }
-    .sheet p { margin: 0 0 16px; color: #4b5563; font-size: 14px; line-height: 1.4; }
-    .sheet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .sheet button { min-height: 50px; border: 0; border-radius: 14px; font-weight: 800; font-size: 15px; }
+
+    .sheet {
+      width: 100%;
+      padding: 18px;
+      border-radius: 22px;
+      background: #fff;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, .28);
+    }
+
+    .sheet h2 { margin: 0 0 7px; font-size: 18px; }
+    .sheet p { margin: 0 0 15px; color: #4b5563; font-size: 14px; line-height: 1.4; }
+    .sheet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .sheet button { min-height: 50px; border: 0; border-radius: 14px; font-size: 15px; font-weight: 800; }
     .cancel { background: #f3f4f6; color: #111827; }
-    .danger { background: #dc2626; color: white; }
+    .danger { background: #dc2626; color: #fff; }
+
+    .leaflet-control-attribution { font-size: 9px; }
+    .leaflet-control-zoom { display: none; }
   </style>
 </head>
 <body>
-<div id="app">
-  <div id="map" aria-label="Karte"></div>
+  <div id="app">
+    <div id="map" aria-label="Maršruta karte"></div>
 
-  <div class="topbar">
-    <div class="status" aria-live="polite">
-      <div class="status-line"><span id="statusDot" class="dot"></span><span id="statusText">Gatavs</span></div>
-      <div class="metrics"><span id="distanceText">0.00 km</span><span id="accuracyText">GPS —</span><span id="routesText">0 maršruti</span></div>
+    <div class="topbar">
+      <div class="status" aria-live="polite">
+        <div class="status-line">
+          <span id="statusDot" class="dot"></span>
+          <span id="statusText">Gatavs</span>
+        </div>
+        <div class="metrics">
+          <span id="distanceText">0.00 km</span>
+          <span id="accuracyText">GPS —</span>
+          <span id="routesText">0 maršruti</span>
+        </div>
+      </div>
+      <button id="clearBtn" class="icon-btn" type="button" aria-label="Dzēst maršrutus">⌫</button>
     </div>
-    <button id="clearBtn" class="icon-btn" type="button" aria-label="Dzēst saglabātos maršrutus">⌫</button>
-  </div>
 
-  <div class="controls">
-    <button id="trackBtn" class="main-btn" type="button">START</button>
-    <button id="locateBtn" class="locate" type="button" aria-label="Centrēt uz manu atrašanās vietu">⌖</button>
-  </div>
+    <div class="controls">
+      <button id="trackBtn" class="track-btn" type="button">START</button>
+      <button id="locateBtn" class="locate-btn" type="button" aria-label="Centrēt karti uz manu atrašanās vietu">⌖</button>
+    </div>
 
-  <div id="toast" class="toast" role="status"></div>
+    <div id="toast" class="toast" role="status"></div>
 
-  <div id="confirm" class="confirm" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
-    <div class="sheet">
-      <h2 id="confirmTitle">Dzēst visu vēsturi?</h2>
-      <p>Tiks dzēsti visi šajā ierīcē saglabātie maršruti. To nevarēs atjaunot.</p>
-      <div class="sheet-actions">
-        <button id="cancelClear" class="cancel" type="button">Atcelt</button>
-        <button id="confirmClear" class="danger" type="button">Dzēst visu</button>
+    <div id="confirm" class="confirm" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <div class="sheet">
+        <h2 id="confirmTitle">Dzēst visu vēsturi?</h2>
+        <p>Tiks dzēsti visi šajā telefonā saglabātie maršruti.</p>
+        <div class="sheet-actions">
+          <button id="cancelClear" class="cancel" type="button">Atcelt</button>
+          <button id="confirmClear" class="danger" type="button">Dzēst visu</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script>
-(() => {
-  'use strict';
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script>
+    (() => {
+      'use strict';
 
-  const DB_NAME = 'spalle-route-tracker';
-  const DB_VERSION = 1;
-  const STORE = 'routes';
-  const DEFAULT_CENTER = [56.9496, 24.1052];
-  const DEFAULT_ZOOM = 13;
+      const DB_NAME = 'spalle-route-tracker';
+      const DB_VERSION = 1;
+      const STORE = 'routes';
+      const DEFAULT_CENTER = [56.9496, 24.1052];
+      const DEFAULT_ZOOM = 13;
 
-  const map = L.map('map', { zoomControl: false, attributionControl: true }).setView(DEFAULT_CENTER, DEFAULT_ZOOM);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
+      const trackBtn = document.getElementById('trackBtn');
+      const locateBtn = document.getElementById('locateBtn');
+      const clearBtn = document.getElementById('clearBtn');
+      const statusText = document.getElementById('statusText');
+      const statusDot = document.getElementById('statusDot');
+      const distanceText = document.getElementById('distanceText');
+      const accuracyText = document.getElementById('accuracyText');
+      const routesText = document.getElementById('routesText');
+      const toast = document.getElementById('toast');
+      const confirmBox = document.getElementById('confirm');
+      const cancelClear = document.getElementById('cancelClear');
+      const confirmClear = document.getElementById('confirmClear');
 
-  const trackBtn = document.getElementById('trackBtn');
-  const locateBtn = document.getElementById('locateBtn');
-  const clearBtn = document.getElementById('clearBtn');
-  const statusText = document.getElementById('statusText');
-  const statusDot = document.getElementById('statusDot');
-  const distanceText = document.getElementById('distanceText');
-  const accuracyText = document.getElementById('accuracyText');
-  const routesText = document.getElementById('routesText');
-  const toast = document.getElementById('toast');
-  const confirm = document.getElementById('confirm');
-  const cancelClear = document.getElementById('cancelClear');
-  const confirmClear = document.getElementById('confirmClear');
+      function syncViewport() {
+        const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        document.documentElement.style.setProperty('--app-height', Math.round(h) + 'px');
+      }
 
-  let db;
-  let watchId = null;
-  let wakeLock = null;
-  let tracking = false;
-  let currentRoute = null;
-  let currentLine = null;
-  let distanceMeters = 0;
-  let gpsMarker = null;
-  let accuracyCircle = null;
-  let hasCenteredOnce = false;
-  const savedLayers = [];
+      syncViewport();
 
-  const dbReady = openDb();
+      const map = L.map('map', {
+        zoomControl: false,
+        attributionControl: true,
+        preferCanvas: true
+      }).setView(DEFAULT_CENTER, DEFAULT_ZOOM);
 
-  function openDb() {
-    return new Promise((resolve, reject) => {
-      const req = indexedDB.open(DB_NAME, DB_VERSION);
-      req.onupgradeneeded = () => {
-        const database = req.result;
-        if (!database.objectStoreNames.contains(STORE)) {
-          database.createObjectStore(STORE, { keyPath: 'id' });
-        }
-      };
-      req.onsuccess = () => { db = req.result; resolve(db); };
-      req.onerror = () => reject(req.error);
-    });
-  }
-
-  function tx(mode = 'readonly') {
-    return db.transaction(STORE, mode).objectStore(STORE);
-  }
-
-  function putRoute(route) {
-    return new Promise((resolve, reject) => {
-      const req = tx('readwrite').put(route);
-      req.onsuccess = () => resolve();
-      req.onerror = () => reject(req.error);
-    });
-  }
-
-  function getRoutes() {
-    return new Promise((resolve, reject) => {
-      const req = tx().getAll();
-      req.onsuccess = () => resolve(req.result || []);
-      req.onerror = () => reject(req.error);
-    });
-  }
-
-  function clearRoutes() {
-    return new Promise((resolve, reject) => {
-      const req = tx('readwrite').clear();
-      req.onsuccess = () => resolve();
-      req.onerror = () => reject(req.error);
-    });
-  }
-
-  function makeId() {
-    return (crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + '-' + Math.random().toString(16).slice(2);
-  }
-
-  function metersBetween(a, b) {
-    const R = 6371000;
-    const toRad = d => d * Math.PI / 180;
-    const dLat = toRad(b.lat - a.lat);
-    const dLon = toRad(b.lng - a.lng);
-    const lat1 = toRad(a.lat);
-    const lat2 = toRad(b.lat);
-    const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
-    return 2 * R * Math.asin(Math.sqrt(h));
-  }
-
-  function showToast(message) {
-    toast.textContent = message;
-    toast.classList.add('show');
-    clearTimeout(showToast.timer);
-    showToast.timer = setTimeout(() => toast.classList.remove('show'), 2600);
-  }
-
-  function updateMetrics(routeCount) {
-    distanceText.textContent = (distanceMeters / 1000).toFixed(2) + ' km';
-    if (typeof routeCount === 'number') routesText.textContent = routeCount + (routeCount === 1 ? ' maršruts' : ' maršruti');
-  }
-
-  function setTrackingUi(on) {
-    tracking = on;
-    trackBtn.textContent = on ? 'STOP' : 'START';
-    trackBtn.classList.toggle('stop', on);
-    statusDot.classList.toggle('live', on);
-    statusText.textContent = on ? 'Ieraksta maršrutu' : 'Gatavs';
-  }
-
-  function drawPosition(lat, lng, accuracy) {
-    const ll = [lat, lng];
-    if (!gpsMarker) {
-      gpsMarker = L.marker(ll, {
-        icon: L.divIcon({ className: '', html: '<div class="gps-marker"></div>', iconSize: [20,20], iconAnchor: [10,10] })
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        minZoom: 2,
+        maxZoom: 19,
+        tileSize: 256,
+        zoomOffset: 0,
+        attribution: '&copy; OpenStreetMap contributors'
       }).addTo(map);
-      accuracyCircle = L.circle(ll, { radius: accuracy || 0, color: '#2563eb', weight: 1, opacity: .25, fillOpacity: .06, interactive: false }).addTo(map);
-    } else {
-      gpsMarker.setLatLng(ll);
-      accuracyCircle.setLatLng(ll).setRadius(accuracy || 0);
-    }
-  }
 
-  function isUsefulPoint(point) {
-    if (!currentRoute || currentRoute.points.length === 0) return true;
-    const prev = currentRoute.points[currentRoute.points.length - 1];
-    const moved = metersBetween(prev, point);
-    const dt = Math.max(1, (point.t - prev.t) / 1000);
-    const speed = moved / dt;
-    if (moved < 2) return false;
-    if (speed > 75) return false;
-    if (point.accuracy > 100 && moved < point.accuracy * 0.35) return false;
-    return true;
-  }
+      function refreshMapSize() {
+        syncViewport();
+        requestAnimationFrame(() => map.invalidateSize({ pan: false, animate: false }));
+      }
 
-  async function onPosition(pos) {
-    const c = pos.coords;
-    const point = {
-      lat: c.latitude,
-      lng: c.longitude,
-      accuracy: Number.isFinite(c.accuracy) ? c.accuracy : 0,
-      speed: Number.isFinite(c.speed) ? c.speed : null,
-      heading: Number.isFinite(c.heading) ? c.heading : null,
-      t: pos.timestamp || Date.now()
-    };
+      window.addEventListener('resize', refreshMapSize, { passive: true });
+      window.addEventListener('orientationchange', () => setTimeout(refreshMapSize, 180), { passive: true });
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', refreshMapSize, { passive: true });
+        window.visualViewport.addEventListener('scroll', refreshMapSize, { passive: true });
+      }
+      setTimeout(refreshMapSize, 50);
+      setTimeout(refreshMapSize, 350);
 
-    drawPosition(point.lat, point.lng, point.accuracy);
-    accuracyText.textContent = 'GPS ±' + Math.round(point.accuracy) + ' m';
+      let db = null;
+      let watchId = null;
+      let tracking = false;
+      let currentRoute = null;
+      let currentLine = null;
+      let distanceMeters = 0;
+      let gpsMarker = null;
+      let accuracyCircle = null;
+      let wakeLock = null;
+      const savedLayers = [];
 
-    if (!hasCenteredOnce) {
-      map.setView([point.lat, point.lng], 17, { animate: true });
-      hasCenteredOnce = true;
-    }
+      const dbReady = openDb();
 
-    if (!tracking || !currentRoute || !isUsefulPoint(point)) return;
+      function openDb() {
+        return new Promise((resolve, reject) => {
+          const request = indexedDB.open(DB_NAME, DB_VERSION);
+          request.onupgradeneeded = () => {
+            const database = request.result;
+            if (!database.objectStoreNames.contains(STORE)) {
+              database.createObjectStore(STORE, { keyPath: 'id' });
+            }
+          };
+          request.onsuccess = () => {
+            db = request.result;
+            resolve(db);
+          };
+          request.onerror = () => reject(request.error);
+        });
+      }
 
-    const prev = currentRoute.points[currentRoute.points.length - 1];
-    if (prev) distanceMeters += metersBetween(prev, point);
-    currentRoute.points.push(point);
-    currentRoute.updatedAt = Date.now();
-    currentRoute.distanceMeters = Math.round(distanceMeters);
+      function store(mode = 'readonly') {
+        return db.transaction(STORE, mode).objectStore(STORE);
+      }
 
-    if (!currentLine) {
-      currentLine = L.polyline([[point.lat, point.lng]], { color: '#2563eb', weight: 6, opacity: .92, lineCap: 'round', lineJoin: 'round' }).addTo(map);
-    } else {
-      currentLine.addLatLng([point.lat, point.lng]);
-    }
+      function putRoute(route) {
+        return new Promise((resolve, reject) => {
+          const req = store('readwrite').put(route);
+          req.onsuccess = () => resolve();
+          req.onerror = () => reject(req.error);
+        });
+      }
 
-    updateMetrics();
-    try { await putRoute(currentRoute); } catch (e) { showToast('Neizdevās saglabāt punktu ierīcē'); }
-  }
+      function getRoutes() {
+        return new Promise((resolve, reject) => {
+          const req = store().getAll();
+          req.onsuccess = () => resolve(req.result || []);
+          req.onerror = () => reject(req.error);
+        });
+      }
 
-  function onPositionError(err) {
-    const messages = {
-      1: 'Atļauj atrašanās vietas piekļuvi pārlūka iestatījumos.',
-      2: 'GPS pozīcija pašlaik nav pieejama.',
-      3: 'GPS neatbild. Mēģini vēlreiz.'
-    };
-    statusText.textContent = 'GPS kļūda';
-    showToast(messages[err.code] || 'Neizdevās iegūt GPS pozīciju.');
-    if (tracking && currentRoute && currentRoute.points.length === 0) stopTracking(false);
-  }
+      function deleteAllRoutes() {
+        return new Promise((resolve, reject) => {
+          const req = store('readwrite').clear();
+          req.onsuccess = () => resolve();
+          req.onerror = () => reject(req.error);
+        });
+      }
 
-  function startWatch() {
-    if (!('geolocation' in navigator)) {
-      showToast('Šajā pārlūkā nav GPS atbalsta.');
-      return false;
-    }
-    if (watchId !== null) navigator.geolocation.clearWatch(watchId);
-    watchId = navigator.geolocation.watchPosition(onPosition, onPositionError, {
-      enableHighAccuracy: true,
-      maximumAge: 1000,
-      timeout: 15000
-    });
-    return true;
-  }
+      function makeId() {
+        if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+        return Date.now() + '-' + Math.random().toString(16).slice(2);
+      }
 
-  async function requestWakeLock() {
-    try {
-      if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
-    } catch (_) {}
-  }
+      function distance(a, b) {
+        const R = 6371000;
+        const rad = value => value * Math.PI / 180;
+        const dLat = rad(b.lat - a.lat);
+        const dLng = rad(b.lng - a.lng);
+        const lat1 = rad(a.lat);
+        const lat2 = rad(b.lat);
+        const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+        return 2 * R * Math.asin(Math.sqrt(h));
+      }
 
-  async function releaseWakeLock() {
-    try { if (wakeLock) await wakeLock.release(); } catch (_) {}
-    wakeLock = null;
-  }
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add('show');
+        clearTimeout(showToast.timer);
+        showToast.timer = setTimeout(() => toast.classList.remove('show'), 2400);
+      }
 
-  async function startTracking() {
-    await dbReady;
-    if (!startWatch()) return;
+      function updateMetrics(routeCount) {
+        distanceText.textContent = (distanceMeters / 1000).toFixed(2) + ' km';
+        if (typeof routeCount === 'number') {
+          routesText.textContent = routeCount + (routeCount === 1 ? ' maršruts' : ' maršruti');
+        }
+      }
 
-    distanceMeters = 0;
-    currentRoute = {
-      id: makeId(),
-      startedAt: Date.now(),
-      updatedAt: Date.now(),
-      endedAt: null,
-      distanceMeters: 0,
-      points: []
-    };
-    currentLine = null;
-    setTrackingUi(true);
-    await putRoute(currentRoute);
-    const routes = await getRoutes();
-    updateMetrics(routes.length);
-    await requestWakeLock();
-  }
+      function setTrackingUi(on) {
+        tracking = on;
+        trackBtn.textContent = on ? 'STOP' : 'START';
+        trackBtn.classList.toggle('stop', on);
+        statusDot.classList.toggle('live', on);
+        statusText.textContent = on ? 'Ieraksta maršrutu' : 'Gatavs';
+      }
 
-  async function stopTracking(showMessage = true) {
-    if (!tracking) return;
-    setTrackingUi(false);
-    if (currentRoute) {
-      currentRoute.endedAt = Date.now();
-      currentRoute.updatedAt = Date.now();
-      currentRoute.distanceMeters = Math.round(distanceMeters);
-      try { await putRoute(currentRoute); } catch (_) {}
-    }
-    await releaseWakeLock();
-    const routes = await getRoutes();
-    updateMetrics(routes.length);
-    renderSavedRoutes(routes);
-    currentRoute = null;
-    currentLine = null;
-    if (showMessage) showToast('Maršruts saglabāts šajā ierīcē.');
-  }
+      function drawPosition(point) {
+        const ll = [point.lat, point.lng];
+        if (!gpsMarker) {
+          gpsMarker = L.marker(ll, {
+            icon: L.divIcon({
+              className: '',
+              html: '<div class="gps-dot"></div>',
+              iconSize: [20, 20],
+              iconAnchor: [10, 10]
+            })
+          }).addTo(map);
+          accuracyCircle = L.circle(ll, {
+            radius: point.accuracy || 0,
+            color: '#2563eb',
+            weight: 1,
+            opacity: .28,
+            fillColor: '#2563eb',
+            fillOpacity: .07,
+            interactive: false
+          }).addTo(map);
+        } else {
+          gpsMarker.setLatLng(ll);
+          accuracyCircle.setLatLng(ll).setRadius(point.accuracy || 0);
+        }
+      }
 
-  function clearSavedLayers() {
-    while (savedLayers.length) map.removeLayer(savedLayers.pop());
-  }
+      function usefulPoint(point) {
+        if (!currentRoute || currentRoute.points.length === 0) return true;
+        if (point.accuracy > 120) return false;
 
-  function renderSavedRoutes(routes) {
-    clearSavedLayers();
-    for (const route of routes) {
-      if (!route.points || route.points.length < 2) continue;
-      const latlngs = route.points.map(p => [p.lat, p.lng]);
-      const layer = L.polyline(latlngs, { color: '#374151', weight: 4, opacity: .42, lineCap: 'round', lineJoin: 'round', interactive: false }).addTo(map);
-      savedLayers.push(layer);
-    }
-  }
+        const previous = currentRoute.points[currentRoute.points.length - 1];
+        const moved = distance(previous, point);
+        const seconds = Math.max(1, (point.t - previous.t) / 1000);
+        const speed = moved / seconds;
 
-  async function loadSaved() {
-    await dbReady;
-    const routes = await getRoutes();
-    renderSavedRoutes(routes);
-    updateMetrics(routes.length);
-    if (routes.length) {
-      const valid = routes.flatMap(r => (r.points || []).map(p => [p.lat, p.lng]));
-      if (valid.length > 1) map.fitBounds(L.latLngBounds(valid), { padding: [45,45], maxZoom: 16 });
-    }
-  }
+        if (moved < 2) return false;
+        if (speed > 75) return false;
+        return true;
+      }
 
-  trackBtn.addEventListener('click', async () => {
-    if (tracking) await stopTracking(); else await startTracking();
-  });
+      async function onPosition(position) {
+        const c = position.coords;
+        const point = {
+          lat: c.latitude,
+          lng: c.longitude,
+          accuracy: Number.isFinite(c.accuracy) ? c.accuracy : 0,
+          t: position.timestamp || Date.now()
+        };
 
-  locateBtn.addEventListener('click', () => {
-    if (gpsMarker) {
-      map.setView(gpsMarker.getLatLng(), Math.max(map.getZoom(), 17), { animate: true });
-      return;
-    }
-    if (!startWatch()) return;
-    showToast('Meklēju GPS pozīciju…');
-  });
+        drawPosition(point);
+        accuracyText.textContent = 'GPS ±' + Math.round(point.accuracy) + ' m';
 
-  clearBtn.addEventListener('click', () => confirm.classList.add('show'));
-  cancelClear.addEventListener('click', () => confirm.classList.remove('show'));
-  confirm.addEventListener('click', e => { if (e.target === confirm) confirm.classList.remove('show'); });
-  confirmClear.addEventListener('click', async () => {
-    await dbReady;
-    if (tracking) await stopTracking(false);
-    await clearRoutes();
-    clearSavedLayers();
-    distanceMeters = 0;
-    updateMetrics(0);
-    confirm.classList.remove('show');
-    showToast('Visa maršrutu vēsture izdzēsta.');
-  });
+        if (!tracking || !currentRoute) return;
 
-  document.addEventListener('visibilitychange', async () => {
-    if (document.visibilityState === 'visible' && tracking && !wakeLock) await requestWakeLock();
-  });
+        map.panTo([point.lat, point.lng], { animate: true, duration: .3 });
 
-  window.addEventListener('beforeunload', () => {
-    if (watchId !== null) navigator.geolocation.clearWatch(watchId);
-  });
+        if (!usefulPoint(point)) return;
 
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
-  }
+        const previous = currentRoute.points[currentRoute.points.length - 1];
+        if (previous) distanceMeters += distance(previous, point);
 
-  loadSaved().catch(() => showToast('Neizdevās nolasīt saglabātos maršrutus.'));
-})();
-</script>
+        currentRoute.points.push(point);
+        currentRoute.updatedAt = Date.now();
+        currentRoute.distanceMeters = Math.round(distanceMeters);
+
+        if (!currentLine) {
+          currentLine = L.polyline([[point.lat, point.lng]], {
+            color: '#2563eb',
+            weight: 6,
+            opacity: .95,
+            lineCap: 'round',
+            lineJoin: 'round'
+          }).addTo(map);
+        } else {
+          currentLine.addLatLng([point.lat, point.lng]);
+        }
+
+        updateMetrics();
+        try { await putRoute(currentRoute); } catch (_) { showToast('Neizdevās saglabāt punktu.'); }
+      }
+
+      function onPositionError(error) {
+        const text = {
+          1: 'Atļauj atrašanās vietas piekļuvi Safari iestatījumos.',
+          2: 'GPS pozīcija nav pieejama.',
+          3: 'GPS neatbild.'
+        };
+        statusText.textContent = 'GPS kļūda';
+        showToast(text[error.code] || 'GPS kļūda.');
+      }
+
+      function beginWatch() {
+        if (!navigator.geolocation) {
+          showToast('Šajā pārlūkā GPS nav pieejams.');
+          return false;
+        }
+        if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+        watchId = navigator.geolocation.watchPosition(onPosition, onPositionError, {
+          enableHighAccuracy: true,
+          maximumAge: 0,
+          timeout: 20000
+        });
+        return true;
+      }
+
+      function endWatch() {
+        if (watchId !== null) {
+          navigator.geolocation.clearWatch(watchId);
+          watchId = null;
+        }
+      }
+
+      async function requestWakeLock() {
+        try {
+          if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
+        } catch (_) {}
+      }
+
+      async function releaseWakeLock() {
+        try { if (wakeLock) await wakeLock.release(); } catch (_) {}
+        wakeLock = null;
+      }
+
+      async function startTracking() {
+        await dbReady;
+        if (!beginWatch()) return;
+
+        distanceMeters = 0;
+        currentRoute = {
+          id: makeId(),
+          startedAt: Date.now(),
+          updatedAt: Date.now(),
+          endedAt: null,
+          distanceMeters: 0,
+          points: []
+        };
+        currentLine = null;
+        setTrackingUi(true);
+        await putRoute(currentRoute);
+        updateMetrics((await getRoutes()).length);
+        await requestWakeLock();
+      }
+
+      async function stopTracking(showMessage = true) {
+        if (!tracking) return;
+        setTrackingUi(false);
+        endWatch();
+
+        if (currentRoute) {
+          currentRoute.endedAt = Date.now();
+          currentRoute.updatedAt = Date.now();
+          currentRoute.distanceMeters = Math.round(distanceMeters);
+          try { await putRoute(currentRoute); } catch (_) {}
+        }
+
+        await releaseWakeLock();
+        const routes = await getRoutes();
+        renderSavedRoutes(routes);
+        updateMetrics(routes.length);
+        currentRoute = null;
+        currentLine = null;
+        if (showMessage) showToast('Maršruts saglabāts telefonā.');
+      }
+
+      function clearSavedLayers() {
+        while (savedLayers.length) map.removeLayer(savedLayers.pop());
+      }
+
+      function renderSavedRoutes(routes) {
+        clearSavedLayers();
+        for (const route of routes) {
+          if (!route.points || route.points.length < 2) continue;
+          const layer = L.polyline(route.points.map(p => [p.lat, p.lng]), {
+            color: '#374151',
+            weight: 4,
+            opacity: .42,
+            lineCap: 'round',
+            lineJoin: 'round',
+            interactive: false
+          }).addTo(map);
+          savedLayers.push(layer);
+        }
+      }
+
+      async function loadSavedRoutes() {
+        await dbReady;
+        const routes = await getRoutes();
+        renderSavedRoutes(routes);
+        updateMetrics(routes.length);
+      }
+
+      function locateOnce(zoom = 17) {
+        if (!navigator.geolocation) {
+          showToast('GPS nav pieejams.');
+          return;
+        }
+
+        statusText.textContent = 'Meklē GPS…';
+        navigator.geolocation.getCurrentPosition(position => {
+          const c = position.coords;
+          const point = {
+            lat: c.latitude,
+            lng: c.longitude,
+            accuracy: Number.isFinite(c.accuracy) ? c.accuracy : 0
+          };
+          drawPosition(point);
+          accuracyText.textContent = 'GPS ±' + Math.round(point.accuracy) + ' m';
+          map.setView([point.lat, point.lng], zoom, { animate: true });
+          statusText.textContent = tracking ? 'Ieraksta maršrutu' : 'Gatavs';
+        }, onPositionError, {
+          enableHighAccuracy: true,
+          maximumAge: 5000,
+          timeout: 15000
+        });
+      }
+
+      trackBtn.addEventListener('click', async () => {
+        if (tracking) await stopTracking();
+        else await startTracking();
+      });
+
+      locateBtn.addEventListener('click', () => {
+        if (gpsMarker) {
+          map.setView(gpsMarker.getLatLng(), Math.max(map.getZoom(), 17), { animate: true });
+        } else {
+          locateOnce(17);
+        }
+      });
+
+      clearBtn.addEventListener('click', () => confirmBox.classList.add('show'));
+      cancelClear.addEventListener('click', () => confirmBox.classList.remove('show'));
+      confirmBox.addEventListener('click', event => {
+        if (event.target === confirmBox) confirmBox.classList.remove('show');
+      });
+
+      confirmClear.addEventListener('click', async () => {
+        await dbReady;
+        if (tracking) await stopTracking(false);
+        await deleteAllRoutes();
+        clearSavedLayers();
+        distanceMeters = 0;
+        updateMetrics(0);
+        confirmBox.classList.remove('show');
+        showToast('Maršrutu vēsture izdzēsta.');
+      });
+
+      document.addEventListener('visibilitychange', async () => {
+        if (document.visibilityState === 'visible') {
+          refreshMapSize();
+          if (tracking && !wakeLock) await requestWakeLock();
+        }
+      });
+
+      window.addEventListener('beforeunload', endWatch);
+
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js').catch(() => {});
+        });
+      }
+
+      loadSavedRoutes().catch(() => showToast('Neizdevās nolasīt saglabātos maršrutus.'));
+      locateOnce(16);
+    })();
+  </script>
 </body>
 </html>
