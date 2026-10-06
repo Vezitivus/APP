@@ -39,6 +39,13 @@
     .draw-help{position:absolute;z-index:19;top:calc(env(safe-area-inset-top,0px) + 76px);left:50%;transform:translateX(-50%);display:none;max-width:calc(100% - 24px);padding:9px 13px;border-radius:999px;background:rgba(17,24,39,.9);color:#fff;font-size:12px;font-weight:750;text-align:center;white-space:normal;box-shadow:0 4px 18px rgba(0,0,0,.18);pointer-events:none}
     .draw-help.show{display:block}
 
+    .point-action{position:absolute;z-index:20;left:10px;right:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 79px);display:none}
+    .point-action.show{display:block}
+    .point-btn{width:100%;min-height:58px;border:0;border-radius:17px;background:#111827;color:#fff;font-size:18px;font-weight:900;letter-spacing:.25px;box-shadow:0 7px 24px rgba(0,0,0,.24)}
+    .point-btn:active{transform:scale(.985)}
+    .point-btn:disabled{opacity:.55}
+    #app.tracking .maplibregl-ctrl-bottom-right{bottom:145px}
+    #app.tracking .toast{bottom:calc(env(safe-area-inset-bottom,0px) + 149px)}
     .controls{position:absolute;z-index:20;left:10px;right:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);display:flex;gap:9px;align-items:center}
     .track-btn{min-height:58px;flex:1;border:0;border-radius:17px;background:#16a34a;color:#fff;font-size:18px;font-weight:900;letter-spacing:.35px;box-shadow:0 7px 24px rgba(0,0,0,.22)}
     .track-btn.stop{background:#dc2626}
@@ -76,6 +83,10 @@
 
   <div id="drawHelp" class="draw-help">Velc aptuveni pa ceļu — atlaižot pirkstu līnija pielips ceļa trasei</div>
 
+  <div id="pointAction" class="point-action">
+    <button id="pointBtn" class="point-btn" type="button">＋ PIEVIENOT PUNKTU</button>
+  </div>
+
   <div class="controls">
     <button id="trackBtn" class="track-btn" type="button">START</button>
     <button id="drawBtn" class="draw-btn" type="button" aria-label="Pievienot iepriekš nobrauktu ceļu">✎</button>
@@ -107,6 +118,8 @@
 
   const mapEl=document.getElementById('map');
   const trackBtn=document.getElementById('trackBtn');
+  const pointAction=document.getElementById('pointAction');
+  const pointBtn=document.getElementById('pointBtn');
   const drawBtn=document.getElementById('drawBtn');
   const locateBtn=document.getElementById('locateBtn');
   const clearBtn=document.getElementById('clearBtn');
@@ -154,12 +167,16 @@
     map.addSource('manual-raw',{type:'geojson',data:emptyFC()});
     map.addLayer({id:'manual-raw',type:'line',source:'manual-raw',paint:{'line-color':'#f59e0b','line-width':5,'line-opacity':0.45,'line-dasharray':[1.2,1.2]},layout:{'line-cap':'round','line-join':'round'}});
 
+    map.addSource('saved-points',{type:'geojson',data:emptyFC()});
+    map.addLayer({id:'saved-points-halo',type:'circle',source:'saved-points',paint:{'circle-radius':11,'circle-color':'rgba(17,24,39,.18)'}});
+    map.addLayer({id:'saved-points',type:'circle',source:'saved-points',paint:{'circle-radius':7,'circle-color':'#dc2626','circle-stroke-color':'#ffffff','circle-stroke-width':3}});
+
     map.addSource('gps-point',{type:'geojson',data:emptyFC()});
     map.addLayer({id:'gps-halo',type:'circle',source:'gps-point',paint:{'circle-radius':14,'circle-color':'rgba(37,99,235,0.16)','circle-stroke-color':'rgba(37,99,235,0.28)','circle-stroke-width':1}});
     map.addLayer({id:'gps-point',type:'circle',source:'gps-point',paint:{'circle-radius':7,'circle-color':'#2563eb','circle-stroke-color':'#ffffff','circle-stroke-width':3}});
 
     mapReady=true;
-    refreshSavedRoutes();refreshCurrentRoute();refreshManual();refreshGps();
+    refreshSavedRoutes();refreshSavedPoints();refreshCurrentRoute();refreshManual();refreshGps();
     attachDrawingEvents();
     setTimeout(()=>map.resize(),50);
   });
@@ -182,9 +199,30 @@
 
   function showToast(msg){toast.textContent=msg;toast.classList.add('show');clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>toast.classList.remove('show'),2800);}
   function updateMetrics(count){distanceText.textContent=((manualMode?manualDistance():distanceMeters)/1000).toFixed(2)+' km';if(typeof count==='number')routesText.textContent=count+(count===1?' maršruts':' maršruti');}
-  function setTrackingUi(on){tracking=on;trackBtn.textContent=on?'STOP':'START';trackBtn.classList.toggle('stop',on);drawBtn.disabled=on;clearBtn.disabled=on;statusDot.classList.toggle('live',on);statusText.textContent=on?'Ieraksta maršrutu':'Gatavs';}
+  function setTrackingUi(on){
+    tracking=on;
+    trackBtn.textContent=on?'STOP':'START';
+    trackBtn.classList.toggle('stop',on);
+    drawBtn.disabled=on;
+    clearBtn.disabled=on;
+    pointAction.classList.toggle('show',on);
+    document.getElementById('app').classList.toggle('tracking',on);
+    statusDot.classList.toggle('live',on);
+    statusText.textContent=on?'Ieraksta maršrutu':'Gatavs';
+  }
 
   function refreshSavedRoutes(){if(!mapReady)return;const f=savedRoutes.filter(r=>r.points&&r.points.length>1).map(r=>lineFeature(r.points.map(p=>[p.lng,p.lat]),{id:r.id,manual:!!r.manual}));map.getSource('saved-routes').setData({type:'FeatureCollection',features:f});}
+  function refreshSavedPoints(){
+    if(!mapReady)return;
+    const features=[];
+    for(const route of savedRoutes){
+      for(const marker of (route.markers||[])){
+        if(!Number.isFinite(marker.lng)||!Number.isFinite(marker.lat))continue;
+        features.push({type:'Feature',properties:{routeId:route.id,markerId:marker.id},geometry:{type:'Point',coordinates:[marker.lng,marker.lat]}});
+      }
+    }
+    map.getSource('saved-points').setData({type:'FeatureCollection',features});
+  }
   function refreshCurrentRoute(){if(!mapReady)return;const pts=currentRoute&&currentRoute.points?currentRoute.points:[];map.getSource('current-route').setData(pts.length>1?{type:'FeatureCollection',features:[lineFeature(pts.map(p=>[p.lng,p.lat]))]}:emptyFC());}
   function refreshManual(){if(!mapReady)return;const snapped=manualSegments.filter(s=>s.length>1).map(s=>lineFeature(s.map(p=>[p.lng,p.lat])));map.getSource('manual-snapped').setData({type:'FeatureCollection',features:snapped});const raw=activeRawSegment&&activeRawSegment.length>1?[lineFeature(activeRawSegment.map(p=>[p.lng,p.lat]))]:[];map.getSource('manual-raw').setData({type:'FeatureCollection',features:raw});updateMetrics();}
   function refreshGps(){if(!mapReady)return;map.getSource('gps-point').setData(lastPosition?{type:'FeatureCollection',features:[pointFeature(lastPosition.lng,lastPosition.lat)]}:emptyFC());}
@@ -198,8 +236,8 @@
   async function requestWakeLock(){try{if('wakeLock'in navigator)wakeLock=await navigator.wakeLock.request('screen');}catch(_){}}
   async function releaseWakeLock(){try{if(wakeLock)await wakeLock.release();}catch(_){}wakeLock=null;}
 
-  async function startTracking(){if(manualMode)return;await dbReady;if(!startWatch())return;distanceMeters=0;currentRoute={id:makeId(),startedAt:Date.now(),updatedAt:Date.now(),endedAt:null,distanceMeters:0,points:[],manual:false};setTrackingUi(true);await putRoute(currentRoute);savedRoutes=await getRoutes();updateMetrics(savedRoutes.length);refreshSavedRoutes();refreshCurrentRoute();await requestWakeLock();if(lastPosition)map.easeTo({center:[lastPosition.lng,lastPosition.lat],zoom:Math.max(map.getZoom(),17),duration:500});}
-  async function stopTracking(showMessage=true){if(!tracking)return;setTrackingUi(false);stopWatch();if(currentRoute){currentRoute.endedAt=Date.now();currentRoute.updatedAt=Date.now();currentRoute.distanceMeters=Math.round(distanceMeters);try{await putRoute(currentRoute);}catch(_){}}await releaseWakeLock();savedRoutes=await getRoutes();updateMetrics(savedRoutes.length);refreshSavedRoutes();currentRoute=null;refreshCurrentRoute();if(showMessage)showToast('Maršruts saglabāts šajā telefonā.');}
+  async function startTracking(){if(manualMode)return;await dbReady;if(!startWatch())return;distanceMeters=0;currentRoute={id:makeId(),startedAt:Date.now(),updatedAt:Date.now(),endedAt:null,distanceMeters:0,points:[],markers:[],manual:false};setTrackingUi(true);await putRoute(currentRoute);savedRoutes=await getRoutes();updateMetrics(savedRoutes.length);refreshSavedRoutes();refreshCurrentRoute();await requestWakeLock();if(lastPosition)map.easeTo({center:[lastPosition.lng,lastPosition.lat],zoom:Math.max(map.getZoom(),17),duration:500});}
+  async function stopTracking(showMessage=true){if(!tracking)return;setTrackingUi(false);stopWatch();if(currentRoute){currentRoute.endedAt=Date.now();currentRoute.updatedAt=Date.now();currentRoute.distanceMeters=Math.round(distanceMeters);try{await putRoute(currentRoute);}catch(_){}}await releaseWakeLock();savedRoutes=await getRoutes();updateMetrics(savedRoutes.length);refreshSavedRoutes();refreshSavedPoints();currentRoute=null;refreshCurrentRoute();if(showMessage)showToast('Maršruts saglabāts šajā telefonā.');}
 
   function setMapDrawingLock(on){if(on){map.dragPan.disable();map.scrollZoom.disable();map.boxZoom.disable();map.doubleClickZoom.disable();map.keyboard.disable();map.touchZoomRotate.disable();}else{map.dragPan.enable();map.scrollZoom.enable();map.boxZoom.enable();map.doubleClickZoom.enable();map.keyboard.enable();map.touchZoomRotate.enable();map.touchZoomRotate.disableRotation();}}
 
@@ -229,10 +267,112 @@
 
   function undoManual(){if(snapping)return;if(activeRawSegment){activeRawSegment=null;refreshManual();return;}if(!manualSegments.length){showToast('Nav ko atcelt.');return;}manualSegments.pop();refreshManual();statusText.textContent='Pēdējais posms noņemts';drawHelp.textContent='Velc nākamo posmu vai spied SAGLABĀT';}
 
-  async function saveManual(){if(snapping)return;if(!manualSegments.length){showToast('Vispirms uzzīmē vismaz vienu ceļa posmu.');return;}await dbReady;trackBtn.disabled=true;const now=Date.now();try{for(const seg of manualSegments){const route={id:makeId(),startedAt:now,updatedAt:now,endedAt:now,distanceMeters:Math.round(segmentDistance(seg)),points:seg,manual:true,snapped:true};await putRoute(route);}savedRoutes=await getRoutes();refreshSavedRoutes();exitManualMode(true);updateMetrics(savedRoutes.length);showToast('Iepriekš nobrauktais ceļš pievienots.');}catch(_){trackBtn.disabled=false;showToast('Neizdevās saglabāt ceļu.');}}
+  async function saveManual(){if(snapping)return;if(!manualSegments.length){showToast('Vispirms uzzīmē vismaz vienu ceļa posmu.');return;}await dbReady;trackBtn.disabled=true;const now=Date.now();try{for(const seg of manualSegments){const route={id:makeId(),startedAt:now,updatedAt:now,endedAt:now,distanceMeters:Math.round(segmentDistance(seg)),points:seg,manual:true,snapped:true};await putRoute(route);}savedRoutes=await getRoutes();refreshSavedRoutes();refreshSavedPoints();exitManualMode(true);updateMetrics(savedRoutes.length);showToast('Iepriekš nobrauktais ceļš pievienots.');}catch(_){trackBtn.disabled=false;showToast('Neizdevās saglabāt ceļu.');}}
 
-  async function loadSaved(){await dbReady;savedRoutes=await getRoutes();updateMetrics(savedRoutes.length);refreshSavedRoutes();const pts=savedRoutes.flatMap(r=>(r.points||[]).map(p=>[p.lng,p.lat]));if(pts.length>1){const b=pts.reduce((bb,p)=>bb.extend(p),new maplibregl.LngLatBounds(pts[0],pts[0]));map.fitBounds(b,{padding:{top:100,bottom:100,left:35,right:35},maxZoom:16,duration:0});}}
+  function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
 
+  function formatAddress(data){
+    const a=data&&data.address?data.address:{};
+    const road=a.road||a.pedestrian||a.residential||a.cycleway||a.footway||a.path||'';
+    const house=a.house_number||'';
+    const place=a.city||a.town||a.village||a.municipality||a.suburb||'';
+    const parts=[];
+    const street=[road,house].filter(Boolean).join(' ');
+    if(street)parts.push(street);
+    if(place&&!parts.includes(place))parts.push(place);
+    return parts.join(', ')||(data&&data.display_name)||'Adrese nav atrasta';
+  }
+
+  async function reverseGeocode(lat,lng){
+    const url='https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&addressdetails=1&accept-language=lv&lat='+encodeURIComponent(lat)+'&lon='+encodeURIComponent(lng);
+    const res=await fetch(url,{headers:{'Accept':'application/json'},cache:'no-store'});
+    if(!res.ok)throw new Error('geocode-http');
+    return formatAddress(await res.json());
+  }
+
+  async function addSavedPoint(){
+    if(!tracking||!currentRoute)return;
+    if(!lastPosition){
+      showToast('Vēl nav GPS pozīcijas. Pagaidi dažas sekundes.');
+      return;
+    }
+    pointBtn.disabled=true;
+    const marker={
+      id:makeId(),
+      lat:lastPosition.lat,
+      lng:lastPosition.lng,
+      accuracy:lastPosition.accuracy||0,
+      t:Date.now(),
+      address:null
+    };
+    if(!Array.isArray(currentRoute.markers))currentRoute.markers=[];
+    currentRoute.markers.push(marker);
+    currentRoute.updatedAt=Date.now();
+    try{
+      await putRoute(currentRoute);
+      savedRoutes=await getRoutes();
+      refreshSavedPoints();
+      showToast('Punkts pievienots.');
+    }catch(_){
+      currentRoute.markers=currentRoute.markers.filter(m=>m.id!==marker.id);
+      showToast('Neizdevās saglabāt punktu.');
+      pointBtn.disabled=false;
+      return;
+    }
+
+    try{
+      marker.address=await reverseGeocode(marker.lat,marker.lng);
+      await putRoute(currentRoute);
+      savedRoutes=await getRoutes();
+      refreshSavedPoints();
+    }catch(_){}
+    pointBtn.disabled=false;
+  }
+
+  function findSavedMarker(routeId,markerId){
+    const route=savedRoutes.find(r=>String(r.id)===String(routeId));
+    if(!route)return null;
+    const marker=(route.markers||[]).find(m=>String(m.id)===String(markerId));
+    return marker?{route,marker}:null;
+  }
+
+  async function openPointPopup(feature){
+    if(tracking||manualMode||!feature)return;
+    const routeId=feature.properties&&feature.properties.routeId;
+    const markerId=feature.properties&&feature.properties.markerId;
+    const found=findSavedMarker(routeId,markerId);
+    if(!found)return;
+    const {route,marker}=found;
+    const popup=new maplibregl.Popup({closeButton:true,closeOnClick:true,offset:14,maxWidth:'280px'})
+      .setLngLat([marker.lng,marker.lat])
+      .setHTML('<div style="font:600 14px -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;line-height:1.35">Meklēju adresi…</div>')
+      .addTo(map);
+
+    let address=marker.address;
+    if(!address){
+      try{
+        address=await reverseGeocode(marker.lat,marker.lng);
+        marker.address=address;
+        await putRoute(route);
+        savedRoutes=await getRoutes();
+      }catch(_){
+        address='Adresi neizdevās noteikt';
+      }
+    }
+    popup.setHTML('<div style="font:600 14px -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;line-height:1.35">'+escapeHtml(address)+'</div>');
+  }
+
+  map.on('click','saved-points',e=>{
+    if(tracking||manualMode)return;
+    const feature=e.features&&e.features[0];
+    if(feature)openPointPopup(feature);
+  });
+  map.on('mouseenter','saved-points',()=>{if(!tracking&&!manualMode)map.getCanvas().style.cursor='pointer';});
+  map.on('mouseleave','saved-points',()=>{map.getCanvas().style.cursor='';});
+
+  async function loadSaved(){await dbReady;savedRoutes=await getRoutes();updateMetrics(savedRoutes.length);refreshSavedRoutes();refreshSavedPoints();const pts=savedRoutes.flatMap(r=>(r.points||[]).map(p=>[p.lng,p.lat]));if(pts.length>1){const b=pts.reduce((bb,p)=>bb.extend(p),new maplibregl.LngLatBounds(pts[0],pts[0]));map.fitBounds(b,{padding:{top:100,bottom:100,left:35,right:35},maxZoom:16,duration:0});}}
+
+  pointBtn.addEventListener('click',addSavedPoint);
   trackBtn.addEventListener('click',async()=>{if(manualMode){await saveManual();return;}tracking?await stopTracking():await startTracking();});
   drawBtn.addEventListener('click',()=>{if(tracking)return;if(manualMode){undoManual();return;}enterManualMode();});
   locateBtn.addEventListener('click',()=>{if(manualMode){exitManualMode(true);showToast('Manuālā pievienošana atcelta.');return;}if(lastPosition){map.easeTo({center:[lastPosition.lng,lastPosition.lat],zoom:Math.max(map.getZoom(),17),duration:500});return;}if(!('geolocation'in navigator)){showToast('Šajā pārlūkā nav GPS atbalsta.');return;}navigator.geolocation.getCurrentPosition(onPosition,onPositionError,{enableHighAccuracy:true,maximumAge:1000,timeout:15000});showToast('Meklēju GPS pozīciju…');});
@@ -240,7 +380,7 @@
   clearBtn.addEventListener('click',()=>{if(!tracking&&!manualMode)confirmBox.classList.add('show');});
   cancelClear.addEventListener('click',()=>confirmBox.classList.remove('show'));
   confirmBox.addEventListener('click',e=>{if(e.target===confirmBox)confirmBox.classList.remove('show');});
-  confirmClear.addEventListener('click',async()=>{await dbReady;if(tracking)await stopTracking(false);if(manualMode)exitManualMode(true);await deleteAllRoutes();savedRoutes=[];distanceMeters=0;updateMetrics(0);refreshSavedRoutes();refreshCurrentRoute();confirmBox.classList.remove('show');showToast('Visa maršrutu vēsture izdzēsta.');});
+  confirmClear.addEventListener('click',async()=>{await dbReady;if(tracking)await stopTracking(false);if(manualMode)exitManualMode(true);await deleteAllRoutes();savedRoutes=[];distanceMeters=0;updateMetrics(0);refreshSavedRoutes();refreshSavedPoints();refreshCurrentRoute();confirmBox.classList.remove('show');showToast('Visa maršrutu vēsture izdzēsta.');});
 
   document.addEventListener('visibilitychange',async()=>{if(document.visibilityState==='visible'){map.resize();if(tracking&&!wakeLock)await requestWakeLock();}});
   window.addEventListener('beforeunload',()=>stopWatch());
