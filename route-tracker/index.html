@@ -297,6 +297,7 @@
       return;
     }
     pointBtn.disabled=true;
+    const routeRef=currentRoute;
     const marker={
       id:makeId(),
       lat:lastPosition.lat,
@@ -305,28 +306,30 @@
       t:Date.now(),
       address:null
     };
-    if(!Array.isArray(currentRoute.markers))currentRoute.markers=[];
-    currentRoute.markers.push(marker);
-    currentRoute.updatedAt=Date.now();
+    if(!Array.isArray(routeRef.markers))routeRef.markers=[];
+    routeRef.markers.push(marker);
+    routeRef.updatedAt=Date.now();
     try{
-      await putRoute(currentRoute);
+      await putRoute(routeRef);
       savedRoutes=await getRoutes();
       refreshSavedPoints();
       showToast('Punkts pievienots.');
     }catch(_){
-      currentRoute.markers=currentRoute.markers.filter(m=>m.id!==marker.id);
+      routeRef.markers=routeRef.markers.filter(m=>m.id!==marker.id);
       showToast('Neizdevās saglabāt punktu.');
       pointBtn.disabled=false;
       return;
     }
-
-    try{
-      marker.address=await reverseGeocode(marker.lat,marker.lng);
-      await putRoute(currentRoute);
-      savedRoutes=await getRoutes();
-      refreshSavedPoints();
-    }catch(_){}
     pointBtn.disabled=false;
+
+    reverseGeocode(marker.lat,marker.lng).then(async address=>{
+      marker.address=address;
+      try{
+        await putRoute(routeRef);
+        savedRoutes=await getRoutes();
+        refreshSavedPoints();
+      }catch(_){}
+    }).catch(()=>{});
   }
 
   function findSavedMarker(routeId,markerId){
