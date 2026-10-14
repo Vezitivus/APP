@@ -115,6 +115,7 @@
   const DB_NAME='spalle-route-tracker',DB_VERSION=1,STORE='routes';
   const DEFAULT_CENTER=[24.1052,56.9496],DEFAULT_ZOOM=13;
   const OSRM='https://router.project-osrm.org';
+  const REATON_ENDPOINT='https://tqwvhibotlbwbtlfgjmr.supabase.co/functions/v1/route-point-intake';
 
   const mapEl=document.getElementById('map');
   const trackBtn=document.getElementById('trackBtn');
@@ -290,6 +291,50 @@
     return formatAddress(await res.json());
   }
 
+  async function sendPointToReaton(marker,routeRef){
+    if(!marker||!marker.address)return;
+    marker.reatonStatus='sending';
+    try{await putRoute(routeRef);}catch(_){}
+    try{
+      const res=await fetch(REATON_ENDPOINT,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          address:marker.address,
+          lat:marker.lat,
+          lng:marker.lng,
+          route_id:routeRef&&routeRef.id?routeRef.id:null,
+          marker_id:marker.id,
+          captured_at:new Date(marker.t||Date.now()).toISOString()
+        }),
+        keepalive:true
+      });
+      let data={};
+      try{data=await res.json();}catch(_){}
+      if(!res.ok){
+        marker.reatonStatus=data&&data.setup_required?'setup_required':'error';
+        marker.reatonError=data&&data.setup_required?data.setup_required.join(', '):(data.error||'server-error');
+        try{await putRoute(routeRef);}catch(_){}
+        if(data&&data.setup_required)showToast('REATON automatizācijai vēl jāpabeidz servera iestatīšana.');
+        return;
+      }
+      marker.reatonStatus='done';
+      marker.reatonResult=data;
+      marker.reatonError=null;
+      try{
+        await putRoute(routeRef);
+        savedRoutes=await getRoutes();
+      }catch(_){}
+      const action=data.object_action==='updated'?'atjaunināts':'pievienots';
+      const contacts=Number(data.contacts_added||0);
+      showToast('REATON objekts '+action+(contacts?' · kontakti +'+contacts:'')+'.');
+    }catch(e){
+      marker.reatonStatus='error';
+      marker.reatonError='network';
+      try{await putRoute(routeRef);}catch(_){}
+    }
+  }
+
   async function addSavedPoint(){
     if(!tracking||!currentRoute)return;
     if(!lastPosition){
@@ -324,11 +369,14 @@
 
     reverseGeocode(marker.lat,marker.lng).then(async address=>{
       marker.address=address;
+      marker.reatonStatus='pending';
       try{
         await putRoute(routeRef);
         savedRoutes=await getRoutes();
         refreshSavedPoints();
       }catch(_){}
+      showToast('Adrese atrasta. REATON izpēte sākta.');
+      sendPointToReaton(marker,routeRef);
     }).catch(()=>{});
   }
 
