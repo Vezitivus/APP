@@ -168,7 +168,7 @@ def bundled_videos():
         if not filepath.resolve().is_relative_to((ROOT/'static'/'videos').resolve()):continue
         output.append({'id':vid,'title':str(it.get('title','Video'))[:100], 'cardId':str(it.get('cardId','any')),
             'url':'/media/video/'+vid, 'sizeBytes':filepath.stat().st_size if filepath.is_file() else 0,
-            'createdAt':0,'available':filepath.is_file(),'source':'project','filepath':filepath})
+            'createdAt':0,'available':filepath.is_file(),'source':'project','filepath':filepath,'filename':filename})
     return output
 
 def video_records():
