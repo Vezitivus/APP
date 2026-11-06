@@ -99,3 +99,7 @@ Sagatavotam MP4: **1920×1080, 16:9, H.264 video + AAC audio, 5–15 sekundes**,
 **Variantā B — video pievienoti projektam:** saglabā MP4 failus `static/videos/` un pieraksti tiem piešķirtos kartīšu ID failā `static/video_manifest.json`. Šie faili tiks piegādāti kopā ar GitHub izvietoto projektu un paliks arī pēc servera restartēšanas, ja nav izdzēsti no repozitorija. Skat. `VIDEO_SAGLABASANA.md` ar precīzu JSON piemēru.
 
 **Šī V5 versija NAV publicēta Vezitivus mājaslapā**. Tā ir sagatavota izvietošanai; publisks HTTPS domēns un hostinga konts vēl jākonfigurē. Pirms īsta pasākuma jāpārbauda skaņa TV pārlūkā, QR ar vairākām reālām ierīcēm un servera restartēšanās scenārijs.
+
+## Automātiska video piesaiste pēc faila nosaukuma
+
+Skati [VIDEO_NOSAUKUMI.md](VIDEO_NOSAUKUMI.md). 16 konkrēto uzdevumu un 8 universālie MP4 nosaukumi jau ir piesaistīti `static/video_manifest.json`. Video vienkārši jāievieto `static/videos/` — nekādu papildu sasaistes darbību. Servera hostings ir jāizvieto atsevišķi: GitHub nekļūst par Python serveri.
