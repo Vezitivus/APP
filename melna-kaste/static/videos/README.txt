@@ -1,0 +1,1 @@
+Video faili administrācijas lapā tiek glabāti šajā mapē pēc noklusējuma. Publiskā hostingā VIDEO_DIR jānorāda uz pastāvīgu disku. MP4 / H.264 / AAC / 1920x1080 / 16:9 / vēlams 5–15 sek.

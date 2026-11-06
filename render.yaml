@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: melna-kaste-online
+    runtime: python
+    plan: free
+    rootDir: melna-kaste
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT --workers 1 --proxy-headers
+    healthCheckPath: /healthz
+    envVars:
+      - key: ADMIN_PIN
+        generateValue: true
+      - key: TV_CONTROL_KEY
+        generateValue: true
