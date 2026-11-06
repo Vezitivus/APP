@@ -1,3 +1,148 @@
 {
-  "videos": []
+  "videos": [
+    {
+      "id": "bundle_sales_pitch",
+      "title": "PĀRDOD NEPĀRDODAMO",
+      "cardId": "sales_pitch",
+      "file": "izsaukums_sales_pitch.mp4"
+    },
+    {
+      "id": "bundle_bad_lawyer",
+      "title": "NEIESPĒJAMAIS ADVOKĀTS",
+      "cardId": "bad_lawyer",
+      "file": "izsaukums_bad_lawyer.mp4"
+    },
+    {
+      "id": "bundle_sports_cast",
+      "title": "SPORTA KOMENTĒTĀJS",
+      "cardId": "sports_cast",
+      "file": "izsaukums_sports_cast.mp4"
+    },
+    {
+      "id": "bundle_truth_lie",
+      "title": "DIVAS PATIESĪBAS UN VIENI MELI",
+      "cardId": "truth_lie",
+      "file": "izsaukums_truth_lie.mp4"
+    },
+    {
+      "id": "bundle_mimic",
+      "title": "MĒMĀ REKLĀMA",
+      "cardId": "mimic",
+      "file": "izsaukums_mimic.mp4"
+    },
+    {
+      "id": "bundle_absurd_duet",
+      "title": "NEPAREIZAIS EKSPERTS",
+      "cardId": "absurd_duet",
+      "file": "izsaukums_absurd_duet.mp4"
+    },
+    {
+      "id": "bundle_freeze_frame",
+      "title": "DZĪVĀ SKULPTŪRA",
+      "cardId": "freeze_frame",
+      "file": "izsaukums_freeze_frame.mp4"
+    },
+    {
+      "id": "bundle_dubious_team",
+      "title": "SLIKTĀKĀ BIZNESA IDEJA",
+      "cardId": "dubious_team",
+      "file": "izsaukums_dubious_team.mp4"
+    },
+    {
+      "id": "bundle_committee",
+      "title": "ABSURDO LIKUMU KOMITEJA",
+      "cardId": "committee",
+      "file": "izsaukums_committee.mp4"
+    },
+    {
+      "id": "bundle_improv_story",
+      "title": "STĀSTS PA VIENAM VĀRDAM",
+      "cardId": "improv_story",
+      "file": "izsaukums_improv_story.mp4"
+    },
+    {
+      "id": "bundle_bad_ad",
+      "title": "TRĪS CILVĒKU REKLĀMA",
+      "cardId": "bad_ad",
+      "file": "izsaukums_bad_ad.mp4"
+    },
+    {
+      "id": "bundle_three_in_five",
+      "title": "TRĪS PIECU SEKUNŽU LAIKĀ",
+      "cardId": "three_in_five",
+      "file": "izsaukums_three_in_five.mp4"
+    },
+    {
+      "id": "bundle_reverse_story",
+      "title": "STĀSTS ATPAKAĻGAITĀ",
+      "cardId": "reverse_story",
+      "file": "izsaukums_reverse_story.mp4"
+    },
+    {
+      "id": "bundle_wrong_answers",
+      "title": "TIKAI NEPAREIZAS ATBILDES",
+      "cardId": "wrong_answers",
+      "file": "izsaukums_wrong_answers.mp4"
+    },
+    {
+      "id": "bundle_gesture",
+      "title": "BEZ VIENA VĀRDA",
+      "cardId": "gesture",
+      "file": "izsaukums_gesture.mp4"
+    },
+    {
+      "id": "bundle_look",
+      "title": "NENOPIETNĀ RUNA",
+      "cardId": "look",
+      "file": "izsaukums_look.mp4"
+    },
+    {
+      "id": "bundle_mission",
+      "title": "SLEPENĀ MISIJA",
+      "cardId": "mission",
+      "file": "izsaukums_mission.mp4"
+    },
+    {
+      "id": "bundle_perk",
+      "title": "PRIEKŠROCĪBA",
+      "cardId": "perk",
+      "file": "izsaukums_perk.mp4"
+    },
+    {
+      "id": "bundle_choice",
+      "title": "BRĪVĀ IZVĒLE",
+      "cardId": "choice",
+      "file": "izsaukums_choice.mp4"
+    },
+    {
+      "id": "bundle_duel",
+      "title": "BRĪVAIS DUELIS",
+      "cardId": "duel",
+      "file": "izsaukums_duel.mp4"
+    },
+    {
+      "id": "bundle_flash",
+      "title": "ĀTRAIS IZAICINĀJUMS",
+      "cardId": "flash",
+      "file": "izsaukums_flash.mp4"
+    },
+    {
+      "id": "bundle_pair",
+      "title": "DIVU CILVĒKU IZAICINĀJUMS",
+      "cardId": "pair",
+      "file": "izsaukums_pair.mp4"
+    },
+    {
+      "id": "bundle_team",
+      "title": "KOMANDAS IZAICINĀJUMS",
+      "cardId": "team",
+      "file": "izsaukums_team.mp4"
+    },
+    {
+      "id": "bundle_any",
+      "title": "MELNĀ KASTE",
+      "cardId": "any",
+      "file": "izsaukums_any.mp4"
+    }
+  ]
 }
