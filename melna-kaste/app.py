@@ -12,6 +12,7 @@ import json
 import os
 from pathlib import Path
 import random
+import re
 import secrets
 import string
 import time
@@ -36,6 +37,7 @@ elif DB_URL.startswith("postgresql://"):
     DB_URL = "postgresql+psycopg://" + DB_URL[len("postgresql://"):]
 VIDEO_DIR = Path(os.environ.get('VIDEO_DIR', str(ROOT / 'static' / 'videos'))).resolve()
 VIDEO_DIR.mkdir(parents=True, exist_ok=True)
+STANDBY_NAME = re.compile(r"^standby_[0-9]{2,3}\.mp4$")
 MAX_VIDEO_BYTES = 40 * 1024 * 1024  # 40 MiB; keep short announcement clips.
 engine = create_engine(DB_URL, pool_pre_ping=True)
 with engine.begin() as c:
@@ -177,6 +179,16 @@ def video_records():
     records=[{"id":r["id"],"title":r["title"],"cardId":r["card_id"],"url":"/media/video/"+r["id"],"sizeBytes":r["size_bytes"],"createdAt":r["created_at"],"available":(VIDEO_DIR/r["filename"]).is_file(),"source":"upload"} for r in rows]
     return records+[{k:v for k,v in r.items() if k!='filepath'} for r in bundled_videos()]
 
+def standby_video_records():
+    """Available background videos, in filename order, plus uploads."""
+    folder=ROOT/'static'/'videos'
+    ordered=sorted((p for p in folder.glob('standby_*.mp4') if STANDBY_NAME.fullmatch(p.name)),key=lambda p:p.name)
+    result=[{'id':p.stem,'url':'/media/standby/'+p.name,'name':p.name,'available':True} for p in ordered]
+    with engine.connect() as conn:
+        rows=conn.execute(text("SELECT id,filename,title FROM mk_videos WHERE card_id='standby' ORDER BY created_at ASC")).mappings().all()
+    result += [{'id':r['id'],'url':'/media/video/'+r['id'],'name':r['title'],'available':True} for r in rows if (VIDEO_DIR/r['filename']).is_file()]
+    return result
+
 def pick_video(card_id, kind):
     vids=[v for v in video_records() if v["available"]]
     for k in (card_id,kind,'any'):
@@ -230,7 +242,7 @@ def current_public(request: Request):
     host = os.environ.get("PUBLIC_URL", "").rstrip("/") or str(request.base_url).rstrip("/")
     return {
         "room": state["room"], "phase": state["phase"], "paused": state["paused"],
-        "nextAt": state["nextAt"], "auto": state["auto"],
+        "nextAt": state["nextAt"], "auto": state["auto"], "standbyVideos":standby_video_records(),
         "intervalMin": state["intervalMin"], "intervalMax": state["intervalMax"],
         "minGuests": MIN_GUESTS, "baseUrl": host, "eventCount": state["eventCount"],
         "guests": [{"id":p["id"], "name":p["name"], "calls":p["calls"]} for p in state["guests"]],
@@ -272,9 +284,9 @@ def make_call(guest_id=None, kind=None):
     nonce=secrets.token_urlsafe(23)
     call={"id":uid("call_"),"guestId":p["id"],"kind":kind,"nonce":nonce,
           "cardId":card_id,"cardTitle":card_title,"videoId":video_id,
-          "status":"stinger" if video_id else "waiting","createdAt":ms(),
-          "expiresAt":None if video_id else ms()+60_000,
-          "stingerDeadline":ms()+45_000 if video_id else None}
+          "status":"queued" if standby_video_records() else ("stinger" if video_id else "waiting"),"createdAt":ms(),
+          "expiresAt":None if (video_id or standby_video_records()) else ms()+60_000,
+          "stingerDeadline":ms()+180_000 if video_id and not standby_video_records() else None}
     state["call"]=call
     state["lastCallGuestId"]=p["id"]
     p["calls"]+=1
@@ -410,7 +422,7 @@ app=FastAPI(title="MELNĀ KASTE — WEB", version="4.0.0", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=ROOT/"static"),name="static")
 
 @app.get("/healthz")
-async def health(): return {"ok":True,"version":"5.0.0"}
+async def health(): return {"ok":True,"version":"6.0.0"}
 
 @app.get("/")
 @app.get("/join")
@@ -420,6 +432,13 @@ async def health(): return {"ok":True,"version":"5.0.0"}
 @app.get("/mission/{nonce}")
 async def spa(nonce: str=""):
     return FileResponse(ROOT/"static"/"index.html",headers={"Cache-Control":"no-store"})
+
+@app.get("/media/standby/{filename}")
+async def media_standby(filename:str):
+    if not STANDBY_NAME.fullmatch(filename): raise HTTPException(404)
+    path=ROOT/'static'/'videos'/filename
+    if not path.is_file(): raise HTTPException(404)
+    return FileResponse(path,media_type="video/mp4",headers={"Cache-Control":"public, max-age=3600"})
 
 @app.get("/media/video/{video_id}")
 async def media_video(video_id:str):
@@ -438,17 +457,17 @@ async def media_video(video_id:str):
 @app.get("/api/admin/videos")
 async def admin_videos(x_admin_key:Optional[str]=Header(None)):
     admin_auth(x_admin_key)
-    options=[{"id":"any","label":"Visiem izsaukumiem"}]
+    options=[{"id":"any","label":"Visiem izsaukumiem"},{"id":"standby","label":"STANDBY / fona video cilpa"}]
     options += [{"id":k,"label":{"flash":"Ātrie izaicinājumi","pair":"Divu spēlētāju izaicinājumi","team":"Komandu izaicinājumi","mission":"Slepenās misijas","perk":"Priekšrocības","choice":"Brīvā izvēle","duel":"Brīvais duelis"}[k]} for k in ("flash","pair","team","mission","perk","choice","duel")]
     options += [{"id":c["id"],"label":c["title"]} for c in CARD_DECK]
-    return {"videos":video_records(),"options":options,"maxFileMB":40}
+    return {"videos":video_records(),"standbyVideos":standby_video_records(),"options":options,"maxFileMB":40}
 
 @app.post("/api/admin/videos")
 async def upload_video(title:str=Form(...),card_id:str=Form(...),file:UploadFile=File(...),x_admin_key:Optional[str]=Header(None)):
     admin_auth(x_admin_key)
     title=title.strip()[:100]
     if not 2<=len(title)<=100: raise HTTPException(400,"Nosaukumam jābūt 2–100 rakstzīmes garam.")
-    allowed={"any","flash","pair","team","mission","perk","choice","duel"}|set(CARD_BY_ID)
+    allowed={"any","standby","flash","pair","team","mission","perk","choice","duel"}|set(CARD_BY_ID)
     if card_id not in allowed: raise HTTPException(400,"Nepareizs kartītes piesaistes ID.")
     if not (file.filename or '').lower().endswith('.mp4'): raise HTTPException(400,"Nepieciešams MP4 video fails.")
     video_id=uid("vid_")
@@ -487,6 +506,24 @@ async def delete_video(video_id:str,x_admin_key:Optional[str]=Header(None)):
 
 class VideoComplete(BaseModel):
     callId: str
+
+@app.post("/api/tv/standby-finished")
+async def standby_finished(x_tv_key:Optional[str]=Header(None)):
+    """Calls become visible only when the TV reports standby video completion."""
+    if not x_tv_key or not secrets.compare_digest(x_tv_key,TV_CONTROL_KEY):
+        raise HTTPException(401,"TV nav autorizēts. Atver to no režijas paneļa.")
+    async with lock:
+        call=state.get('call')
+        if state['phase']!='live' or state['paused'] or not call or call.get('status')!='queued':
+            return {'action':'continue'}
+        if call['videoId']:
+            call['status']='stinger'
+            call['stingerDeadline']=ms()+180_000
+        else:
+            call['status']='waiting'
+            call['expiresAt']=ms()+60_000
+        persist()
+        return {'action':'call','callId':call['id'],'status':call['status']}
 
 @app.post("/api/tv/stinger-finished")
 async def stinger_finished(body:VideoComplete,x_tv_key:Optional[str]=Header(None)):
@@ -719,10 +756,9 @@ async def admin_rush(x_admin_key:Optional[str]=Header(None)):
         if state["phase"]!="live" or state["paused"]:
             raise HTTPException(409,"Spēlei jābūt aktīvai.")
         if state["call"]:
-            if state["call"].get("status")=="stinger":
-                show_qr_after_stinger(state["call"])
-            else:
-                state["call"]["expiresAt"]=min(state["call"]["expiresAt"], ms()+5_000)
+            if state["call"].get("status") in ("queued", "stinger"):
+                return {"ok":True,"mode":"queued_until_video_ends"}
+            state["call"]["expiresAt"]=min(state["call"]["expiresAt"], ms()+5_000)
             persist()
             return {"ok":True,"mode":"shortened"}
         if state["duel"] and state["duel"]["status"]=="active":
