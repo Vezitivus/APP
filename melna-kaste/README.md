@@ -103,3 +103,8 @@ Sagatavotam MP4: **1920×1080, 16:9, H.264 video + AAC audio, 5–15 sekundes**,
 ## Automātiska video piesaiste pēc faila nosaukuma
 
 Skati [VIDEO_NOSAUKUMI.md](VIDEO_NOSAUKUMI.md). 16 konkrēto uzdevumu un 8 universālie MP4 nosaukumi jau ir piesaistīti `static/video_manifest.json`. Video vienkārši jāievieto `static/videos/` — nekādu papildu sasaistes darbību. Servera hostings ir jāizvieto atsevišķi: GitHub nekļūst par Python serveri.
+
+
+## V6: nepārtraukts standby video cikls
+
+Skati [STANDBY_VIDEO.md](STANDBY_VIDEO.md), lai saglabātu `standby_01.mp4`, `standby_02.mp4` utt. mapē `static/videos/`. Izsaukumi tiek turēti rindā līdz pašreizējā standby video faktiski beidzas. Video failu garumi var atšķirties. TV saglabā vienu video elementu, lai 2,5 sekunžu datu atjaunošana nepārtrauktu atskaņošanu.
