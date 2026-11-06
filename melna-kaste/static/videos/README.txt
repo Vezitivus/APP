@@ -1,1 +1,3 @@
 Video faili administrācijas lapā tiek glabāti šajā mapē pēc noklusējuma. Publiskā hostingā VIDEO_DIR jānorāda uz pastāvīgu disku. MP4 / H.264 / AAC / 1920x1080 / 16:9 / vēlams 5–15 sek.
+V6: standby_01.mp4, standby_02.mp4, standby_03.mp4 ...
+Different lengths allowed. Calls begin only after the current standby MP4 ends.
