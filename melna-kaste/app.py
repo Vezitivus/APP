@@ -56,13 +56,14 @@ def new_game():
         "room": room_code(), "phase": "lobby", "paused": False,
         "auto": True, "intervalMin": 10, "intervalMax": 20,
         "nextAt": None, "guests": [], "call": None, "duel": None,
-        "globalEvent": None, "events": [], "history": [], "usedMissionIds": [],
+        "pendingGlobalEvent": None, "globalEvent": None, "events": [], "history": [], "usedMissionIds": [],
         "eventCount": 0, "lastCallGuestId": None, "usedCardIds": [], "usedVideoIds": [],
     }
 
 with engine.begin() as c:
     saved = c.execute(text("SELECT payload FROM mk_game WHERE id = 1")).scalar_one_or_none()
 state = json.loads(saved) if saved else new_game()
+state.setdefault("pendingGlobalEvent", None)
 
 def persist():
     payload = json.dumps(state, ensure_ascii=False)
@@ -232,7 +233,7 @@ def admin_auth(pin: Optional[str]):
         raise HTTPException(401, "Nepareiza organizatora parole.")
 
 def schedule():
-    if state["phase"] == "live" and not state["paused"] and state["auto"] and not state["globalEvent"]:
+    if state["phase"] == "live" and not state["paused"] and state["auto"] and not state["globalEvent"] and not state["pendingGlobalEvent"]:
         state["nextAt"] = ms() + random.randint(state["intervalMin"]*60_000, state["intervalMax"]*60_000)
     else: state["nextAt"] = None
 
@@ -256,6 +257,7 @@ def admin_view(request):
     out["history"] = state["history"][:40]
     out["events"] = [{"id":e["id"], "guestId":e["guestId"], "kind":e["kind"],
                        "text":e["text"], "status":e["status"], "createdAt":e["createdAt"]} for e in state["events"][-35:][::-1]]
+    out["pendingGlobalEvent"] = state["pendingGlobalEvent"]
     out["activeCallKind"] = state["call"]["kind"] if state["call"] else None
     out["activeCardTitle"] = state["call"].get("cardTitle") if state["call"] else None
     out["tvControlKey"] = TV_CONTROL_KEY
@@ -264,7 +266,7 @@ def admin_view(request):
 def make_call(guest_id=None, kind=None):
     if state["phase"] != "live" or state["paused"]:
         raise HTTPException(409, "Sāc spēli un izslēdz pauzi.")
-    if state["call"] or state["globalEvent"] or (state["duel"] and state["duel"]["status"] == "active"):
+    if state["call"] or state["globalEvent"] or state["pendingGlobalEvent"] or (state["duel"] and state["duel"]["status"] == "active"):
         raise HTTPException(409, "Vispirms pabeidz aktuālo izsaukumu, dueli vai kopīgo notikumu.")
     if not state["guests"]:
         raise HTTPException(409, "Vispirms pievieno dalībniekus.")
@@ -313,6 +315,11 @@ def quiet_skip():
             schedule()
             persist()
             return "task"
+    if state["pendingGlobalEvent"]:
+        state["pendingGlobalEvent"]=None
+        schedule()
+        persist()
+        return "pending_global"
     if state["globalEvent"]:
         state["globalEvent"]=None
         schedule()
@@ -404,7 +411,7 @@ async def ticker():
             for e in state["events"]:
                 if e["status"]=="active" and e["expiresAt"] and ms()>=e["expiresAt"]:
                     e["status"]="expired"; changed=True
-            if state["phase"]=="live" and state["nextAt"] and ms()>=state["nextAt"] and not state["call"] and not state["globalEvent"] and not (state["duel"] and state["duel"]["status"]=="active"):
+            if state["phase"]=="live" and state["nextAt"] and ms()>=state["nextAt"] and not state["call"] and not state["pendingGlobalEvent"] and not state["globalEvent"] and not (state["duel"] and state["duel"]["status"]=="active"):
                 make_call(); changed=True
             if changed: persist()
 
@@ -418,11 +425,11 @@ async def lifespan(application):
         try: await t
         except asyncio.CancelledError: pass
 
-app=FastAPI(title="MELNĀ KASTE — WEB", version="4.0.0", lifespan=lifespan)
+app=FastAPI(title="MELNĀ KASTE — WEB", version="7.0.0", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=ROOT/"static"),name="static")
 
 @app.get("/healthz")
-async def health(): return {"ok":True,"version":"6.0.0"}
+async def health(): return {"ok":True,"version":"7.0.0"}
 
 @app.get("/")
 @app.get("/join")
@@ -507,14 +514,27 @@ async def delete_video(video_id:str,x_admin_key:Optional[str]=Header(None)):
 class VideoComplete(BaseModel):
     callId: str
 
+class StandbyComplete(BaseModel):
+    standbyId: str
+
 @app.post("/api/tv/standby-finished")
-async def standby_finished(x_tv_key:Optional[str]=Header(None)):
-    """Calls become visible only when the TV reports standby video completion."""
+async def standby_finished(body:StandbyComplete,x_tv_key:Optional[str]=Header(None)):
+    """Reveal queued events only at the end of a complete ordered standby reel."""
     if not x_tv_key or not secrets.compare_digest(x_tv_key,TV_CONTROL_KEY):
         raise HTTPException(401,"TV nav autorizēts. Atver to no režijas paneļa.")
     async with lock:
+        clips=standby_video_records()
+        if not clips or body.standbyId != clips[-1]['id']:
+            return {'action':'continue', 'reason':'reel_not_finished'}
+        if state['phase']!='live' or state['paused']:
+            return {'action':'continue'}
+        if state.get('pendingGlobalEvent'):
+            state['globalEvent']=state['pendingGlobalEvent']
+            state['pendingGlobalEvent']=None
+            persist()
+            return {'action':'global'}
         call=state.get('call')
-        if state['phase']!='live' or state['paused'] or not call or call.get('status')!='queued':
+        if not call or call.get('status')!='queued':
             return {'action':'continue'}
         if call['videoId']:
             call['status']='stinger'
@@ -735,7 +755,7 @@ async def admin_pause(x_admin_key:Optional[str]=Header(None)):
         state["paused"]=not state["paused"]
         # Pausing cancels pending invitation; already claimed secrets remain readable.
         if state["paused"]:
-            state["call"]=None;state["nextAt"]=None
+            state["call"]=None;state["pendingGlobalEvent"]=None;state["nextAt"]=None
         else: schedule()
         persist();return {"paused":state["paused"]}
 
@@ -763,6 +783,8 @@ async def admin_rush(x_admin_key:Optional[str]=Header(None)):
             return {"ok":True,"mode":"shortened"}
         if state["duel"] and state["duel"]["status"]=="active":
             raise HTTPException(409,"Vispirms pabeidz aktīvo dueli.")
+        if state["pendingGlobalEvent"]:
+            return {"ok":True,"mode":"queued_until_reel_ends"}
         if state["globalEvent"]: raise HTTPException(409,"Vispirms pabeidz kopīgo notikumu.")
         make_call()
         return {"ok":True,"mode":"new_call"}
@@ -868,10 +890,23 @@ async def admin_duel_result(body:AdminResultData,x_admin_key:Optional[str]=Heade
 async def admin_global(x_admin_key:Optional[str]=Header(None)):
     admin_auth(x_admin_key)
     async with lock:
+        if state['phase']!='live' or state['paused']:
+            raise HTTPException(409,"Spēlei jābūt aktīvai.")
+        if state['call'] or state['globalEvent'] or state['pendingGlobalEvent'] or (state['duel'] and state['duel']['status']=='active'):
+            raise HTTPException(409,"Vispirms pabeidz aktuālo notikumu.")
         title,detail=random.choice(GLOBAL_EVENTS)
-        state["globalEvent"]={"id":uid("global_"),"title":title,"text":detail,"rules":["Izpildiet uz TV redzamo norādi.","Organizators pabeidz notikumu, kad visi ir gatavi."]}
-        note("Aktivizēts kopīgais notikums.");persist()
-        return {"ok":True}
+        event={"id":uid("global_"),"title":title,"text":detail,"rules":["Izpildiet uz TV redzamo norādi.","Organizators pabeidz notikumu, kad visi ir gatavi."]}
+        if standby_video_records():
+            state['pendingGlobalEvent']=event
+            state['nextAt']=None
+            note("Kopīgais notikums gaida pilna standby apļa beigas.")
+            queued=True
+        else:
+            state['globalEvent']=event
+            note("Aktivizēts kopīgais notikums.")
+            queued=False
+        persist()
+        return {"ok":True,"queued":queued}
 
 @app.post("/api/admin/finish")
 async def finish(x_admin_key:Optional[str]=Header(None)):
