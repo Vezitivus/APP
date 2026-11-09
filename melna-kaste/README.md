@@ -108,3 +108,8 @@ Skati [VIDEO_NOSAUKUMI.md](VIDEO_NOSAUKUMI.md). 16 konkrēto uzdevumu un 8 unive
 ## V6: nepārtraukts standby video cikls
 
 Skati [STANDBY_VIDEO.md](STANDBY_VIDEO.md), lai saglabātu `standby_01.mp4`, `standby_02.mp4` utt. mapē `static/videos/`. Izsaukumi tiek turēti rindā līdz pašreizējā standby video faktiski beidzas. Video failu garumi var atšķirties. TV saglabā vienu video elementu, lai 2,5 sekunžu datu atjaunošana nepārtrauktu atskaņošanu.
+
+
+## V7 — pilns standby aplis
+
+Automātiskie un manuālie izsaukumi, kā arī globālie paziņojumi gaida, līdz secīgi pabeigti visi standby video. Tikai pēc pēdējā video drīkst atskaņot izsaukumu. Pēc tam video cikls vienmēr atsākas no standby_01.mp4. Skati STANDBY_VIDEO.md.
