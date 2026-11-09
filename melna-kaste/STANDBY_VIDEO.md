@@ -38,3 +38,16 @@ Organizatora `SAGATAVOT IZSAUKUMU` un `⏩` ievieto izsaukumu rindā, nevis pār
 ## Pārbaude
 
 Vienā pārlūkā atver `/admin`, otrā — admin paneļa pogu **ATVĒRT TV**. Palaid spēli, pagaidī līdz standby video sākumam un režijā sagatavo izsaukumu. Pārliecinies, ka standby pabeidzas, tikai tad sākas izsaukuma klips, pēc tam vārds + QR + 60 sekunžu laiks.
+
+## V7 — izsaukums tikai pēc PILNA apļa
+
+Visi standby MP4 iet secībā standby_01.mp4 → standby_02.mp4 → ... → pēdējais klips → standby_01.mp4.
+
+- Neviens izsaukums nepārtrauc video vidū.
+- Automātiskais taimeris un režijas Izsaukt/Paātrināt tikai sagatavo nākamo notikumu.
+- Izsaukums un globālais paziņojums sākas tikai pēc pēdējā klipa ended notikuma.
+- Ja nav notikuma, cilpa sākas no standby_01.mp4.
+- Pēc AI video, QR un uzdevuma nākamā cilpa atkal sākas no standby_01.mp4.
+- Klipa kļūda netiek uzskatīta par korekti pabeigtu aplīti.
+- Serveris pārbauda, ka TV paziņojis tieši pēdējā klipa ID.
+- Ja nav standby video, izsaukumi notiek bez gaidīšanas.
