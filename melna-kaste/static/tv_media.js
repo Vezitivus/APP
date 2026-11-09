@@ -1,4 +1,4 @@
-/* MELNĀ KASTE V6 — uninterrupted standby reel, frame-boundary call handoff. */
+/* MELNĀ KASTE V7 — ordered standby reel; calls only at final-to-first seam. */
 'use strict';
 window.MKTV=(function(){
   let host,screen,video,unlock,mode='none',mediaPath='',playlistIndex=0,busy=false;
@@ -11,8 +11,8 @@ window.MKTV=(function(){
     host.innerHTML='<main class="tv-full mk-show"><video id="mkShowVideo" class="mk-show-video" playsinline preload="auto" muted></video><div id="mkShowScreen" class="mk-show-screen"></div><button id="mkSound" class="mk-sound" type="button">IESLĒGT TV SKAŅU</button></main>';
     screen=host.querySelector('#mkShowScreen');video=host.querySelector('#mkShowVideo');unlock=host.querySelector('#mkSound');
     unlock.addEventListener('click',()=>{audioEnabled=true;video.muted=false;video.volume=1;video.play().then(()=>{unlock.hidden=true}).catch(()=>{audioEnabled=false;unlock.hidden=false})});
-    video.addEventListener('ended',()=>{if(mode==='standby')onStandbyEnd();else if(mode==='stinger')onStingerEnd();});
-    video.addEventListener('error',()=>{if(mode==='standby')onStandbyEnd();else if(mode==='stinger')onStingerEnd();});
+    video.addEventListener('ended',()=>{if(mode==='standby')onStandbyEnd(true);else if(mode==='stinger')onStingerEnd();});
+    video.addEventListener('error',()=>{if(mode==='standby')onStandbyEnd(false);else if(mode==='stinger')onStingerEnd();});
   }
   function presentText(html,helpers){
     video.style.display='none';screen.style.display='flex';screen.innerHTML=`<div class="tv-scene"><div class="tv-composition">${html}</div></div>`;
@@ -36,19 +36,41 @@ window.MKTV=(function(){
     const path=playlist[(playlistIndex+1)%playlist.length].url;
     if(nextPreload.getAttribute('src')!==path){nextPreload.src=path;nextPreload.load()}
   }
-  async function onStandbyEnd(){
-    if(busy)return;busy=true;
+
+  function nextStandbyClip(){
+    if(!playlist.length){busy=false;return}
+    playlistIndex=(playlistIndex+1)%playlist.length;
+    mediaPath='';
+    enterMedia('standby',playlist[playlistIndex].url);
+    busy=false;
+  }
+  async function onStandbyEnd(completedNormally){
+    if(busy)return;
+    busy=true;
+    if(!playlist.length){busy=false;return}
+    const lastClip=playlistIndex===playlist.length-1;
+    // Never release an announcement after a middle clip or on playback error.
+    if(!lastClip||!completedNormally){nextStandbyClip();return}
+    const finished=playlist[playlistIndex];
+    playlistIndex=0;
     try{
       const key=sessionStorage.getItem('mk_tv_control_v5')||'';
       if(key){
-        const response=await fetch('/api/tv/standby-finished',{method:'POST',headers:{'X-TV-Key':key}});
-        if(response.ok){const result=await response.json();if(result.action==='call'){
-          const r=await fetch('/api/state',{cache:'no-store'});if(r.ok){const fresh=await r.json();window.MKTV.render(fresh);busy=false;return;}
-        }}
+        const response=await fetch('/api/tv/standby-finished',{
+          method:'POST',headers:{'Content-Type':'application/json','X-TV-Key':key},
+          body:JSON.stringify({standbyId:finished.id})
+        });
+        if(response.ok){
+          const result=await response.json();
+          if(result.action==='call'||result.action==='global'){
+            const r=await fetch('/api/state',{cache:'no-store'});
+            if(r.ok){window.MKTV.render(await r.json());busy=false;return}
+          }
+        }
       }
-    }catch(e){/* Network outages never reveal a call mid-video. */}
-    playlistIndex=(playlistIndex+1)%Math.max(1,playlist.length);
-    if(playlist.length){mediaPath='';enterMedia('standby',playlist[playlistIndex].url)}
+    }catch(e){/* Never interrupt a clip mid-playback on network failure. */}
+    // A full loop ended without an announcement: always restart at clip 01.
+    mediaPath='';enterMedia('standby',playlist[0].url);
     busy=false;
   }
   async function onStingerEnd(){
