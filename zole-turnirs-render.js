@@ -64,7 +64,9 @@ function renderRound() {
   refs.roundTitle.textContent = `${round.number}. kārta`;
   refs.roundDescription.textContent = round.number === 1
     ? 'Sadalījums reģistrācijas secībā.'
-    : `Sadalījums pēc ${round.number - 1}. kārtas lielajiem punktiem un pēc tam zoles punktiem.`;
+    : round.pairingBasis === 'cumulative'
+      ? 'Sadalījums pēc visu iepriekšējo pabeigto kārtu lielo punktu kopsummas un pēc tam zoles punktu kopsummas.'
+      : `Sadalījums pēc ${round.number - 1}. kārtas lielajiem punktiem un pēc tam zoles punktiem.`;
   refs.finishRoundBtn.classList.toggle('hidden', round.finalized);
   refs.finishRoundBtn.disabled = !roundValid(round);
   refs.nextRoundBtn.classList.toggle('hidden', !round.finalized);
@@ -202,3 +204,4 @@ function renderHistory() {
       </div>
     </details>`).join('');
 }
+

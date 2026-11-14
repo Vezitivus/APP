@@ -184,23 +184,37 @@ function evaluateTable(table) {
 function roundValid(round) { return round.tables.every(table => evaluateTable(table).valid); }
 
 function getPreviousRoundOrder(roundNumber) {
-  if (roundNumber === 1) return [...state.players].sort((a,b) => a.registrationNo - b.registrationNo).map(player => player.id);
+  const eligiblePlayers = state.players.filter(player => {
+    const start = Number(player.activeFromRound);
+    return (Number.isInteger(start) && start > 0 ? start : 1) <= roundNumber;
+  });
+  if (roundNumber === 1) return [...eligiblePlayers].sort((a,b) => a.registrationNo - b.registrationNo).map(player => player.id);
   const previous = state.rounds.find(round => round.number === roundNumber - 1);
   if (!previous || !previous.finalized) throw new Error('Iepriekšējā kārta nav pabeigta.');
-  const previousScores = new Map();
-  previous.tables.forEach(table => {
-    const evaluation = evaluateTable(table);
-    table.playerIds.forEach((playerId, index) => {
-      previousScores.set(playerId, { big: evaluation.big[index], small: evaluation.values[index] });
+
+  const totals = new Map();
+  state.rounds.filter(round => round.finalized && round.number < roundNumber).forEach(round => {
+    round.tables.forEach(table => {
+      const evaluation = evaluateTable(table);
+      if (!evaluation.valid) throw new Error('Pabeigtās kārtas rezultāti nav derīgi.');
+      table.playerIds.forEach((playerId, index) => {
+        const total = totals.get(playerId) || { big: 0, small: 0 };
+        total.big += evaluation.big[index];
+        total.small += evaluation.values[index];
+        totals.set(playerId, total);
+      });
     });
   });
-  return [...state.players]
-    .sort((a,b) => {
-      const sa = previousScores.get(a.id) || { big: -Infinity, small: -Infinity };
-      const sb = previousScores.get(b.id) || { big: -Infinity, small: -Infinity };
-      return sb.big - sa.big || sb.small - sa.small || a.registrationNo - b.registrationNo;
-    })
-    .map(player => player.id);
+
+  return [...eligiblePlayers].sort((a,b) => {
+    const sa = totals.get(a.id);
+    const sb = totals.get(b.id);
+    // Preserve late-registration behavior: newcomers follow ranked players.
+    if (sa && !sb) return -1;
+    if (!sa && sb) return 1;
+    if (!sa && !sb) return a.registrationNo - b.registrationNo;
+    return sb.big - sa.big || sb.small - sa.small || a.registrationNo - b.registrationNo;
+  }).map(player => player.id);
 }
 
 function createRound(number) {
@@ -215,7 +229,7 @@ function createRound(number) {
     return { id: uid('table'), number: index + 1, playerIds, scores };
   });
   return {
-    id: uid('round'), number, createdAt: new Date().toISOString(), finalizedAt: null, finalized: false, tables
+    id: uid('round'), number, pairingBasis: 'cumulative', createdAt: new Date().toISOString(), finalizedAt: null, finalized: false, tables
   };
 }
 
@@ -251,3 +265,4 @@ function getLeaderboard(includeDraft = true) {
   });
   return { rows: sorted, hasDraftScores };
 }
+

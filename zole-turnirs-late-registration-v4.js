@@ -36,35 +36,7 @@
 
   normalizePlayerStartRounds();
 
-  getPreviousRoundOrder = function getPreviousRoundOrderWithLatePlayers(roundNumber) {
-    const eligiblePlayers = playersForRound(roundNumber);
-    if (roundNumber === 1) return eligiblePlayers.map(player => player.id);
-
-    const previous = state.rounds.find(round => round.number === roundNumber - 1);
-    if (!previous || !previous.finalized) throw new Error('Iepriekšējā kārta nav pabeigta.');
-
-    const previousScores = new Map();
-    previous.tables.forEach(table => {
-      const evaluation = evaluateTable(table);
-      table.playerIds.forEach((playerId, index) => {
-        previousScores.set(playerId, {
-          big: evaluation.big?.[index] ?? -Infinity,
-          small: evaluation.values?.[index] ?? -Infinity
-        });
-      });
-    });
-
-    return eligiblePlayers
-      .sort((a, b) => {
-        const scoreA = previousScores.get(a.id);
-        const scoreB = previousScores.get(b.id);
-        if (scoreA && !scoreB) return -1;
-        if (!scoreA && scoreB) return 1;
-        if (!scoreA && !scoreB) return a.registrationNo - b.registrationNo;
-        return scoreB.big - scoreA.big || scoreB.small - scoreA.small || a.registrationNo - b.registrationNo;
-      })
-      .map(player => player.id);
-  };
+  // Round ordering, including eligibility and cumulative scores, is defined in core.
 
   getLeaderboard = function getLeaderboardWithJoinRounds(includeDraft = true) {
     const currentRound = getCurrentRound();
@@ -311,3 +283,4 @@
 
   renderAll();
 })();
+

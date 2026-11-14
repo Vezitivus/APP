@@ -89,7 +89,7 @@ refs.finishRoundBtn.addEventListener('click', () => {
   if (!round || round.finalized || !roundValid(round)) return;
   showModal({
     title: `Pabeigt ${round.number}. kārtu?`,
-    text: 'Pēc pabeigšanas rezultātus šajā kārtā vairs nevarēs mainīt. Nākamais sadalījums tiks veidots tikai pēc šīs kārtas rezultātiem.',
+    text: 'Pēc pabeigšanas rezultātus šajā kārtā vairs nevarēs mainīt. Nākamais sadalījums tiks veidots pēc visu pabeigto kārtu punktu kopsummas.',
     confirmText: 'Pabeigt kārtu',
     onConfirm: () => {
       round.finalized = true;
@@ -105,7 +105,7 @@ refs.nextRoundBtn.addEventListener('click', () => {
   const nextNumber = round.number + 1;
   showModal({
     title: `Izveidot ${nextNumber}. kārtu?`,
-    text: `Spēlētāji tiks sakārtoti pēc ${round.number}. kārtas lielajiem punktiem, pēc tam pēc zoles punktiem. Iepriekšējo kārtu punkti sadalījumā netiks summēti.`,
+    text: `Spēlētāji tiks sakārtoti pēc visu iepriekšējo pabeigto kārtu lielo punktu kopsummas, pēc tam pēc zoles punktu kopsummas.`,
     confirmText: `Izveidot ${nextNumber}. kārtu`,
     onConfirm: () => {
       state.rounds.push(createRound(nextNumber));
@@ -165,3 +165,4 @@ window.addEventListener('storage', event => {
 });
 
 renderAll();
+
