@@ -1,4 +1,6 @@
+import { Buffer } from "node:buffer";
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { serverEnv } from "@/lib/server/env";
 
 export function sha256(value: string): string {
   return createHash("sha256").update(value).digest("hex");
@@ -24,7 +26,7 @@ export type SessionPayload =
   | { typ: "tv"; gid: string; exp: number };
 
 function secret(): string {
-  const value = process.env.SESSION_SECRET ?? "";
+  const value = serverEnv("SESSION_SECRET") ?? "";
   if (value.length < 32) throw new Error("SESSION_SECRET nav iestatīts");
   return value;
 }
@@ -58,7 +60,7 @@ export function readSession(token: string | undefined | null): SessionPayload | 
 }
 
 export function adminPasswordOk(input: string): boolean {
-  const expected = process.env.ADMIN_PASSWORD ?? "";
+  const expected = serverEnv("ADMIN_PASSWORD") ?? "";
   if (expected.length < 8 || input.length < 1 || input.length > 200) return false;
   const left = createHash("sha256").update(input).digest();
   const right = createHash("sha256").update(expected).digest();
@@ -66,5 +68,5 @@ export function adminPasswordOk(input: string): boolean {
 }
 
 export function adminConfigured(): boolean {
-  return (process.env.ADMIN_PASSWORD ?? "").length >= 8 && (process.env.SESSION_SECRET ?? "").length >= 32;
+  return (serverEnv("ADMIN_PASSWORD") ?? "").length >= 8 && (serverEnv("SESSION_SECRET") ?? "").length >= 32;
 }

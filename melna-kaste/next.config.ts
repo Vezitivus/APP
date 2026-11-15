@@ -30,3 +30,11 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
+// Local `next dev` only. Production builds (Vercel and `cf:build`) skip this
+// so they do not start a Wrangler session.
+if (process.env.NODE_ENV === "development") {
+  void import("@opennextjs/cloudflare").then(({ initOpenNextCloudflareForDev }) => {
+    void initOpenNextCloudflareForDev();
+  });
+}

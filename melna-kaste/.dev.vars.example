@@ -1,0 +1,3 @@
+# Used by `wrangler dev` / OpenNext preview, not by `next dev`.
+# `next dev` reads `.env.local`. Do not put real secrets in git.
+NEXTJS_ENV=development

@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { adminConfigured, readSession, sha256, signSession, type SessionPayload } from "@/lib/auth/crypto";
+import { serverEnv } from "@/lib/server/env";
 import { afterTick, readCurrent } from "@/lib/db/repository";
 import type { Ctx, GameState, Player } from "@/lib/game/types";
 
@@ -32,7 +33,7 @@ export function tvCookie(gameId: string): string {
 }
 
 export function cookieOptions(maxAge: number) {
-  const origin = process.env.PUBLIC_URL ?? "";
+  const origin = serverEnv("PUBLIC_URL") ?? "";
   const secure = origin ? origin.startsWith("https://") : process.env.NODE_ENV === "production";
   return {
     httpOnly: true,

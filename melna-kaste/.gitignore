@@ -4,6 +4,9 @@ node_modules
 .env.local
 .env*.local
 .vercel
+.open-next
+.wrangler
+.dev.vars
 *.log
 tsconfig.tsbuildinfo
 .DS_Store
