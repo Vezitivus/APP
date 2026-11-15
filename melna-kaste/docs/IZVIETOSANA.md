@@ -113,3 +113,14 @@ Publiskās adreses pēc deploy:
 - režija: `PUBLIC_URL/admin`
 - TV: `PUBLIC_URL/tv` (darba saite ar `?pair=` parādās režijā)
 - pievienošanās: `PUBLIC_URL/join`
+
+## Cloudflare Hyperdrive (datubāze no Worker)
+
+Worker nevar tieši pārbaudīt Supabase TLS sertifikātu (postgres.js tad atkārto savienojumus līdz kļūdai "Too many subrequests"). Tāpēc Worker pieslēdzas caur Cloudflare Hyperdrive (bezmaksas plānā pieejams), kas pats veido TLS savienojumu ar Supabase.
+
+- Hyperdrive konfigurācija: `melna-kaste-db` (ID `f72cb34784234d118bc3cae9ae3f3035`, piesaiste `HYPERDRIVE` failā `wrangler.jsonc`).
+- Izcelsme: Supabase session pooler (tas pats resursdators, ports 5432).
+- `DATABASE_URL` secret paliek kā rezerve (Node / Vercel), bet uz Worker tiek lietots `HYPERDRIVE`.
+- Izveidots ar: `npx wrangler hyperdrive create melna-kaste-db --connection-string="postgresql://...:5432/postgres"`.
+- `postgres` ir `serverExternalPackages` sarakstā, lai Workers būvējums izmantotu postgres.js `workerd` versiju (cloudflare:sockets).
+- Cloudinary secrets vairs nav obligāti izvietošanai; bez tiem darbojas 20 s testa cikls.

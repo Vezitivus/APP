@@ -116,3 +116,15 @@ describe("postgres klients", () => {
     expect(postgres).not.toHaveBeenCalled();
   });
 });
+
+describe("Hyperdrive", () => {
+  it("uz Worker izmanto HYPERDRIVE bez klienta SSL", async () => {
+    asWorker();
+    const HD = "postgresql://user:pw@abc.hyperdrive.local:5432/postgres";
+    (globalThis as Record<symbol, unknown>)[CONTEXT] = { env: { HYPERDRIVE: { connectionString: HD } } };
+    const { sql, databaseConfigured } = await loadSql();
+    expect(databaseConfigured()).toBe(true);
+    sql();
+    expect(postgres).toHaveBeenCalledWith(HD, expect.objectContaining({ prepare: false, ssl: false, max: 1 }));
+  });
+});
