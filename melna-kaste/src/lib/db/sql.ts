@@ -23,7 +23,21 @@ function isCloudflareWorker(): boolean {
 }
 
 export function databaseConfigured(): boolean {
-  return Boolean(serverEnv("DATABASE_URL"));
+  return Boolean(hyperdriveUrl() || serverEnv("DATABASE_URL"));
+}
+
+/**
+ * Cloudflare Hyperdrive binding (`HYPERDRIVE` in wrangler.jsonc).
+ * Workers cannot verify Supabase's TLS certificate directly (postgres.js then
+ * reconnects until "Too many subrequests"). Hyperdrive does TLS to Supabase
+ * itself, and the Worker talks to Hyperdrive without client SSL.
+ */
+function hyperdriveUrl(): string | null {
+  const scope = (globalThis as Record<symbol, unknown>)[CLOUDFLARE_CONTEXT] as
+    | { env?: { HYPERDRIVE?: { connectionString?: unknown } } }
+    | undefined;
+  const value = scope?.env?.HYPERDRIVE?.connectionString;
+  return typeof value === "string" && value.length > 0 ? value : null;
 }
 
 export function sql(): Sql {
@@ -38,7 +52,10 @@ function workerSql(): Sql {
     const existing = workerClients.get(scope);
     if (existing) return existing;
   }
-  const client = open(workerOptions());
+  const hyperdrive = hyperdriveUrl();
+  const client = hyperdrive
+    ? postgres(hyperdrive, { ...workerOptions(), ssl: false })
+    : open(workerOptions());
   if (scope) workerClients.set(scope, client);
   closeAfterResponse(client);
   return client;

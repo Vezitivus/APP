@@ -23,6 +23,9 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Keep postgres external so the Workers build resolves its "workerd" export
+  // (cloudflare:sockets + startTls) instead of the node:tls build.
+  serverExternalPackages: ["postgres"],
   reactStrictMode: true,
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];

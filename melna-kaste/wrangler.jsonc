@@ -6,6 +6,16 @@
   "compatibility_date": "2026-11-15",
   "compatibility_flags": ["nodejs_compat"],
   "upload_source_maps": true,
+  // Hyperdrive (free plan) connects to Supabase over TLS for the Worker.
+  // Its origin is the Supabase session pooler (port 5432). The config ID is not a secret.
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "f72cb34784234d118bc3cae9ae3f3035",
+      // Only for local `wrangler dev` / the OpenNext deploy step; never used in production.
+      "localConnectionString": "postgresql://postgres:postgres@127.0.0.1:5432/postgres"
+    }
+  ],
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
@@ -27,10 +37,7 @@
       "DATABASE_URL",
       "ADMIN_PASSWORD",
       "SESSION_SECRET",
-      "PUBLIC_URL",
-      "CLOUDINARY_CLOUD_NAME",
-      "CLOUDINARY_API_KEY",
-      "CLOUDINARY_API_SECRET"
+      "PUBLIC_URL"
     ]
   }
 }
