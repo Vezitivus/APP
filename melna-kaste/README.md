@@ -4,7 +4,7 @@ Tiešsaistes pasākumu spēle trim sinhronizētiem skatiem: režija, TV un dalī
 
 ## Kāpēc šis steks
 
-- **Next.js uz Vercel Hobby** dod HTTPS adresi bez sava servera. Funkcijas ir īsas, tāpēc spēles taimeri nav process atmiņā: termiņus raksta serveris, un jebkurš ekrāns, kas vaicā stāvokli, tos pielieto.
+- **Next.js uz Cloudflare Workers (Free)** dod HTTPS adresi bez sava servera. OpenNext adapteris palaiž to pašu Next.js būvi. Funkcijas ir īsas, tāpēc spēles taimeri nav process atmiņā: termiņus raksta serveris, un jebkurš ekrāns, kas vaicā stāvokli, tos pielieto. Vercel konfigurācija paliek, ja konts ir pieejams.
 - **Supabase Free** dod Postgres. Viena rinda `games.snapshot` ir autoritatīvais stāvoklis, pārējās tabulas ir tās projekcija. `tv_feed` ir vienīgā tabula, ko drīkst lasīt publiskā atslēga, un tikai bez slepenā satura.
 - **Cloudinary Free** glabā un atdod video. API noslēpums paliek serverī. Atskaņošanai tiek lietots oriģinālais `secure_url`, bez jaunām transformācijām, lai netērētu kredītus.
 

@@ -1,0 +1,36 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "melna-kaste",
+  "main": ".open-next/worker.js",
+  // nodejs_compat supplies node:crypto, node:buffer, and timers used by the app and postgres.js.
+  "compatibility_date": "2026-11-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "upload_source_maps": true,
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 0.01
+    }
+  },
+  // Names only. Values are set with `wrangler secret put`, never in this file.
+  "secrets": {
+    "required": [
+      "DATABASE_URL",
+      "ADMIN_PASSWORD",
+      "SESSION_SECRET",
+      "PUBLIC_URL",
+      "CLOUDINARY_CLOUD_NAME",
+      "CLOUDINARY_API_KEY",
+      "CLOUDINARY_API_SECRET"
+    ]
+  }
+}

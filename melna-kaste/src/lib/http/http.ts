@@ -1,3 +1,5 @@
+import { serverEnv } from "@/lib/server/env";
+
 export function clientIp(request: Request): string {
   const forwarded = request.headers.get("x-forwarded-for");
   const value = forwarded ? forwarded.split(",")[0].trim() : "local";
@@ -9,7 +11,7 @@ export function jsonError(status: number, message: string, code = "error"): Resp
 }
 
 export function publicOrigin(request: Request): string {
-  const configured = process.env.PUBLIC_URL?.replace(/\/$/, "");
+  const configured = serverEnv("PUBLIC_URL")?.replace(/\/$/, "");
   if (configured) return configured;
   return new URL(request.url).origin;
 }

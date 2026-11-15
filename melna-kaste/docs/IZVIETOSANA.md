@@ -1,6 +1,6 @@
 # Izvietošana
 
-Viss paliek pasūtītāja kontos. Šis repozitorijs nesatur paroles. Neieslēdz maksas plānus: Vercel paliek **Hobby**, Supabase paliek **Free**, Cloudinary paliek **Free**. Neieslēdz Supabase Point in Time Recovery, papildu datoru, Vercel spend vai Cloudinary maksas papildinājumus.
+Viss paliek pasūtītāja kontos. Šis repozitorijs nesatur paroles. Neieslēdz maksas plānus: Cloudflare Workers paliek **Free**, Supabase paliek **Free**, Cloudinary paliek **Free**. Neieslēdz Supabase Point in Time Recovery, papildu datoru, Workers Paid vai Cloudinary maksas papildinājumus. Vercel konfigurācija repozitorijā paliek, bet Vercel un Netlify reģistrācija tika atteikta, tāpēc izvietošana ir Cloudflare.
 
 ## 1. Supabase
 
@@ -9,7 +9,7 @@ Viss paliek pasūtītāja kontos. Šis repozitorijs nesatur paroles. Neieslēdz 
 3. Project Settings → Database → Connection string → **Transaction pooler** (ports 6543). Tas ir `DATABASE_URL`.
 4. Project Settings → API. Nokopē Project URL un `anon` `public` atslēgu. **Nekopē `service_role` atslēgu lietotnē.** Tā nav vajadzīga, un tā apiet drošības politikas.
 
-Free projekts var tikt apturēts pēc nedēļas bez aktivitātes. Pirms pasākuma atver Supabase paneli un, ja projekts ir paused, nospied Resume. Lietotnes `/api/health` reizi dienā vaicā datubāzei, bet tas negarantē, ka Supabase projektu neapturēs.
+Free projekts var tikt apturēts pēc nedēļas bez aktivitātes. Pirms pasākuma atver Supabase paneli un, ja projekts ir paused, nospied Resume. `/api/health` var atvērt ar roku. Uz Cloudflare automātiskas dienas pārbaudes nav, un tā negarantē, ka Supabase projektu neapturēs.
 
 ## 2. Cloudinary
 
@@ -18,7 +18,67 @@ Free projekts var tikt apturēts pēc nedēļas bez aktivitātes. Pirms pasākum
 3. Media Library izveido mapes un ieliec video tā, kā aprakstīts `CLOUDINARY.md`.
 4. Pēc augšupielādes režijā atver Video un spied **Atjaunot no Cloudinary**. Jaunu publicēšanu nevajag.
 
-## 3. Vercel
+## 3. Cloudflare Workers
+
+Izvietošana ir no mapes `melna-kaste`. Adapteris ir `@opennextjs/cloudflare`. Workers Free plānā saspiestais Worker nedrīkst pārsniegt **3 MiB**. Pēc `npm run cf:build` komanda `npx wrangler deploy --dry-run` izdrukā rindu `gzip:`. Skaitās tikai saspiestais izmērs, nevis statiskie faili.
+
+1. Izveido Cloudflare kontu un neieslēdz Workers Paid.
+2. Pieslēdz Wrangler šim kontam:
+
+```bash
+cd melna-kaste
+npx wrangler login
+```
+
+3. Servera vērtības ir Worker noslēpumi. Tās lasa katrs pieprasījums, nevis build. `wrangler secret put` prasa vērtību terminālī. Neliec to komandas argumentā un neliec `wrangler.jsonc`.
+
+```bash
+npx wrangler secret put DATABASE_URL
+npx wrangler secret put ADMIN_PASSWORD
+npx wrangler secret put SESSION_SECRET
+npx wrangler secret put PUBLIC_URL
+npx wrangler secret put CLOUDINARY_CLOUD_NAME
+npx wrangler secret put CLOUDINARY_API_KEY
+npx wrangler secret put CLOUDINARY_API_SECRET
+```
+
+| Mainīgais | Kur |
+| --- | --- |
+| `DATABASE_URL` | Supabase **transaction pooler**, ports **6543**. Tiešā 5432 adrese no Worker nedrīkst |
+| `ADMIN_PASSWORD` | Gara parole, vismaz 8 zīmes |
+| `SESSION_SECRET` | Vismaz 32 nejaušas zīmes |
+| `PUBLIC_URL` | `https://melna-kaste.<konts>.workers.dev`, bez slīpsvītras beigās. Var ielikt pēc pirmā deploy, pārbūve nav vajadzīga |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary |
+| `CLOUDINARY_API_KEY` | Cloudinary |
+| `CLOUDINARY_API_SECRET` | Cloudinary, nekad `NEXT_PUBLIC_` |
+
+`DATABASE_SSL` produkcijā neliek. Tas ir tikai lokālam Postgres bez SSL.
+
+4. Build laikā vajag tikai divus publiskos mainīgos. Next.js tos ieraksta pārlūka paketē. Tos neliek ar `wrangler secret put`. Ievieto čaulā tieši pirms build (vai `.env.production`, kuru nekomitē):
+
+```bash
+export NEXT_PUBLIC_SUPABASE_URL=https://PROJECT_REF.supabase.co
+export NEXT_PUBLIC_SUPABASE_ANON_KEY=anon-atslēga
+```
+
+Ja `cf:build` laikā mapē ir `.env`, `.env.local` vai `.env.production` ar `DATABASE_URL` vai parolēm, adapteris ieraksta tās Workerī kā rezerves. Produkcijas build vidē atstāj tikai `NEXT_PUBLIC_*`. Lokālais `npm run dev` joprojām lieto `.env.local`.
+
+5. Uzbūvē un izvieto:
+
+```bash
+npm run cf:build
+npm run cf:deploy
+```
+
+`cf:build` palaiž Next.js build un OpenNext. `cf:deploy` augšupielādē jau uzbūvēto `.open-next` un pats no jauna nebūvē. Abas komandas laiž no `melna-kaste`. Atkārtots deploy patur jau ieliktos noslēpumus.
+
+Wrangler priekšskatījumam vari nokopēt `.dev.vars.example` uz `.dev.vars`. `npm run dev` šo failu nelasa.
+
+Vercel cron, kas reizi dienā vaicā `/api/health`, uz Cloudflare nepārceļas. Pirms pasākuma atver Supabase paneli un, ja projekts ir paused, nospied Resume.
+
+## 4. Vercel
+
+Šo lieto tikai tad, ja Vercel konts tomēr ir pieejams. `vercel.json` un `npm run build` paliek.
 
 1. Importē šo GitHub repozitoriju.
 2. Root Directory: `melna-kaste`. Framework: Next.js.
@@ -39,7 +99,7 @@ Free projekts var tikt apturēts pēc nedēļas bez aktivitātes. Pirms pasākum
 4. Deploy. Pēc pirmā deploy `PUBLIC_URL` var salikt un uztaisīt Redeploy, lai saites būtu pareizas.
 5. Atstāj plānu Hobby. Cron `/api/health` reizi dienā ir Hobby limitos.
 
-## 4. Pārbaude pēc izvietošanas
+## 5. Pārbaude pēc izvietošanas
 
 1. Atver `/admin`, ieej ar `ADMIN_PASSWORD`, izveido spēli.
 2. Atver doto TV saiti citā logā un nospied **Aktivizēt TV**.

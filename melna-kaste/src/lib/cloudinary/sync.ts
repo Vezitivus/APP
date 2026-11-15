@@ -1,5 +1,7 @@
+import { Buffer } from "node:buffer";
 import { isCloudinaryDeliveryUrl } from "@/lib/game/videos";
 import type { VideoAsset } from "@/lib/game/types";
+import { serverEnv } from "@/lib/server/env";
 
 interface CloudinaryResource {
   public_id?: string;
@@ -12,13 +14,13 @@ interface CloudinaryResource {
 }
 
 export function cloudinaryConfigured(): boolean {
-  return Boolean(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
+  return Boolean(serverEnv("CLOUDINARY_CLOUD_NAME") && serverEnv("CLOUDINARY_API_KEY") && serverEnv("CLOUDINARY_API_SECRET"));
 }
 
 export async function listCloudinaryVideos(): Promise<VideoAsset[]> {
-  const cloud = process.env.CLOUDINARY_CLOUD_NAME ?? "";
-  const key = process.env.CLOUDINARY_API_KEY ?? "";
-  const secret = process.env.CLOUDINARY_API_SECRET ?? "";
+  const cloud = serverEnv("CLOUDINARY_CLOUD_NAME") ?? "";
+  const key = serverEnv("CLOUDINARY_API_KEY") ?? "";
+  const secret = serverEnv("CLOUDINARY_API_SECRET") ?? "";
   if (!cloud || !key || !secret) throw new Error("Cloudinary nav konfigurēts");
   const auth = Buffer.from(`${key}:${secret}`).toString("base64");
   const videos: VideoAsset[] = [];
