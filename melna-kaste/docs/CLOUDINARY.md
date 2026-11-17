@@ -20,7 +20,7 @@ Pēc katra izsaukuma cikls sākas no `standby_01.mp4`.
 
 ## Izsaukumi
 
-Fails saucas precīzi tā, kā `docs/VIDEO_NOSAUKUMI.md`. Programmu mainīt nevajag. Ja uzdevumam faila nav, tiek ņemts kategorijas video (`izsaukums_flash.mp4`, `izsaukums_pair.mp4`, `izsaukums_team.mp4`). Ja nav arī tā, tiek ņemts `izsaukums_any.mp4`. Ja nav neviena, pēc cikla beigām uzreiz rāda vārdu un QR.
+Fails saucas precīzi tā, kā `docs/VIDEO_NOSAUKUMI.md`. Programmu mainīt nevajag. Ja uzdevumam faila nav, tiek ņemts kategorijas video (`izsaukums_flash.mp4`, `izsaukums_pair.mp4`, `izsaukums_team.mp4`). Ja nav arī tā, tiek ņemts `izsaukums_any.mp4`. Ja nav neviena, pēc cikla beigām uzreiz rāda vārdu, uzdevuma nosaukumu un QR zelta ietvarā. Šis skats paliek, kamēr režijā nospiež Turpināt.
 
 Rezerves video nedrīkst saukt cita uzdevuma nosaukumu. Tāpēc `izsaukums_choice.mp4` netiek lietots dueļa vietā.
 

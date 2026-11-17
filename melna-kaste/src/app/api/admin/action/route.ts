@@ -22,6 +22,7 @@ const ALLOWED = new Set<Action["type"]>([
   "prepare",
   "accelerate",
   "skip",
+  "continue_tv",
   "swap_player",
   "complete_event",
   "fail_event",

@@ -108,6 +108,8 @@ export interface LiveEvent {
   };
   isGlobal: boolean;
   isIntro?: boolean;
+  /** When true, TV keeps the framed call until the host presses Turpināt. */
+  tvHold?: boolean;
 }
 
 export interface Mission {
@@ -141,7 +143,7 @@ export interface Playback {
   index: number;
   clipId: string | null;
   clipToken: string;
-  mode: "idle" | "standby" | "announcement" | "intro" | "static";
+  mode: "idle" | "standby" | "announcement" | "intro" | "static" | "hold";
   announcementUrl: string | null;
   cycleIntact: boolean;
   failureRounds: number;
@@ -225,6 +227,7 @@ export type Action =
   | { type: "prepare"; playerId?: string | null; cardId?: string | null }
   | { type: "accelerate" }
   | { type: "skip" }
+  | { type: "continue_tv" }
   | { type: "swap_player"; playerId: string }
   | { type: "clip_ended"; cycleId: string; clipToken: string }
   | { type: "clip_failed"; cycleId: string; clipToken: string }

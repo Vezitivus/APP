@@ -319,6 +319,7 @@ function eventRow(tx: Tx, gameId: string, event: LiveEvent) {
       publicTitle,
       publicLines,
       playerName: status === "qr" || status === "active" || status === "claimed" ? playerName : null,
+      tvHold: Boolean(event.tvHold),
     }),
   };
 }

@@ -64,25 +64,45 @@ describe("spēles norise un taimeri", () => {
     expect(JSON.stringify(tv)).not.toContain(state.players[0].publicName);
   });
 
-  it("taimeris sākas tikai pēc izsaukuma video beigām un ir servera termiņš", () => {
+  it("pēc izsaukuma video TV paliek pie QR, kamēr režija nospiež Turpināt", () => {
     let state = addPair(game(NOW), NOW);
-    state = act(state, { type: "sync_videos", videos: [...standby(1), video({ folder: "calls", filename: "izsaukums_look.mp4" })] }, ctx(NOW)).state;
+    state = act(state, { type: "sync_videos", videos: [...standby(3), video({ folder: "calls", filename: "izsaukums_look.mp4" })] }, ctx(NOW)).state;
     state = act(state, { type: "update_settings", patch: { qrSeconds: 60, minIntervalSec: 600, maxIntervalSec: 600 } }, ctx(NOW)).state;
     state = act(state, { type: "start" }, ctx(NOW)).state;
     state = act(state, { type: "prepare", cardId: "look", playerId: state.players[0].id }, ctx(NOW)).state;
-    state = act(state, { type: "clip_ended", cycleId: state.playback.cycleId, clipToken: state.playback.clipToken }, ctx(NOW)).state;
+    for (let step = 0; step < 3; step += 1) {
+      state = act(state, { type: "clip_ended", cycleId: state.playback.cycleId, clipToken: state.playback.clipToken }, ctx(NOW)).state;
+    }
     expect(state.phase).toBe("ANNOUNCEMENT");
+    expect(toTvState(state, NOW).screen.kind).toBe("announcement");
     const announcedAt = NOW + 5_000;
     state = act(state, { type: "clip_ended", cycleId: state.playback.cycleId, clipToken: state.playback.clipToken }, ctx(announcedAt)).state;
     expect(state.phase).toBe("QR_WAITING");
-    expect(state.active?.qrExpiresAt).toBe(new Date(announcedAt + 60_000).toISOString());
-    const early = apply(state, { type: "tick" }, ctx(announcedAt + 59_000));
-    expect(early.ignored).toBe(true);
-    expect(early.state.phase).toBe("QR_WAITING");
-    const expired = act(state, { type: "tick" }, ctx(announcedAt + 60_000));
-    expect(expired.state.phase).toBe("STANDBY");
-    expect(expired.state.active).toBeNull();
-    expect(expired.state.playback.index).toBe(0);
+    expect(state.active?.tvHold).toBe(true);
+    expect(state.active?.qrExpiresAt).toBeNull();
+    expect(state.playback.mode).toBe("hold");
+    const held = toTvState(state, announcedAt);
+    expect(held.screen).toMatchObject({
+      kind: "call",
+      name: state.players[0].publicName,
+      title: "Nenopietnā runa",
+    });
+    if (held.screen.kind === "call") expect(held.screen.videoUrl).toContain("izsaukums_look.mp4");
+    const later = apply(state, { type: "tick" }, ctx(announcedAt + 60 * 60 * 1000));
+    expect(later.ignored).toBe(true);
+    expect(later.state.phase).toBe("QR_WAITING");
+    expect(later.state.active?.qrToken).toBe(state.active?.qrToken);
+    const reloaded = toTvState(state, announcedAt + 60 * 60 * 1000);
+    expect(reloaded.screen.kind).toBe("call");
+    const hurried = apply(state, { type: "accelerate" }, ctx(announcedAt));
+    expect(hurried.error?.code).toBe("not_ready");
+    state = act(state, { type: "continue_tv" }, ctx(announcedAt + 90_000)).state;
+    expect(state.phase).toBe("STANDBY");
+    expect(state.active).toBeNull();
+    expect(state.playback.mode).toBe("standby");
+    expect(state.playback.index).toBe(0);
+    expect(state.playback.clipId).toBe("standby_01.mp4");
+    expect(toTvState(state, announcedAt + 90_000).screen.kind).toBe("standby");
   });
 
   it("novecojis vai atkārtots video beigu signāls neizsauc otru notikumu", () => {
@@ -164,14 +184,15 @@ describe("spēles norise un taimeri", () => {
     expect(JSON.stringify(toAdminState(state, NOW + 20))).toContain("šautriņu");
   });
 
-  it("pareizais dalībnieks saņem misiju, un TV uzreiz atgriežas standby", () => {
+  it("pareizais dalībnieks saņem misiju, un TV paliek pie izsaukuma līdz Turpināt", () => {
     let state = addPair(game(NOW), NOW);
     state = act(state, { type: "start" }, ctx(NOW)).state;
     state = act(state, { type: "prepare", cardId: "mission_01", playerId: state.players[0].id }, ctx(NOW)).state;
     state = act(state, { type: "complete_test_cycle" }, ctx(NOW)).state;
     const token = state.active!.qrToken;
     state = act(state, { type: "claim", qrToken: token, playerId: state.players[0].id }, ctx(NOW)).state;
-    expect(state.phase).toBe("STANDBY");
+    expect(state.phase).toBe("QR_WAITING");
+    expect(state.active?.tvHold).toBe(true);
     expect(state.missions).toHaveLength(1);
     expect(state.missions[0].text).toContain("NHL");
     expect(state.queue).toBeNull();
@@ -179,11 +200,20 @@ describe("spēles norise un taimeri", () => {
     expect(owner.status).toBe("mission");
     const tv = JSON.stringify(toTvState(state, NOW));
     const admin = JSON.stringify(toAdminState(state, NOW));
+    expect(toTvState(state, NOW).screen.kind).toBe("call");
     expect(tv).not.toContain("NHL");
     expect(admin).toContain("NHL");
+    expect(toAdminState(state, NOW).active?.tvHold).toBe(true);
     const player = toPlayerState(state, state.players[0], NOW);
     expect(player.missions[0].text).toContain("NHL");
     expect(toPlayerState(state, state.players[1], NOW).missions).toHaveLength(0);
+    const blocked = apply(state, { type: "prepare", cardId: "look", playerId: state.players[1].id }, ctx(NOW + 50));
+    expect(blocked.error?.code).toBe("not_ready");
+    state = act(state, { type: "continue_tv" }, ctx(NOW + 40)).state;
+    expect(state.phase).toBe("STANDBY");
+    expect(state.active).toBeNull();
+    expect(state.missions[0].status).toBe("active");
+    expect(toTvState(state, NOW + 40).screen.kind).toBe("static");
     state = act(state, { type: "prepare", cardId: "look", playerId: state.players[1].id }, ctx(NOW + 50)).state;
     expect(state.phase).toBe("QUEUED");
     expect(state.missions[0].status).toBe("active");
@@ -239,7 +269,12 @@ describe("spēles norise un taimeri", () => {
     expect(state.active?.publicTitle).toBe("Galda spēle script");
     expect(state.active?.publicTitle).not.toContain("<");
     const tv = toTvState(state, NOW);
-    expect(tv.screen).toMatchObject({ kind: "event", title: "Galda spēle script" });
+    expect(tv.screen).toMatchObject({ kind: "call", title: "Galda spēle script", name: state.players[0].publicName });
+    state = act(state, { type: "continue_tv" }, ctx(NOW)).state;
+    expect(state.phase).toBe("ACTIVE_EVENT");
+    expect(state.active?.tvHold).toBe(false);
+    expect(state.playback.index).toBe(0);
+    expect(toTvState(state, NOW).screen.kind).toBe("static");
   });
 
   it("paātrināšana sagatavo notikumu vai saīsina QR līdz piecām sekundēm", () => {
@@ -259,8 +294,11 @@ describe("spēles norise un taimeri", () => {
       state = act(state, { type: "clip_ended", cycleId: state.playback.cycleId, clipToken: state.playback.clipToken }, ctx(NOW + 5000)).state;
     }
     expect(state.phase).toBe("QR_WAITING");
-    state = act(state, { type: "accelerate" }, ctx(NOW + 5000)).state;
-    expect(Date.parse(state.active!.qrExpiresAt!) - (NOW + 5000)).toBe(5000);
+    expect(state.active?.tvHold).toBe(true);
+    const held = apply(state, { type: "accelerate" }, ctx(NOW + 5000));
+    expect(held.error?.code).toBe("not_ready");
+    expect(held.state.phase).toBe("QR_WAITING");
+    expect(held.state.active?.qrToken).toBe(state.active?.qrToken);
   });
 
   it("pauze aptur automātisko sagatavošanu, bet ne standby signālu", () => {
@@ -366,5 +404,42 @@ describe("spēles norise un taimeri", () => {
     expect(tv.screen.kind).toBe("event");
     if (tv.screen.kind === "event") expect(tv.screen.title).toBe("Klusā balsošana");
     expect(JSON.stringify(tv)).not.toContain("/mission/");
+  });
+
+  it("bez izsaukuma video rāda ietvaru, un skenēt var arī pēc ilga laika", () => {
+    let state = addPair(game(NOW), NOW);
+    state = act(state, { type: "start" }, ctx(NOW)).state;
+    state = act(state, { type: "prepare", cardId: "look", playerId: state.players[0].id }, ctx(NOW)).state;
+    state = act(state, { type: "complete_test_cycle" }, ctx(NOW)).state;
+    expect(state.playback.mode).toBe("hold");
+    const tv = toTvState(state, NOW);
+    expect(tv.screen).toMatchObject({ kind: "call", title: "Nenopietnā runa", videoUrl: null });
+    const scannedAt = NOW + 30 * 60 * 1000;
+    state = act(state, { type: "claim", qrToken: state.active!.qrToken, playerId: state.players[0].id }, ctx(scannedAt)).state;
+    expect(state.phase).toBe("ACTIVE_EVENT");
+    expect(toTvState(state, scannedAt).screen.kind).toBe("call");
+    const skipped = apply(state, { type: "skip" }, ctx(scannedAt));
+    expect(skipped.error).toBeUndefined();
+    expect(skipped.state.phase).toBe("STANDBY");
+    expect(skipped.state.active).toBeNull();
+    expect(toTvState(skipped.state, scannedAt).screen.kind).toBe("static");
+  });
+
+  it("izlaišana aizver TV izsaukumu un atgriež standby no pirmā klipa", () => {
+    let state = addPair(game(NOW), NOW);
+    state = act(state, { type: "sync_videos", videos: standby(3) }, ctx(NOW)).state;
+    state = act(state, { type: "start" }, ctx(NOW)).state;
+    state = act(state, { type: "clip_ended", cycleId: state.playback.cycleId, clipToken: state.playback.clipToken }, ctx(NOW)).state;
+    expect(state.playback.index).toBe(1);
+    state = act(state, { type: "prepare", cardId: "gesture", playerId: state.players[0].id }, ctx(NOW)).state;
+    state = act(state, { type: "clip_ended", cycleId: state.playback.cycleId, clipToken: state.playback.clipToken }, ctx(NOW)).state;
+    state = act(state, { type: "clip_ended", cycleId: state.playback.cycleId, clipToken: state.playback.clipToken }, ctx(NOW)).state;
+    expect(state.phase).toBe("QR_WAITING");
+    state = act(state, { type: "skip" }, ctx(NOW)).state;
+    expect(state.phase).toBe("STANDBY");
+    expect(state.playback.index).toBe(0);
+    expect(state.playback.clipId).toBe("standby_01.mp4");
+    const tv = JSON.stringify(toTvState(state, NOW));
+    expect(tv).not.toContain(state.players[0].publicName);
   });
 });

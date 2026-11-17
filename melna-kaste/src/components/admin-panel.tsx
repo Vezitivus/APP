@@ -100,7 +100,6 @@ export function AdminPanel() {
   }
 
   const seconds = game.nextAutoAt ? Math.max(0, Math.round((Date.parse(game.nextAutoAt) - clock) / 1000)) : null;
-  const qrLeft = game.active?.expiresAt ? Math.max(0, Math.round((Date.parse(game.active.expiresAt) - clock) / 1000)) : null;
 
   return (
     <main className="sheet">
@@ -124,6 +123,16 @@ export function AdminPanel() {
         {message ? <p className="warn">{message}</p> : null}
         {tvUrl ? <p>TV saite: <a href={tvUrl}>{tvUrl}</a></p> : <p className="quiet">Jaunu TV saiti iegūsi, sākot spēli vai izveidojot jaunu.</p>}
 
+        {game.active?.tvHold ? (
+          <section className="continue-banner">
+            <p className="kicker">TV</p>
+            <h2>Izsaukums ekrānā</h2>
+            <p>{game.active.playerName ?? "Dalībnieks"} — {game.active.cardTitle}</p>
+            <button className="btn continue" type="button" onClick={() => void send({ type: "continue_tv" })}>Turpināt</button>
+            <p className="quiet">Ekrāns paliek, kamēr nospied. Pēc tam TV rāda tikai standby no pirmā video. Ja kartīte jau ir atvērta, uzdevums telefonā paliek.</p>
+          </section>
+        ) : null}
+
         <section className="card">
           <h2>Slepenā režija</h2>
           <div className="director">
@@ -131,14 +140,14 @@ export function AdminPanel() {
             <button className="btn-ghost" type="button" onClick={() => void send({ type: "skip" })}>Izlaist</button>
             <Swap players={game.players} onSwap={(playerId) => void send({ type: "swap_player", playerId })} />
           </div>
-          <p className="quiet">Paātrināt sagatavo nākamo notikumu vai saīsina QR līdz 5 sekundēm. Izlaist TV neko nepaskaidro. Taustiņi N un S.</p>
+          <p className="quiet">Paātrināt sagatavo nākamo notikumu, negaidot intervālu. Izlaist noņem notikumu, un TV to nepaskaidro. TV izsaukums pats nepazūd — to aizver Turpināt. Taustiņi N un S.</p>
         </section>
 
         <section className="card">
           <h2>Vadība</h2>
           <div className="row">
             <button className="btn" type="button" onClick={() => void send({ type: "start" })} disabled={game.phase !== "LOBBY"}>Sākt</button>
-            <button className="btn-ghost" type="button" onClick={() => void send({ type: game.paused ? "resume" : "pause" })}>{game.paused ? "Turpināt" : "Apturēt auto"}</button>
+            <button className="btn-ghost" type="button" onClick={() => void send({ type: game.paused ? "resume" : "pause" })}>{game.paused ? "Atsākt auto" : "Apturēt auto"}</button>
             <button className="btn-ghost" type="button" onClick={() => void send({ type: "set_auto", enabled: !game.autoCalls })}>{game.autoCalls ? "Izslēgt auto" : "Ieslēgt auto"}</button>
             <button className="btn-ghost" type="button" onClick={() => void send({ type: "finish" })}>Pabeigt</button>
             <button className="btn-danger" type="button" onClick={() => resetArmed ? void send({ type: "reset", confirm: true }).then(() => setResetArmed(false)) : setResetArmed(true)}>
@@ -149,13 +158,13 @@ export function AdminPanel() {
 
         <section className="card">
           <h2>Šobrīd</h2>
-          <p>Video: {game.playback.current ?? "nav"} · {game.playback.total ? `${game.playback.index + 1}/${game.playback.total}` : "testa ekrāns"} · nākamais {game.playback.next ?? "—"}</p>
+          <p>Video: {game.playback.current ?? "nav"} · {game.playback.total ? `${game.playback.index + 1}/${game.playback.total}` : "melns ekrāns"} · nākamais {game.playback.next ?? "—"}</p>
           <p>{game.queue ? `Rindā: ${game.queue.playerName ?? "visi"} — ${game.queue.cardTitle} (${game.queue.videoLevel})` : "Rindā nekā nav."}</p>
           {game.queue?.cardSummary ? <p>{game.queue.cardSummary}</p> : null}
           <p>{game.active ? `Aktīvi: ${game.active.playerName ?? "visi"} — ${game.active.cardTitle}` : "Nav aktīva izsaukuma."}</p>
           {game.active?.cardSummary ? <p>{game.active.cardSummary}</p> : null}
           <p>{seconds !== null ? `Nākamais automātiskais logs pēc ${seconds} s` : "Automātiskais logs šobrīd negaida."}</p>
-          <p>{qrLeft !== null ? `QR derīgs vēl ${qrLeft} s` : null}</p>
+          {game.active?.tvHold ? <p>TV rāda izsaukumu, kamēr nospied Turpināt. Skenēt var visu šo laiku.</p> : null}
           {game.audioBlocked ? <p className="warn">TV pārlūks bloķē skaņu. Ekrānā jānospiež skaņas poga.</p> : null}
           {game.warnings[0] ? <p className="warn">{game.warnings[0].message}</p> : null}
           {game.phase === "ACTIVE_EVENT" || game.phase === "CARD_CLAIMED" ? (
@@ -274,7 +283,6 @@ function PlayerRow({ player, onSend }: { player: AdminState["players"][number]; 
 function Settings({ game, onSend }: { game: AdminState; onSend: (body: object) => Promise<void> }) {
   const [min, setMin] = useState(String(Math.round(game.settings.minIntervalSec / 60)));
   const [max, setMax] = useState(String(Math.round(game.settings.maxIntervalSec / 60)));
-  const [qr, setQr] = useState(String(game.settings.qrSeconds));
   const [mission, setMission] = useState(String(Math.round(game.settings.missionSeconds / 60)));
   const [weights, setWeights] = useState(game.settings.categoryWeights);
   const [active, setActive] = useState(game.settings.activeCategories);
@@ -285,7 +293,6 @@ function Settings({ game, onSend }: { game: AdminState; onSend: (body: object) =
       <div className="grid">
         <label>Minimums, min<input value={min} onChange={(event) => setMin(event.target.value)} inputMode="numeric" /></label>
         <label>Maksimums, min<input value={max} onChange={(event) => setMax(event.target.value)} inputMode="numeric" /></label>
-        <label>QR, sekundes<input value={qr} onChange={(event) => setQr(event.target.value)} inputMode="numeric" /></label>
         <label>Misija, minūtes<input value={mission} onChange={(event) => setMission(event.target.value)} inputMode="numeric" /></label>
       </div>
       <div className="grid">
@@ -312,7 +319,6 @@ function Settings({ game, onSend }: { game: AdminState; onSend: (body: object) =
         patch: {
           minIntervalSec: Number(min) * 60,
           maxIntervalSec: Number(max) * 60,
-          qrSeconds: Number(qr),
           missionSeconds: Number(mission) * 60,
           categoryWeights: weights,
           activeCategories: active,
