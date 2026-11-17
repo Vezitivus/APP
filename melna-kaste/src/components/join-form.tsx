@@ -32,7 +32,7 @@ export function JoinForm() {
           <p className="kicker">Tu esi iekšā</p>
           <h1>{joined.publicName}</h1>
           <p className="lede">Saglabā atjaunošanas kodu. Tas vajadzīgs, ja QR atveras citā pārlūkā.</p>
-          <p className="count">{joined.recoveryCode}</p>
+          <p className="code">{joined.recoveryCode}</p>
           <a className="btn" href="/player">Uz manu telefonu</a>
         </section>
       </main>

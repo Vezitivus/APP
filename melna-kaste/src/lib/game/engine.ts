@@ -171,6 +171,9 @@ function handle(
     case "skip":
       skip(state, ctx, note);
       return "ok";
+    case "continue_tv":
+      continueTv(state, ctx, note);
+      return "ok";
     case "swap_player":
       swapPlayer(state, action.playerId, ctx, note);
       return "ok";
@@ -473,6 +476,7 @@ function buildEvent(state: GameState, card: CardDef, playerId: string | null, ct
     choice: null,
     outcome: null,
     isGlobal: card.category === "GLOBAL",
+    tvHold: false,
   };
 }
 
@@ -488,14 +492,7 @@ function pickAutomaticCard(state: GameState, cards: CardDef[], eligibleCount: nu
 
 function accelerate(state: GameState, ctx: Ctx, note: (type: string, summary: string) => void): "ok" | "ignore" {
   if (state.phase === "FINISHED") throw new GameError("finished", "Spēle ir pabeigta.");
-  if (state.phase === "QR_WAITING" && state.active?.qrExpiresAt) {
-    const cap = ctx.now + 5_000;
-    const current = Date.parse(state.active.qrExpiresAt);
-    if (current <= cap) return "ignore";
-    state.active.qrExpiresAt = iso(cap);
-    note("accelerate", "QR laiks saīsināts līdz 5 sekundēm");
-    return "ok";
-  }
+  if (tvCallHeld(state)) throw new GameError("not_ready", "TV izsaukums paliek, kamēr nospiests Turpināt.");
   if ((state.phase === "STANDBY" || state.phase === "QUEUED") && !state.queue) {
     prepare(state, ctx, note, null, null);
     note("accelerate", "Nākamais izsaukums sagatavots, negaidot intervālu");
@@ -673,14 +670,15 @@ function beginAnnouncement(state: GameState, ctx: Ctx, note: (type: string, summ
 function openQueuedCall(state: GameState, ctx: Ctx, note: (type: string, summary: string) => void) {
   const event = state.active;
   if (!event) return;
-  state.playback.mode = "idle";
-  state.playback.announcementUrl = null;
-  state.playback.clipToken = ctx.id();
   if (event.isGlobal) {
+    state.playback.mode = "idle";
+    state.playback.announcementUrl = null;
+    state.playback.clipToken = ctx.id();
     const card = cardById(event.cardId, state.customCards);
     event.status = "active";
     event.publicTitle = card?.title ?? "Kopīgais notikums";
     event.publicLines = card ? [card.summary] : [];
+    event.tvHold = false;
     state.phase = "ACTIVE_EVENT";
     note("public", event.publicTitle);
     return;
@@ -688,9 +686,60 @@ function openQueuedCall(state: GameState, ctx: Ctx, note: (type: string, summary
   const player = state.players.find((item) => item.id === event.playerId);
   if (player) player.callCount += 1;
   event.status = "qr";
-  event.qrExpiresAt = iso(ctx.now + state.settings.qrSeconds * 1000);
+  event.qrExpiresAt = null;
+  event.tvHold = true;
   state.phase = "QR_WAITING";
+  state.playback.mode = "hold";
+  state.playback.announcementUrl = event.callVideoUrl;
+  state.playback.clipToken = ctx.id();
   note("qr", `QR atvērts: ${event.playerName}`);
+}
+
+/** Personal call is on the TV (framed video + QR) until the host continues. */
+export function tvCallHeld(state: GameState): boolean {
+  const event = state.active;
+  if (!event || event.isGlobal || !event.playerName) return false;
+  if (event.tvHold === false) return false;
+  if (state.phase === "QR_WAITING") return true;
+  return event.tvHold === true && (state.phase === "CARD_CLAIMED" || state.phase === "ACTIVE_EVENT");
+}
+
+function continueTv(state: GameState, ctx: Ctx, note: (type: string, summary: string) => void) {
+  if (!tvCallHeld(state) || !state.active) throw new GameError("not_ready", "TV šobrīd nerāda izsaukumu.");
+  const event = state.active;
+  const card = cardById(event.cardId, state.customCards);
+  const privatelyKept = Boolean(event.claimed && card && (card.privacy === "secret_mission" || card.privacy === "perk"));
+  event.tvHold = false;
+  if (!event.claimed || privatelyKept) {
+    if (!event.claimed) {
+      event.outcome = { result: "skipped" };
+      event.qrToken = ctx.id();
+    }
+    event.status = "done";
+    remember(state, event);
+    state.active = null;
+    beginStandby(state, ctx, true);
+    note("continue", "TV atgriežas pie standby");
+    return;
+  }
+  releaseTv(state, ctx);
+  note("continue", "TV atgriežas pie standby, uzdevums turpinās telefonā");
+}
+
+function releaseTv(state: GameState, ctx: Ctx) {
+  const playlist = standbyPlaylist(state.videos);
+  state.playback = {
+    cycleId: ctx.id(),
+    index: 0,
+    clipId: playlist[0]?.id ?? null,
+    clipToken: ctx.id(),
+    mode: playlist.length ? "standby" : "static",
+    announcementUrl: null,
+    cycleIntact: true,
+    failureRounds: 0,
+    clipFailures: 0,
+  };
+  state.testCycleDeadline = playlist.length === 0 ? iso(ctx.now + TEST_CYCLE_MS) : null;
 }
 
 function beginStandby(
@@ -717,16 +766,6 @@ function beginStandby(
 }
 
 function tick(state: GameState, ctx: Ctx, note: (type: string, summary: string) => void): "ok" | "ignore" {
-  if (state.phase === "QR_WAITING" && state.active?.qrExpiresAt && Date.parse(state.active.qrExpiresAt) <= ctx.now) {
-    state.active.outcome = { result: "expired" };
-    state.active.status = "done";
-    state.active.qrToken = ctx.id();
-    remember(state, state.active);
-    state.active = null;
-    beginStandby(state, ctx, true);
-    note("expire", "QR laiks beidzās");
-    return "ok";
-  }
   let missionsChanged = false;
   for (const mission of state.missions) {
     if (mission.status === "active" && Date.parse(mission.deadlineAt) <= ctx.now) {
@@ -794,7 +833,9 @@ function claim(
   const event = state.active;
   if (!event || event.qrToken !== qrToken || event.isGlobal) throw new GameError("not_found", "Kartīte nav aktīva.");
   if (event.playerId !== player.id) throw new GameError("wrong_player", "Šī kartīte nav tev.");
-  if (event.qrExpiresAt && Date.parse(event.qrExpiresAt) <= ctx.now) throw new GameError("expired", "QR laiks ir beidzies.");
+  if (event.qrExpiresAt && Date.parse(event.qrExpiresAt) <= ctx.now && !tvCallHeld(state)) {
+    throw new GameError("expired", "QR laiks ir beidzies.");
+  }
   if (event.claimed) return "ignore";
   if (state.phase !== "QR_WAITING") throw new GameError("not_found", "Kartīte nav aktīva.");
   const card = cardById(event.cardId, state.customCards);
@@ -814,11 +855,9 @@ function claim(
       deadlineAt: iso(ctx.now + state.settings.missionSeconds * 1000),
       completedAt: null,
     });
-    event.status = "done";
+    event.claimed = true;
+    event.tvHold = true;
     event.outcome = { result: "completed" };
-    remember(state, event);
-    state.active = null;
-    beginStandby(state, ctx, true);
     note("mission", `${player.publicName} saņēma slepeno misiju`);
     return "ok";
   }
@@ -834,11 +873,9 @@ function claim(
       status: "available",
       usedAt: null,
     });
-    event.status = "done";
+    event.claimed = true;
+    event.tvHold = true;
     event.outcome = { result: "completed" };
-    remember(state, event);
-    state.active = null;
-    beginStandby(state, ctx, true);
     note("perk", `${player.publicName} saņēma priekšrocību`);
     return "ok";
   }

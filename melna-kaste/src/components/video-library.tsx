@@ -61,7 +61,7 @@ export function VideoLibrary() {
         <section className="card">
           <h2>Standby secība</h2>
           <ol>{data?.standby.map((video) => <li key={video.filename}>{video.filename}</li>)}</ol>
-          {!data?.standby.length ? <p className="quiet">Nav neviena standby_01.mp4 stila faila. TV rādīs testa ekrānu.</p> : null}
+          {!data?.standby.length ? <p className="quiet">Nav neviena standby_01.mp4 stila faila. TV būs melns, kamēr video nav.</p> : null}
         </section>
         <section className="card">
           <h2>Sagaidāmie faili</h2>

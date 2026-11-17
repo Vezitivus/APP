@@ -1,7 +1,7 @@
 import { cardById, catalog } from "./cards";
 import { specialEnd, standbyPlaylist } from "./videos";
 import type { GameState, Mission, Perk, Phase, Player } from "./types";
-import { publicPhase } from "./engine";
+import { publicPhase, tvCallHeld } from "./engine";
 
 export interface TvState {
   version: number;
@@ -28,7 +28,7 @@ export interface TvState {
     | { kind: "static" }
     | { kind: "intro" }
     | { kind: "announcement" }
-    | { kind: "qr"; name: string; qrPath: string; expiresAt: string }
+    | { kind: "call"; name: string; title: string; qrPath: string; videoUrl: string | null }
     | { kind: "claimed"; name: string }
     | { kind: "event"; title: string; lines: string[]; names: string[] }
     | { kind: "finished" };
@@ -71,29 +71,48 @@ function tvScreen(state: GameState): TvState["screen"] {
   if (state.phase === "LOBBY") return { kind: "lobby" };
   if (state.phase === "FINISHED") return { kind: "finished" };
   if (state.playback.mode === "intro") return { kind: "intro" };
-  if (state.phase === "ANNOUNCEMENT") return { kind: "announcement" };
-  if (state.phase === "QR_WAITING" && state.active?.playerName && state.active.qrExpiresAt) {
-    return {
-      kind: "qr",
-      name: state.active.playerName,
-      qrPath: `/mission/${state.active.qrToken}`,
-      expiresAt: state.active.qrExpiresAt,
-    };
+  if (state.playback.mode === "announcement" || state.phase === "ANNOUNCEMENT") return { kind: "announcement" };
+  if (tvCallHeld(state) && state.active) return callScreen(state);
+  if (state.phase === "ACTIVE_EVENT" && state.active?.isGlobal) return eventScreen(state);
+  if (
+    (state.phase === "CARD_CLAIMED" || state.phase === "ACTIVE_EVENT") &&
+    state.active &&
+    !state.active.isGlobal &&
+    state.active.tvHold === false
+  ) {
+    return standbyScreen(state);
   }
   if (state.phase === "CARD_CLAIMED" && state.active?.playerName) {
     return { kind: "claimed", name: state.active.playerName };
   }
-  if (state.phase === "ACTIVE_EVENT" && state.active) {
-    const names = [state.active.playerName, ...state.active.extraPlayers.map((player) => player.name)].filter(
-      (name): name is string => Boolean(name),
-    );
-    return {
-      kind: "event",
-      title: state.active.publicTitle ?? "",
-      lines: state.active.publicLines,
-      names,
-    };
-  }
+  if (state.phase === "ACTIVE_EVENT" && state.active) return eventScreen(state);
+  return standbyScreen(state);
+}
+
+function callScreen(state: GameState): TvState["screen"] {
+  const event = state.active!;
+  const card = cardById(event.cardId, state.customCards);
+  return {
+    kind: "call",
+    name: event.playerName ?? "",
+    title: event.publicTitle || card?.title || "",
+    qrPath: `/mission/${event.qrToken}`,
+    videoUrl: event.callVideoUrl,
+  };
+}
+
+function eventScreen(state: GameState): TvState["screen"] {
+  const event = state.active!;
+  const names = [event.playerName, ...event.extraPlayers.map((player) => player.name)].filter((name): name is string => Boolean(name));
+  return {
+    kind: "event",
+    title: event.publicTitle ?? "",
+    lines: event.publicLines,
+    names,
+  };
+}
+
+function standbyScreen(state: GameState): TvState["screen"] {
   if (state.playback.mode === "static" || standbyPlaylist(state.videos).length === 0) return { kind: "static" };
   return { kind: "standby" };
 }
@@ -138,6 +157,7 @@ export interface AdminState {
     extraPlayers: { id: string; name: string }[];
     publicTitle: string | null;
     choiceTitle: string | null;
+    tvHold: boolean;
   };
   players: {
     id: string;
@@ -223,6 +243,7 @@ export function toAdminState(state: GameState, now: number): AdminState {
           extraPlayers: state.active.extraPlayers,
           publicTitle: state.active.publicTitle,
           choiceTitle: state.active.choice?.title ?? null,
+          tvHold: tvCallHeld(state),
         }
       : null,
     players: state.players.map((player) => ({
@@ -345,7 +366,7 @@ export function missionView(state: GameState, qrToken: string, playerId: string 
   }
   const event = state.active && state.active.qrToken === qrToken ? state.active : null;
   if (!event || event.isGlobal) return { status: "inactive" as const };
-  if (event.qrExpiresAt && Date.parse(event.qrExpiresAt) <= now) return { status: "expired" as const };
+  if (event.qrExpiresAt && Date.parse(event.qrExpiresAt) <= now && event.tvHold === false) return { status: "expired" as const };
   if (!playerId) return { status: "need_session" as const };
   if (playerId !== event.playerId) return { status: "forbidden" as const };
   const card = cardById(event.cardId, state.customCards);
