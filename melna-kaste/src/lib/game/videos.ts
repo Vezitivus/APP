@@ -98,6 +98,82 @@ export function filenameFromPublicId(publicId: string): string | null {
   return leaf.toLowerCase().endsWith(".mp4") ? leaf : `${leaf}.mp4`;
 }
 
+const VIDEO_EXTENSION = /\.(mp4|m4v|mov|webm|mkv)$/i;
+const RANDOM_SUFFIX = /^[a-z0-9]+$/;
+
+export interface CloudinaryNameSource {
+  publicId?: string | null;
+  displayName?: string | null;
+  originalFilename?: string | null;
+}
+
+/**
+ * Name a synced video from the Media Library display name, the original
+ * filename, then the public id. An exact catalog or standby name wins.
+ * A Cloudinary uniqueness suffix (`1_xk3abc`, `izsaukums_flash_x7k2`) is
+ * removed only when the remainder is one of those known names, so a real
+ * name that contains underscores stays intact.
+ */
+export function filenameForCloudinaryAsset(folder: VideoAsset["folder"], source: CloudinaryNameSource): string | null {
+  const display = nameStem(source.displayName);
+  const original = nameStem(source.originalFilename);
+  const publicStem = nameStem(source.publicId);
+  const stems = [display, original, publicStem].filter((stem): stem is string => Boolean(stem));
+  if (stems.length === 0) return null;
+  const known = folder === "standby" ? null : knownBasenames(folder);
+  let suffixed: string | null = null;
+  for (const stem of stems) {
+    const match = matchKnownName(stem, folder, known);
+    if (match?.exact) return `${match.name}.mp4`;
+    if (match && !suffixed) suffixed = match.name;
+  }
+  if (suffixed) return `${suffixed}.mp4`;
+  const raw = display && display !== publicStem ? display : (original ?? display ?? publicStem);
+  return raw ? `${raw}.mp4` : null;
+}
+
+function nameStem(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const leaf = value.split("/").pop()?.trim().toLowerCase() ?? "";
+  if (!leaf || leaf.includes("..") || leaf.includes("\\")) return null;
+  const stem = leaf.replace(VIDEO_EXTENSION, "");
+  if (!stem || stem.includes("..")) return null;
+  return stem;
+}
+
+function knownBasenames(folder: VideoAsset["folder"]): Set<string> {
+  const names = new Set<string>();
+  for (const file of expectedLibrary()) {
+    if (file.folder !== folder) continue;
+    const stem = file.filename.replace(/\.mp4$/i, "").toLowerCase();
+    if (stem) names.add(stem);
+  }
+  return names;
+}
+
+function matchKnownName(
+  stem: string,
+  folder: VideoAsset["folder"],
+  known: Set<string> | null,
+): { name: string; exact: boolean } | null {
+  if (folder === "standby") {
+    if (standbySlotOf(`${stem}.mp4`)) return { name: stem, exact: true };
+    const split = /^(.*)_([a-z0-9]+)$/.exec(stem);
+    if (split && standbySlotOf(`${split[1]}.mp4`)) return { name: split[1], exact: false };
+    return null;
+  }
+  if (!known) return null;
+  if (known.has(stem)) return { name: stem, exact: true };
+  let best: string | null = null;
+  for (const name of known) {
+    if (!stem.startsWith(`${name}_`)) continue;
+    const suffix = stem.slice(name.length + 1);
+    if (!RANDOM_SUFFIX.test(suffix)) continue;
+    if (!best || name.length > best.length) best = name;
+  }
+  return best ? { name: best, exact: false } : null;
+}
+
 export function findByFilename(videos: VideoAsset[], folder: VideoAsset["folder"], filename: string): VideoAsset | undefined {
   const wanted = filename.toLowerCase();
   return videos.find((video) => video.folder === folder && video.filename.toLowerCase() === wanted);
