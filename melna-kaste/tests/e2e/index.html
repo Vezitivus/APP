@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="lv">
+  <head>
+    <meta charset="utf-8" />
+    <title>TV crossfade probe</title>
+    <style>
+      html, body { margin: 0; background: #000; width: 960px; height: 540px; overflow: hidden; }
+      #root, .picture { position: absolute; inset: 0; width: 960px; height: 540px; background: #000; }
+      .picture .layer {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        background: transparent;
+        display: block;
+        border: 0;
+        opacity: 0;
+        filter: blur(8px);
+        transform: translateZ(0);
+        will-change: opacity, filter;
+      }
+      .picture .layer.front { z-index: 2; opacity: 1; filter: none; }
+      .picture .layer.back { z-index: 1; opacity: 0; filter: blur(8px); }
+      .picture .layer.leaving { z-index: 2; }
+      .picture .layer.entering { z-index: 3; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script src="./app.js"></script>
+  </body>
+</html>

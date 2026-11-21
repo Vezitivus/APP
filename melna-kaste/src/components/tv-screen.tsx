@@ -11,7 +11,7 @@ function playingUrl(game: TvState | null): string | null {
   const playback = game?.playback;
   if (!playback) return null;
   if (playback.mode === "standby") return playback.clipUrl;
-  if (playback.mode === "announcement" || playback.mode === "intro" || playback.mode === "hold") return playback.announcementUrl;
+  if (playback.mode === "announcement" || playback.mode === "intro" || playback.mode === "outro" || playback.mode === "hold") return playback.announcementUrl;
   return null;
 }
 
@@ -101,7 +101,7 @@ export function TvScreen({ invalidPair }: { invalidPair: boolean }) {
             url={playingUrl(game)}
             preloadUrl={nextBufferUrl({ nextUrl: playback.nextUrl, preloadCallUrl: game.preloadCallUrl })}
             loop={playback.mode === "hold"}
-            muted={playback.mode === "standby" ? game.standbyMuted : playback.mode === "hold"}
+            muted={!armed || playback.mode === "hold" || (playback.mode === "standby" && game.standbyMuted)}
             cycleId={playback.cycleId}
             clipToken={playback.clipToken}
             armed={armed}
@@ -181,7 +181,10 @@ function Stage({ game }: { game: TvState }) {
       </div>
     );
   }
-  if (screen.kind === "finished") return <Finale url={game.endVideoUrl} />;
+  if (screen.kind === "finished") {
+    if (game.playback.mode === "outro") return null;
+    return <Finale />;
+  }
   return null;
 }
 
@@ -242,19 +245,7 @@ function CallHold({ name, title, path }: { name: string; title: string; path: st
   );
 }
 
-function Finale({ url }: { url: string | null }) {
-  const played = useRef(false);
-  const ref = useRef<HTMLVideoElement>(null);
-  const [done, setDone] = useState(!url);
-  useEffect(() => {
-    if (!url || played.current) return;
-    played.current = true;
-    const element = ref.current;
-    if (!element) return;
-    element.src = nextBufferUrl({ nextUrl: url }) ?? url;
-    void element.play().catch(() => setDone(true));
-  }, [url]);
-  if (!done) return <video ref={ref} className="finale" playsInline onEnded={() => setDone(true)} />;
+function Finale() {
   return (
     <div className="center">
       <div className="event-card">

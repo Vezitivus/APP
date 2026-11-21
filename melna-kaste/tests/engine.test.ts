@@ -561,4 +561,31 @@ describe("spēles norise un taimeri", () => {
     expect(state.players).toHaveLength(3);
   });
 
+  it("intro iepriekšielādē pirmo standby, un 20. klips rinķojot ved uz 1.", () => {
+    let state = addPair(game(NOW), NOW);
+    const clips = [
+      ...Array.from({ length: 20 }, (_, i) => video({ folder: "standby", filename: `${i + 1}.mp4` })),
+      video({ folder: "special", filename: "special_open.mp4" }),
+      video({ folder: "special", filename: "special_end.mp4" }),
+    ];
+    state = act(state, { type: "sync_videos", videos: clips }, ctx(NOW)).state;
+    state = act(state, { type: "start" }, ctx(NOW)).state;
+    expect(state.playback.mode).toBe("intro");
+    const duringIntro = toTvState(state, NOW);
+    expect(duringIntro.playback.nextUrl).toContain("1.mp4");
+    state = act(state, { type: "clip_ended", cycleId: state.playback.cycleId, clipToken: state.playback.clipToken }, ctx(NOW)).state;
+    expect(state.playback.mode).toBe("standby");
+    expect(state.playback.index).toBe(0);
+    for (let step = 0; step < 19; step += 1) {
+      state = act(state, { type: "clip_ended", cycleId: state.playback.cycleId, clipToken: state.playback.clipToken }, ctx(NOW)).state;
+    }
+    expect(state.playback.index).toBe(19);
+    const last = toTvState(state, NOW);
+    expect(last.playback.clipUrl).toContain("20.mp4");
+    expect(last.playback.nextUrl).toContain("1.mp4");
+    state = act(state, { type: "finish" }, ctx(NOW)).state;
+    expect(state.playback.mode).toBe("outro");
+    expect(toTvState(state, NOW).playback.announcementUrl).toContain("special_end.mp4");
+  });
+
 });
