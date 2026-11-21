@@ -19,15 +19,7 @@ function uploadIndex(parts: string[]): number {
   return parts.findIndex((part, index) => part === "upload" && parts[index - 1] === "video");
 }
 
-function formatOffset(value: number): string {
-  const rounded = Math.round(value * 1000) / 1000;
-  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(3).replace(/0+$/, "").replace(/\.$/, "");
-}
-
-export function cloudinaryPlaybackUrl(
-  url: string | null | undefined,
-  trim?: { start?: number | null; end?: number | null },
-): string | null {
+export function cloudinaryPlaybackUrl(url: string | null | undefined): string | null {
   if (!url) return null;
   try {
     const parsed = new URL(url);
@@ -37,15 +29,17 @@ export function cloudinaryPlaybackUrl(
     if (uploadIdx < 0) return url;
     const after = parts[uploadIdx + 1] ?? "";
     if (after && isTransformToken(after)) parts.splice(uploadIdx + 1, 1);
-    const bits = [PLAYBACK_TRANSFORM];
-    if (trim?.start && Number.isFinite(trim.start) && trim.start > 0.001) bits.push(`so_${formatOffset(trim.start)}`);
-    if (trim?.end && Number.isFinite(trim.end) && trim.end > 0.001) bits.push(`eo_${formatOffset(trim.end)}`);
-    parts.splice(uploadIdx + 1, 0, bits.join(","));
+    parts.splice(uploadIdx + 1, 0, PLAYBACK_TRANSFORM);
     parsed.pathname = parts.join("/");
     return parsed.toString();
   } catch {
     return url;
   }
+}
+
+/** The clip that should become visible when the current one ends. Preload-only URLs must not be used here. */
+export function nextPlayUrl(url: string | null | undefined): string | null {
+  return cloudinaryPlaybackUrl(url);
 }
 
 /** Compare two delivery URLs ignoring the playback transform segment. */

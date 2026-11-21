@@ -12,6 +12,7 @@ function App() {
     <div className="picture" data-index={index}>
       <TvPicture
         url={url}
+        nextUrl={preloadUrls[0]}
         preloadUrls={preloadUrls}
         loop={false}
         muted={true}
