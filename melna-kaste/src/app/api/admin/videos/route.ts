@@ -1,4 +1,4 @@
-import { expectedLibrary, standbyPlaylist, standbySlots } from "@/lib/game/videos";
+import { expectedLibrary, expectedPresence, standbyPlaylist, standbySlots } from "@/lib/game/videos";
 import { readCurrent } from "@/lib/db/repository";
 import { asResponse, jsonError } from "@/lib/http/http";
 import { requireAdmin } from "@/lib/server/context";
@@ -11,7 +11,6 @@ export async function GET() {
     const state = await readCurrent();
     const videos = state?.videos ?? [];
     const expected = expectedLibrary(state?.customCards ?? []);
-    const have = new Set(videos.map((video) => `${video.folder}/${video.filename.toLowerCase()}`));
     const playlist = standbyPlaylist(videos);
     const currentName = state?.playback.mode === "standby" ? playlist[state.playback.index]?.filename ?? null : null;
     return Response.json({
@@ -21,7 +20,7 @@ export async function GET() {
         ...slot,
         current: Boolean(currentName && slot.filename === currentName),
       })),
-      expected: expected.map((file) => ({ ...file, present: have.has(`${file.folder}/${file.filename.toLowerCase()}`) })),
+      expected: expected.map((file) => ({ ...file, ...expectedPresence(file, videos) })),
     });
   });
 }

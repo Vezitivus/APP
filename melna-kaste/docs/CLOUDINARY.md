@@ -37,9 +37,9 @@ Automātiskais izsaukums nesākas klipa vidū un nesākas arī tad, kad beidzas 
 
 Fails saucas precīzi tā, kā `docs/VIDEO_NOSAUKUMI.md`, un arī tas ir mapē `melna-kaste`. Programmu mainīt nevajag. Ja uzdevumam faila nav, tiek ņemts kategorijas video (`izsaukums_flash.mp4`, `izsaukums_pair.mp4`, `izsaukums_team.mp4`). Ja nav arī tā, tiek ņemts `izsaukums_any.mp4`. Ja nav neviena, pēc cikla beigām uzreiz rāda vārdu, uzdevuma nosaukumu un QR zelta ietvarā. Šis skats paliek, kamēr režijā nospiež Turpināt.
 
-Rezerves video nedrīkst saukt cita uzdevuma nosaukumu. Tāpēc `izsaukums_choice.mp4` netiek lietots dueļa vietā.
+Rezerves video nedrīkst saukt cita uzdevuma nosaukumu.
 
-Kopīgajiem notikumiem vispirms meklē `special_global_vote.mp4` (un pārējos `special_<id>.mp4`), pēc tam `izsaukums_<id>.mp4`.
+Kopīgajiem notikumiem vispirms meklē `special_global_vote.mp4` (un pārējos `special_<id>.mp4`), pēc tam `izsaukums_<id>.mp4`. Sarakstā «Sagaidāmie faili» pietiek ar vienu no šiem variantiem — tad rāda «ir», nevis «trūkst». Brīvā izvēle un brīvais duelis spēlē nav, jo tiem nav video.
 
 Papildu, neobligāti, tajā pašā mapē:
 

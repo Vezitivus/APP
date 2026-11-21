@@ -98,8 +98,9 @@ describe("specifikācijas kartītes", () => {
         videoFile: `izsaukums_${spec.id}.mp4`,
       });
     }
-    expect(byId.get("choice")).toMatchObject({ title: "Brīvā izvēle", category: "CHOICE", videoFile: "izsaukums_choice.mp4" });
-    expect(byId.get("duel")).toMatchObject({ title: "Brīvais duelis", category: "CHOICE", videoFile: "izsaukums_duel.mp4" });
+    expect(byId.has("choice")).toBe(false);
+    expect(byId.has("duel")).toBe(false);
+    expect(cards.filter((card) => card.category === "CHOICE")).toHaveLength(0);
     expect(cards.filter((card) => card.category === "MISSION")).toHaveLength(20);
     expect(cards.filter((card) => card.category === "PERK")).toHaveLength(6);
     expect(cards.filter((card) => card.category === "GLOBAL")).toHaveLength(6);

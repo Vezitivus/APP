@@ -451,17 +451,21 @@ function globalCards(): CardDef[] {
 
 const BUILTIN_BY_ID = new Map(BUILTIN_CARDS.map((card) => [card.id, card]));
 
+/** No call video was produced for these cards, so they are not in the live game. */
+export const RETIRED_CARD_IDS = new Set(["choice", "duel"]);
+
 export function isBuiltinCard(id: string): boolean {
-  return BUILTIN_BY_ID.has(id);
+  return BUILTIN_BY_ID.has(id) && !RETIRED_CARD_IDS.has(id);
 }
 
 export function catalog(custom: CardDef[] = []): CardDef[] {
   const merged = new Map(BUILTIN_BY_ID);
   for (const card of custom) merged.set(card.id, card);
-  return [...merged.values()];
+  return [...merged.values()].filter((card) => !RETIRED_CARD_IDS.has(card.id));
 }
 
 export function cardById(id: string, custom: CardDef[] = []): CardDef | undefined {
+  if (RETIRED_CARD_IDS.has(id)) return undefined;
   return custom.find((card) => card.id === id) ?? BUILTIN_BY_ID.get(id);
 }
 

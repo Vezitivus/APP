@@ -259,9 +259,20 @@ export function specialEnd(videos: VideoAsset[]): VideoAsset | null {
 export interface ExpectedFile {
   folder: "standby" | "calls" | "special";
   filename: string;
+  alternates?: { folder: "standby" | "calls" | "special"; filename: string }[];
   cardId: string | null;
   title: string;
   required: boolean;
+}
+
+export function expectedPresence(file: ExpectedFile, videos: VideoAsset[]): { present: boolean; folder: ExpectedFile["folder"]; filename: string } {
+  const candidates = [{ folder: file.folder, filename: file.filename }, ...(file.alternates ?? [])];
+  for (const candidate of candidates) {
+    if (findByFilename(videos, candidate.folder, candidate.filename)) {
+      return { present: true, folder: candidate.folder, filename: candidate.filename };
+    }
+  }
+  return { present: false, folder: file.folder, filename: file.filename };
 }
 
 export function expectedLibrary(custom: CardDef[] = []): ExpectedFile[] {
@@ -278,22 +289,24 @@ export function expectedLibrary(custom: CardDef[] = []): ExpectedFile[] {
     files.push(entry);
   };
   for (const card of cards) {
+    if (card.category === "GLOBAL") {
+      push({
+        folder: "special",
+        filename: `special_${card.id}.mp4`,
+        alternates: [{ folder: "calls", filename: card.videoFile }],
+        cardId: card.id,
+        title: card.title,
+        required: false,
+      });
+      continue;
+    }
     push({
-      folder: card.category === "GLOBAL" ? "calls" : "calls",
+      folder: "calls",
       filename: card.videoFile,
       cardId: card.id,
       title: card.title,
       required: false,
     });
-    if (card.category === "GLOBAL") {
-      push({
-        folder: "special",
-        filename: `special_${card.id}.mp4`,
-        cardId: card.id,
-        title: card.title,
-        required: false,
-      });
-    }
   }
   push({ folder: "calls", filename: UNIVERSAL_CALL, cardId: null, title: "Universālais izsaukums", required: false });
   push({ folder: "calls", filename: "izsaukums_flash.mp4", cardId: null, title: "Ātrais izaicinājums", required: false });

@@ -225,15 +225,20 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
     0 24px 70px rgba(0, 0, 0, 0.55),
     0 0 32px rgba(224, 194, 122, 0.22);
 }
-.picture .show {
+.picture .layer {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: contain;
-  background: #000;
+  background: transparent;
   display: block;
+  border: 0;
 }
-.picture.bleed .show { object-fit: cover; }
-.picture.placeholder .show { opacity: 0; }
+.picture.bleed .layer { object-fit: cover; }
+.picture .layer.front { z-index: 2; }
+.picture .layer.back { z-index: 1; }
+.picture.placeholder .layer { opacity: 0; }
 .portrait {
   position: absolute;
   inset: 0;
@@ -249,7 +254,6 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
   letter-spacing: 0.18em;
   color: rgba(244, 228, 188, 0.88);
 }
-.tv video.preload { position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none; }
 .tv video.finale {
   position: absolute;
   inset: 0;
