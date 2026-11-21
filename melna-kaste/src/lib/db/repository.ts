@@ -32,7 +32,13 @@ export async function limit(bucket: string, maxHits: number, windowMs: number): 
   });
 }
 
+async function ensurePlayerPinSchema(tx: Tx) {
+  await tx`alter table players add column if not exists pin_failed_attempts integer not null default 0`;
+  await tx`alter table players add column if not exists pin_locked_until timestamptz`;
+}
+
 async function mergeSeen(tx: Tx, state: GameState): Promise<GameState> {
+
   const rows = await tx<{ id: string; last_seen_at: Date | null }[]>`
     select id, last_seen_at from players where game_id = ${state.id}
   `;
@@ -46,6 +52,7 @@ async function mergeSeen(tx: Tx, state: GameState): Promise<GameState> {
 }
 
 async function loadLocked(tx: Tx): Promise<GameState | null> {
+  await ensurePlayerPinSchema(tx);
   const [meta] = await tx<{ current_game_id: string | null }[]>`
     select current_game_id from app_state where id = 1 for update
   `;
@@ -87,6 +94,7 @@ export async function createSession(now: number): Promise<GameState> {
     const state = blankGame({ id: crypto.randomUUID(), code: roomCode(), now });
     try {
       await db.begin(async (tx) => {
+        await ensurePlayerPinSchema(tx);
         await tx`
           insert into games (id, code, version, snapshot)
           values (${state.id}, ${state.code}, ${state.version}, ${asJson(tx, state)})
