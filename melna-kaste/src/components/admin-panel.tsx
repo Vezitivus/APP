@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import type { AdminState } from "@/lib/game/project";
 import { AUTO_CATEGORIES } from "@/lib/game/types";
 import { PinField } from "@/components/pin-field";
-import { api, useClock, usePoll } from "@/lib/client/poll";
+import { POLL_MS, api, useClock, useFeedReload, usePoll } from "@/lib/client/poll";
 
 type AdminSend = (body: object) => Promise<{ status: number } | void>;
 
@@ -21,7 +21,8 @@ const PHASES: Record<string, string> = {
 };
 
 export function AdminPanel() {
-  const poll = usePoll<{ game: AdminState | null }>("/api/admin/state", 2000);
+  const poll = usePoll<{ game: AdminState | null }>("/api/admin/state", POLL_MS.admin);
+  useFeedReload(poll.reload);
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [tvUrl, setTvUrl] = useState("");
@@ -116,7 +117,7 @@ export function AdminPanel() {
             </div>
           </div>
           <div className="row">
-            <Link href="/admin/videos">Video</Link>
+            <Link href="/admin/videos" prefetch={false}>Video</Link>
             <button className="btn-ghost" type="button" onClick={() => void send({ type: "create_game" })}>Jauna spēle</button>
             <button className="btn-ghost" type="button" onClick={() => void api("/api/admin/logout", { method: "POST" }).then(() => poll.reload())}>Iziet</button>
           </div>

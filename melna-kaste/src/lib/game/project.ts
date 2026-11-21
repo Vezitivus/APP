@@ -22,6 +22,8 @@ export interface TvState {
     nextUrl: string | null;
     nextNextUrl: string | null;
     announcementUrl: string | null;
+    /** Full standby ring; only on the paired TV so it can advance locally. */
+    standbyUrls: string[] | null;
   };
   screen:
     | { kind: "lobby" }
@@ -98,6 +100,7 @@ export function toTvState(state: GameState, now: number, options?: { includePrel
       nextUrl,
       nextNextUrl: upcomingSecondUrl(state, playlist, nextUrl),
       announcementUrl: state.playback.announcementUrl,
+      standbyUrls: includePreload ? playlist.map((item) => item.url) : null,
     },
     screen: tvScreen(state),
     preloadCallUrl: includePreload && state.queue ? state.queue.callVideoUrl : null,
@@ -178,6 +181,7 @@ export interface AdminState {
     current: string | null;
     next: string | null;
     cycleIntact: boolean;
+    cycleStartedAt: string | null;
     failureRounds: number;
   };
   queue: null | {
@@ -271,6 +275,7 @@ export function toAdminState(state: GameState, now: number): AdminState {
       current: current?.filename ?? null,
       next: next?.filename ?? null,
       cycleIntact: state.playback.cycleIntact,
+      cycleStartedAt: state.playback.cycleStartedAt ?? null,
       failureRounds: state.playback.failureRounds,
     },
     queue: state.queue
@@ -309,7 +314,7 @@ export function toAdminState(state: GameState, now: number): AdminState {
       eligible: player.eligible,
       removed: player.removed,
       lastSeenAt: player.lastSeenAt,
-      online: Boolean(player.lastSeenAt && now - Date.parse(player.lastSeenAt) < 30_000),
+      online: Boolean(player.lastSeenAt && now - Date.parse(player.lastSeenAt) < 120_000),
     })),
     missions: state.missions.map((mission) => ({
       id: mission.id,
@@ -455,4 +460,13 @@ export function missionView(state: GameState, qrToken: string, playerId: string 
     },
     roster: state.players.filter((item) => !item.removed && item.id !== playerId).map((item) => ({ id: item.id, publicName: item.publicName })),
   };
+}
+
+/** Display-only: infer the TV's local standby slot from cycle start, without per-clip reports. */
+export function estimateStandbyIndex(index: number, total: number, cycleStartedAt: string | null | undefined, now: number, clipSeconds = 15): number {
+  if (!total) return 0;
+  if (!cycleStartedAt) return Math.min(index, total - 1);
+  const elapsed = (now - Date.parse(cycleStartedAt)) / 1000;
+  if (!Number.isFinite(elapsed) || elapsed < 0) return Math.min(index, total - 1);
+  return Math.min(total - 1, Math.floor(elapsed / clipSeconds));
 }

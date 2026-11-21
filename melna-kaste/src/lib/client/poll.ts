@@ -2,6 +2,15 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+/** Backup intervals when the tab is visible. Hidden tabs do not poll. Realtime (tv_feed) reloads immediately. */
+export const POLL_MS = {
+  tvStandby: 15_000,
+  tvActive: 5_000,
+  admin: 10_000,
+  player: 25_000,
+  videos: 30_000,
+} as const;
+
 export function playerToken(): string | null {
   if (typeof window === "undefined") return null;
   return localStorage.getItem("mk_player_token");
@@ -41,11 +50,15 @@ export function usePoll<T>(url: string, intervalMs: number) {
 
   useEffect(() => {
     let stopped = false;
-    const run = () => { if (!stopped) void reload(); };
-    run();
+    const run = () => {
+      if (!stopped && !document.hidden) void reload();
+    };
+    void reload();
     const id = window.setInterval(run, intervalMs);
     window.addEventListener("online", run);
-    const onVisible = () => { if (!document.hidden) run(); };
+    const onVisible = () => {
+      if (!document.hidden) run();
+    };
     document.addEventListener("visibilitychange", onVisible);
     return () => {
       stopped = true;
@@ -56,6 +69,29 @@ export function usePoll<T>(url: string, intervalMs: number) {
   }, [reload, intervalMs]);
 
   return { data, error, status, reload, setData };
+}
+
+/** Reload when the shared tv_feed row changes (Supabase Realtime, free plan). */
+export function useFeedReload(reload: () => void) {
+  useEffect(() => {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!url || !key) return;
+    let cancelled = false;
+    let channel: { unsubscribe: () => void } | null = null;
+    void import("@supabase/supabase-js").then(({ createClient }) => {
+      if (cancelled) return;
+      const client = createClient(url, key);
+      channel = client
+        .channel(`melna-kaste-feed-${crypto.randomUUID()}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "tv_feed" }, () => reload())
+        .subscribe();
+    });
+    return () => {
+      cancelled = true;
+      channel?.unsubscribe();
+    };
+  }, [reload]);
 }
 
 export function useClock(serverNow?: string | null) {

@@ -155,6 +155,8 @@ export interface Playback {
   cycleIntact: boolean;
   failureRounds: number;
   clipFailures: number;
+  /** When the current standby/static cycle started, for admin display without per-clip reports. */
+  cycleStartedAt?: string | null;
 }
 
 export interface HistoryEntry {
@@ -246,6 +248,7 @@ export type Action =
   | { type: "swap_player"; playerId: string }
   | { type: "clip_ended"; cycleId: string; clipToken: string }
   | { type: "clip_failed"; cycleId: string; clipToken: string }
+  | { type: "cycle_ended"; cycleId: string; intact?: boolean }
   | { type: "tick" }
   | { type: "complete_test_cycle" }
   | { type: "claim"; qrToken: string; playerId: string }

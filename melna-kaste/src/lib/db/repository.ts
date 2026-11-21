@@ -85,7 +85,10 @@ export async function readCurrent(): Promise<GameState | null> {
 }
 
 export async function markSeen(playerId: string): Promise<void> {
-  await sql()`update players set last_seen_at = now() where id = ${playerId}`;
+  await sql()`
+    update players set last_seen_at = now()
+    where id = ${playerId} and (last_seen_at is null or last_seen_at < now() - interval '45 seconds')
+  `;
 }
 
 export async function createSession(now: number): Promise<GameState> {

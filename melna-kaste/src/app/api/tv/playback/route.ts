@@ -14,6 +14,7 @@ export async function POST(request: Request) {
       cycleId?: string;
       clipToken?: string;
       blocked?: boolean;
+      intact?: boolean;
     } | null;
     if (!body?.type) return jsonError(400, "Nederīgs pieprasījums.", "invalid");
     const ctx = serverCtx();
@@ -22,6 +23,8 @@ export async function POST(request: Request) {
         ? { type: "clip_ended" as const, cycleId: body.cycleId, clipToken: body.clipToken }
         : body.type === "failed" && body.cycleId && body.clipToken
           ? { type: "clip_failed" as const, cycleId: body.cycleId, clipToken: body.clipToken }
+        : body.type === "cycle" && body.cycleId
+          ? { type: "cycle_ended" as const, cycleId: body.cycleId, intact: body.intact !== false }
           : body.type === "audio"
             ? { type: "audio_blocked" as const, blocked: Boolean(body.blocked) }
             : body.type === "test_cycle"

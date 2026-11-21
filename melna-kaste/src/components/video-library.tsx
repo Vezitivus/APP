@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { api, usePoll } from "@/lib/client/poll";
+import { POLL_MS, api, usePoll } from "@/lib/client/poll";
 
 interface Library {
   videos: { id: string; folder: string; filename: string; url: string; durationSeconds: number | null }[];
@@ -13,7 +13,7 @@ interface Library {
 }
 
 export function VideoLibrary() {
-  const poll = usePoll<Library>("/api/admin/videos", 15000);
+  const poll = usePoll<Library>("/api/admin/videos", POLL_MS.videos);
   const [message, setMessage] = useState("");
   const [card, setCard] = useState({ id: "", title: "", category: "FLASH", summary: "", rules: "", videoFile: "izsaukums_", minPlayers: "2" });
 
@@ -49,13 +49,13 @@ export function VideoLibrary() {
     setMessage(result.status >= 400 ? result.body.error?.message ?? "Kartīti neizdevās saglabāt" : "Kartīte saglabāta");
   }
 
-  if (poll.status === 401) return <main className="home"><p>Vispirms jāieiet <Link href="/admin">režijā</Link>.</p></main>;
+  if (poll.status === 401) return <main className="home"><p>Vispirms jāieiet <Link href="/admin" prefetch={false}>režijā</Link>.</p></main>;
   const data = poll.data;
 
   return (
     <main className="sheet">
       <div className="panel">
-        <p className="kicker"><Link href="/admin">Režija</Link> · Video</p>
+        <p className="kicker"><Link href="/admin" prefetch={false}>Režija</Link> · Video</p>
         <h1>Bibliotēka</h1>
         <button className="btn" type="button" onClick={() => void sync()}>Atjaunot no Cloudinary</button>
         {message ? <p>{message}</p> : null}

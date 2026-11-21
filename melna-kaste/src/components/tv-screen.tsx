@@ -3,26 +3,50 @@
 import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import type { TvState } from "@/lib/game/project";
-import { api, usePoll } from "@/lib/client/poll";
+import { POLL_MS, api, useFeedReload, usePoll } from "@/lib/client/poll";
 import { nextBufferUrls, nextPlayUrl } from "@/lib/tv/playback";
 import { TvPicture } from "@/components/tv-picture";
 
-function playingUrl(game: TvState | null): string | null {
+function playingUrl(game: TvState | null, localIndex: number): string | null {
   const playback = game?.playback;
   if (!playback) return null;
-  if (playback.mode === "standby") return playback.clipUrl;
+  if (playback.mode === "standby") {
+    const urls = game?.playback.standbyUrls;
+    if (urls && urls.length) return urls[Math.min(localIndex, urls.length - 1)] ?? playback.clipUrl;
+    return playback.clipUrl;
+  }
   if (playback.mode === "announcement" || playback.mode === "intro" || playback.mode === "outro" || playback.mode === "hold") return playback.announcementUrl;
   return null;
 }
 
+function localStandbyNeighbors(game: TvState, localIndex: number): { nextUrl: string | null; nextNextUrl: string | null } {
+  const urls = game.playback.standbyUrls;
+  if (game.playback.mode === "standby" && urls && urls.length) {
+    return {
+      nextUrl: urls[(localIndex + 1) % urls.length] ?? null,
+      nextNextUrl: urls[(localIndex + 2) % urls.length] ?? null,
+    };
+  }
+  return { nextUrl: game.playback.nextUrl, nextNextUrl: game.playback.nextNextUrl };
+}
+
 export function TvScreen({ invalidPair }: { invalidPair: boolean }) {
-  const poll = usePoll<{ paired: boolean; game: TvState | null; serverNow: string }>("/api/tv/state", 1500);
   const [game, setGame] = useState<TvState | null>(null);
+  const active = Boolean(
+    game && (game.playback.mode === "intro" || game.playback.mode === "announcement" || game.playback.mode === "hold" || game.preloadCallUrl),
+  );
+  const poll = usePoll<{ paired: boolean; game: TvState | null; serverNow: string }>(
+    "/api/tv/state",
+    active ? POLL_MS.tvActive : POLL_MS.tvStandby,
+  );
   const [armed, setArmed] = useState(false);
   const [soundError, setSoundError] = useState(false);
   const [pairToken, setPairToken] = useState("");
   const [pairError, setPairError] = useState(invalidPair ? "TV saite vairs nav derīga. Izveido jaunu režijā." : "");
+  const [localIndex, setLocalIndex] = useState(0);
   const version = useRef(0);
+  const cycleRef = useRef<string | null>(null);
+  const intactRef = useRef(true);
 
   useEffect(() => {
     const incoming = poll.data?.game;
@@ -32,41 +56,65 @@ export function TvScreen({ invalidPair }: { invalidPair: boolean }) {
   }, [poll.data]);
 
   useEffect(() => {
+    const cycleId = game?.playback.cycleId ?? null;
+    const mode = game?.playback.mode;
+    if (mode !== "standby") {
+      if (mode) cycleRef.current = null;
+      return;
+    }
+    if (cycleRef.current !== cycleId) {
+      cycleRef.current = cycleId;
+      intactRef.current = true;
+      setLocalIndex(game?.playback.index ?? 0);
+    }
+  }, [game?.playback.cycleId, game?.playback.mode, game?.playback.index]);
+
+  useEffect(() => {
     setArmed(sessionStorage.getItem("mk_tv_armed") === "1");
   }, []);
 
-  useEffect(() => {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!url || !key) return;
-    let cancelled = false;
-    let channel: { unsubscribe: () => void } | null = null;
-    void import("@supabase/supabase-js").then(({ createClient }) => {
-      if (cancelled) return;
-      const client = createClient(url, key);
-      channel = client
-        .channel("melna-kaste-tv")
-        .on("postgres_changes", { event: "*", schema: "public", table: "tv_feed" }, () => poll.reload())
-        .subscribe();
-    });
-    return () => {
-      cancelled = true;
-      channel?.unsubscribe();
-    };
-  }, [poll.reload]);
+  useFeedReload(poll.reload);
 
   const playback = game?.playback;
+  const standbyUrls = game?.playback.standbyUrls ?? [];
+  const neighbors = game ? localStandbyNeighbors(game, localIndex) : { nextUrl: null, nextNextUrl: null };
 
-  async function report(type: "ended" | "failed", cycleId: string, clipToken: string) {
-    if (!cycleId || !clipToken) return;
+  async function report(type: "ended" | "failed" | "cycle", cycleId: string, clipToken: string, extra: Record<string, unknown> = {}) {
+    if (!cycleId) return;
+    if (type !== "cycle" && !clipToken) return;
     const result = await api<{ game?: TvState }>("/api/tv/playback", {
       method: "POST",
-      body: JSON.stringify({ type, cycleId, clipToken }),
+      body: JSON.stringify({ type, cycleId, clipToken, ...extra }),
     });
     if (result.body.game && result.body.game.version >= version.current) {
       version.current = result.body.game.version;
       setGame(result.body.game);
     }
+  }
+
+  function onClipEnded(cycleId: string, clipToken: string) {
+    if (playback?.mode === "standby" && standbyUrls.length) {
+      if (localIndex < standbyUrls.length - 1) {
+        setLocalIndex((current) => current + 1);
+        return;
+      }
+      void report("cycle", cycleId, clipToken, { intact: intactRef.current });
+      return;
+    }
+    void report("ended", cycleId, clipToken);
+  }
+
+  function onClipFailed(cycleId: string, clipToken: string) {
+    if (playback?.mode === "standby" && standbyUrls.length) {
+      intactRef.current = false;
+      if (localIndex < standbyUrls.length - 1) {
+        setLocalIndex((current) => current + 1);
+        return;
+      }
+      void report("cycle", cycleId, clipToken, { intact: false });
+      return;
+    }
+    void report("failed", cycleId, clipToken);
   }
 
   async function pair(event: React.FormEvent) {
@@ -98,11 +146,11 @@ export function TvScreen({ invalidPair }: { invalidPair: boolean }) {
       <div className={`picture${hold ? " hold" : ""}${bleed ? " bleed" : ""}${placeholder ? " placeholder" : ""}`}>
         {game && playback ? (
           <TvPicture
-            url={playingUrl(game)}
-            nextUrl={nextPlayUrl(playback.nextUrl)}
+            url={playingUrl(game, localIndex)}
+            nextUrl={nextPlayUrl(neighbors.nextUrl)}
             preloadUrls={nextBufferUrls({
-              nextUrl: playback.nextUrl,
-              nextNextUrl: playback.nextNextUrl,
+              nextUrl: neighbors.nextUrl,
+              nextNextUrl: neighbors.nextNextUrl,
               preloadCallUrl: game.preloadCallUrl,
               openVideoUrl: game.openVideoUrl,
               endVideoUrl: game.endVideoUrl,
@@ -110,10 +158,10 @@ export function TvScreen({ invalidPair }: { invalidPair: boolean }) {
             loop={playback.mode === "hold"}
             muted={!armed || playback.mode === "hold" || (playback.mode === "standby" && game.standbyMuted)}
             cycleId={playback.cycleId}
-            clipToken={playback.clipToken}
+            clipToken={playback.mode === "standby" ? `${playback.cycleId}:${localIndex}` : playback.clipToken}
             armed={armed}
-            onEnded={(cycleId, clipToken) => void report("ended", cycleId, clipToken)}
-            onFailed={(cycleId, clipToken) => void report("failed", cycleId, clipToken)}
+            onEnded={onClipEnded}
+            onFailed={onClipFailed}
             onPlayBlocked={() => {
               if (playback.mode === "standby" || playback.mode === "hold") return;
               setSoundError(true);
