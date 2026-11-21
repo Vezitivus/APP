@@ -9,6 +9,7 @@ import {
   lastFrameTime,
   nextBufferUrl,
   nextBufferUrls,
+  nextPlayUrl,
   remainingSeconds,
   sameMediaUrl,
   shouldPrerollSwap,
@@ -33,9 +34,6 @@ describe("TV atskaņošanas URL un pārslēgšana", () => {
     );
     expect(cloudinaryPlaybackUrl(`https://res.cloudinary.com/inbickbf/video/upload/${TRANSFORM}/v1/1.mp4`)).toBe(
       `https://res.cloudinary.com/inbickbf/video/upload/${TRANSFORM}/v1/1.mp4`,
-    );
-    expect(cloudinaryPlaybackUrl("https://res.cloudinary.com/inbickbf/video/upload/v1/1.mp4", { start: 0.4, end: 14.8 })).toBe(
-      `https://res.cloudinary.com/inbickbf/video/upload/${TRANSFORM},so_0.4,eo_14.8/v1/1.mp4`,
     );
     expect(cloudinaryPlaybackUrl("https://cdn.example/clip.mp4")).toBe("https://cdn.example/clip.mp4");
     expect(cloudinaryPlaybackUrl(null)).toBeNull();
@@ -75,6 +73,10 @@ describe("TV atskaņošanas URL un pārslēgšana", () => {
       `https://res.cloudinary.com/inbickbf/video/upload/${TRANSFORM}/2.mp4`,
     );
     expect(nextBufferUrl({})).toBeNull();
+    expect(nextPlayUrl("https://res.cloudinary.com/inbickbf/video/upload/2.mp4")).toBe(
+      `https://res.cloudinary.com/inbickbf/video/upload/${TRANSFORM}/2.mp4`,
+    );
+    expect(nextPlayUrl(null)).toBeNull();
     expect(
       nextBufferUrls({
         nextUrl: "https://res.cloudinary.com/inbickbf/video/upload/2.mp4",

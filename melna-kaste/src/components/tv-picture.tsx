@@ -124,6 +124,7 @@ function runCrossfade(incoming: HTMLVideoElement, outgoing: HTMLVideoElement, si
 
 export function TvPicture(props: {
   url: string | null;
+  nextUrl: string | null;
   preloadUrls: string[];
   loop: boolean;
   muted: boolean;
@@ -224,6 +225,20 @@ export function TvPicture(props: {
     if (reported.current === key) return;
     reported.current = key;
     propsRef.current.onEnded(cycleId, clipToken);
+  }
+
+  /** Advance the current clip: crossfade into the next play URL, or just report ended so hold/QR can start. */
+  function finishCurrent(video: HTMLVideoElement, report = true) {
+    if (video !== visible() || video.loop || swapLock.current) return;
+    holdFrame(video);
+    const next = cloudinaryPlaybackUrl(propsRef.current.nextUrl);
+    if (next && !sameSrc(video, next)) {
+      void overlap(video, next, { cancelled: false }, report);
+      return;
+    }
+    if (report) {
+      reportEnded(video.dataset.cycle ?? propsRef.current.cycleId, video.dataset.token ?? propsRef.current.clipToken);
+    }
   }
 
   function primeBuffers(currentUrl: string | null) {
@@ -401,8 +416,8 @@ export function TvPicture(props: {
       if (video && video.readyState >= 2) {
         const remaining = video.duration - video.currentTime;
         if (!Number.isFinite(remaining) || remaining <= 1.2) holdFrame(video);
-        if (!video.loop && !swapLock.current && shouldPrerollSwap(video.currentTime, video.duration)) {
-          void overlap(video, propsRef.current.preloadUrls[0] ?? null, { cancelled: false }, true);
+        if (shouldPrerollSwap(video.currentTime, video.duration)) {
+          finishCurrent(video, true);
         }
       }
       frame = requestAnimationFrame(tick);
@@ -429,17 +444,14 @@ export function TvPicture(props: {
           onTimeUpdate={(event) => {
             const video = event.currentTarget;
             if (video === visible()) holdFrame(video);
-            if (video !== visible() || video.loop || swapLock.current) return;
             if (!shouldPrerollSwap(video.currentTime, video.duration)) return;
-            void overlap(video, propsRef.current.preloadUrls[0] ?? null, { cancelled: false }, true);
+            finishCurrent(video, true);
           }}
           onEnded={(event) => {
             const video = event.currentTarget;
             holdFrame(video);
             if (video.loop) return;
-            if (video === visible() && !swapLock.current) {
-              void overlap(video, propsRef.current.preloadUrls[0] ?? propsRef.current.url, { cancelled: false }, true);
-            }
+            finishCurrent(video, true);
           }}
           onError={(event) => {
             const video = event.currentTarget;

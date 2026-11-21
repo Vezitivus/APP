@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import type { TvState } from "@/lib/game/project";
 import { api, usePoll } from "@/lib/client/poll";
-import { nextBufferUrls } from "@/lib/tv/playback";
+import { nextBufferUrls, nextPlayUrl } from "@/lib/tv/playback";
 import { TvPicture } from "@/components/tv-picture";
 
 function playingUrl(game: TvState | null): string | null {
@@ -99,6 +99,7 @@ export function TvScreen({ invalidPair }: { invalidPair: boolean }) {
         {game && playback ? (
           <TvPicture
             url={playingUrl(game)}
+            nextUrl={nextPlayUrl(playback.nextUrl)}
             preloadUrls={nextBufferUrls({
               nextUrl: playback.nextUrl,
               nextNextUrl: playback.nextNextUrl,

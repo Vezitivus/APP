@@ -81,6 +81,8 @@ describe("spēles norise un taimeri", () => {
     }
     expect(state.phase).toBe("ANNOUNCEMENT");
     expect(toTvState(state, NOW).screen.kind).toBe("announcement");
+    expect(JSON.stringify(toTvState(state, NOW).screen)).not.toContain("qrPath");
+    expect(toTvState(state, NOW).playback.nextUrl).toBeNull();
     const announcedAt = NOW + 5_000;
     state = act(state, { type: "clip_ended", cycleId: state.playback.cycleId, clipToken: state.playback.clipToken }, ctx(announcedAt)).state;
     expect(state.phase).toBe("QR_WAITING");
@@ -93,7 +95,15 @@ describe("spēles norise un taimeri", () => {
       name: state.players[0].publicName,
       title: "Nenopietnā runa",
     });
-    if (held.screen.kind === "call") expect(held.screen.videoUrl).toContain("izsaukums_look.mp4");
+    if (held.screen.kind === "call") {
+      expect(held.screen.videoUrl).toContain("izsaukums_look.mp4");
+      expect(held.screen.qrPath).toBe(`/mission/${state.active?.qrToken}`);
+      expect(held.screen.qrPath).toMatch(/^\/mission\//);
+    }
+    const preloaded = toTvState(state, announcedAt, { includePreload: true });
+    expect(preloaded.playback.nextUrl).toContain("1.mp4");
+    expect(preloaded.screen.kind).toBe("call");
+    if (preloaded.screen.kind === "call") expect(preloaded.screen.qrPath).toBe(`/mission/${state.active?.qrToken}`);
     const later = apply(state, { type: "tick" }, ctx(announcedAt + 60 * 60 * 1000));
     expect(later.ignored).toBe(true);
     expect(later.state.phase).toBe("QR_WAITING");
