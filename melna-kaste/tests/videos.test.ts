@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { cardById } from "../src/lib/game/cards";
-import { filenameFromPublicId, isCloudinaryDeliveryUrl, resolveCallVideo, standbyPlaylist, standbySlots } from "../src/lib/game/videos";
+import { filenameForCloudinaryAsset, filenameFromPublicId, isCloudinaryDeliveryUrl, resolveCallVideo, standbyPlaylist, standbySlots } from "../src/lib/game/videos";
 import { video } from "./helpers";
 
 describe("video piesaiste", () => {
@@ -40,6 +40,28 @@ describe("video piesaiste", () => {
     expect(filenameFromPublicId("melna-kaste/standby/10")).toBe("10.mp4");
     expect(filenameFromPublicId("melna-kaste/standby/standby_01")).toBe("standby_01.mp4");
     expect(filenameFromPublicId("melna-kaste/standby/..")).toBeNull();
+  });
+
+  it("pazīst kataloga vārdu arī ar Cloudinary nejaušo piedēkli", () => {
+    expect(filenameForCloudinaryAsset("standby", { displayName: "1", publicId: "1_xk3abc" })).toBe("1.mp4");
+    expect(filenameForCloudinaryAsset("standby", { displayName: "1.mp4", publicId: "8jsb1xofxdqamu2rzwt9q" })).toBe("1.mp4");
+    expect(filenameForCloudinaryAsset("standby", { publicId: "10_abc123" })).toBe("10.mp4");
+    expect(filenameForCloudinaryAsset("standby", { publicId: "1_abc123" })).toBe("1.mp4");
+    expect(filenameForCloudinaryAsset("standby", { displayName: "standby_01_q8m2", originalFilename: "standby_01" })).toBe("standby_01.mp4");
+    expect(filenameForCloudinaryAsset("standby", { publicId: "21_abc123" })).toBe("21_abc123.mp4");
+    expect(filenameForCloudinaryAsset("standby", { publicId: "melna-kaste/standby/.." })).toBeNull();
+
+    expect(filenameForCloudinaryAsset("calls", { publicId: "izsaukums_flash_x7k2" })).toBe("izsaukums_flash.mp4");
+    expect(filenameForCloudinaryAsset("calls", { displayName: "izsaukums_flash_x7k2", originalFilename: "izsaukums_flash" })).toBe("izsaukums_flash.mp4");
+    expect(filenameForCloudinaryAsset("calls", { displayName: "izsaukums_sales_pitch", publicId: "rnd" })).toBe("izsaukums_sales_pitch.mp4");
+    expect(filenameForCloudinaryAsset("calls", { publicId: "izsaukums_sales_pitch_x7k2" })).toBe("izsaukums_sales_pitch.mp4");
+    expect(filenameForCloudinaryAsset("calls", { publicId: "izsaukums_bad_lawyer_q9zz" })).toBe("izsaukums_bad_lawyer.mp4");
+    expect(filenameForCloudinaryAsset("calls", { publicId: "izsaukums_three_in_five_x7k2" })).toBe("izsaukums_three_in_five.mp4");
+    expect(filenameForCloudinaryAsset("calls", { displayName: "rndpublic", originalFilename: "izsaukums_my_party", publicId: "rndpublic" })).toBe(
+      "izsaukums_my_party.mp4",
+    );
+    expect(filenameForCloudinaryAsset("special", { displayName: "special_global_vote_ab12cd" })).toBe("special_global_vote.mp4");
+    expect(filenameForCloudinaryAsset("special", { publicId: "melna-kaste/special/special_open" })).toBe("special_open.mp4");
   });
 
   it("izmanto uzdevuma, tad kategorijas, tad universālo video", () => {
