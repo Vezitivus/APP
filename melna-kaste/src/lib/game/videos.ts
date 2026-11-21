@@ -107,6 +107,55 @@ export interface CloudinaryNameSource {
   originalFilename?: string | null;
 }
 
+/** Infer standby/calls/special from a Cloudinary path such as `melna-kaste/standby`. */
+export function folderHintFromPath(path: string | null | undefined): VideoAsset["folder"] | null {
+  if (!path) return null;
+  const segments = path.replace(/^\/+|\/+$/g, "").toLowerCase().split("/").filter(Boolean);
+  for (const folder of ["standby", "calls", "special"] as const) {
+    if (segments.includes(folder)) return folder;
+  }
+  return null;
+}
+
+/**
+ * Classify a Cloudinary video when every file lives in `melna-kaste`.
+ * Names `1`–`20` (and legacy `standby_01`) are standby slots; `special_*`
+ * and `izsaukums_*` map to specials and calls. A hinted subfolder keeps
+ * the older folder-scoped matching, including unknown names in that folder.
+ */
+export function classifyCloudinaryAsset(
+  source: CloudinaryNameSource,
+  hintedFolder?: VideoAsset["folder"] | null,
+): { folder: VideoAsset["folder"]; filename: string } | null {
+  if (hintedFolder) {
+    const filename = filenameForCloudinaryAsset(hintedFolder, source);
+    return filename ? { folder: hintedFolder, filename } : null;
+  }
+  const stems = [nameStem(source.displayName), nameStem(source.originalFilename), nameStem(source.publicId)].filter(
+    (stem): stem is string => Boolean(stem),
+  );
+  if (stems.length === 0) return null;
+  let suffixed: { folder: VideoAsset["folder"]; name: string } | null = null;
+  for (const stem of stems) {
+    const match = matchNameAcrossFolders(stem);
+    if (match?.exact) return { folder: match.folder, filename: `${match.name}.mp4` };
+    if (match && !suffixed) suffixed = { folder: match.folder, name: match.name };
+  }
+  return suffixed ? { folder: suffixed.folder, filename: `${suffixed.name}.mp4` } : null;
+}
+
+function matchNameAcrossFolders(stem: string): { folder: VideoAsset["folder"]; name: string; exact: boolean } | null {
+  const standby = matchKnownName(stem, "standby", null);
+  if (standby) return { folder: "standby", ...standby };
+  const special = matchKnownName(stem, "special", knownBasenames("special"));
+  if (special) return { folder: "special", ...special };
+  const call = matchKnownName(stem, "calls", knownBasenames("calls"));
+  if (call) return { folder: "calls", ...call };
+  if (stem.startsWith("special_")) return { folder: "special", name: stem, exact: true };
+  if (stem.startsWith("izsaukums_")) return { folder: "calls", name: stem, exact: true };
+  return null;
+}
+
 /**
  * Name a synced video from the Media Library display name, the original
  * filename, then the public id. An exact catalog or standby name wins.

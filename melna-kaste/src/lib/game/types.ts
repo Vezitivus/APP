@@ -35,7 +35,7 @@ export interface CardDef {
   idealGroup: number;
   selection: SelectionMode;
   privacy: Privacy;
-  /** Exact Cloudinary filename in melna-kaste/calls/. */
+  /** Exact Cloudinary filename, for example izsaukums_look.mp4. */
   videoFile: string;
   /** Category fallback. Null skips straight to the universal call. */
   categoryVideoFile: string | null;

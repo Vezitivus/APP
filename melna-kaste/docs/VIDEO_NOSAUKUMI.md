@@ -1,26 +1,26 @@
 # Video failu vārdi
 
-Vārdi un kartīšu ID nemainās. Failu liec mapē, kas rakstīta pie tā. Jaunā Cloudinary kontā public ID var būt nejaušs (`1_xk3abc` vai gara virkne) un nesatur mapes vārdu. Sinhronizācija pazīst failu pēc mapes un vārda: `1`, `1.mp4` vai `izsaukums_flash`. Vecākā kontā der arī public ID `melna-kaste/standby/1`.
+Vārdi un kartīšu ID nemainās. Visus failus liec mapē `melna-kaste`. Sinhronizācija pazīst failu pēc vārda: `1`, `1.mp4`, `izsaukums_flash` vai `special_open`. Public ID var būt nejaušs (`1_xk3abc` vai gara virkne) un to labot nevajag. Vecākā kontā der arī public ID `melna-kaste/standby/1` un faili vecajās apakšmapēs.
 
 ## Augšupielāde
 
 1. Atver Cloudinary Console → **Media Library**.
-2. Atver mapi `melna-kaste/standby`, `melna-kaste/calls` vai `melna-kaste/special`. Ja mapes nav, izveido tās.
+2. Atver mapi `melna-kaste`. Ja mapes nav, izveido to. Apakšmapes nav vajadzīgas.
 3. Spied **Upload** vai ievelc failu tieši šajā mapē. Faila vārds datorā jau ir pareizais, piemēram `1.mp4` vai `izsaukums_flash.mp4`.
 4. Public ID labot nevajag. Redzamo vārdu atstāj tādu, kāds ir fails.
 5. Režijā atver **Video** un spied **Atjaunot no Cloudinary**.
 
 ## Standby
 
-Divdesmit vietas mapē `melna-kaste/standby`. Fails saucas tikai ar ciparu, bez `standby_` priekšā.
+Divdesmit vietas mapē `melna-kaste`. Fails saucas tikai ar ciparu, bez `standby_` priekšā.
 
 | Vieta | Mape | Fails |
 | --- | --- | --- |
-| 1 | `melna-kaste/standby` | `1.mp4` |
-| 2 | `melna-kaste/standby` | `2.mp4` |
-| … | `melna-kaste/standby` | … |
-| 10 | `melna-kaste/standby` | `10.mp4` |
-| 20 | `melna-kaste/standby` | `20.mp4` |
+| 1 | `melna-kaste` | `1.mp4` |
+| 2 | `melna-kaste` | `2.mp4` |
+| … | `melna-kaste` | … |
+| 10 | `melna-kaste` | `10.mp4` |
+| 20 | `melna-kaste` | `20.mp4` |
 
 Secība ir pēc cipara: 1, 2, 3, …, 9, 10, 11, …, 20. Nav 1, 10, 2. Tukša vieta tiek izlaista. Pēc izsaukuma riņķis sākas no mazākā esošā cipara.
 
@@ -28,7 +28,7 @@ Vecais vārds joprojām der tai pašai vietai, ja jaunā faila nav: `standby_01.
 
 ## Izsaukumi
 
-Šie faili ir mapē `melna-kaste/calls`.
+Šie faili arī ir mapē `melna-kaste`.
 
 | Uzdevums | ID | Fails |
 | --- | --- | --- |
@@ -59,6 +59,6 @@ Vecais vārds joprojām der tai pašai vietai, ja jaunā faila nav: `standby_01.
 
 Kopīgie notikumi: `global_vote`, `global_duel`, `global_truths`, `global_team`, `global_talent`, `global_rematch`.
 
-Katram var būt `special_<id>.mp4` mapē `melna-kaste/special` vai `izsaukums_<id>.mp4` mapē `melna-kaste/calls`.
+Katram var būt `special_<id>.mp4` vai `izsaukums_<id>.mp4` tajā pašā mapē `melna-kaste`.
 
-Sākums un beigas mapē `melna-kaste/special`: `special_open.mp4`, `special_end.mp4`.
+Sākums un beigas, arī mapē `melna-kaste`: `special_open.mp4`, `special_end.mp4`.

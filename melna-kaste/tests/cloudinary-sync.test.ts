@@ -60,11 +60,14 @@ function configure() {
 function endpoint(url: URL): { kind: "prefix" | "asset_folder"; folder: string } | null {
   if (url.pathname === `/v1_1/${CLOUD}/resources/video/upload`) {
     const prefix = url.searchParams.get("prefix") ?? "";
+    if (prefix === "melna-kaste/") return { kind: "prefix", folder: "melna-kaste" };
     const folder = prefix.replace(/^melna-kaste\//, "").replace(/\/$/, "");
     return { kind: "prefix", folder };
   }
   if (url.pathname === `/v1_1/${CLOUD}/resources/by_asset_folder`) {
-    const folder = (url.searchParams.get("asset_folder") ?? "").replace(/^melna-kaste\//, "");
+    const raw = url.searchParams.get("asset_folder") ?? "";
+    if (raw === "melna-kaste") return { kind: "asset_folder", folder: "melna-kaste" };
+    const folder = raw.replace(/^melna-kaste\//, "");
     return { kind: "asset_folder", folder };
   }
   return null;
@@ -108,7 +111,10 @@ describe("Cloudinary video sinhronizācija", () => {
           },
         };
       }
-      return { status: 200, body: { resources: [resource({ public_id: "melna-kaste/special/special_open" })] } };
+      if (route?.folder === "special") {
+        return { status: 200, body: { resources: [resource({ public_id: "melna-kaste/special/special_open" })] } };
+      }
+      return { status: 200, body: { resources: [] } };
     });
 
     const videos = await listCloudinaryVideos();
@@ -127,7 +133,15 @@ describe("Cloudinary video sinhronizācija", () => {
     const prefixes = calls
       .filter((call) => endpoint(call.url)?.kind === "prefix")
       .map((call) => call.url.searchParams.get("prefix"));
-    expect(prefixes).toEqual(expect.arrayContaining(["melna-kaste/standby/", "melna-kaste/calls/", "melna-kaste/special/"]));
+    expect(prefixes).toEqual(
+      expect.arrayContaining(["melna-kaste/", "melna-kaste/standby/", "melna-kaste/calls/", "melna-kaste/special/"]),
+    );
+    const assetFolders = calls
+      .filter((call) => endpoint(call.url)?.kind === "asset_folder")
+      .map((call) => call.url.searchParams.get("asset_folder"));
+    expect(assetFolders).toEqual(
+      expect.arrayContaining(["melna-kaste", "melna-kaste/standby", "melna-kaste/calls", "melna-kaste/special"]),
+    );
     expect(calls.some((call) => call.url.searchParams.get("next_cursor") === "lapa-2")).toBe(true);
     expect(calls.filter((call) => endpoint(call.url)?.kind === "prefix").every((call) => call.url.searchParams.get("max_results") === "100")).toBe(
       true,
@@ -175,19 +189,22 @@ describe("Cloudinary video sinhronizācija", () => {
           },
         };
       }
-      return {
-        status: 200,
-        body: {
-          resources: [
-            resource({ public_id: "spec1", display_name: "special_open", original_filename: "special_open" }),
-            resource({
-              public_id: "spec2",
-              display_name: "special_global_vote_ab12cd",
-              original_filename: "special_global_vote",
-            }),
-          ],
-        },
-      };
+      if (route?.folder === "special") {
+        return {
+          status: 200,
+          body: {
+            resources: [
+              resource({ public_id: "spec1", display_name: "special_open", original_filename: "special_open" }),
+              resource({
+                public_id: "spec2",
+                display_name: "special_global_vote_ab12cd",
+                original_filename: "special_global_vote",
+              }),
+            ],
+          },
+        };
+      }
+      return { status: 200, body: { resources: [] } };
     });
 
     const videos = await listCloudinaryVideos();
@@ -223,6 +240,67 @@ describe("Cloudinary video sinhronizācija", () => {
     const videos = await listCloudinaryVideos();
     expect(videos).toHaveLength(1);
     expect(videos[0]).toMatchObject({ folder: "calls", filename: "izsaukums_flash.mp4", publicId: "shared" });
+  });
+
+  it("nolasa visus video no vienas mapes melna-kaste un šķiro pēc vārda", async () => {
+    configure();
+    const calls = installFetch((url) => {
+      const route = endpoint(url);
+      expect(route).not.toBeNull();
+      if (route?.kind === "prefix") return { status: 200, body: { resources: [] } };
+      if (route?.folder !== "melna-kaste") return { status: 200, body: { resources: [] } };
+      if (url.searchParams.get("next_cursor")) {
+        return {
+          status: 200,
+          body: {
+            resources: [resource({ public_id: "anyid", asset_folder: "melna-kaste", display_name: "izsaukums_any" })],
+          },
+        };
+      }
+      return {
+        status: 200,
+        body: {
+          next_cursor: "root-2",
+          resources: [
+            resource({ public_id: "1_xk3abc", asset_folder: "melna-kaste", display_name: "1", original_filename: "1" }),
+            resource({ public_id: "tenid", asset_folder: "melna-kaste", display_name: "10.mp4", original_filename: "10" }),
+            resource({ public_id: "legacy2", asset_folder: "melna-kaste", original_filename: "standby_02" }),
+            resource({ public_id: "flashid", asset_folder: "melna-kaste", display_name: "izsaukums_flash_x7k2", original_filename: "izsaukums_flash" }),
+            resource({ public_id: "salesid", asset_folder: "melna-kaste", display_name: "izsaukums_sales_pitch" }),
+            resource({ public_id: "lawyerid", asset_folder: "melna-kaste", display_name: "izsaukums_bad_lawyer_q9zz" }),
+            resource({ public_id: "openid", asset_folder: "melna-kaste", display_name: "special_open" }),
+            resource({
+              public_id: "voteid",
+              asset_folder: "melna-kaste",
+              display_name: "special_global_vote_ab12cd",
+              original_filename: "special_global_vote",
+            }),
+            resource({ public_id: "customid", asset_folder: "melna-kaste", original_filename: "izsaukums_my_party" }),
+            resource({ public_id: "poster", asset_folder: "melna-kaste", display_name: "3", resource_type: "image" }),
+            resource({ public_id: "unknown", asset_folder: "melna-kaste", display_name: "upload_test_delete_me" }),
+            resource({ public_id: "hidden", asset_folder: "melna-kaste", display_name: "4", type: "authenticated" }),
+          ],
+        },
+      };
+    });
+
+    const videos = await listCloudinaryVideos();
+    expect(videos.map((video) => `${video.folder}/${video.filename}`)).toEqual([
+      "standby/1.mp4",
+      "standby/10.mp4",
+      "standby/standby_02.mp4",
+      "calls/izsaukums_flash.mp4",
+      "calls/izsaukums_sales_pitch.mp4",
+      "calls/izsaukums_bad_lawyer.mp4",
+      "special/special_open.mp4",
+      "special/special_global_vote.mp4",
+      "calls/izsaukums_my_party.mp4",
+      "calls/izsaukums_any.mp4",
+    ]);
+    expect(standbyPlaylist(videos).map((video) => video.filename)).toEqual(["1.mp4", "standby_02.mp4", "10.mp4"]);
+    expect(videos.some((video) => video.publicId === "unknown" || video.publicId === "poster")).toBe(false);
+    expect(calls.some((call) => call.url.searchParams.get("asset_folder") === "melna-kaste")).toBe(true);
+    expect(calls.some((call) => call.url.searchParams.get("next_cursor") === "root-2")).toBe(true);
   });
 
   it("atmet kļūdas statusu un tukšu konfigurāciju", async () => {
