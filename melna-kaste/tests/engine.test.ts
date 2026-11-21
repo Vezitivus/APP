@@ -233,48 +233,14 @@ describe("spēles norise un taimeri", () => {
     expect(again.error?.code).toBe("used");
   });
 
-  it("brīvajā izvēlē nevar izvēlēties sevi vai vienu cilvēku divreiz", () => {
+  it("brīvo izvēli un brīvo dueli nevar sagatavot, jo tiem nav video", () => {
     let state = addPair(game(NOW), NOW);
-    state = act(state, { type: "add_player", name: "Kārlis", sessionHash: "h3", recoveryHash: "r3" }, ctx(NOW)).state;
     state = act(state, { type: "start" }, ctx(NOW)).state;
-    state = act(state, { type: "prepare", cardId: "choice", playerId: state.players[0].id }, ctx(NOW)).state;
-    state = act(state, { type: "complete_test_cycle" }, ctx(NOW)).state;
-    state = act(state, { type: "claim", qrToken: state.active!.qrToken, playerId: state.players[0].id }, ctx(NOW)).state;
-    expect(state.phase).toBe("CARD_CLAIMED");
-    const self = apply(state, {
-      type: "submit_selection",
-      playerId: state.players[0].id,
-      partnerIds: [state.players[0].id],
-      mode: "duel",
-      activityTitle: "Šautriņas",
-    }, ctx(NOW));
-    expect(self.error?.code).toBe("invalid");
-    const duplicate = apply(state, {
-      type: "submit_selection",
-      playerId: state.players[0].id,
-      partnerIds: [state.players[1].id, state.players[1].id],
-      mode: "group",
-      activityTitle: "Pokers",
-    }, ctx(NOW));
-    expect(duplicate.error?.code).toBe("invalid");
-    state = act(state, {
-      type: "submit_selection",
-      playerId: state.players[0].id,
-      partnerIds: [state.players[1].id, state.players[2].id],
-      mode: "group",
-      activityTitle: "Galda spēle <script>",
-      activityRules: "Trīs raundi",
-    }, ctx(NOW)).state;
-    expect(state.phase).toBe("ACTIVE_EVENT");
-    expect(state.active?.publicTitle).toBe("Galda spēle script");
-    expect(state.active?.publicTitle).not.toContain("<");
-    const tv = toTvState(state, NOW);
-    expect(tv.screen).toMatchObject({ kind: "call", title: "Galda spēle script", name: state.players[0].publicName });
-    state = act(state, { type: "continue_tv" }, ctx(NOW)).state;
-    expect(state.phase).toBe("ACTIVE_EVENT");
-    expect(state.active?.tvHold).toBe(false);
-    expect(state.playback.index).toBe(0);
-    expect(toTvState(state, NOW).screen.kind).toBe("static");
+    const choice = apply(state, { type: "prepare", cardId: "choice", playerId: state.players[0].id }, ctx(NOW));
+    expect(choice.error?.code).toBe("no_card");
+    const duel = apply(state, { type: "prepare", cardId: "duel", playerId: state.players[0].id }, ctx(NOW));
+    expect(duel.error?.code).toBe("no_card");
+    expect(toAdminState(state, NOW).catalog.some((card) => card.id === "choice" || card.id === "duel")).toBe(false);
   });
 
   it("paātrināšana sagatavo notikumu vai saīsina QR līdz piecām sekundēm", () => {
@@ -343,21 +309,15 @@ describe("spēles norise un taimeri", () => {
   it("attaisīšana, uzvarētājs un pabeigšana sasniedz visus stāvokļus", () => {
     let state = addPair(game(NOW), NOW);
     state = act(state, { type: "start" }, ctx(NOW)).state;
-    state = act(state, { type: "prepare", cardId: "duel", playerId: state.players[0].id }, ctx(NOW)).state;
+    state = act(state, { type: "prepare", cardId: "look", playerId: state.players[0].id }, ctx(NOW)).state;
     state = act(state, { type: "complete_test_cycle" }, ctx(NOW)).state;
     state = act(state, { type: "claim", qrToken: state.active!.qrToken, playerId: state.players[0].id }, ctx(NOW)).state;
     state = act(state, { type: "decline", playerId: state.players[0].id }, ctx(NOW)).state;
     expect(state.phase).toBe("STANDBY");
     expect(JSON.stringify(toTvState(state, NOW))).not.toContain("atteic");
-    state = act(state, { type: "prepare", cardId: "duel", playerId: state.players[0].id }, ctx(NOW)).state;
+    state = act(state, { type: "prepare", cardId: "look", playerId: state.players[0].id }, ctx(NOW)).state;
     state = act(state, { type: "complete_test_cycle" }, ctx(NOW)).state;
     state = act(state, { type: "claim", qrToken: state.active!.qrToken, playerId: state.players[0].id }, ctx(NOW)).state;
-    state = act(state, {
-      type: "submit_selection",
-      playerId: state.players[0].id,
-      partnerIds: [state.players[1].id],
-      activityTitle: "NHL",
-    }, ctx(NOW)).state;
     state = act(state, { type: "complete_event", winnerId: state.players[1].id }, ctx(NOW)).state;
     expect(state.recentEvents[0].outcome?.winnerName).toBe(state.players[1].publicName);
     state = act(state, { type: "finish" }, ctx(NOW)).state;

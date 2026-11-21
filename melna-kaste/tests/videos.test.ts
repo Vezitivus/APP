@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { cardById } from "../src/lib/game/cards";
-import { classifyCloudinaryAsset, filenameForCloudinaryAsset, filenameFromPublicId, folderHintFromPath, isCloudinaryDeliveryUrl, resolveCallVideo, standbyPlaylist, standbySlots } from "../src/lib/game/videos";
+import { classifyCloudinaryAsset, expectedLibrary, expectedPresence, filenameForCloudinaryAsset, filenameFromPublicId, folderHintFromPath, isCloudinaryDeliveryUrl, resolveCallVideo, standbyPlaylist, standbySlots } from "../src/lib/game/videos";
 import { video } from "./helpers";
 
 describe("video piesaiste", () => {
@@ -105,11 +105,47 @@ describe("video piesaiste", () => {
     expect(task.video?.filename).toBe("izsaukums_look.mp4");
   });
 
-  it("duelis nekrīt uz citas kartītes nosaukuma video", () => {
-    const duel = cardById("duel")!;
-    const resolved = resolveCallVideo(duel, [video({ folder: "calls", filename: "izsaukums_choice.mp4" })]);
-    expect(resolved.level).toBe("none");
-    expect(duel.categoryVideoFile).toBeNull();
+  it("brīvā izvēle un brīvais duelis vairs nav katalogā", () => {
+    expect(cardById("choice")).toBeUndefined();
+    expect(cardById("duel")).toBeUndefined();
+    const names = expectedLibrary().map((file) => file.filename);
+    expect(names).not.toContain("izsaukums_choice.mp4");
+    expect(names).not.toContain("izsaukums_duel.mp4");
+  });
+
+  it("kopīgais notikums ir klāt, ja ir special vai izsaukuma variants", () => {
+    const vote = expectedLibrary().find((file) => file.cardId === "global_vote");
+    expect(vote).toMatchObject({ filename: "special_global_vote.mp4" });
+    expect(vote?.alternates).toEqual([{ folder: "calls", filename: "izsaukums_global_vote.mp4" }]);
+    expect(expectedPresence(vote!, [video({ folder: "special", filename: "special_global_vote.mp4" })]).present).toBe(true);
+    expect(expectedPresence(vote!, [video({ folder: "calls", filename: "izsaukums_global_vote.mp4" })]).present).toBe(true);
+    expect(expectedPresence(vote!, [video({ folder: "calls", filename: "izsaukums_global_vote.mp4" })]).filename).toBe("izsaukums_global_vote.mp4");
+    expect(expectedPresence(vote!, [video({ folder: "calls", filename: "izsaukums_look.mp4" })]).present).toBe(false);
+    const talent = expectedLibrary().find((file) => file.cardId === "global_talent");
+    expect(expectedPresence(talent!, [video({ folder: "calls", filename: "izsaukums_global_talent.mp4" })]).present).toBe(true);
+    const rematch = expectedLibrary().find((file) => file.cardId === "global_rematch");
+    expect(expectedPresence(rematch!, [video({ folder: "calls", filename: "izsaukums_global_rematch.mp4" })]).present).toBe(true);
+  });
+
+  it("ar pašreizējiem 50 video sagaidāmajos failos nav trūkstošu", () => {
+    const current = [
+      ...Array.from({ length: 20 }, (_, i) => video({ folder: "standby", filename: `${i + 1}.mp4` })),
+      ...[
+        "izsaukums_absurd_duet", "izsaukums_any", "izsaukums_bad_ad", "izsaukums_bad_lawyer",
+        "izsaukums_committee", "izsaukums_dubious_team", "izsaukums_flash", "izsaukums_freeze_frame",
+        "izsaukums_gesture", "izsaukums_global_rematch", "izsaukums_global_talent", "izsaukums_improv_story",
+        "izsaukums_look", "izsaukums_mimic", "izsaukums_mission", "izsaukums_pair", "izsaukums_perk",
+        "izsaukums_reverse_story", "izsaukums_sales_pitch", "izsaukums_sports_cast", "izsaukums_team",
+        "izsaukums_three_in_five", "izsaukums_truth_lie", "izsaukums_wrong_answers",
+      ].map((name) => video({ folder: "calls", filename: `${name}.mp4` })),
+      ...[
+        "special_open", "special_end", "special_global_vote", "special_global_duel",
+        "special_global_truths", "special_global_team",
+      ].map((name) => video({ folder: "special", filename: `${name}.mp4` })),
+    ];
+    expect(current).toHaveLength(50);
+    const missing = expectedLibrary().filter((file) => !expectedPresence(file, current).present);
+    expect(missing).toEqual([]);
   });
 
   it("slepenā misija izmanto kopējo misijas video, nevis konkrētas misijas nosaukumu", () => {

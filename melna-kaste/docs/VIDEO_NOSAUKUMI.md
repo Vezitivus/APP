@@ -50,8 +50,6 @@ Vecais vārds joprojām der tai pašai vietai, ja jaunā faila nav: `standby_01.
 | Nenopietnā runa | `look` | `izsaukums_look.mp4` |
 | Slepenā misija | `mission_01` … `mission_20` | `izsaukums_mission.mp4` |
 | Priekšrocība | `perk_answer`, `perk_untouchable`, `perk_rematch`, `perk_bonus`, `perk_time`, `perk_veto` | `izsaukums_perk.mp4` |
-| Brīvā izvēle | `choice` | `izsaukums_choice.mp4` |
-| Brīvais duelis | `duel` | `izsaukums_duel.mp4` |
 | Ātrais izaicinājums | kategorija FLASH | `izsaukums_flash.mp4` |
 | Divu cilvēku izaicinājums | kategorija PAIR | `izsaukums_pair.mp4` |
 | Komandas izaicinājums | kategorija TEAM | `izsaukums_team.mp4` |
@@ -59,6 +57,6 @@ Vecais vārds joprojām der tai pašai vietai, ja jaunā faila nav: `standby_01.
 
 Kopīgie notikumi: `global_vote`, `global_duel`, `global_truths`, `global_team`, `global_talent`, `global_rematch`.
 
-Katram var būt `special_<id>.mp4` vai `izsaukums_<id>.mp4` tajā pašā mapē `melna-kaste`.
+Katram var būt `special_<id>.mp4` vai `izsaukums_<id>.mp4` tajā pašā mapē `melna-kaste`. Sarakstā «Sagaidāmie faili» pietiek ar vienu no šiem variantiem. Brīvā izvēle un brīvais duelis spēlē nav.
 
 Sākums un beigas, arī mapē `melna-kaste`: `special_open.mp4`, `special_end.mp4`.

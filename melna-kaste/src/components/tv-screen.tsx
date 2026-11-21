@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import type { TvState } from "@/lib/game/project";
 import { api, usePoll } from "@/lib/client/poll";
+import { nextBufferUrl } from "@/lib/tv/playback";
+import { TvPicture } from "@/components/tv-picture";
 
 function playingUrl(game: TvState | null): string | null {
   const playback = game?.playback;
@@ -21,10 +23,6 @@ export function TvScreen({ invalidPair }: { invalidPair: boolean }) {
   const [pairToken, setPairToken] = useState("");
   const [pairError, setPairError] = useState(invalidPair ? "TV saite vairs nav derīga. Izveido jaunu režijā." : "");
   const version = useRef(0);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const preloadRef = useRef<HTMLVideoElement>(null);
-  const tokenRef = useRef<string | null>(null);
-  const fails = useRef(0);
 
   useEffect(() => {
     const incoming = poll.data?.game;
@@ -58,51 +56,6 @@ export function TvScreen({ invalidPair }: { invalidPair: boolean }) {
   }, [poll.reload]);
 
   const playback = game?.playback;
-  useEffect(() => {
-    const element = videoRef.current;
-    if (!element || !playback || !game) return;
-    const mode = playback.mode;
-    const url = playingUrl(game);
-    element.loop = mode === "hold";
-    element.muted = mode === "standby" ? game.standbyMuted : mode === "hold";
-    if (!url) {
-      if (element.getAttribute("src")) {
-        element.removeAttribute("src");
-        element.load();
-      }
-      tokenRef.current = playback.clipToken;
-      return;
-    }
-    const sameSource = element.getAttribute("src") === url;
-    if (sameSource && tokenRef.current === playback.clipToken) return;
-    tokenRef.current = playback.clipToken;
-    element.dataset.cycle = playback.cycleId;
-    element.dataset.token = playback.clipToken;
-    if (!sameSource) {
-      fails.current = 0;
-      element.src = url;
-    }
-    if (mode === "hold") {
-      try {
-        element.currentTime = 0;
-      } catch {
-        /* metadata may not be ready yet */
-      }
-    }
-    const pending = element.play();
-    pending?.catch(() => {
-      if (mode === "standby" || mode === "hold") return;
-      setSoundError(true);
-      void api("/api/tv/playback", { method: "POST", body: JSON.stringify({ type: "audio", blocked: true }) });
-    });
-  }, [playback, game]);
-
-  useEffect(() => {
-    const element = preloadRef.current;
-    if (!element || !game || !playback) return;
-    const url = game.preloadCallUrl || playback.nextUrl;
-    if (url && element.getAttribute("src") !== url) element.src = url;
-  }, [game, playback]);
 
   async function report(type: "ended" | "failed", cycleId: string, clipToken: string) {
     if (!cycleId || !clipToken) return;
@@ -125,18 +78,10 @@ export function TvScreen({ invalidPair }: { invalidPair: boolean }) {
   }
 
   async function arm() {
-    const element = videoRef.current;
-    if (element) element.muted = true;
     try { await document.documentElement.requestFullscreen(); } catch { /* pārlūks var liegt pilnekrānu */ }
     sessionStorage.setItem("mk_tv_armed", "1");
     setArmed(true);
     setSoundError(false);
-    if (!element) return;
-    try {
-      await element.play();
-    } catch {
-      setSoundError(true);
-    }
   }
 
   const paired = Boolean(poll.data?.paired);
@@ -151,34 +96,30 @@ export function TvScreen({ invalidPair }: { invalidPair: boolean }) {
   return (
     <main className="tv">
       <div className={`picture${hold ? " hold" : ""}${bleed ? " bleed" : ""}${placeholder ? " placeholder" : ""}`}>
-        <video
-          ref={videoRef}
-          className="show"
-          playsInline
-          preload="auto"
-          onEnded={(event) => {
-            if (event.currentTarget.loop) return;
-            void report("ended", event.currentTarget.dataset.cycle ?? "", event.currentTarget.dataset.token ?? "");
-          }}
-          onError={(event) => {
-            fails.current += 1;
-            const element = event.currentTarget;
-            if (fails.current < 3) {
-              element.load();
-              void element.play().catch(() => undefined);
-              return;
-            }
-            fails.current = 0;
-            void report("failed", element.dataset.cycle ?? "", element.dataset.token ?? "");
-          }}
-        />
+        {game && playback ? (
+          <TvPicture
+            url={playingUrl(game)}
+            preloadUrl={nextBufferUrl({ nextUrl: playback.nextUrl, preloadCallUrl: game.preloadCallUrl })}
+            loop={playback.mode === "hold"}
+            muted={playback.mode === "standby" ? game.standbyMuted : playback.mode === "hold"}
+            cycleId={playback.cycleId}
+            clipToken={playback.clipToken}
+            armed={armed}
+            onEnded={(cycleId, clipToken) => void report("ended", cycleId, clipToken)}
+            onFailed={(cycleId, clipToken) => void report("failed", cycleId, clipToken)}
+            onPlayBlocked={() => {
+              if (playback.mode === "standby" || playback.mode === "hold") return;
+              setSoundError(true);
+              void api("/api/tv/playback", { method: "POST", body: JSON.stringify({ type: "audio", blocked: true }) });
+            }}
+          />
+        ) : null}
         {placeholder ? (
           <div className="portrait" aria-hidden="true">
             <span>M</span>
           </div>
         ) : null}
       </div>
-      <video ref={preloadRef} className="preload" preload="auto" muted playsInline />
       {paired && armed && game ? <Stage game={game} /> : null}
       {!paired ? (
         <form className="overlay" onSubmit={pair}>
@@ -301,7 +242,7 @@ function Finale({ url }: { url: string | null }) {
     played.current = true;
     const element = ref.current;
     if (!element) return;
-    element.src = url;
+    element.src = nextBufferUrl({ nextUrl: url }) ?? url;
     void element.play().catch(() => setDone(true));
   }, [url]);
   if (!done) return <video ref={ref} className="finale" playsInline onEnded={() => setDone(true)} />;
