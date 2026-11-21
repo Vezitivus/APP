@@ -10,8 +10,8 @@ export default function HomePage() {
           Tā darbojas fonā. TV rāda, telefons saņem kartīti, un neviens iepriekš nezina, kurš tiks izsaukts.
         </p>
         <div className="actions">
-          <Link className="btn" href="/join">Pievienoties</Link>
-          <Link className="btn-ghost" href="/admin">Organizators</Link>
+          <Link className="btn" href="/join" prefetch={false}>Pievienoties</Link>
+          <Link className="btn-ghost" href="/admin" prefetch={false}>Organizators</Link>
         </div>
       </section>
     </main>

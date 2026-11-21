@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { apply } from "../src/lib/game/engine";
-import { missionView, toAdminState, toPlayerState, toTvState } from "../src/lib/game/project";
+import { estimateStandbyIndex, missionView, toAdminState, toPlayerState, toTvState } from "../src/lib/game/project";
 import { TEST_CYCLE_MS, TEST_PLAYER_NAMES } from "../src/lib/game/types";
 import { act, addPair, ctx, game, standby, video } from "./helpers";
 
@@ -68,6 +68,36 @@ describe("spēles norise un taimeri", () => {
     const tv = toTvState(state, NOW);
     expect(tv.screen.kind).toBe("announcement");
     expect(JSON.stringify(tv)).not.toContain(state.players[0].publicName);
+  });
+
+  it("TV var pabeigt standby riņķi ar vienu cycle_ended, bez katra klipa ziņojuma", () => {
+    let state = addPair(game(NOW), NOW);
+    const clips = [...standby(4), video({ folder: "calls", filename: "izsaukums_look.mp4" })];
+    state = act(state, { type: "sync_videos", videos: clips }, ctx(NOW)).state;
+    state = act(state, { type: "start" }, ctx(NOW)).state;
+    expect(state.playback.mode).toBe("standby");
+    expect(state.playback.index).toBe(0);
+    const lean = toTvState(state, NOW);
+    expect(lean.playback.standbyUrls).toBeNull();
+    const paired = toTvState(state, NOW, { includePreload: true });
+    expect(paired.playback.standbyUrls).toHaveLength(4);
+    expect(paired.playback.standbyUrls?.[0]).toContain("1.mp4");
+    state = act(state, { type: "prepare", cardId: "look", playerId: state.players[0].id }, ctx(NOW)).state;
+    expect(state.phase).toBe("QUEUED");
+    expect(state.playback.index).toBe(0);
+    const cycleId = state.playback.cycleId;
+    const stale = apply(state, { type: "cycle_ended", cycleId: "other" }, ctx(NOW + 60_000));
+    expect(stale.ignored).toBe(true);
+    expect(stale.state.phase).toBe("QUEUED");
+    state = act(state, { type: "cycle_ended", cycleId }, ctx(NOW + 60_000)).state;
+    expect(state.phase).toBe("ANNOUNCEMENT");
+    expect(state.playback.mode).toBe("announcement");
+  });
+
+  it("aptuvenais standby indekss seko cikla sākumam, nevis servera vietai", () => {
+    expect(estimateStandbyIndex(0, 20, new Date(NOW).toISOString(), NOW + 45_000)).toBe(3);
+    expect(estimateStandbyIndex(0, 20, new Date(NOW).toISOString(), NOW + 400_000)).toBe(19);
+    expect(estimateStandbyIndex(0, 20, null, NOW + 45_000)).toBe(0);
   });
 
   it("pēc izsaukuma video TV paliek pie QR, kamēr režija nospiež Turpināt", () => {

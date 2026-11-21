@@ -43,6 +43,7 @@ function playback(ctx: Ctx, mode: Playback["mode"]): Playback {
     cycleIntact: true,
     failureRounds: 0,
     clipFailures: 0,
+    cycleStartedAt: mode === "standby" || mode === "static" ? iso(ctx.now) : null,
   };
 }
 
@@ -216,6 +217,8 @@ function handle(
       return clipEnded(state, action.cycleId, action.clipToken, ctx, note);
     case "clip_failed":
       return clipFailed(state, action.cycleId, action.clipToken, ctx, note);
+    case "cycle_ended":
+      return cycleEnded(state, action.cycleId, ctx, note, action.intact);
     case "tick":
       return tick(state, ctx, note);
     case "complete_test_cycle":
@@ -785,6 +788,27 @@ function queueMayRelease(state: GameState): boolean {
   return true;
 }
 
+/** TV finished the whole standby ring locally, without reporting every clip. */
+function cycleEnded(
+  state: GameState,
+  cycleId: string,
+  ctx: Ctx,
+  note: (type: string, summary: string) => void,
+  intact?: boolean,
+): "ok" | "ignore" {
+  if (state.playback.cycleId !== cycleId) return "ignore";
+  if (state.playback.mode !== "standby" && state.playback.mode !== "static") return "ignore";
+  if (intact === false) state.playback.cycleIntact = false;
+  if (queueMayRelease(state)) {
+    beginAnnouncement(state, ctx, note);
+    return "ok";
+  }
+  const broken = !state.playback.cycleIntact;
+  beginStandby(state, ctx, false);
+  if (broken) note("cycle", "Bojāts cikls pabeigts bez izsaukuma");
+  return "ok";
+}
+
 /** True while a prepared call is waiting for the current standby ring, or the empty-library test cycle. */
 export function waitingForStandbyLoop(state: GameState): boolean {
   if (!state.queue || state.phase !== "QUEUED") return false;
@@ -939,6 +963,7 @@ function releaseTv(state: GameState, ctx: Ctx) {
     cycleIntact: true,
     failureRounds: 0,
     clipFailures: 0,
+    cycleStartedAt: iso(ctx.now),
   };
   state.testCycleDeadline = playlist.length === 0 ? iso(ctx.now + TEST_CYCLE_MS) : null;
 }
@@ -962,6 +987,7 @@ function beginStandby(
     cycleIntact: keep?.cycleIntact !== false,
     failureRounds: keep?.failureRounds ?? 0,
     clipFailures: 0,
+    cycleStartedAt: iso(ctx.now),
   };
   state.testCycleDeadline = playlist.length === 0 ? iso(ctx.now + TEST_CYCLE_MS) : null;
   if (state.queue) state.queue.armedCycleId = state.playback.cycleId;

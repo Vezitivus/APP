@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { PinField } from "@/components/pin-field";
 import type { PlayerState } from "@/lib/game/project";
-import { api, savePlayerToken, useClock, usePoll } from "@/lib/client/poll";
+import { POLL_MS, api, savePlayerToken, useClock, useFeedReload, usePoll } from "@/lib/client/poll";
 
 export function PlayerHome() {
-  const poll = usePoll<{ game: PlayerState }>("/api/player/state", 2500);
+  const poll = usePoll<{ game: PlayerState }>("/api/player/state", POLL_MS.player);
+  useFeedReload(poll.reload);
   const [name, setName] = useState("");
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");

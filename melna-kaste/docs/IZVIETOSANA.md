@@ -20,7 +20,7 @@ Free projekts var tikt apturēts pēc nedēļas bez aktivitātes. Pirms pasākum
 
 ## 3. Cloudflare Workers
 
-Izvietošana ir no mapes `melna-kaste`. Adapteris ir `@opennextjs/cloudflare`. Workers Free plānā saspiestais Worker nedrīkst pārsniegt **3 MiB**. Pēc `npm run cf:build` komanda `npx wrangler deploy --dry-run` izdrukā rindu `gzip:`. Skaitās tikai saspiestais izmērs, nevis statiskie faili.
+Izvietošana ir no mapes `melna-kaste`. Adapteris ir `@opennextjs/cloudflare`. Workers Free plānā saspiestais Worker nedrīkst pārsniegt **3 MiB**, un dienā ir **100 000 izsaukumu** (sk. [BEZMAKSAS_LIMITI.md](./BEZMAKSAS_LIMITI.md)). Pēc `npm run cf:build` komanda `npx wrangler deploy --dry-run` izdrukā rindu `gzip:`. Skaitās tikai saspiestais izmērs, nevis statiskie faili.
 
 1. Izveido Cloudflare kontu un neieslēdz Workers Paid.
 2. Pieslēdz Wrangler šim kontam:

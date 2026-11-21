@@ -12,7 +12,7 @@ Avots: [Hobby](https://vercel.com/docs/plans/hobby), [Limits](https://vercel.com
 - Līdz 100 deploy dienā.
 - Hobby ir personīgiem projektiem. Ja par pasākumu ņem naudu, izlasi Vercel plāna noteikumus pirms publiskošanas.
 
-Viena vakara aptuvena slodze: TV, režija un 20 telefonu ik pēc 1,5–2,5 sekundēm sešas stundas ir daži simti tūkstošu izsaukumu. Tas ievietojas 1 000 000, bet aktīva izstrāde visu mēnesi plus vairāki vakari var tuvoties robežai. Tāpēc TV aptauja nav biežāka par 1,5 sekundēm, un pulkstenis starp aptaujām iet klienta pusē no servera termiņa.
+Produkcija ir uz Cloudflare Workers, nevis Vercel. Zemāk ir Workers Free 100 000 pieprasījumu dienā slodzes tāme.
 
 ## Supabase Free
 
@@ -43,3 +43,43 @@ Praktiski vienam TV: 25 kredīti tikai HD pārraidei ir aptuveni 6250 sekundes, 
 - viens TV, nevis vairāki ekrāni ar tiem pašiem video.
 
 Ja kredītu nepietiek visam vakaram, īstais bezmaksas risinājums ir īsāki un mazākas izšķirtspējas faili, nevis kluss pāreja uz maksas plānu.
+
+
+## Cloudflare Workers Free
+
+Avots: [Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/), [Static Assets](https://developers.cloudflare.com/workers/static-assets/).
+
+- 0 USD. **100 000 Worker izsaukumu dienā**. Pārsniegums aptur API līdz UTC pusnaktij (ziemā 02:00 pēc Rīgas laika), nevis automātiski pāriet uz maksas plānu.
+- Statiskie faili (`/_next/static`, fonti, `public`) iet caur Workers Static Assets ar `run_worker_first: false` un **neskaitās** kā Worker izsaukumi. Video nāk tieši no Cloudinary, ne caur Worker.
+- Hyperdrive ir bezmaksas plānā; katra stāvokļa aptauja tomēr ir arī Worker izsaukums un datubāzes vaicājums, tāpēc aptaujas ir retas.
+
+### Vecā slodze (pirms samazināšanas)
+
+Aptaujas gāja arī slēptā cilnē, bez pauzes:
+
+| Klients | Intervāls | Pieprasījumi stundā |
+|---|---:|---:|
+| 1 TV `/api/tv/state` | 1,5 s | 2 400 |
+| 1 TV `clip_ended` katram ~15 s klipam | katrs klips | ~240 |
+| 1 režija `/api/admin/state` | 2 s | 1 800 |
+| 20 telefoni `/api/player/state` (un katru reizi `markSeen` + `tick`) | 2,5 s | 28 800 |
+| **Kopā** | | **~33 200 / stundā** |
+
+Sešu stundu vakars: **aptuveni 200 000** izsaukumu, plus lapu HTML un jebkāda izstrāde. Tas pārsniedz 100 000 dienas limitu.
+
+### Jaunā slodze
+
+Stāvokļa izmaiņas (Izsaukt, pievienošanās, QR, Turpināt) nāk caur Supabase Realtime pie `tv_feed` — tas nav Worker izsaukums. Worker aptauja ir tikai rezerves, un **tikai redzamā cilnē**. TV pašu standby riņķi ritina lokāli un serverim ziņo tikai riņķa beigās, ievada/izsaukuma/beigu klipa beigās vai kļūmē.
+
+| Klients | Intervāls (redzama cilne) | Pieprasījumi stundā (sliktākais gadījums, cilne visu laiku redzama) |
+|---|---:|---:|
+| 1 TV rezerve | 15 s standby, 5 s ievada/izsaukuma laikā (~20% vakara) | ~340 |
+| 1 TV `cycle_ended` / ievada ziņojumi | ~1 reize / 5 min + reti notikumi | ~20 |
+| 1 režija rezerve | 10 s | 360 |
+| 20 telefoni rezerve | 25 s | 2 880 |
+| Lapu atvēršana (HTML/API, bez `_next/static`) | pāris reizes vakarā | < 50 / vakars |
+| **Kopā** | | **aptuveni 3 600 / stundā** |
+
+Sešu stundu vakars (1 TV, 1 režija, 20 telefoni, cilnes paliek atvērtas): **aptuveni 22 000** sliktākajā gadījumā. Ja daļa telefonu ir aizvērti vai fonā (aptauja apstājas), tipisks vakars paliek **ap 15 000–20 000**, krietni zem 25 000 mērķa un 100 000 dienas limita.
+
+Durable Objects / WebSocket netiek lietoti: paliekam pie jau ieslēgtā Supabase Realtime (Free) un retas aptaujas, bez jaunas maksas resursu pieslēgšanas.
