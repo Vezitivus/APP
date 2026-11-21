@@ -214,7 +214,7 @@ function StandbySlots({ slots }: { slots: AdminState["standbySlots"] }) {
     <section className="card" id="standby-video">
       <h2>Standby video</h2>
       <p className="quiet">
-        Divdesmit vietas secībā no 1 līdz 20. Cloudinary public ID ir <code>melna-kaste/standby/1</code> … <code>melna-kaste/standby/20</code>, fails <code>1.mp4</code> … <code>20.mp4</code>.
+        Visus video liec vienā mapē <code>melna-kaste</code>. Vietas 1–20 ir faili <code>1.mp4</code> … <code>20.mp4</code>, pārējos atpazīst pēc vārda.
         Tukšā vieta tiek izlaista. Ja jaunā faila nav, vecais <code>standby_01.mp4</code> aizpilda to pašu vietu.
       </p>
       <p>{present.length ? `Riņķis: ${order}` : "Nav neviena standby video. TV paliek melns, un testa cikls ilgst 20 sekundes."}</p>

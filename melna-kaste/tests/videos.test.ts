@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { cardById } from "../src/lib/game/cards";
-import { filenameForCloudinaryAsset, filenameFromPublicId, isCloudinaryDeliveryUrl, resolveCallVideo, standbyPlaylist, standbySlots } from "../src/lib/game/videos";
+import { classifyCloudinaryAsset, filenameForCloudinaryAsset, filenameFromPublicId, folderHintFromPath, isCloudinaryDeliveryUrl, resolveCallVideo, standbyPlaylist, standbySlots } from "../src/lib/game/videos";
 import { video } from "./helpers";
 
 describe("video piesaiste", () => {
@@ -62,6 +62,34 @@ describe("video piesaiste", () => {
     );
     expect(filenameForCloudinaryAsset("special", { displayName: "special_global_vote_ab12cd" })).toBe("special_global_vote.mp4");
     expect(filenameForCloudinaryAsset("special", { publicId: "melna-kaste/special/special_open" })).toBe("special_open.mp4");
+  });
+
+  it("vienā mapē šķiro video pēc vārda, nevis pēc apakšmapes", () => {
+    expect(folderHintFromPath("melna-kaste")).toBeNull();
+    expect(folderHintFromPath("melna-kaste/standby")).toBe("standby");
+    expect(folderHintFromPath("melna-kaste/calls/izsaukums_flash")).toBe("calls");
+    expect(folderHintFromPath("melna-kaste/special")).toBe("special");
+
+    expect(classifyCloudinaryAsset({ displayName: "1", publicId: "1_xk3abc" })).toEqual({ folder: "standby", filename: "1.mp4" });
+    expect(classifyCloudinaryAsset({ displayName: "10.mp4", publicId: "rnd" })).toEqual({ folder: "standby", filename: "10.mp4" });
+    expect(classifyCloudinaryAsset({ originalFilename: "standby_02", publicId: "aa11" })).toEqual({ folder: "standby", filename: "standby_02.mp4" });
+    expect(classifyCloudinaryAsset({ publicId: "10_abc123" })).toEqual({ folder: "standby", filename: "10.mp4" });
+    expect(classifyCloudinaryAsset({ displayName: "izsaukums_flash_x7k2", originalFilename: "izsaukums_flash" })).toEqual({
+      folder: "calls",
+      filename: "izsaukums_flash.mp4",
+    });
+    expect(classifyCloudinaryAsset({ displayName: "special_global_vote_ab12cd", originalFilename: "special_global_vote" })).toEqual({
+      folder: "special",
+      filename: "special_global_vote.mp4",
+    });
+    expect(classifyCloudinaryAsset({ displayName: "special_open", publicId: "rnd" })).toEqual({ folder: "special", filename: "special_open.mp4" });
+    expect(classifyCloudinaryAsset({ originalFilename: "izsaukums_my_party", publicId: "rndpublic" })).toEqual({
+      folder: "calls",
+      filename: "izsaukums_my_party.mp4",
+    });
+    expect(classifyCloudinaryAsset({ displayName: "upload_test_delete_me", publicId: "unknown" })).toBeNull();
+    expect(classifyCloudinaryAsset({ publicId: "21_abc123" })).toBeNull();
+    expect(classifyCloudinaryAsset({ publicId: "21_abc123" }, "standby")).toEqual({ folder: "standby", filename: "21_abc123.mp4" });
   });
 
   it("izmanto uzdevuma, tad kategorijas, tad universālo video", () => {

@@ -61,7 +61,7 @@ export function VideoLibrary() {
         {message ? <p>{message}</p> : null}
         <section className="card" id="standby-video">
           <h2>Standby video</h2>
-          <p className="quiet">Vietas 1–20. Failu sauc <code>1.mp4</code> … <code>20.mp4</code> un liec mapē <code>melna-kaste/standby</code>. Public ID var būt nejaušs. Secība ir pēc cipara, nevis pēc burtiem.</p>
+          <p className="quiet">Visus video liec mapē <code>melna-kaste</code>. Vietas 1–20 sauc <code>1.mp4</code> … <code>20.mp4</code>. Public ID var būt nejaušs. Secība ir pēc cipara, nevis pēc burtiem. Izsaukumus un īpašos video atpazīst pēc faila vārda tajā pašā mapē.</p>
           <p>{data?.standby.length ? `Riņķis: ${data.standby.map((video) => video.filename.replace(/\.mp4$/i, "")).join(" → ")}` : "Nav neviena standby video. TV būs melns, kamēr video nav."}</p>
           <div className="slots">
             {data?.slots?.map((slot) => (

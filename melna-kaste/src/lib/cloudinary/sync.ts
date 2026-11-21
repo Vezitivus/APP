@@ -1,13 +1,15 @@
 import { Buffer } from "node:buffer";
-import { filenameForCloudinaryAsset, isCloudinaryDeliveryUrl } from "@/lib/game/videos";
+import { classifyCloudinaryAsset, folderHintFromPath, isCloudinaryDeliveryUrl } from "@/lib/game/videos";
 import type { VideoAsset } from "@/lib/game/types";
 import { serverEnv } from "@/lib/server/env";
 
-const FOLDERS = ["standby", "calls", "special"] as const;
+const ROOT_FOLDER = "melna-kaste";
+const LEGACY_FOLDERS = ["standby", "calls", "special"] as const;
 const MAX_PAGES = 20;
 
 interface CloudinaryResource {
   public_id?: string;
+  asset_folder?: string;
   secure_url?: string;
   bytes?: number;
   width?: number;
@@ -29,10 +31,10 @@ export function cloudinaryConfigured(): boolean {
 }
 
 /**
- * Fixed-folder accounts keep the folder in public_id, listed with `prefix`.
- * Dynamic-folder accounts (Cloudinary signups after June 2024) keep the
- * Media Library path in `asset_folder`. `by_asset_folder` is 404 on a
- * fixed-folder product environment, so both listings are merged.
+ * New accounts keep every video in asset_folder `melna-kaste` and classify
+ * by name. Older accounts that used `melna-kaste/standby|calls|special`
+ * (fixed public-id prefixes or dynamic subfolders) are still listed and
+ * merged. `by_asset_folder` is 404 on a fixed-folder product environment.
  */
 export async function listCloudinaryVideos(): Promise<VideoAsset[]> {
   const cloud = serverEnv("CLOUDINARY_CLOUD_NAME") ?? "";
@@ -40,33 +42,33 @@ export async function listCloudinaryVideos(): Promise<VideoAsset[]> {
   const secret = serverEnv("CLOUDINARY_API_SECRET") ?? "";
   if (!cloud || !key || !secret) throw new Error("Cloudinary nav konfigurēts");
   const auth = Buffer.from(`${key}:${secret}`).toString("base64");
-  const [prefixed, byFolder] = await Promise.all([
-    Promise.all(FOLDERS.map((folder) => listByPrefix(cloud, auth, folder))),
-    Promise.all(FOLDERS.map((folder) => listByAssetFolder(cloud, auth, folder))),
+  const [prefixed, prefixedRoot, byLegacyFolder, byRoot] = await Promise.all([
+    Promise.all(LEGACY_FOLDERS.map((folder) => listByPrefix(cloud, auth, `${ROOT_FOLDER}/${folder}/`))),
+    listByPrefix(cloud, auth, `${ROOT_FOLDER}/`),
+    Promise.all(LEGACY_FOLDERS.map((folder) => listByAssetFolder(cloud, auth, `${ROOT_FOLDER}/${folder}`))),
+    listByAssetFolder(cloud, auth, ROOT_FOLDER),
   ]);
   const merged = new Map<string, VideoAsset>();
-  FOLDERS.forEach((folder, index) => {
-    for (const resource of prefixed[index] ?? []) {
-      const asset = toAsset(resource, folder, cloud);
+  const ingest = (resources: CloudinaryResource[], hinted?: VideoAsset["folder"] | null) => {
+    for (const resource of resources) {
+      const asset = toAsset(resource, cloud, hinted);
       if (asset) merged.set(asset.publicId, asset);
     }
-  });
+  };
+  LEGACY_FOLDERS.forEach((folder, index) => ingest(prefixed[index] ?? [], folder));
+  ingest(prefixedRoot);
   // Media Library folder wins when the same public id is also matched by prefix.
-  FOLDERS.forEach((folder, index) => {
-    for (const resource of byFolder[index] ?? []) {
-      const asset = toAsset(resource, folder, cloud);
-      if (asset) merged.set(asset.publicId, asset);
-    }
-  });
+  LEGACY_FOLDERS.forEach((folder, index) => ingest(byLegacyFolder[index] ?? [], folder));
+  ingest(byRoot);
   return [...merged.values()];
 }
 
-async function listByPrefix(cloud: string, auth: string, folder: (typeof FOLDERS)[number]): Promise<CloudinaryResource[]> {
-  return listPages(cloud, auth, "resources/video/upload", { prefix: `melna-kaste/${folder}/`, resource_type: "video" }, false);
+async function listByPrefix(cloud: string, auth: string, prefix: string): Promise<CloudinaryResource[]> {
+  return listPages(cloud, auth, "resources/video/upload", { prefix, resource_type: "video" }, false);
 }
 
-async function listByAssetFolder(cloud: string, auth: string, folder: (typeof FOLDERS)[number]): Promise<CloudinaryResource[]> {
-  return listPages(cloud, auth, "resources/by_asset_folder", { asset_folder: `melna-kaste/${folder}` }, true);
+async function listByAssetFolder(cloud: string, auth: string, assetFolder: string): Promise<CloudinaryResource[]> {
+  return listPages(cloud, auth, "resources/by_asset_folder", { asset_folder: assetFolder }, true);
 }
 
 async function listPages(
@@ -103,22 +105,26 @@ async function cloudinaryFetch(cloud: string, auth: string, path: string, params
   return fetch(url, { headers: { Authorization: `Basic ${auth}` }, cache: "no-store" });
 }
 
-function toAsset(resource: CloudinaryResource, folder: VideoAsset["folder"], cloud: string): VideoAsset | null {
+function toAsset(resource: CloudinaryResource, cloud: string, hinted?: VideoAsset["folder"] | null): VideoAsset | null {
   if (!resource.public_id || !resource.secure_url) return null;
   if (resource.resource_type && resource.resource_type !== "video") return null;
   if (resource.type && resource.type !== "upload") return null;
   if (!isCloudinaryDeliveryUrl(resource.secure_url, cloud)) return null;
-  const filename = filenameForCloudinaryAsset(folder, {
-    publicId: resource.public_id,
-    displayName: resource.display_name,
-    originalFilename: resource.original_filename,
-  });
-  if (!filename) return null;
+  const pathHint = hinted ?? folderHintFromPath(resource.asset_folder) ?? folderHintFromPath(resource.public_id);
+  const classified = classifyCloudinaryAsset(
+    {
+      publicId: resource.public_id,
+      displayName: resource.display_name,
+      originalFilename: resource.original_filename,
+    },
+    pathHint,
+  );
+  if (!classified) return null;
   return {
     id: resource.public_id,
     publicId: resource.public_id,
-    folder,
-    filename,
+    folder: classified.folder,
+    filename: classified.filename,
     url: resource.secure_url,
     bytes: typeof resource.bytes === "number" ? resource.bytes : null,
     width: typeof resource.width === "number" ? resource.width : null,
