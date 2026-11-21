@@ -168,6 +168,9 @@ function handle(
       return "ok";
     case "accelerate":
       return accelerate(state, ctx, note);
+    case "call_now":
+      callNow(state, ctx, note, action.playerId, action.cardId);
+      return "ok";
     case "skip":
       skip(state, ctx, note);
       return "ok";
@@ -219,6 +222,7 @@ function handle(
       return "ok";
     case "sync_videos":
       state.videos = action.videos;
+      realignPlayback(state, ctx);
       note("videos", `Video bibliotēka atjaunota (${action.videos.length})`);
       return "ok";
     case "audio_blocked":
@@ -477,6 +481,7 @@ function buildEvent(state: GameState, card: CardDef, playerId: string | null, ct
     outcome: null,
     isGlobal: card.category === "GLOBAL",
     tvHold: false,
+    armedCycleId: state.playback.cycleId,
   };
 }
 
@@ -488,6 +493,39 @@ function pickAutomaticCard(state: GameState, cards: CardDef[], eligibleCount: nu
   if (!picked) return null;
   state.usedCards[category] = picked.used;
   return picked.card;
+}
+
+function callNow(
+  state: GameState,
+  ctx: Ctx,
+  note: (type: string, summary: string) => void,
+  playerId?: string | null,
+  cardId?: string | null,
+) {
+  if (state.phase === "FINISHED") throw new GameError("finished", "Spēle ir pabeigta.");
+  if (state.phase === "LOBBY") throw new GameError("not_ready", "Vispirms jāsāk spēle.");
+  if (state.playback.mode === "intro") throw new GameError("not_ready", "Vispirms jāpabeidz sākuma video.");
+  if (
+    tvCallHeld(state) ||
+    state.playback.mode === "announcement" ||
+    state.phase === "ANNOUNCEMENT" ||
+    state.phase === "QR_WAITING" ||
+    state.phase === "CARD_CLAIMED" ||
+    state.phase === "ACTIVE_EVENT"
+  ) {
+    throw new GameError("not_ready", "Vispirms jāpabeidz aktīvais notikums.");
+  }
+  if (state.queue) {
+    const otherPlayer = Boolean(playerId && playerId !== state.queue.playerId);
+    const otherCard = Boolean(cardId && cardId !== state.queue.cardId);
+    if (otherPlayer || otherCard) {
+      throw new GameError("already_queued", "Izsaukums jau gaida riņķa beigas. Izsaukt bez jaunas izvēles to sāk uzreiz.");
+    }
+  } else {
+    prepare(state, ctx, note, playerId ?? null, cardId ?? null);
+  }
+  note("call_now", "Izsaukums sākts uzreiz, negaidot standby riņķi");
+  beginAnnouncement(state, ctx, note);
 }
 
 function accelerate(state: GameState, ctx: Ctx, note: (type: string, summary: string) => void): "ok" | "ignore" {
@@ -587,13 +625,28 @@ function clipEnded(
     state.playback.clipFailures = 0;
     return "ok";
   }
-  if (state.queue && state.playback.cycleIntact && state.phase === "QUEUED") {
+  // Only the ended event of the last clip in this cycle may open a queued call.
+  // A second TV, a reload, or a clip that was cut short by Izsaukt sends a token
+  // that no longer matches, so it cannot start a second call or skip ahead.
+  if (queueMayRelease(state)) {
     beginAnnouncement(state, ctx, note);
     return "ok";
   }
   beginStandby(state, ctx, false);
   if (!state.playback.cycleIntact) note("cycle", "Bojāts cikls pabeigts bez izsaukuma");
   return "ok";
+}
+
+function queueMayRelease(state: GameState): boolean {
+  if (!state.queue || state.phase !== "QUEUED" || !state.playback.cycleIntact) return false;
+  if (state.queue.armedCycleId && state.queue.armedCycleId !== state.playback.cycleId) return false;
+  return true;
+}
+
+/** True while a prepared call is waiting for the current standby ring, or the empty-library test cycle. */
+export function waitingForStandbyLoop(state: GameState): boolean {
+  if (!state.queue || state.phase !== "QUEUED") return false;
+  return state.playback.mode === "standby" || state.playback.mode === "static";
 }
 
 function clipFailed(
@@ -762,15 +815,50 @@ function beginStandby(
     clipFailures: 0,
   };
   state.testCycleDeadline = playlist.length === 0 ? iso(ctx.now + TEST_CYCLE_MS) : null;
+  if (state.queue) state.queue.armedCycleId = state.playback.cycleId;
   if (schedule) scheduleAuto(state, ctx);
 }
 
+/**
+ * Keep the playing clip when the library changes. A missing current clip
+ * restarts the ring and does not count as a finished loop, so a queued call
+ * still waits. The same clip keeps its token, so a refresh of the list does
+ * not restart the video.
+ */
+function realignPlayback(state: GameState, ctx: Ctx) {
+  if (state.playback.mode !== "standby" && state.playback.mode !== "static") return;
+  if (state.phase !== "STANDBY" && state.phase !== "QUEUED") return;
+  const playlist = standbyPlaylist(state.videos);
+  if (playlist.length === 0) {
+    if (state.playback.mode === "static") return;
+    beginStandby(state, ctx, false);
+    return;
+  }
+  if (state.playback.mode === "static") {
+    beginStandby(state, ctx, false);
+    return;
+  }
+  const idx = state.playback.clipId ? playlist.findIndex((clip) => clip.id === state.playback.clipId) : -1;
+  if (idx >= 0) {
+    state.playback.index = idx;
+    return;
+  }
+  if (state.playback.index < playlist.length) {
+    state.playback.clipId = playlist[state.playback.index]?.id ?? null;
+    state.playback.clipToken = ctx.id();
+    state.playback.clipFailures = 0;
+    state.playback.cycleIntact = false;
+    return;
+  }
+  beginStandby(state, ctx, false);
+}
+
 function tick(state: GameState, ctx: Ctx, note: (type: string, summary: string) => void): "ok" | "ignore" {
-  let missionsChanged = false;
+  let changed = false;
   for (const mission of state.missions) {
     if (mission.status === "active" && Date.parse(mission.deadlineAt) <= ctx.now) {
       mission.status = "expired";
-      missionsChanged = true;
+      changed = true;
       note("mission_expire", "Slepenās misijas laiks beidzās");
     }
   }
@@ -786,13 +874,14 @@ function tick(state: GameState, ctx: Ctx, note: (type: string, summary: string) 
     try {
       prepare(state, ctx, note, null, null);
       note("auto", "Intervāls sagatavoja nākamo izsaukumu");
+      changed = true;
     } catch (error) {
       if (error instanceof GameError) {
         warn(state, ctx, error.message);
         state.nextAutoAt = iso(ctx.now + 60_000);
+        changed = true;
       } else throw error;
     }
-    return "ok";
   }
   if (
     state.playback.mode === "static" &&
@@ -802,7 +891,7 @@ function tick(state: GameState, ctx: Ctx, note: (type: string, summary: string) 
   ) {
     return runVirtualCycle(state, ctx, note);
   }
-  return missionsChanged ? "ok" : "ignore";
+  return changed ? "ok" : "ignore";
 }
 
 function completeTestCycle(state: GameState, ctx: Ctx, note: (type: string, summary: string) => void): "ok" | "ignore" {
@@ -812,7 +901,7 @@ function completeTestCycle(state: GameState, ctx: Ctx, note: (type: string, summ
 }
 
 function runVirtualCycle(state: GameState, ctx: Ctx, note: (type: string, summary: string) => void): "ok" {
-  if (state.queue && state.phase === "QUEUED") {
+  if (state.queue && state.phase === "QUEUED" && queueMayRelease(state)) {
     note("test_cycle", "Testa cikls pabeigts");
     beginAnnouncement(state, ctx, note);
     return "ok";

@@ -129,7 +129,21 @@ export function AdminPanel() {
             <h2>Izsaukums ekrānā</h2>
             <p>{game.active.playerName ?? "Dalībnieks"} — {game.active.cardTitle}</p>
             <button className="btn continue" type="button" onClick={() => void send({ type: "continue_tv" })}>Turpināt</button>
-            <p className="quiet">Ekrāns paliek, kamēr nospied. Pēc tam TV rāda tikai standby no pirmā video. Ja kartīte jau ir atvērta, uzdevums telefonā paliek.</p>
+            <p className="quiet">Ekrāns paliek, kamēr nospied. Pēc tam TV rāda tikai standby no pirmā esošā video. Ja kartīte jau ir atvērta, uzdevums telefonā paliek.</p>
+          </section>
+        ) : null}
+
+        {game.waitingForLoop && game.queue ? (
+          <section className="continue-banner">
+            <p className="kicker">Rindā</p>
+            <h2>Gaida, kamēr beigsies standby riņķis</h2>
+            <p>{game.queue.playerName ?? "Visi"} — {game.queue.cardTitle}</p>
+            <p className="quiet">
+              {game.playback.total
+                ? `Automātiskais izsaukums sāksies tikai pēc pēdējā video šajā riņķī. Tagad ir ${game.playback.current ?? "—"}, vieta ${game.playback.index + 1}/${game.playback.total}.`
+                : "Nav standby video. Izsaukums sāksies, kad beigsies testa cikls. Izsaukt to sāk uzreiz."}
+            </p>
+            <button className="btn continue" type="button" onClick={() => void send({ type: "call_now" })}>Izsaukt</button>
           </section>
         ) : null}
 
@@ -140,7 +154,7 @@ export function AdminPanel() {
             <button className="btn-ghost" type="button" onClick={() => void send({ type: "skip" })}>Izlaist</button>
             <Swap players={game.players} onSwap={(playerId) => void send({ type: "swap_player", playerId })} />
           </div>
-          <p className="quiet">Paātrināt sagatavo nākamo notikumu, negaidot intervālu. Izlaist noņem notikumu, un TV to nepaskaidro. TV izsaukums pats nepazūd — to aizver Turpināt. Taustiņi N un S.</p>
+          <p className="quiet">Paātrināt sagatavo nākamo notikumu, negaidot intervālu, un gaida standby riņķa beigas. Izsaukt sāk uzreiz un pārtrauc video. Izlaist noņem notikumu, un TV to nepaskaidro. TV izsaukums pats nepazūd — to aizver Turpināt. Taustiņi N un S.</p>
         </section>
 
         <section className="card">
@@ -159,7 +173,10 @@ export function AdminPanel() {
         <section className="card">
           <h2>Šobrīd</h2>
           <p>Video: {game.playback.current ?? "nav"} · {game.playback.total ? `${game.playback.index + 1}/${game.playback.total}` : "melns ekrāns"} · nākamais {game.playback.next ?? "—"}</p>
-          <p>{game.queue ? `Rindā: ${game.queue.playerName ?? "visi"} — ${game.queue.cardTitle} (${game.queue.videoLevel})` : "Rindā nekā nav."}</p>
+          <p>
+            {game.waitingForLoop ? "Gaida, kamēr beigsies standby riņķis. " : null}
+            {game.queue ? `Rindā: ${game.queue.playerName ?? "visi"} — ${game.queue.cardTitle} (${game.queue.videoLevel})` : "Rindā nekā nav."}
+          </p>
           {game.queue?.cardSummary ? <p>{game.queue.cardSummary}</p> : null}
           <p>{game.active ? `Aktīvi: ${game.active.playerName ?? "visi"} — ${game.active.cardTitle}` : "Nav aktīva izsaukuma."}</p>
           {game.active?.cardSummary ? <p>{game.active.cardSummary}</p> : null}
@@ -176,6 +193,7 @@ export function AdminPanel() {
           ) : null}
         </section>
 
+        <StandbySlots slots={game.standbySlots} />
         <Prepare game={game} onSend={send} />
         <Players game={game} onSend={send} onTest={() => void send({ type: "add_test_players" })} codes={codes} />
         <Settings game={game} onSend={send} />
@@ -186,6 +204,30 @@ export function AdminPanel() {
         </section>
       </div>
     </main>
+  );
+}
+
+function StandbySlots({ slots }: { slots: AdminState["standbySlots"] }) {
+  const present = slots.filter((slot) => slot.present);
+  const order = present.map((slot) => slot.slot).join(" → ");
+  return (
+    <section className="card" id="standby-video">
+      <h2>Standby video</h2>
+      <p className="quiet">
+        Divdesmit vietas secībā no 1 līdz 20. Cloudinary public ID ir <code>melna-kaste/standby/1</code> … <code>melna-kaste/standby/20</code>, fails <code>1.mp4</code> … <code>20.mp4</code>.
+        Tukšā vieta tiek izlaista. Ja jaunā faila nav, vecais <code>standby_01.mp4</code> aizpilda to pašu vietu.
+      </p>
+      <p>{present.length ? `Riņķis: ${order}` : "Nav neviena standby video. TV paliek melns, un testa cikls ilgst 20 sekundes."}</p>
+      <div className="slots">
+        {slots.map((slot) => (
+          <div key={slot.slot} className={`slot${slot.present ? " present" : " missing"}${slot.current ? " playing" : ""}`}>
+            <strong>{slot.slot}</strong>
+            <span className="mark">{slot.current ? "tagad" : slot.present ? "ir" : "trūkst"}</span>
+            <span className="quiet">{slot.filename ?? slot.expectedFilename}</span>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -239,7 +281,9 @@ function Prepare({ game, onSend }: { game: AdminState; onSend: (body: object) =>
       </div>
       <div className="row">
         <button className="btn" type="button" onClick={() => void onSend({ type: "prepare", playerId: playerId || null, cardId: cardId || null })}>Sagatavot</button>
+        <button className="btn" type="button" disabled={Boolean(game.queue)} onClick={() => void onSend({ type: "call_now", playerId: playerId || null, cardId: cardId || null })}>Izsaukt</button>
       </div>
+      <p className="quiet">Sagatavot liek izsaukumu rindā un gaida visu standby riņķi. Izsaukt pārtrauc video un sāk uzreiz. Ja izsaukums jau gaida, poga ir pie rindas paziņojuma.</p>
       <div className="row">
         {globals.map((card) => <button className="btn-ghost" type="button" key={card.id} onClick={() => void onSend({ type: "activate_global", cardId: card.id })}>{card.title}</button>)}
       </div>

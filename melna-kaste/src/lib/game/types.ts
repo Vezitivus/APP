@@ -110,6 +110,11 @@ export interface LiveEvent {
   isIntro?: boolean;
   /** When true, TV keeps the framed call until the host presses Turpināt. */
   tvHold?: boolean;
+  /**
+   * Standby cycle that must finish before this queued call may start.
+   * Missing on older snapshots: the current cycle is then allowed to release it.
+   */
+  armedCycleId?: string;
 }
 
 export interface Mission {
@@ -226,6 +231,7 @@ export type Action =
   | { type: "set_auto"; enabled: boolean }
   | { type: "prepare"; playerId?: string | null; cardId?: string | null }
   | { type: "accelerate" }
+  | { type: "call_now"; playerId?: string | null; cardId?: string | null }
   | { type: "skip" }
   | { type: "continue_tv" }
   | { type: "swap_player"; playerId: string }

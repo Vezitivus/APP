@@ -2,6 +2,22 @@
 
 Vārdi un kartīšu ID nemainās. Faili atrodas mapē `melna-kaste/calls/`, ja nav rakstīts citādi.
 
+## Standby
+
+Divdesmit vietas. Fails saucas tikai ar ciparu, bez `standby_` priekšā.
+
+| Vieta | Public ID | Fails |
+| --- | --- | --- |
+| 1 | `melna-kaste/standby/1` | `1.mp4` |
+| 2 | `melna-kaste/standby/2` | `2.mp4` |
+| … | … | … |
+| 10 | `melna-kaste/standby/10` | `10.mp4` |
+| 20 | `melna-kaste/standby/20` | `20.mp4` |
+
+Secība ir pēc cipara: 1, 2, 3, …, 9, 10, 11, …, 20. Nav 1, 10, 2. Tukša vieta tiek izlaista. Pēc izsaukuma riņķis sākas no mazākā esošā cipara.
+
+Vecais vārds joprojām der tai pašai vietai, ja jaunā faila nav: `standby_01.mp4` ir 1. vieta, `standby_10.mp4` ir 10. vieta. Ja mapē ir gan `1.mp4`, gan `standby_01.mp4`, tiek atskaņots `1.mp4`.
+
 | Uzdevums | ID | Fails |
 | --- | --- | --- |
 | Pārdod nepārdodamo | `sales_pitch` | `izsaukums_sales_pitch.mp4` |
@@ -32,7 +48,5 @@ Vārdi un kartīšu ID nemainās. Faili atrodas mapē `melna-kaste/calls/`, ja n
 Kopīgie notikumi: `global_vote`, `global_duel`, `global_truths`, `global_team`, `global_talent`, `global_rematch`.
 
 Katram var būt `melna-kaste/special/special_<id>.mp4` vai `melna-kaste/calls/izsaukums_<id>.mp4`.
-
-Standby: `melna-kaste/standby/standby_01.mp4`, `standby_02.mp4`, …
 
 Sākums un beigas: `melna-kaste/special/special_open.mp4`, `special_end.mp4`.

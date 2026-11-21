@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { cardById } from "../src/lib/game/cards";
-import { isCloudinaryDeliveryUrl, resolveCallVideo, standbyPlaylist } from "../src/lib/game/videos";
+import { filenameFromPublicId, isCloudinaryDeliveryUrl, resolveCallVideo, standbyPlaylist, standbySlots } from "../src/lib/game/videos";
 import { video } from "./helpers";
 
 describe("video piesaiste", () => {
@@ -13,6 +13,33 @@ describe("video piesaiste", () => {
       video({ folder: "standby", filename: "standby_01.mp4" }),
     ]);
     expect(playlist.map((item) => item.filename)).toEqual(["standby_01.mp4", "standby_02.mp4", "standby_10.mp4"]);
+  });
+
+  it("ciparu vārdi 1…20 ir secībā, un vecais vārds aizpilda tukšu vietu", () => {
+    const playlist = standbyPlaylist([
+      video({ folder: "standby", filename: "10.mp4" }),
+      video({ folder: "standby", filename: "2.mp4" }),
+      video({ folder: "standby", filename: "1.mp4" }),
+      video({ folder: "standby", filename: "standby_01.mp4" }),
+      video({ folder: "standby", filename: "standby_03.mp4" }),
+      video({ folder: "standby", filename: "21.mp4" }),
+      video({ folder: "standby", filename: "notes.mp4" }),
+      video({ folder: "calls", filename: "4.mp4" }),
+    ]);
+    expect(playlist.map((item) => item.filename)).toEqual(["1.mp4", "2.mp4", "standby_03.mp4", "10.mp4"]);
+    const slots = standbySlots([
+      video({ folder: "standby", filename: "10.mp4" }),
+      video({ folder: "standby", filename: "01.mp4" }),
+    ]);
+    expect(slots).toHaveLength(20);
+    expect(slots.filter((slot) => slot.present).map((slot) => slot.slot)).toEqual([1, 10]);
+    expect(slots[0]).toMatchObject({ slot: 1, present: true, filename: "01.mp4", expectedFilename: "1.mp4" });
+    expect(slots[1]).toMatchObject({ slot: 2, present: false, filename: null, expectedFilename: "2.mp4" });
+    expect(slots[19].slot).toBe(20);
+    expect(filenameFromPublicId("melna-kaste/standby/1")).toBe("1.mp4");
+    expect(filenameFromPublicId("melna-kaste/standby/10")).toBe("10.mp4");
+    expect(filenameFromPublicId("melna-kaste/standby/standby_01")).toBe("standby_01.mp4");
+    expect(filenameFromPublicId("melna-kaste/standby/..")).toBeNull();
   });
 
   it("izmanto uzdevuma, tad kategorijas, tad universālo video", () => {

@@ -1,7 +1,7 @@
 import { cardById, catalog } from "./cards";
-import { specialEnd, standbyPlaylist } from "./videos";
+import { specialEnd, standbyPlaylist, standbySlots } from "./videos";
 import type { GameState, Mission, Perk, Phase, Player } from "./types";
-import { publicPhase, tvCallHeld } from "./engine";
+import { publicPhase, tvCallHeld, waitingForStandbyLoop } from "./engine";
 
 export interface TvState {
   version: number;
@@ -191,6 +191,14 @@ export interface AdminState {
   audioBlocked: boolean;
   nextAutoAt: string | null;
   testCycleDeadline: string | null;
+  waitingForLoop: boolean;
+  standbySlots: {
+    slot: number;
+    expectedFilename: string;
+    present: boolean;
+    filename: string | null;
+    current: boolean;
+  }[];
   catalog: { id: string; title: string; category: string; minPlayers: number; videoFile: string }[];
   joinPath: string;
 }
@@ -278,6 +286,14 @@ export function toAdminState(state: GameState, now: number): AdminState {
     audioBlocked: state.audioBlocked,
     nextAutoAt: state.nextAutoAt,
     testCycleDeadline: state.testCycleDeadline,
+    waitingForLoop: waitingForStandbyLoop(state),
+    standbySlots: standbySlots(state.videos).map((slot) => ({
+      slot: slot.slot,
+      expectedFilename: slot.expectedFilename,
+      present: slot.present,
+      filename: slot.filename,
+      current: state.playback.mode === "standby" && Boolean(current && slot.filename && slot.filename === current.filename),
+    })),
     catalog: catalog(state.customCards).map((card) => ({
       id: card.id,
       title: card.title,
