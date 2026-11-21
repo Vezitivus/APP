@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { PinField } from "@/components/pin-field";
 import { api, savePlayerToken } from "@/lib/client/poll";
-import { useEffect } from "react";
 
 interface View {
   status: string;
@@ -20,7 +20,7 @@ interface View {
 export function MissionCard({ token }: { token: string }) {
   const [view, setView] = useState<View | null>(null);
   const [name, setName] = useState("");
-  const [code, setCode] = useState("");
+  const [pin, setPin] = useState("");
   const [error, setError] = useState("");
 
   async function load() {
@@ -34,7 +34,7 @@ export function MissionCard({ token }: { token: string }) {
     event.preventDefault();
     const result = await api<{ token?: string; error?: { message?: string } }>("/api/player/recover", {
       method: "POST",
-      body: JSON.stringify({ name, code }),
+      body: JSON.stringify({ name, pin }),
     });
     if (!result.body.token) setError(result.body.error?.message ?? "Neizdevās");
     else {
@@ -61,7 +61,7 @@ export function MissionCard({ token }: { token: string }) {
           <p className="kicker">Privātā kartīte</p>
           <h1>Apstiprini, ka esi izsauktais</h1>
           <label>Vārds<input value={name} onChange={(event) => setName(event.target.value)} required /></label>
-          <label>Atjaunošanas kods<input value={code} onChange={(event) => setCode(event.target.value.toUpperCase())} required /></label>
+          <PinField label="Savs PIN" value={pin} onChange={setPin} />
           {error ? <p className="warn">{error}</p> : null}
           <button className="btn" type="submit">Turpināt</button>
         </form>

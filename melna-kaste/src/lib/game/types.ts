@@ -58,7 +58,9 @@ export interface Player {
   name: string;
   publicName: string;
   sessionHash: string;
-  recoveryHash: string;
+  pinHash: string;
+  pinFailedAttempts: number;
+  pinLockedUntil: string | null;
   callCount: number;
   eligible: boolean;
   removed: boolean;
@@ -212,19 +214,19 @@ export interface ApplyResult {
   error?: { code: string; message: string };
   ignored?: boolean;
   issued?: {
-    testPlayers?: { id: string; name: string; recoveryCode: string }[];
-    recoveryCode?: string;
+    testPlayers?: { id: string; name: string }[];
     playerId?: string;
   };
 }
 
 export type Action =
-  | { type: "add_player"; name: string; sessionHash: string; recoveryHash: string }
+  | { type: "add_player"; name: string; sessionHash: string; pinHash: string }
   | { type: "rename_player"; playerId: string; name: string }
   | { type: "remove_player"; playerId: string }
   | { type: "set_eligible"; playerId: string; eligible: boolean }
-  | { type: "add_test_players"; players: { sessionHash: string; recoveryHash: string; recoveryCode: string }[] }
-  | { type: "reissue_recovery"; playerId: string; recoveryHash: string; recoveryCode: string }
+  | { type: "add_test_players"; players: { sessionHash: string; pinHash: string }[] }
+  | { type: "reset_pin"; playerId: string; pinHash: string }
+  | { type: "pin_failed"; playerId: string }
   | { type: "rotate_session"; playerId: string; sessionHash: string }
   | { type: "update_settings"; patch: Partial<Settings> }
   | { type: "activate" }

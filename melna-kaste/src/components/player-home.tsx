@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { PinField } from "@/components/pin-field";
 import type { PlayerState } from "@/lib/game/project";
 import { api, savePlayerToken, useClock, usePoll } from "@/lib/client/poll";
 
 export function PlayerHome() {
   const poll = usePoll<{ game: PlayerState }>("/api/player/state", 2500);
   const [name, setName] = useState("");
-  const [code, setCode] = useState("");
+  const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const game = poll.data?.game;
   const now = useClock(game?.serverNow);
@@ -16,7 +17,7 @@ export function PlayerHome() {
     event.preventDefault();
     const result = await api<{ token?: string; error?: { message?: string } }>("/api/player/recover", {
       method: "POST",
-      body: JSON.stringify({ name, code }),
+      body: JSON.stringify({ name, pin }),
     });
     if (result.status >= 400 || !result.body.token) setError(result.body.error?.message ?? "Neizdevās");
     else {
@@ -40,9 +41,9 @@ export function PlayerHome() {
       <main className="home">
         <form className="frame" onSubmit={recover}>
           <p className="kicker">Mans telefons</p>
-          <h1>Atjaunot sesiju</h1>
+          <h1>Atvērt savu kartīti</h1>
           <label>Vārds<input value={name} onChange={(event) => setName(event.target.value)} required /></label>
-          <label>Atjaunošanas kods<input value={code} onChange={(event) => setCode(event.target.value.toUpperCase())} required /></label>
+          <PinField label="Savs PIN" value={pin} onChange={setPin} autoComplete="off" />
           {error || poll.error ? <p className="warn">{error || poll.error}</p> : null}
           <button className="btn" type="submit">Atvērt</button>
         </form>
@@ -76,6 +77,7 @@ export function PlayerHome() {
             {perk.status === "available" ? <button className="btn" type="button" onClick={() => void act({ type: "request_perk", perkId: perk.id })}>Lūgt apstiprināt</button> : null}
           </article>
         ))}
+        <ChangePin onDone={() => void poll.reload()} />
       </div>
     </main>
   );
@@ -125,5 +127,49 @@ function CardForm({ game, onAct }: { game: PlayerState; onAct: (body: object) =>
       ) : null}
       <button className="btn-ghost" type="button" onClick={() => void onAct({ type: "decline" })}>Atteikties</button>
     </article>
+  );
+}
+
+function ChangePin({ onDone }: { onDone: () => void }) {
+  const [oldPin, setOldPin] = useState("");
+  const [newPin, setNewPin] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState("");
+  const [ok, setOk] = useState(false);
+
+  async function submit(event: React.FormEvent) {
+    event.preventDefault();
+    if (newPin !== confirm) {
+      setOk(false);
+      setError("Jaunā PIN apstiprinājums nesakrīt.");
+      return;
+    }
+    const result = await api<{ error?: { message?: string } }>("/api/player/pin", {
+      method: "POST",
+      body: JSON.stringify({ oldPin, newPin }),
+    });
+    if (result.status >= 400) {
+      setOk(false);
+      setError(result.body.error?.message ?? "Neizdevās nomainīt PIN");
+      return;
+    }
+    setOldPin("");
+    setNewPin("");
+    setConfirm("");
+    setError("");
+    setOk(true);
+    onDone();
+  }
+
+  return (
+    <form className="card" onSubmit={submit}>
+      <h2>Mainīt PIN</h2>
+      <PinField label="Esošais PIN" value={oldPin} onChange={setOldPin} autoComplete="off" />
+      <PinField label="Jaunais PIN" value={newPin} onChange={setNewPin} autoComplete="new-password" />
+      <PinField label="Atkārto jauno PIN" value={confirm} onChange={setConfirm} autoComplete="new-password" />
+      {error ? <p className="warn">{error}</p> : null}
+      {ok ? <p className="quiet">PIN nomainīts.</p> : null}
+      <button className="btn-ghost" type="submit">Saglabāt PIN</button>
+    </form>
   );
 }

@@ -14,6 +14,7 @@ import {
   type LiveEvent,
   type Phase,
   type Playback,
+  type Player,
   type Settings,
 } from "./types";
 import { resolveCallVideo, specialEnd, specialOpen, standbyPlaylist } from "./videos";
@@ -81,6 +82,14 @@ export function createGame(input: { id: string; code: string; now: number }): Ga
 export function normalizeGame(state: GameState): GameState {
   if (typeof state.started !== "boolean") state.started = state.phase !== "LOBBY";
   if (typeof state.joinOpen !== "boolean") state.joinOpen = false;
+  for (const player of state.players ?? []) {
+    const raw = player as Player & { recoveryHash?: string };
+    if (!raw.pinHash && raw.recoveryHash) raw.pinHash = raw.recoveryHash;
+    delete raw.recoveryHash;
+    if (!raw.pinHash) raw.pinHash = "";
+    if (typeof raw.pinFailedAttempts !== "number" || raw.pinFailedAttempts < 0) raw.pinFailedAttempts = 0;
+    if (raw.pinLockedUntil === undefined) raw.pinLockedUntil = null;
+  }
   return state;
 }
 
@@ -113,7 +122,7 @@ function handle(
 ): "ok" | "ignore" {
   switch (action.type) {
     case "add_player":
-      addPlayer(state, action.name, action.sessionHash, action.recoveryHash, ctx, note);
+      addPlayer(state, action.name, action.sessionHash, action.pinHash, ctx, note);
       return "ok";
     case "rename_player":
       renamePlayer(state, action.playerId, action.name, note);
@@ -127,17 +136,22 @@ function handle(
     case "add_test_players":
       addTestPlayers(state, action.players, ctx, note, issued);
       return "ok";
-    case "reissue_recovery": {
+    case "reset_pin": {
       const player = requirePlayer(state, action.playerId);
-      player.recoveryHash = action.recoveryHash;
-      issued.recoveryCode = action.recoveryCode;
+      setPlayerPin(player, action.pinHash);
       issued.playerId = player.id;
-      note("recovery", `Atjaunošanas kods nomainīts: ${player.publicName}`);
+      note("pin", `PIN nomainīts: ${player.publicName}`);
+      return "ok";
+    }
+    case "pin_failed": {
+      const player = requirePlayer(state, action.playerId);
+      recordPinFailure(player, ctx);
       return "ok";
     }
     case "rotate_session": {
       const player = requirePlayer(state, action.playerId);
       player.sessionHash = action.sessionHash;
+      clearPinLock(player);
       note("session", `Sesija atjaunota: ${player.publicName}`);
       return "ok";
     }
@@ -273,7 +287,7 @@ function addPlayer(
   state: GameState,
   name: string,
   sessionHash: string,
-  recoveryHash: string,
+  pinHash: string,
   ctx: Ctx,
   note: (type: string, summary: string) => void,
 ) {
@@ -281,12 +295,14 @@ function addPlayer(
   if (!state.joinOpen) throw new GameError("not_ready", "Pievienošanās tagad nav atvērta.");
   const clean = sanitizeName(name);
   if (!clean) throw new GameError("invalid", "Vārdam jābūt no 1 līdz 24 simboliem.");
-  const player = {
+  const player: Player = {
     id: ctx.id(),
     name: clean,
     publicName: uniquePublicName(clean, state.players),
     sessionHash,
-    recoveryHash,
+    pinHash,
+    pinFailedAttempts: 0,
+    pinLockedUntil: null,
     callCount: 0,
     eligible: true,
     removed: false,
@@ -295,6 +311,38 @@ function addPlayer(
   };
   state.players.push(player);
   note("join", `Pievienojās ${player.publicName}`);
+}
+
+export function findPlayersByName(state: GameState, name: string): Player[] {
+  const clean = sanitizeName(name);
+  if (!clean) return [];
+  const wanted = clean.toLocaleLowerCase("lv");
+  return state.players.filter(
+    (item) =>
+      !item.removed &&
+      (item.publicName.toLocaleLowerCase("lv") === wanted || item.name.toLocaleLowerCase("lv") === wanted),
+  );
+}
+
+export function isPinLocked(player: Player, now: number): boolean {
+  return Boolean(player.pinLockedUntil && Date.parse(player.pinLockedUntil) > now);
+}
+
+function setPlayerPin(player: Player, pinHash: string) {
+  player.pinHash = pinHash;
+  clearPinLock(player);
+}
+
+function clearPinLock(player: Player) {
+  player.pinFailedAttempts = 0;
+  player.pinLockedUntil = null;
+}
+
+function recordPinFailure(player: Player, ctx: Ctx) {
+  player.pinFailedAttempts += 1;
+  if (player.pinFailedAttempts >= 5) {
+    player.pinLockedUntil = iso(ctx.now + 15 * 60 * 1000);
+  }
 }
 
 function renamePlayer(state: GameState, playerId: string, name: string, note: (type: string, summary: string) => void) {
@@ -341,7 +389,7 @@ function setEligible(state: GameState, playerId: string, eligible: boolean, note
 
 function addTestPlayers(
   state: GameState,
-  secrets: { sessionHash: string; recoveryHash: string; recoveryCode: string }[],
+  secrets: { sessionHash: string; pinHash: string }[],
   ctx: Ctx,
   note: (type: string, summary: string) => void,
   issued: NonNullable<ApplyResult["issued"]>,
@@ -350,9 +398,9 @@ function addTestPlayers(
   issued.testPlayers = [];
   TEST_PLAYER_NAMES.forEach((name, index) => {
     const before = state.players.length;
-    addPlayer(state, name, secrets[index].sessionHash, secrets[index].recoveryHash, ctx, note);
+    addPlayer(state, name, secrets[index].sessionHash, secrets[index].pinHash, ctx, note);
     const player = state.players[before];
-    issued.testPlayers?.push({ id: player.id, name: player.publicName, recoveryCode: secrets[index].recoveryCode });
+    issued.testPlayers?.push({ id: player.id, name: player.publicName });
   });
 }
 

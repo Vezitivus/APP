@@ -4,7 +4,10 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { AdminState } from "@/lib/game/project";
 import { AUTO_CATEGORIES } from "@/lib/game/types";
+import { PinField } from "@/components/pin-field";
 import { api, useClock, usePoll } from "@/lib/client/poll";
+
+type AdminSend = (body: object) => Promise<{ status: number } | void>;
 
 const PHASES: Record<string, string> = {
   LOBBY: "Uzgaidāmā telpa",
@@ -22,7 +25,6 @@ export function AdminPanel() {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [tvUrl, setTvUrl] = useState("");
-  const [codes, setCodes] = useState<{ name: string; recoveryCode: string }[]>([]);
   const [resetArmed, setResetArmed] = useState(false);
   const game = poll.data?.game ?? null;
   const clock = useClock(game?.serverNow);
@@ -39,19 +41,18 @@ export function AdminPanel() {
   }, []);
 
   async function send(body: object) {
-    const result = await api<{ error?: { message?: string }; tvUrl?: string; testPlayers?: { name: string; recoveryCode: string }[]; recoveryCode?: string }>(
+    const result = await api<{ error?: { message?: string }; tvUrl?: string }>(
       "/api/admin/action",
       { method: "POST", body: JSON.stringify(body) },
     );
-    if (result.status === 401) return;
+    if (result.status === 401) return result;
     if (result.status >= 400) setMessage(result.body.error?.message ?? "Neizdevās");
     else {
-      setMessage("");
+      setMessage(body && typeof body === "object" && "type" in body && body.type === "reset_pin" ? "PIN nomainīts." : "");
       if (result.body.tvUrl) setTvUrl(result.body.tvUrl);
-      if (result.body.testPlayers) setCodes(result.body.testPlayers);
-      if (result.body.recoveryCode) setMessage(`Jaunais atjaunošanas kods: ${result.body.recoveryCode}`);
     }
     await poll.reload();
+    return result;
   }
 
   async function login(event: React.FormEvent) {
@@ -208,7 +209,7 @@ export function AdminPanel() {
 
         <StandbySlots slots={game.standbySlots} />
         <Prepare game={game} onSend={send} />
-        <Players game={game} onSend={send} codes={codes} />
+        <Players game={game} onSend={send} />
         <Settings game={game} onSend={send} />
         <Missions game={game} onSend={send} />
         <section className="card">
@@ -270,7 +271,7 @@ function Winner({ players, onPick }: { players: AdminState["players"]; onPick: (
   );
 }
 
-function Prepare({ game, onSend }: { game: AdminState; onSend: (body: object) => Promise<void> }) {
+function Prepare({ game, onSend }: { game: AdminState; onSend: AdminSend }) {
   const [playerId, setPlayerId] = useState("");
   const [cardId, setCardId] = useState("");
   const globals = game.catalog.filter((card) => card.category === "GLOBAL");
@@ -304,11 +305,10 @@ function Prepare({ game, onSend }: { game: AdminState; onSend: (body: object) =>
   );
 }
 
-function Players({ game, onSend, codes }: { game: AdminState; onSend: (body: object) => Promise<void>; codes: { name: string; recoveryCode: string }[] }) {
+function Players({ game, onSend }: { game: AdminState; onSend: AdminSend }) {
   return (
     <section className="card">
       <h2>Dalībnieki</h2>
-      {codes.length ? <ul>{codes.map((code) => <li key={code.recoveryCode}>{code.name}: {code.recoveryCode}</li>)}</ul> : null}
       {game.players.map((player) => (
         <PlayerRow key={player.id} player={player} onSend={onSend} />
       ))}
@@ -316,27 +316,59 @@ function Players({ game, onSend, codes }: { game: AdminState; onSend: (body: obj
   );
 }
 
-function PlayerRow({ player, onSend }: { player: AdminState["players"][number]; onSend: (body: object) => Promise<void> }) {
+function PlayerRow({ player, onSend }: { player: AdminState["players"][number]; onSend: AdminSend }) {
   const [name, setName] = useState(player.name);
+  const [pin, setPin] = useState("");
+  const [pinConfirm, setPinConfirm] = useState("");
+  const [pinError, setPinError] = useState("");
+  const [pinOk, setPinOk] = useState(false);
   if (player.removed) return <p className="quiet">{player.publicName} ir izņemts</p>;
+
+  async function resetPin(event: React.FormEvent) {
+    event.preventDefault();
+    if (pin !== pinConfirm) {
+      setPinOk(false);
+      setPinError("PIN apstiprinājums nesakrīt.");
+      return;
+    }
+    const result = await onSend({ type: "reset_pin", playerId: player.id, pin });
+    if (!result || result.status >= 400) {
+      setPinOk(false);
+      setPinError("PIN neizdevās nomainīt.");
+      return;
+    }
+    setPin("");
+    setPinConfirm("");
+    setPinError("");
+    setPinOk(true);
+  }
+
   return (
-    <div className="player">
-      <div>
-        <strong>{player.publicName}</strong>
-        <div className="quiet">{player.online ? "tiešsaistē" : "nav nesen redzēts"} · izsaukumi {player.callCount}</div>
+    <div className="player-block">
+      <div className="player">
+        <div>
+          <strong>{player.publicName}</strong>
+          <div className="quiet">{player.online ? "tiešsaistē" : "nav nesen redzēts"} · izsaukumi {player.callCount}</div>
+        </div>
+        <input aria-label={`Vārds ${player.publicName}`} value={name} onChange={(event) => setName(event.target.value)} />
+        <button className="btn-ghost" type="button" onClick={() => void onSend({ type: "rename_player", playerId: player.id, name })}>Labot</button>
+        <div className="row">
+          <button className="btn-ghost" type="button" onClick={() => void onSend({ type: "set_eligible", playerId: player.id, eligible: !player.eligible })}>{player.eligible ? "Neaicināt" : "Aicināt"}</button>
+          <button className="btn-danger" type="button" onClick={() => void onSend({ type: "remove_player", playerId: player.id })}>Izņemt</button>
+        </div>
       </div>
-      <input aria-label={`Vārds ${player.publicName}`} value={name} onChange={(event) => setName(event.target.value)} />
-      <button className="btn-ghost" type="button" onClick={() => void onSend({ type: "rename_player", playerId: player.id, name })}>Labot</button>
-      <div className="row">
-        <button className="btn-ghost" type="button" onClick={() => void onSend({ type: "set_eligible", playerId: player.id, eligible: !player.eligible })}>{player.eligible ? "Neaicināt" : "Aicināt"}</button>
-        <button className="btn-ghost" type="button" onClick={() => void onSend({ type: "reissue_recovery", playerId: player.id })}>Jauns kods</button>
-        <button className="btn-danger" type="button" onClick={() => void onSend({ type: "remove_player", playerId: player.id })}>Izņemt</button>
-      </div>
+      <form className="pin-reset" onSubmit={(event) => void resetPin(event)}>
+        <PinField label="Jaunais PIN" value={pin} onChange={setPin} />
+        <PinField label="Atkārto PIN" value={pinConfirm} onChange={setPinConfirm} />
+        <button className="btn-ghost" type="submit">Nomainīt PIN</button>
+        {pinError ? <p className="warn">{pinError}</p> : null}
+        {pinOk ? <p className="quiet">PIN nomainīts. Tas netiek rādīts.</p> : null}
+      </form>
     </div>
   );
 }
 
-function Settings({ game, onSend }: { game: AdminState; onSend: (body: object) => Promise<void> }) {
+function Settings({ game, onSend }: { game: AdminState; onSend: AdminSend }) {
   const [min, setMin] = useState(String(Math.round(game.settings.minIntervalSec / 60)));
   const [max, setMax] = useState(String(Math.round(game.settings.maxIntervalSec / 60)));
   const [mission, setMission] = useState(String(Math.round(game.settings.missionSeconds / 60)));
@@ -385,7 +417,7 @@ function Settings({ game, onSend }: { game: AdminState; onSend: (body: object) =
   );
 }
 
-function Missions({ game, onSend }: { game: AdminState; onSend: (body: object) => Promise<void> }) {
+function Missions({ game, onSend }: { game: AdminState; onSend: AdminSend }) {
   return (
     <section className="card">
       <h2>Misijas un priekšrocības</h2>

@@ -364,6 +364,14 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
 }
 .lines { max-width: 70vw; font-size: clamp(1.15rem, 2.2vw, 1.8rem); color: var(--ink); margin: 0.6vh auto; }
 .frame .code + .btn { margin-top: 28px; }
+.pin-field { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.pin-field input { letter-spacing: 0.35em; font-variant-numeric: tabular-nums; }
+.pin-toggle { width: auto; padding: 10px 12px; }
+.player-block { padding: 12px 0; border-top: 1px solid rgba(255, 255, 255, 0.06); }
+.player-block .player { border-top: 0; padding: 0; }
+.pin-reset { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; align-items: end; margin-top: 10px; }
+.pin-reset .btn-ghost { justify-self: start; }
+.frame .quiet { margin-top: 18px; }
 .gate-box { width: min(480px, 92vw); }
 .sound { position: absolute; bottom: 24px; right: 24px; z-index: 5; }
 

@@ -5,7 +5,7 @@ Viss paliek pasūtītāja kontos. Šis repozitorijs nesatur paroles. Neieslēdz 
 ## 1. Supabase
 
 1. Izveido projektu organizācijā ar Free plānu. Reģions: tuvākais Eiropai, piemēram Frankfurt.
-2. SQL Editor → New query → ielīmē `supabase/migrations/0001_init.sql` → Run.
+2. SQL Editor → New query → ielīmē `supabase/migrations/0001_init.sql` → Run. Vēlākos atjauninājumus (piemēram, `0002_player_pin.sql`) palaid tāpat, pēc kārtas.
 3. Project Settings → Database → Connection string → **Transaction pooler** (ports 6543). Tas ir `DATABASE_URL`.
 4. Project Settings → API. Nokopē Project URL un `anon` `public` atslēgu. **Nekopē `service_role` atslēgu lietotnē.** Tā nav vajadzīga, un tā apiet drošības politikas.
 
@@ -103,9 +103,9 @@ Vercel cron, kas reizi dienā vaicā `/api/health`, uz Cloudflare nepārceļas. 
 
 1. Atver `/admin`, ieej ar `ADMIN_PASSWORD`, izveido spēli.
 2. Atver doto TV saiti citā logā un nospied **Aktivizēt TV**.
-3. Ar telefonu noskenē uzgaidāmās telpas QR. Ievadi vārdu. Atkārto ar otru telefonu.
-4. Režijā sāc spēli, pievieno sešus testa dalībniekus, sagatavo kartīti un pārbaudi QR citā pārlūkā ar atjaunošanas kodu.
-5. Pārbaudi, ka svešs vārds un kods kartīti neatver.
+3. Ar telefonu noskenē uzgaidāmās telpas QR. Ievadi vārdu un izvēlies 4 ciparu PIN. Atkārto ar otru telefonu.
+4. Režijā sāc spēli, sagatavo kartīti un pārbaudi QR citā pārlūkā ar vārdu un PIN.
+5. Pārbaudi, ka svešs vārds un PIN kartīti neatver, un ka režija PIN tekstu neredz.
 
 Publiskās adreses pēc deploy:
 
