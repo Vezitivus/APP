@@ -442,4 +442,90 @@ describe("spēles norise un taimeri", () => {
     const tv = JSON.stringify(toTvState(state, NOW));
     expect(tv).not.toContain(state.players[0].publicName);
   });
+
+  it("ciparu standby riņķis iet 1, 2, 10, un automātika gaida pēdējo", () => {
+    let state = addPair(game(NOW), NOW);
+    const clips = [10, 2, 1].map((slot) => video({ folder: "standby", filename: `${slot}.mp4` }));
+    state = act(state, { type: "sync_videos", videos: clips }, ctx(NOW)).state;
+    state = act(state, { type: "update_settings", patch: { minIntervalSec: 60, maxIntervalSec: 60 } }, ctx(NOW)).state;
+    state = act(state, { type: "start" }, ctx(NOW, () => 0)).state;
+    expect(state.playback.clipId).toBe("1.mp4");
+    const playing = { cycleId: state.playback.cycleId, clipToken: state.playback.clipToken };
+    const due = Date.parse(state.nextAutoAt!);
+    state = act(state, { type: "tick" }, ctx(due, () => 0)).state;
+    expect(state.phase).toBe("QUEUED");
+    expect(state.playback).toMatchObject({ mode: "standby", clipId: "1.mp4", clipToken: playing.clipToken });
+    const admin = toAdminState(state, due);
+    expect(admin.waitingForLoop).toBe(true);
+    expect(admin.standbySlots).toHaveLength(20);
+    expect(admin.standbySlots.filter((slot) => slot.present).map((slot) => slot.slot)).toEqual([1, 2, 10]);
+    expect(admin.standbySlots[0].current).toBe(true);
+    expect(admin.standbySlots[2].present).toBe(false);
+    expect(toTvState(state, due).screen.kind).toBe("standby");
+    const duplicate = apply(state, { type: "clip_ended", ...playing }, ctx(due));
+    state = duplicate.state;
+    expect(state.phase).toBe("QUEUED");
+    expect(state.playback.clipId).toBe("2.mp4");
+    const again = apply(state, { type: "clip_ended", ...playing }, ctx(due));
+    expect(again.ignored).toBe(true);
+    expect(again.state.playback.clipId).toBe("2.mp4");
+    state = act(state, { type: "clip_ended", cycleId: state.playback.cycleId, clipToken: state.playback.clipToken }, ctx(due)).state;
+    expect(state.phase).toBe("QUEUED");
+    expect(state.playback.clipId).toBe("10.mp4");
+    const reloaded = state.playback.clipToken;
+    state = act(state, { type: "clip_ended", cycleId: state.playback.cycleId, clipToken: reloaded }, ctx(due)).state;
+    expect(state.phase === "ANNOUNCEMENT" || state.phase === "QR_WAITING").toBe(true);
+    expect(state.playback.mode).not.toBe("standby");
+  });
+
+  it("Izsaukt sāk uzreiz, un pārtrauktais klips vairs nevar atvērt otru izsaukumu", () => {
+    let state = addPair(game(NOW), NOW);
+    state = act(
+      state,
+      {
+        type: "sync_videos",
+        videos: [1, 2, 3].map((slot) => video({ folder: "standby", filename: `${slot}.mp4` })).concat([
+          video({ folder: "calls", filename: "izsaukums_look.mp4" }),
+        ]),
+      },
+      ctx(NOW),
+    ).state;
+    state = act(state, { type: "start" }, ctx(NOW)).state;
+    state = act(state, { type: "prepare", cardId: "look", playerId: state.players[0].id }, ctx(NOW)).state;
+    const pending = { cycleId: state.playback.cycleId, clipToken: state.playback.clipToken };
+    state = act(state, { type: "call_now" }, ctx(NOW)).state;
+    expect(state.phase).toBe("ANNOUNCEMENT");
+    expect(state.playback.mode).toBe("announcement");
+    expect(state.queue).toBeNull();
+    expect(toAdminState(state, NOW).waitingForLoop).toBe(false);
+    const stale = apply(state, { type: "clip_ended", ...pending }, ctx(NOW + 10));
+    expect(stale.ignored).toBe(true);
+    expect(stale.state.phase).toBe("ANNOUNCEMENT");
+    expect(stale.state.playback.mode).toBe("announcement");
+  });
+
+  it("bez video testa cikls vēl gaida, bet Izsaukt nesagaida", () => {
+    let state = addPair(game(NOW), NOW);
+    state = act(state, { type: "start" }, ctx(NOW)).state;
+    state = act(state, { type: "prepare", cardId: "look", playerId: state.players[0].id }, ctx(NOW + 1000)).state;
+    expect(toAdminState(state, NOW + 1000).waitingForLoop).toBe(true);
+    const early = apply(state, { type: "tick" }, ctx(NOW + TEST_CYCLE_MS - 1));
+    expect(early.ignored).toBe(true);
+    expect(early.state.phase).toBe("QUEUED");
+    state = act(state, { type: "call_now" }, ctx(NOW + 1500)).state;
+    expect(state.phase).toBe("QR_WAITING");
+    expect(state.playback.mode).toBe("hold");
+  });
+
+  it("bibliotēkas atjaunošana nepārstartē pašreizējo klipu", () => {
+    let state = addPair(game(NOW), NOW);
+    const clips = [1, 2].map((slot) => video({ folder: "standby", filename: `${slot}.mp4` }));
+    state = act(state, { type: "sync_videos", videos: clips }, ctx(NOW)).state;
+    state = act(state, { type: "start" }, ctx(NOW)).state;
+    const token = state.playback.clipToken;
+    state = act(state, { type: "sync_videos", videos: clips }, ctx(NOW + 5)).state;
+    expect(state.playback.clipToken).toBe(token);
+    expect(state.playback.clipId).toBe("1.mp4");
+    expect(state.playback.index).toBe(0);
+  });
 });

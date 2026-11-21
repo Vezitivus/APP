@@ -1,5 +1,5 @@
 import { Buffer } from "node:buffer";
-import { isCloudinaryDeliveryUrl } from "@/lib/game/videos";
+import { filenameFromPublicId, isCloudinaryDeliveryUrl } from "@/lib/game/videos";
 import type { VideoAsset } from "@/lib/game/types";
 import { serverEnv } from "@/lib/server/env";
 
@@ -48,9 +48,8 @@ export async function listCloudinaryVideos(): Promise<VideoAsset[]> {
 function toAsset(resource: CloudinaryResource, folder: VideoAsset["folder"], cloud: string): VideoAsset | null {
   if (!resource.public_id || !resource.secure_url) return null;
   if (!isCloudinaryDeliveryUrl(resource.secure_url, cloud)) return null;
-  const leaf = resource.public_id.split("/").pop() ?? "";
-  if (!leaf || leaf.includes("..")) return null;
-  const filename = leaf.toLowerCase().endsWith(".mp4") ? leaf : `${leaf}.mp4`;
+  const filename = filenameFromPublicId(resource.public_id);
+  if (!filename) return null;
   return {
     id: resource.public_id,
     publicId: resource.public_id,

@@ -7,6 +7,7 @@ import { api, usePoll } from "@/lib/client/poll";
 interface Library {
   videos: { id: string; folder: string; filename: string; url: string; durationSeconds: number | null }[];
   standby: { filename: string; url: string }[];
+  slots: { slot: number; expectedFilename: string; present: boolean; filename: string | null; current: boolean }[];
   expected: { folder: string; filename: string; title: string; cardId: string | null; present: boolean }[];
   error?: { message?: string };
 }
@@ -58,10 +59,19 @@ export function VideoLibrary() {
         <h1>Bibliotēka</h1>
         <button className="btn" type="button" onClick={() => void sync()}>Atjaunot no Cloudinary</button>
         {message ? <p>{message}</p> : null}
-        <section className="card">
-          <h2>Standby secība</h2>
-          <ol>{data?.standby.map((video) => <li key={video.filename}>{video.filename}</li>)}</ol>
-          {!data?.standby.length ? <p className="quiet">Nav neviena standby_01.mp4 stila faila. TV būs melns, kamēr video nav.</p> : null}
+        <section className="card" id="standby-video">
+          <h2>Standby video</h2>
+          <p className="quiet">Vietas 1–20. Public ID <code>melna-kaste/standby/1</code> … <code>20</code>. Secība ir pēc cipara, nevis pēc burtiem.</p>
+          <p>{data?.standby.length ? `Riņķis: ${data.standby.map((video) => video.filename.replace(/\.mp4$/i, "")).join(" → ")}` : "Nav neviena standby video. TV būs melns, kamēr video nav."}</p>
+          <div className="slots">
+            {data?.slots?.map((slot) => (
+              <div key={slot.slot} className={`slot${slot.present ? " present" : " missing"}${slot.current ? " playing" : ""}`}>
+                <strong>{slot.slot}</strong>
+                <span className="mark">{slot.current ? "tagad" : slot.present ? "ir" : "trūkst"}</span>
+                <span className="quiet">{slot.filename ?? slot.expectedFilename}</span>
+              </div>
+            ))}
+          </div>
         </section>
         <section className="card">
           <h2>Sagaidāmie faili</h2>

@@ -10,13 +10,23 @@ Augšupielādē tieši šajās mapēs (Media Library vai Upload API):
 - `melna-kaste/calls/` — izsaukuma video
 - `melna-kaste/special/` — sākums, noslēgums un kopīgie notikumi
 
-Public ID piemērs: `melna-kaste/standby/standby_01`.
+Public ID piemērs: `melna-kaste/standby/1`.
 
 ## Standby vārdi
 
-`standby_01.mp4`, `standby_02.mp4`, `standby_03.mp4`, … Numurs var būt 2 vai 3 cipari. Secība vienmēr ir pēc numura, neatkarīgi no garuma. Nejaušas secības nav. `standby_10.mp4` nāk pēc `standby_09.mp4`.
+Divdesmit vietas. Fails saucas tikai ar ciparu:
 
-Pēc katra izsaukuma cikls sākas no `standby_01.mp4`.
+`1.mp4`, `2.mp4`, `3.mp4`, …, `10.mp4`, …, `20.mp4`.
+
+Public ID ir `melna-kaste/standby/1` … `melna-kaste/standby/20`. Garums var būt jebkāds. Secība vienmēr ir pēc cipara, nevis pēc burtiem: pēc `9.mp4` nāk `10.mp4`, nevis `1.mp4` vēlreiz un nevis kaut kas starpā. Nejaušas secības nav. Tukša vieta tiek izlaista, pārējie iet tālāk.
+
+Režijā sadaļa **Standby video** rāda visas 20 vietas: kuras ir, kuru trūkst, un kurš klips šobrīd skan.
+
+Pēc katra izsaukuma riņķis sākas no mazākā esošā cipara. Ja ir `1.mp4`, tas ir pirmais.
+
+Vecais vārds joprojām aizpilda to pašu vietu, ja jaunā faila nav: `standby_01.mp4` ir 1. vieta, `standby_10.mp4` ir 10. vieta. Ja ir abi, tiek ņemts `1.mp4`.
+
+Automātiskais izsaukums nesākas klipa vidū un nesākas arī tad, kad beidzas tikai pašreizējais klips. Tas gaida, līdz noskan pēdējais video šajā riņķī. Režijā tad rakstīts **Gaida, kamēr beigsies standby riņķis**. Poga **Izsaukt** ir izņēmums: tā sāk izsaukumu uzreiz.
 
 ## Izsaukumi
 
