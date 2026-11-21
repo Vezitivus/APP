@@ -48,13 +48,14 @@ function captureFrame(video: HTMLVideoElement | null, canvas: HTMLCanvasElement 
   }
 }
 
-function waitUntil(video: HTMLVideoElement, ok: () => boolean, events: string[], signal: { cancelled: boolean }): Promise<boolean> {
+function waitUntil(video: HTMLVideoElement, ok: () => boolean, events: string[], signal: { cancelled: boolean }, timeoutMs = 1500): Promise<boolean> {
   if (ok()) return Promise.resolve(true);
   return new Promise((resolve) => {
     let done = false;
     const finish = (value: boolean) => {
       if (done) return;
       done = true;
+      window.clearTimeout(timer);
       for (const event of events) video.removeEventListener(event, onEvent);
       video.removeEventListener("error", onError);
       resolve(value);
@@ -64,38 +65,46 @@ function waitUntil(video: HTMLVideoElement, ok: () => boolean, events: string[],
       if (ok()) finish(true);
     };
     const onError = () => finish(false);
+    const timer = window.setTimeout(() => finish(!signal.cancelled && ok()), timeoutMs);
     for (const event of events) video.addEventListener(event, onEvent);
     video.addEventListener("error", onError);
     if (ok()) finish(true);
   });
 }
 
-function waitForDecodedFrame(video: HTMLVideoElement, signal: { cancelled: boolean }): Promise<boolean> {
+function hasPaintedFrame(video: HTMLVideoElement): boolean {
+  return !video.paused && video.readyState >= 2 && video.videoWidth > 0 && Number.isFinite(video.currentTime);
+}
+
+function waitForDecodedFrame(video: HTMLVideoElement, signal: { cancelled: boolean }, timeoutMs = 400): Promise<boolean> {
+  if (hasPaintedFrame(video) && video.currentTime > 0) return Promise.resolve(true);
   const rvfc = (
     video as HTMLVideoElement & { requestVideoFrameCallback?: (callback: () => void) => number }
   ).requestVideoFrameCallback;
-  if (typeof rvfc === "function") {
-    return new Promise((resolve) => {
-      let settled = false;
-      const finish = (value: boolean) => {
-        if (settled) return;
-        settled = true;
-        resolve(value);
-      };
-      const id = rvfc.call(video, () => finish(!signal.cancelled));
-      video.addEventListener(
-        "error",
-        () => {
-          if (typeof video.cancelVideoFrameCallback === "function" && typeof id === "number") {
-            video.cancelVideoFrameCallback(id);
-          }
-          finish(false);
-        },
-        { once: true },
-      );
-    });
-  }
-  return waitUntil(video, () => !signal.cancelled && !video.paused && video.readyState >= 2, ["playing", "canplay", "loadeddata"], signal);
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (value: boolean) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timer);
+      video.removeEventListener("playing", onReady);
+      video.removeEventListener("canplay", onReady);
+      video.removeEventListener("loadeddata", onReady);
+      video.removeEventListener("error", onError);
+      resolve(value);
+    };
+    const onReady = () => {
+      if (!signal.cancelled && hasPaintedFrame(video)) finish(true);
+    };
+    const onError = () => finish(false);
+    const timer = window.setTimeout(() => finish(!signal.cancelled && hasPaintedFrame(video)), timeoutMs);
+    if (typeof rvfc === "function") {
+      rvfc.call(video, () => finish(!signal.cancelled && hasPaintedFrame(video)));
+    }
+    for (const event of ["playing", "canplay", "loadeddata"] as const) video.addEventListener(event, onReady);
+    video.addEventListener("error", onError);
+    onReady();
+  });
 }
 
 function runCrossfade(incoming: HTMLVideoElement, outgoing: HTMLVideoElement, signal: { cancelled: boolean }): Promise<void> {
@@ -176,10 +185,6 @@ export function TvPicture(props: {
   function holdFrame(video: HTMLVideoElement | null) {
     if (!video) return;
     captureFrame(video, canvasRef.current);
-    if (video.ended || (Number.isFinite(video.duration) && video.duration - video.currentTime <= 0.05)) {
-      freezeLastFrame(video);
-      captureFrame(video, canvasRef.current);
-    }
   }
 
   async function playLayer(video: HTMLVideoElement, muted: boolean, loop: boolean) {
@@ -270,6 +275,9 @@ export function TvPicture(props: {
     const incoming = idleLayer(next);
     if (!incoming) return false;
     swapLock.current = true;
+    let follow: string | null = null;
+    let succeeded = false;
+    try {
     holdFrame(outgoing);
     const cycleId = outgoing.dataset.cycle ?? propsRef.current.cycleId;
     const clipToken = outgoing.dataset.token ?? propsRef.current.clipToken;
@@ -301,7 +309,7 @@ export function TvPicture(props: {
     }
     if (!ok || signal.cancelled) {
       holdFrame(outgoing);
-      if (!ready()) await waitUntil(incoming, ready, ["canplaythrough", "canplay", "loadeddata"], signal);
+      if (!ready()) await waitUntil(incoming, ready, ["canplaythrough", "canplay", "loadeddata"], signal, 800);
     }
     if (signal.cancelled || incoming.readyState < 2) {
       swapLock.current = false;
@@ -312,6 +320,8 @@ export function TvPicture(props: {
     incoming.dataset.token = propsRef.current.clipToken;
     incoming.loop = propsRef.current.loop;
     holdFrame(outgoing);
+    incoming.style.opacity = "0.01";
+    incoming.style.filter = "none";
     const started = await playLayer(incoming, true, propsRef.current.loop);
     if (!started || signal.cancelled) {
       holdFrame(outgoing);
@@ -336,17 +346,20 @@ export function TvPicture(props: {
     frontIndex.current = index >= 0 ? index : frontIndex.current;
     setFront(frontIndex.current);
     if (propsRef.current.armed) incoming.muted = propsRef.current.muted;
-    swapLock.current = false;
     fails.current = 0;
     if (report) reportEnded(cycleId, clipToken);
     primeBuffers(next);
-    const queued = pendingUrl.current;
+    follow = pendingUrl.current && !sameSrc(visible(), pendingUrl.current) ? pendingUrl.current : null;
     pendingUrl.current = null;
-    if (queued && !sameSrc(visible(), queued)) {
-      const shown = visible();
-      if (shown) void overlap(shown, queued, { cancelled: false }, false);
+    succeeded = true;
+    } finally {
+      swapLock.current = false;
     }
-    return true;
+    if (follow) {
+      const shown = visible();
+      if (shown) void overlap(shown, follow, { cancelled: false }, false);
+    }
+    return succeeded;
   }
 
   useEffect(() => {
