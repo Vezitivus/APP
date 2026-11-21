@@ -6,7 +6,7 @@
 2. Ja vajag tukšu vakaru, spied **Jauna spēle**. Vecie vakari paliek datubāzē.
 3. Spied **Aktivizēt spēli**. TV uzreiz rāda standby video, un augšā parādās pievienošanās QR.
 4. Atver TV saiti uz lielā ekrāna un nospied **Aktivizēt TV**. Tas atļauj skaņu un, ja pārlūks atļauj, pilnekrānu.
-5. Viesi skenē QR, ievada tikai vārdu un saglabā atjaunošanas kodu. Reģistrēties var, kamēr iet standby.
+5. Viesi skenē QR, ievada vārdu un paši izvēlas 4 ciparu PIN (ar apstiprinājumu). PIN netiek rādīts ekrānā. Reģistrēties var, kamēr iet standby. Ja kartīti vajag atvērt citā telefonā, ievada vārdu un savu PIN. Parasti sesija paliek atvērta. PIN var nomainīt telefona lapā; ja kāds to aizmirst, režijā var iestatīt jaunu, bet pats PIN tur nav redzams.
 6. Kad ir vismaz divi cilvēki, spied **Sākt spēli**. QR pazūd, tiek atskaņots sākuma video, un sākas parastā spēle ar taimeriem.
 
 ## Vakara laikā

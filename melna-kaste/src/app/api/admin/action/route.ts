@@ -1,4 +1,4 @@
-import { randomCode, sha256 } from "@/lib/auth/crypto";
+import { hashPin, isValidPin } from "@/lib/auth/pin";
 import { createSession, issueTvPair, limit, mutate, readCurrent } from "@/lib/db/repository";
 import { validateCustomCard } from "@/lib/game/engine";
 import { toAdminState } from "@/lib/game/project";
@@ -36,7 +36,7 @@ const ALLOWED = new Set<Action["type"]>([
   "confirm_perk",
   "upsert_card",
   "delete_card",
-  "reissue_recovery",
+  "reset_pin",
 ]);
 
 export async function POST(request: Request) {
@@ -69,7 +69,6 @@ export async function POST(request: Request) {
     if (result.error) return jsonError(409, result.error.message, result.error.code);
     const response: Record<string, unknown> = { game: toAdminState(result.state, ctx.now) };
     if (result.issued?.testPlayers) response.testPlayers = result.issued.testPlayers;
-    if (result.issued?.recoveryCode) response.recoveryCode = result.issued.recoveryCode;
     if (body.type === "start") {
       const pair = await issueTvPair(result.state.id);
       response.tvUrl = `${publicOrigin(request)}/tv?pair=${pair}`;
@@ -79,10 +78,10 @@ export async function POST(request: Request) {
 }
 
 async function buildAction(body: Action & { confirm?: boolean }): Promise<Action | null> {
-  if (body.type === "reissue_recovery") {
-    if (!("playerId" in body) || typeof body.playerId !== "string") return null;
-    const recoveryCode = randomCode();
-    return { type: "reissue_recovery", playerId: body.playerId, recoveryHash: sha256(recoveryCode), recoveryCode };
+  if (body.type === "reset_pin") {
+    const raw = body as { type: "reset_pin"; playerId?: string; pin?: string };
+    if (typeof raw.playerId !== "string" || !isValidPin(raw.pin ?? "")) return null;
+    return { type: "reset_pin", playerId: raw.playerId, pinHash: await hashPin(raw.pin ?? "") };
   }
   if (body.type === "upsert_card") {
     if (!("card" in body)) return null;

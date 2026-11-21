@@ -10,15 +10,15 @@ describe("spēles norise un taimeri", () => {
   it("nesākas ar mazāk nekā diviem dalībniekiem un neierobežo maksimumu", () => {
     let state = game(NOW);
     expect(apply(state, { type: "start" }, ctx(NOW)).error?.code).toBe("not_ready");
-    expect(apply(state, { type: "add_player", name: "Viens", sessionHash: "h1", recoveryHash: "r1" }, ctx(NOW)).error?.code).toBe("not_ready");
+    expect(apply(state, { type: "add_player", name: "Viens", sessionHash: "h1", pinHash: "r1" }, ctx(NOW)).error?.code).toBe("not_ready");
     state = act(state, { type: "activate" }, ctx(NOW)).state;
     expect(state.joinOpen).toBe(true);
     expect(state.phase).toBe("LOBBY");
     expect(apply(state, { type: "start" }, ctx(NOW)).error?.code).toBe("need_players");
-    state = act(state, { type: "add_player", name: "Viens", sessionHash: "h1", recoveryHash: "r1" }, ctx(NOW)).state;
+    state = act(state, { type: "add_player", name: "Viens", sessionHash: "h1", pinHash: "r1" }, ctx(NOW)).state;
     expect(apply(state, { type: "start" }, ctx(NOW)).error?.code).toBe("need_players");
     for (let i = 0; i < 40; i += 1) {
-      state = act(state, { type: "add_player", name: `Viesis ${i}`, sessionHash: `h-${i}`, recoveryHash: `r-${i}` }, ctx(NOW)).state;
+      state = act(state, { type: "add_player", name: `Viesis ${i}`, sessionHash: `h-${i}`, pinHash: `r-${i}` }, ctx(NOW)).state;
     }
     expect(state.players).toHaveLength(41);
     state = act(state, { type: "start" }, ctx(NOW)).state;
@@ -338,19 +338,20 @@ describe("spēles norise un taimeri", () => {
     expect(admin).not.toContain("hash-a");
     expect(admin).not.toContain("rec-a");
     expect(admin).not.toContain("sessionHash");
+    expect(admin).not.toContain("pinHash");
   });
 
-  it("seši testa dalībnieki saņem vienreizējus kodus", () => {
+  it("seši testa dalībnieki tiek pievienoti bez PIN teksta vēsturē", () => {
     const secrets = TEST_PLAYER_NAMES.map((_, index) => ({
       sessionHash: `s-${index}`,
-      recoveryHash: `h-${index}`,
-      recoveryCode: `KODS${index}`,
+      pinHash: `h-${index}`,
     }));
     let state = act(game(NOW), { type: "activate" }, ctx(NOW)).state;
     const result = act(state, { type: "add_test_players", players: secrets }, ctx(NOW));
     expect(result.issued?.testPlayers).toHaveLength(6);
     expect(result.state.players.map((player) => player.publicName)).toEqual(TEST_PLAYER_NAMES);
-    expect(JSON.stringify(result.state.history)).not.toContain("KODS0");
+    expect(JSON.stringify(result.state)).not.toContain("1234");
+    expect(JSON.stringify(toAdminState(result.state, NOW))).not.toContain("pinHash");
   });
 
   it("kopīgais notikums gaida cikla beigas un neprasa QR", () => {
@@ -512,8 +513,8 @@ describe("spēles norise un taimeri", () => {
     expect(state.phase).toBe("LOBBY");
     expect(state.joinOpen).toBe(true);
     expect(state.nextAutoAt).toBeNull();
-    state = act(state, { type: "add_player", name: "Anna", sessionHash: "hash-a", recoveryHash: "rec-a" }, ctx(NOW)).state;
-    state = act(state, { type: "add_player", name: "Bruno", sessionHash: "hash-b", recoveryHash: "rec-b" }, ctx(NOW)).state;
+    state = act(state, { type: "add_player", name: "Anna", sessionHash: "hash-a", pinHash: "rec-a" }, ctx(NOW)).state;
+    state = act(state, { type: "add_player", name: "Bruno", sessionHash: "hash-b", pinHash: "rec-b" }, ctx(NOW)).state;
     state = act(state, { type: "start" }, ctx(NOW)).state;
     expect(state.started).toBe(true);
     expect(state.joinOpen).toBe(false);
@@ -542,12 +543,12 @@ describe("spēles norise un taimeri", () => {
     expect(state.usedCards.TEAM).toContain("dubious_team");
     const historyLen = state.history.length;
     const callCount = state.players[0].callCount;
-    expect(apply(state, { type: "add_player", name: "Kārlis", sessionHash: "hash-c", recoveryHash: "rec-c" }, ctx(NOW)).error?.code).toBe("not_ready");
+    expect(apply(state, { type: "add_player", name: "Kārlis", sessionHash: "hash-c", pinHash: "rec-c" }, ctx(NOW)).error?.code).toBe("not_ready");
     state = act(state, { type: "open_join" }, ctx(NOW)).state;
     expect(state.joinOpen).toBe(true);
     expect(toTvState(state, NOW).joinOpen).toBe(true);
     expect(state.phase).toBe("QUEUED");
-    state = act(state, { type: "add_player", name: "Kārlis", sessionHash: "hash-c", recoveryHash: "rec-c" }, ctx(NOW)).state;
+    state = act(state, { type: "add_player", name: "Kārlis", sessionHash: "hash-c", pinHash: "rec-c" }, ctx(NOW)).state;
     expect(state.players.map((player) => player.publicName)).toEqual(["Anna", "Anna 2", "Kārlis"]);
     state = act(state, { type: "resume_play" }, ctx(NOW)).state;
     expect(state.joinOpen).toBe(false);
@@ -586,6 +587,35 @@ describe("spēles norise un taimeri", () => {
     state = act(state, { type: "finish" }, ctx(NOW)).state;
     expect(state.playback.mode).toBe("outro");
     expect(toTvState(state, NOW).playback.announcementUrl).toContain("special_end.mp4");
+  });
+
+
+  it("organizators var nomainīt PIN un mēģinājumi pēc tam atiestatās", () => {
+    let state = addPair(game(NOW), NOW);
+    const player = state.players[0];
+    state = act(state, { type: "pin_failed", playerId: player.id }, ctx(NOW)).state;
+    expect(state.players[0].pinFailedAttempts).toBe(1);
+    state = act(state, { type: "reset_pin", playerId: player.id, pinHash: "pbkdf2-new" }, ctx(NOW)).state;
+    expect(state.players[0].pinHash).toBe("pbkdf2-new");
+    expect(state.players[0].pinFailedAttempts).toBe(0);
+    expect(state.players[0].pinLockedUntil).toBeNull();
+    expect(JSON.stringify(state.history)).not.toContain("pbkdf2-new");
+    expect(JSON.stringify(toTvState(state, NOW))).not.toContain("pbkdf2-new");
+    expect(JSON.stringify(toAdminState(state, NOW))).not.toContain("pbkdf2-new");
+  });
+
+  it("pēc pieciem nepareiziem PIN spēlētājs tiek uz laiku bloķēts", () => {
+    let state = addPair(game(NOW), NOW);
+    const playerId = state.players[0].id;
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      state = act(state, { type: "pin_failed", playerId }, ctx(NOW)).state;
+    }
+    expect(state.players[0].pinFailedAttempts).toBe(5);
+    expect(state.players[0].pinLockedUntil).toBe(new Date(NOW + 15 * 60 * 1000).toISOString());
+    state = act(state, { type: "rotate_session", playerId, sessionHash: "fresh" }, ctx(NOW)).state;
+    expect(state.players[0].pinFailedAttempts).toBe(0);
+    expect(state.players[0].pinLockedUntil).toBeNull();
+    expect(state.players[0].sessionHash).toBe("fresh");
   });
 
 });

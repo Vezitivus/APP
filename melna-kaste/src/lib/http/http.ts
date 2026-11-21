@@ -22,7 +22,7 @@ export async function asResponse(work: () => Promise<Response>): Promise<Respons
   } catch (error) {
     const code = typeof error === "object" && error && "code" in error ? String(error.code) : "";
     if (code === "42P01") {
-      return jsonError(503, "Datubāzes shēma nav izveidota. Palaid supabase/migrations/0001_init.sql.", "schema");
+      return jsonError(503, "Datubāzes shēma nav izveidota. Palaid supabase/migrations SQL failus.", "schema");
     }
     if (code === "rate") return jsonError(429, "Pārāk daudz mēģinājumu. Uzgaidi brīdi.", "rate");
     const message = error instanceof Error ? error.message : "";
