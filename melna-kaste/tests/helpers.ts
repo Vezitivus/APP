@@ -22,7 +22,8 @@ export function act(state: GameState, action: Action, current = ctx()) {
 }
 
 export function addPair(state: GameState, now = 1_700_000_000_000) {
-  let next = act(state, { type: "add_player", name: "Anna", sessionHash: "hash-a", recoveryHash: "rec-a" }, ctx(now, () => 0)).state;
+  let next = act(state, { type: "activate" }, ctx(now, () => 0)).state;
+  next = act(next, { type: "add_player", name: "Anna", sessionHash: "hash-a", recoveryHash: "rec-a" }, ctx(now, () => 0)).state;
   next = act(next, { type: "add_player", name: "Anna", sessionHash: "hash-b", recoveryHash: "rec-b" }, ctx(now, () => 0)).state;
   return next;
 }

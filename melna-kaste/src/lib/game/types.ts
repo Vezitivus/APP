@@ -193,6 +193,10 @@ export interface GameState {
   recentEvents: LiveEvent[];
   createdAt: string;
   updatedAt: string;
+  /** True after Aktivizēt spēli; standby may play before the official start. */
+  started: boolean;
+  /** When true, /join is open and the TV shows the join QR. */
+  joinOpen: boolean;
 }
 
 export interface Ctx {
@@ -223,7 +227,10 @@ export type Action =
   | { type: "reissue_recovery"; playerId: string; recoveryHash: string; recoveryCode: string }
   | { type: "rotate_session"; playerId: string; sessionHash: string }
   | { type: "update_settings"; patch: Partial<Settings> }
+  | { type: "activate" }
   | { type: "start" }
+  | { type: "open_join" }
+  | { type: "resume_play" }
   | { type: "pause" }
   | { type: "resume" }
   | { type: "finish" }

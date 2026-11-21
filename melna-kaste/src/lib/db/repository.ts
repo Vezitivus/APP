@@ -1,5 +1,6 @@
 import { apply, createGame as blankGame } from "@/lib/game/engine";
 import { toTvState } from "@/lib/game/project";
+import { normalizeGame } from "@/lib/game/engine";
 import type { Action, ApplyResult, Ctx, GameState, LiveEvent, Player } from "@/lib/game/types";
 import { roomCode } from "@/lib/auth/crypto";
 import { sql, type Tx } from "./sql";
@@ -56,7 +57,7 @@ async function loadLocked(tx: Tx): Promise<GameState | null> {
   const state = row.snapshot;
   state.version = row.version;
   await overlayLibrary(tx, state);
-  return mergeSeen(tx, state);
+  return mergeSeen(tx, normalizeGame(state));
 }
 
 export async function readCurrent(): Promise<GameState | null> {
@@ -73,7 +74,7 @@ export async function readCurrent(): Promise<GameState | null> {
     const player = row.snapshot.players.find((entry) => entry.id === item.id);
     if (player && item.last_seen_at) player.lastSeenAt = new Date(item.last_seen_at).toISOString();
   }
-  return row.snapshot;
+  return normalizeGame(row.snapshot);
 }
 
 export async function markSeen(playerId: string): Promise<void> {

@@ -9,8 +9,12 @@ const NOW = 1_700_000_000_000;
 describe("spēles norise un taimeri", () => {
   it("nesākas ar mazāk nekā diviem dalībniekiem un neierobežo maksimumu", () => {
     let state = game(NOW);
-    const started = apply(state, { type: "start" }, ctx(NOW));
-    expect(started.error?.code).toBe("need_players");
+    expect(apply(state, { type: "start" }, ctx(NOW)).error?.code).toBe("not_ready");
+    expect(apply(state, { type: "add_player", name: "Viens", sessionHash: "h1", recoveryHash: "r1" }, ctx(NOW)).error?.code).toBe("not_ready");
+    state = act(state, { type: "activate" }, ctx(NOW)).state;
+    expect(state.joinOpen).toBe(true);
+    expect(state.phase).toBe("LOBBY");
+    expect(apply(state, { type: "start" }, ctx(NOW)).error?.code).toBe("need_players");
     state = act(state, { type: "add_player", name: "Viens", sessionHash: "h1", recoveryHash: "r1" }, ctx(NOW)).state;
     expect(apply(state, { type: "start" }, ctx(NOW)).error?.code).toBe("need_players");
     for (let i = 0; i < 40; i += 1) {
@@ -19,6 +23,8 @@ describe("spēles norise un taimeri", () => {
     expect(state.players).toHaveLength(41);
     state = act(state, { type: "start" }, ctx(NOW)).state;
     expect(state.phase).toBe("STANDBY");
+    expect(state.started).toBe(true);
+    expect(state.joinOpen).toBe(false);
   });
 
   it("intervāla beigas sagatavo izsaukumu un nepārtrauc video", () => {
@@ -340,7 +346,8 @@ describe("spēles norise un taimeri", () => {
       recoveryHash: `h-${index}`,
       recoveryCode: `KODS${index}`,
     }));
-    const result = act(game(NOW), { type: "add_test_players", players: secrets }, ctx(NOW));
+    let state = act(game(NOW), { type: "activate" }, ctx(NOW)).state;
+    const result = act(state, { type: "add_test_players", players: secrets }, ctx(NOW));
     expect(result.issued?.testPlayers).toHaveLength(6);
     expect(result.state.players.map((player) => player.publicName)).toEqual(TEST_PLAYER_NAMES);
     expect(JSON.stringify(result.state.history)).not.toContain("KODS0");
@@ -488,4 +495,70 @@ describe("spēles norise un taimeri", () => {
     expect(state.playback.clipId).toBe("1.mp4");
     expect(state.playback.index).toBe(0);
   });
+  it("aktivizācija palaiž standby un QR, sākums rāda special_open", () => {
+    let state = game(NOW);
+    state = act(state, { type: "sync_videos", videos: [...standby(3), video({ folder: "special", filename: "special_open.mp4" })] }, ctx(NOW)).state;
+    state = act(state, { type: "activate" }, ctx(NOW)).state;
+    expect(state.phase).toBe("LOBBY");
+    expect(state.joinOpen).toBe(true);
+    expect(state.started).toBe(false);
+    expect(state.playback.mode).toBe("standby");
+    expect(state.nextAutoAt).toBeNull();
+    const tv = toTvState(state, NOW);
+    expect(tv.screen.kind).toBe("standby");
+    expect(tv.joinOpen).toBe(true);
+    expect(tv.playback.clipUrl).toBeTruthy();
+    state = act(state, { type: "clip_ended", cycleId: state.playback.cycleId, clipToken: state.playback.clipToken }, ctx(NOW)).state;
+    expect(state.phase).toBe("LOBBY");
+    expect(state.joinOpen).toBe(true);
+    expect(state.nextAutoAt).toBeNull();
+    state = act(state, { type: "add_player", name: "Anna", sessionHash: "hash-a", recoveryHash: "rec-a" }, ctx(NOW)).state;
+    state = act(state, { type: "add_player", name: "Bruno", sessionHash: "hash-b", recoveryHash: "rec-b" }, ctx(NOW)).state;
+    state = act(state, { type: "start" }, ctx(NOW)).state;
+    expect(state.started).toBe(true);
+    expect(state.joinOpen).toBe(false);
+    expect(state.playback.mode).toBe("intro");
+    expect(toTvState(state, NOW).joinOpen).toBe(false);
+    expect(toTvState(state, NOW).screen.kind).toBe("intro");
+    state = act(state, { type: "clip_ended", cycleId: state.playback.cycleId, clipToken: state.playback.clipToken }, ctx(NOW)).state;
+    expect(state.phase).toBe("STANDBY");
+    expect(state.nextAutoAt).toBeTruthy();
+  });
+
+  it("spēles laikā jaunus dalībniekus pieņem tikai ar atvērtu pievienošanos un Atsākt pārkārto uzdevumus", () => {
+    let state = addPair(game(NOW), NOW);
+    const clips = [
+      ...standby(2),
+      video({ folder: "special", filename: "special_open.mp4" }),
+      video({ folder: "calls", filename: "izsaukums_dubious_team.mp4" }),
+    ];
+    state = act(state, { type: "sync_videos", videos: clips }, ctx(NOW)).state;
+    state = act(state, { type: "start" }, ctx(NOW)).state;
+    if (state.playback.mode === "intro") {
+      state = act(state, { type: "clip_ended", cycleId: state.playback.cycleId, clipToken: state.playback.clipToken }, ctx(NOW)).state;
+    }
+    state = act(state, { type: "prepare", cardId: "dubious_team", playerId: state.players[0].id }, ctx(NOW)).state;
+    expect(state.queue?.extraPlayers).toHaveLength(1);
+    expect(state.usedCards.TEAM).toContain("dubious_team");
+    const historyLen = state.history.length;
+    const callCount = state.players[0].callCount;
+    expect(apply(state, { type: "add_player", name: "Kārlis", sessionHash: "hash-c", recoveryHash: "rec-c" }, ctx(NOW)).error?.code).toBe("not_ready");
+    state = act(state, { type: "open_join" }, ctx(NOW)).state;
+    expect(state.joinOpen).toBe(true);
+    expect(toTvState(state, NOW).joinOpen).toBe(true);
+    expect(state.phase).toBe("QUEUED");
+    state = act(state, { type: "add_player", name: "Kārlis", sessionHash: "hash-c", recoveryHash: "rec-c" }, ctx(NOW)).state;
+    expect(state.players.map((player) => player.publicName)).toEqual(["Anna", "Anna 2", "Kārlis"]);
+    state = act(state, { type: "resume_play" }, ctx(NOW)).state;
+    expect(state.joinOpen).toBe(false);
+    expect(state.playback.mode).toBe("intro");
+    expect(state.phase).toBe("QUEUED");
+    expect(state.queue?.extraPlayers).toHaveLength(2);
+    expect(state.queue?.extraPlayers.map((player) => player.name)).toContain("Kārlis");
+    expect(state.usedCards).toEqual({});
+    expect(state.players[0].callCount).toBe(callCount);
+    expect(state.history.length).toBeGreaterThanOrEqual(historyLen);
+    expect(state.players).toHaveLength(3);
+  });
+
 });

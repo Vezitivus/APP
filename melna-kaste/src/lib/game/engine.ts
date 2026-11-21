@@ -72,11 +72,20 @@ export function createGame(input: { id: string; code: string; now: number }): Ga
     recentEvents: [],
     createdAt: iso(input.now),
     updatedAt: iso(input.now),
+    started: false,
+    joinOpen: false,
   };
 }
 
+/** Fill flags missing from older saved snapshots. */
+export function normalizeGame(state: GameState): GameState {
+  if (typeof state.started !== "boolean") state.started = state.phase !== "LOBBY";
+  if (typeof state.joinOpen !== "boolean") state.joinOpen = false;
+  return state;
+}
+
 export function apply(state: GameState, action: Action, ctx: Ctx): ApplyResult {
-  const next = structuredClone(state);
+  const next = normalizeGame(structuredClone(state));
   const appended: HistoryEntry[] = [];
   const issued: NonNullable<ApplyResult["issued"]> = {};
   const note = (type: string, summary: string) => {
@@ -136,8 +145,17 @@ function handle(
       state.settings = normalizeSettings({ ...state.settings, ...action.patch });
       note("settings", "Iestatījumi atjaunoti");
       return "ok";
+    case "activate":
+      activate(state, ctx, note);
+      return "ok";
     case "start":
       start(state, ctx, note);
+      return "ok";
+    case "open_join":
+      openJoin(state, note);
+      return "ok";
+    case "resume_play":
+      resumePlay(state, ctx, note);
       return "ok";
     case "pause":
       if (state.phase === "LOBBY" || state.phase === "FINISHED") throw new GameError("not_ready", "Šajā brīdī pauzi nevar ieslēgt.");
@@ -260,6 +278,7 @@ function addPlayer(
   note: (type: string, summary: string) => void,
 ) {
   if (state.phase === "FINISHED") throw new GameError("finished", "Spēle ir pabeigta.");
+  if (!state.joinOpen) throw new GameError("not_ready", "Pievienošanās tagad nav atvērta.");
   const clean = sanitizeName(name);
   if (!clean) throw new GameError("invalid", "Vārdam jābūt no 1 līdz 24 simboliem.");
   const player = {
@@ -337,14 +356,49 @@ function addTestPlayers(
   });
 }
 
+function activate(state: GameState, ctx: Ctx, note: (type: string, summary: string) => void) {
+  if (state.phase === "FINISHED") throw new GameError("finished", "Spēle ir pabeigta.");
+  if (state.started) throw new GameError("not_ready", "Spēle jau ir sākta.");
+  if (state.phase !== "LOBBY") throw new GameError("not_ready", "Spēli var aktivizēt tikai no uzgaidāmās telpas.");
+  state.joinOpen = true;
+  state.paused = false;
+  if (state.playback.mode !== "standby" && state.playback.mode !== "static") {
+    beginStandby(state, ctx, false);
+  }
+  note("activate", "Spēle aktivizēta. Var pievienoties.");
+}
+
 function start(state: GameState, ctx: Ctx, note: (type: string, summary: string) => void) {
+  if (state.started) throw new GameError("not_ready", "Spēle jau ir sākta.");
   if (state.phase !== "LOBBY") throw new GameError("not_ready", "Spēli var sākt tikai no uzgaidāmās telpas.");
+  if (!state.joinOpen) throw new GameError("not_ready", "Vispirms jāaktivizē spēle.");
   const count = state.players.filter((player) => !player.removed).length;
   if (count < 2) throw new GameError("need_players", "Vajag vismaz divus dalībniekus.");
   state.paused = false;
+  state.started = true;
+  state.joinOpen = false;
+  playSpecialOpen(state, ctx, false);
+  scheduleAuto(state, ctx);
+  note("start", "Spēle sākta");
+}
+
+function openJoin(state: GameState, note: (type: string, summary: string) => void) {
+  if (state.phase === "FINISHED") throw new GameError("finished", "Spēle ir pabeigta.");
+  if (!state.started) throw new GameError("not_ready", "Vispirms jāsāk spēle.");
+  state.joinOpen = true;
+  note("open_join", "Pievienošanās atvērta");
+}
+
+function canPlaySpecialOpen(state: GameState): boolean {
+  if (state.playback.mode === "intro" || state.playback.mode === "announcement") return false;
+  if (tvCallHeld(state)) return false;
+  return state.phase === "STANDBY" || state.phase === "QUEUED" || state.phase === "LOBBY";
+}
+
+function playSpecialOpen(state: GameState, ctx: Ctx, schedule: boolean) {
   const intro = specialOpen(state.videos);
   if (intro) {
-    state.phase = "STANDBY";
+    if (state.started) state.phase = state.queue ? "QUEUED" : "STANDBY";
     state.playback = {
       ...playback(ctx, "intro"),
       clipId: intro.id,
@@ -352,10 +406,31 @@ function start(state: GameState, ctx: Ctx, note: (type: string, summary: string)
     };
     state.testCycleDeadline = null;
   } else {
-    beginStandby(state, ctx, false);
+    beginStandby(state, ctx, schedule);
   }
-  scheduleAuto(state, ctx);
-  note("start", "Spēle sākta");
+}
+
+function reshuffleAssignments(state: GameState, ctx: Ctx) {
+  state.usedCards = {};
+  const event = state.queue;
+  if (!event?.playerId) return;
+  const card = cardById(event.cardId, state.customCards);
+  if (!card || (card.selection !== "system_one" && card.selection !== "system_many")) return;
+  const idealExtras = card.selection === "system_one" ? 1 : Math.max(1, card.idealGroup - 1);
+  event.extraPlayers = pickExtras(state.players, event.playerId, idealExtras, ctx.rng).map((item) => ({
+    id: item.id,
+    name: item.publicName,
+  }));
+}
+
+function resumePlay(state: GameState, ctx: Ctx, note: (type: string, summary: string) => void) {
+  if (state.phase === "FINISHED") throw new GameError("finished", "Spēle ir pabeigta.");
+  if (!state.started) throw new GameError("not_ready", "Vispirms jāsāk spēle.");
+  state.joinOpen = false;
+  reshuffleAssignments(state, ctx);
+  if (canPlaySpecialOpen(state)) playSpecialOpen(state, ctx, true);
+  else if (!state.nextAutoAt && !state.queue) scheduleAuto(state, ctx);
+  note("resume_play", "Pievienošanās slēgta. Uzdevumi pārkārtoti.");
 }
 
 function finish(state: GameState, note: (type: string, summary: string) => void) {
@@ -365,6 +440,7 @@ function finish(state: GameState, note: (type: string, summary: string) => void)
     remember(state, state.active);
   }
   state.phase = "FINISHED";
+  state.joinOpen = false;
   state.queue = null;
   state.active = null;
   state.paused = true;
@@ -378,6 +454,8 @@ function reset(state: GameState, ctx: Ctx, note: (type: string, summary: string)
   state.phase = "LOBBY";
   state.paused = false;
   state.autoCalls = true;
+  state.started = false;
+  state.joinOpen = false;
   state.players = [];
   state.playback = playback(ctx, "idle");
   state.queue = null;
@@ -802,7 +880,8 @@ function beginStandby(
   keep?: { cycleIntact?: boolean; failureRounds?: number },
 ) {
   const playlist = standbyPlaylist(state.videos);
-  state.phase = state.queue ? "QUEUED" : "STANDBY";
+  if (state.started) state.phase = state.queue ? "QUEUED" : "STANDBY";
+  else state.phase = "LOBBY";
   state.playback = {
     cycleId: ctx.id(),
     index: 0,
@@ -816,7 +895,7 @@ function beginStandby(
   };
   state.testCycleDeadline = playlist.length === 0 ? iso(ctx.now + TEST_CYCLE_MS) : null;
   if (state.queue) state.queue.armedCycleId = state.playback.cycleId;
-  if (schedule) scheduleAuto(state, ctx);
+  if (schedule && state.started) scheduleAuto(state, ctx);
 }
 
 /**

@@ -4,11 +4,10 @@
 
 1. Atver `/admin` telefonā vai datorā un ieej ar paroli.
 2. Ja vajag tukšu vakaru, spied **Jauna spēle**. Vecie vakari paliek datubāzē.
-3. Atver TV saiti uz lielā ekrāna un nospied **Aktivizēt TV**. Tas atļauj skaņu un, ja pārlūks atļauj, pilnekrānu.
-4. Uzgaidāmajā ekrānā ir QR un kods. Viesi skenē, ievada tikai vārdu un saglabā atjaunošanas kodu.
-5. Kad ir vismaz divi cilvēki, spied **Sākt**.
-
-Testam vari pievienot sešus dalībniekus ar pogu režijā. Kodi parādās vienu reizi.
+3. Spied **Aktivizēt spēli**. TV uzreiz rāda standby video, un augšā parādās pievienošanās QR.
+4. Atver TV saiti uz lielā ekrāna un nospied **Aktivizēt TV**. Tas atļauj skaņu un, ja pārlūks atļauj, pilnekrānu.
+5. Viesi skenē QR, ievada tikai vārdu un saglabā atjaunošanas kodu. Reģistrēties var, kamēr iet standby.
+6. Kad ir vismaz divi cilvēki, spied **Sākt spēli**. QR pazūd, tiek atskaņots sākuma video, un sākas parastā spēle ar taimeriem.
 
 ## Vakara laikā
 
@@ -28,7 +27,10 @@ Slepenā režija, kuru ekrāns nerāda:
 - **Izsaukt** — sāk izsaukumu uzreiz, arī riņķa vidū. Ja izsaukums jau gaida riņķa beigas, šī poga to palaiž tūlīt.
 - **Izlaist** — noņem sagatavoto vai aktīvo notikumu. Ja standby video vēl iet, tas turpinās. Aktīvu izsaukumu izlaižot, TV atgriežas pie pirmā video.
 - **Nomainīt** — patur to pašu kartīti, anulē veco QR.
-- **Turpināt** — aizver TV izsaukumu. **Atsākt auto** ir cita poga: tā tikai atsāk automātisko sagatavošanu pēc pauzes.
+- **Turpināt** — aizver TV izsaukumu. **Turpināt auto** ir cita poga: tā tikai atsāk automātisko sagatavošanu pēc pauzes.
+- **Pievienot spēlētājus** / **Atsākt** — atver vai aizver pievienošanos spēles laikā.
+
+Spēles laikā **Pievienot spēlētājus** atkal parāda pievienošanās QR ekrāna augšā, un standby turpinās. Jaunie viesi var reģistrēties. **Atsākt** noņem QR, vēlreiz atskaņo sākuma video un pārkārto uzdevumu loģiku (izlozi, pārus un komandas), lai jaunie dalībnieki ir iekšā. Jau pieteikušos rezultāti, vēsture un uzdevumi paliek. **Turpināt auto** ir cita poga: tā tikai atsāk automātisko sagatavošanu pēc pauzes.
 
 Var apturēt automātiku, izslēgt auto izsaukumus, pabeigt uzdevumu, atzīmēt dueļa uzvarētāju, apstiprināt misiju vai priekšrocību. Dalībnieks var atteikties. Misijas un priekšrocības paliek telefonā. Pēc Turpināt tās vairs netur TV, un nākamo izsaukumu var gatavot. Parastam uzdevumam TV paliek tukšs, bet nākamo izsaukumu gatavo, kad uzdevums ir pabeigts vai izlaists.
 
