@@ -2,6 +2,7 @@ import { Buffer } from "node:buffer";
 import { classifyCloudinaryAsset, folderHintFromPath, isCloudinaryDeliveryUrl } from "@/lib/game/videos";
 import type { VideoAsset } from "@/lib/game/types";
 import { serverEnv } from "@/lib/server/env";
+import { cloudinaryPlaybackUrl } from "@/lib/tv/playback";
 
 const ROOT_FOLDER = "melna-kaste";
 const LEGACY_FOLDERS = ["standby", "calls", "special"] as const;
@@ -131,4 +132,64 @@ function toAsset(resource: CloudinaryResource, cloud: string, hinted?: VideoAsse
     height: typeof resource.height === "number" ? resource.height : null,
     durationSeconds: typeof resource.duration === "number" ? resource.duration : null,
   };
+}
+
+
+
+const EAGER_TRANSFORM = "f_mp4,vc_h264,q_auto";
+
+/** Ask Cloudinary to generate the exact TV delivery derivative, then fetch the first bytes so the CDN is warm. */
+export async function warmPlaybackLibrary(videos: VideoAsset[]): Promise<{ eager: number; warmed: number }> {
+  const cloud = serverEnv("CLOUDINARY_CLOUD_NAME") ?? "";
+  const key = serverEnv("CLOUDINARY_API_KEY") ?? "";
+  const secret = serverEnv("CLOUDINARY_API_SECRET") ?? "";
+  const auth = cloud && key && secret ? Buffer.from(`${key}:${secret}`).toString("base64") : "";
+  let eager = 0;
+  let warmed = 0;
+  const queue = [...videos];
+  const workers = 4;
+  async function worker() {
+    while (queue.length) {
+      const video = queue.shift();
+      if (!video) break;
+      if (auth) {
+        const ok = await eagerPlayback(cloud, auth, video.publicId);
+        if (ok) eager += 1;
+      }
+      const url = cloudinaryPlaybackUrl(video.url);
+      if (url && (await fetchHead(url))) warmed += 1;
+    }
+  }
+  await Promise.all(Array.from({ length: workers }, () => worker()));
+  return { eager, warmed };
+}
+
+async function eagerPlayback(cloud: string, auth: string, publicId: string): Promise<boolean> {
+  const body = new URLSearchParams({
+    public_id: publicId,
+    type: "upload",
+    eager: EAGER_TRANSFORM,
+    eager_async: "true",
+  });
+  try {
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloud}/video/explicit`, {
+      method: "POST",
+      headers: { Authorization: `Basic ${auth}`, "Content-Type": "application/x-www-form-urlencoded" },
+      body,
+    });
+    await response.arrayBuffer().catch(() => undefined);
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+async function fetchHead(url: string): Promise<boolean> {
+  try {
+    const response = await fetch(url, { headers: { Range: "bytes=0-2047" }, cache: "no-store" });
+    await response.arrayBuffer().catch(() => undefined);
+    return response.ok || response.status === 206;
+  } catch {
+    return false;
+  }
 }

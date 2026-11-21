@@ -6,9 +6,12 @@ import {
   applyCrossfadeStyle,
   cloudinaryPlaybackUrl,
   crossfadeStyle,
+  deliveryKey,
   lastFrameTime,
   shouldPrerollSwap,
 } from "@/lib/tv/playback";
+
+const LAYER_COUNT = 3;
 
 function attrSrc(video: HTMLVideoElement | null): string | null {
   if (!video) return null;
@@ -16,7 +19,7 @@ function attrSrc(video: HTMLVideoElement | null): string | null {
 }
 
 function sameSrc(video: HTMLVideoElement | null, url: string | null): boolean {
-  return Boolean(url && attrSrc(video) === url);
+  return Boolean(url && deliveryKey(attrSrc(video)) === deliveryKey(url));
 }
 
 function freezeLastFrame(video: HTMLVideoElement) {
@@ -30,9 +33,25 @@ function freezeLastFrame(video: HTMLVideoElement) {
   }
 }
 
+function captureFrame(video: HTMLVideoElement | null, canvas: HTMLCanvasElement | null) {
+  if (!video || !canvas || video.readyState < 2 || !video.videoWidth) return;
+  if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+  }
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  try {
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  } catch {
+    /* cross-origin without CORS would taint the canvas; videos set crossOrigin */
+  }
+}
+
 function waitUntil(video: HTMLVideoElement, ok: () => boolean, events: string[], signal: { cancelled: boolean }): Promise<boolean> {
   if (ok()) return Promise.resolve(true);
   return new Promise((resolve) => {
+    let done = false;
     const finish = (value: boolean) => {
       if (done) return;
       done = true;
@@ -40,7 +59,6 @@ function waitUntil(video: HTMLVideoElement, ok: () => boolean, events: string[],
       video.removeEventListener("error", onError);
       resolve(value);
     };
-    let done = false;
     const onEvent = () => {
       if (signal.cancelled) return finish(false);
       if (ok()) finish(true);
@@ -52,27 +70,32 @@ function waitUntil(video: HTMLVideoElement, ok: () => boolean, events: string[],
   });
 }
 
-function waitForFirstFrame(video: HTMLVideoElement, signal: { cancelled: boolean }): Promise<boolean> {
-  const withFrame = () => !signal.cancelled && !video.paused && video.readyState >= 2;
+function waitForDecodedFrame(video: HTMLVideoElement, signal: { cancelled: boolean }): Promise<boolean> {
   const rvfc = (
     video as HTMLVideoElement & { requestVideoFrameCallback?: (callback: () => void) => number }
   ).requestVideoFrameCallback;
   if (typeof rvfc === "function") {
     return new Promise((resolve) => {
-      const id = rvfc.call(video, () => resolve(!signal.cancelled));
+      let settled = false;
+      const finish = (value: boolean) => {
+        if (settled) return;
+        settled = true;
+        resolve(value);
+      };
+      const id = rvfc.call(video, () => finish(!signal.cancelled));
       video.addEventListener(
         "error",
         () => {
           if (typeof video.cancelVideoFrameCallback === "function" && typeof id === "number") {
             video.cancelVideoFrameCallback(id);
           }
-          resolve(false);
+          finish(false);
         },
         { once: true },
       );
     });
   }
-  return waitUntil(video, withFrame, ["playing", "canplay", "loadeddata"], signal);
+  return waitUntil(video, () => !signal.cancelled && !video.paused && video.readyState >= 2, ["playing", "canplay", "loadeddata"], signal);
 }
 
 function runCrossfade(incoming: HTMLVideoElement, outgoing: HTMLVideoElement, signal: { cancelled: boolean }): Promise<void> {
@@ -101,7 +124,7 @@ function runCrossfade(incoming: HTMLVideoElement, outgoing: HTMLVideoElement, si
 
 export function TvPicture(props: {
   url: string | null;
-  preloadUrl: string | null;
+  preloadUrls: string[];
   loop: boolean;
   muted: boolean;
   cycleId: string;
@@ -111,7 +134,8 @@ export function TvPicture(props: {
   onFailed: (cycleId: string, clipToken: string) => void;
   onPlayBlocked?: () => void;
 }) {
-  const layers = [useRef<HTMLVideoElement>(null), useRef<HTMLVideoElement>(null)];
+  const layers = [useRef<HTMLVideoElement>(null), useRef<HTMLVideoElement>(null), useRef<HTMLVideoElement>(null)];
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [front, setFront] = useState(0);
   const frontIndex = useRef(0);
   const swapLock = useRef(false);
@@ -122,19 +146,39 @@ export function TvPicture(props: {
   propsRef.current = props;
   frontIndex.current = front;
 
-  const visible = () => layers[frontIndex.current].current;
-  const hidden = () => layers[1 - frontIndex.current].current;
+  const layer = (index: number) => layers[index].current;
+  const visible = () => layer(frontIndex.current);
+  const allLayers = () => layers.map((item) => item.current).filter((item): item is HTMLVideoElement => Boolean(item));
+
+  function idleLayer(preferredSrc?: string | null): HTMLVideoElement | null {
+    const shown = visible();
+    if (preferredSrc) {
+      const match = allLayers().find((video) => video !== shown && sameSrc(video, preferredSrc));
+      if (match) return match;
+    }
+    return allLayers().find((video) => video !== shown) ?? null;
+  }
 
   function fill(video: HTMLVideoElement, src: string) {
     video.preload = "auto";
     video.playsInline = true;
     video.muted = true;
+    video.crossOrigin = "anonymous";
     if (attrSrc(video) === src) {
       if (video.readyState < 3) video.load();
       return;
     }
     video.setAttribute("src", src);
     video.load();
+  }
+
+  function holdFrame(video: HTMLVideoElement | null) {
+    if (!video) return;
+    captureFrame(video, canvasRef.current);
+    if (video.ended || (Number.isFinite(video.duration) && video.duration - video.currentTime <= 0.05)) {
+      freezeLastFrame(video);
+      captureFrame(video, canvasRef.current);
+    }
   }
 
   async function playLayer(video: HTMLVideoElement, muted: boolean, loop: boolean) {
@@ -160,11 +204,19 @@ export function TvPicture(props: {
     }
   }
 
-  function clearFadeStyles(video: HTMLVideoElement | null) {
-    if (!video) return;
-    video.style.opacity = "";
-    video.style.filter = "";
-    video.classList.remove("entering", "leaving");
+  function assignClasses(shown: HTMLVideoElement, hidden: HTMLVideoElement[]) {
+    shown.classList.remove("back", "entering", "leaving");
+    shown.classList.add("front");
+    applyCrossfadeStyle(shown, 1, 0);
+    shown.style.opacity = "";
+    shown.style.filter = "";
+    for (const video of hidden) {
+      video.classList.remove("front", "entering", "leaving");
+      video.classList.add("back");
+      applyCrossfadeStyle(video, 0, 8);
+      video.style.opacity = "";
+      video.style.filter = "";
+    }
   }
 
   function reportEnded(cycleId: string, clipToken: string) {
@@ -174,12 +226,36 @@ export function TvPicture(props: {
     propsRef.current.onEnded(cycleId, clipToken);
   }
 
+  function primeBuffers(currentUrl: string | null) {
+    const currentKey = deliveryKey(currentUrl);
+    const needed = propsRef.current.preloadUrls
+      .map((item) => cloudinaryPlaybackUrl(item))
+      .filter((item): item is string => Boolean(item && deliveryKey(item) !== currentKey));
+    const unique: string[] = [];
+    const seen = new Set<string>();
+    for (const url of needed) {
+      const key = deliveryKey(url);
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      unique.push(url);
+    }
+    const shown = visible();
+    const buffers = allLayers().filter((video) => video !== shown);
+    for (const url of unique.slice(0, buffers.length)) {
+      const already = buffers.find((video) => sameSrc(video, url));
+      const slot = already ?? buffers.find((video) => !unique.some((item) => sameSrc(video, item))) ?? null;
+      if (slot && !swapLock.current) fill(slot, url);
+    }
+  }
+
   async function overlap(outgoing: HTMLVideoElement, incomingUrl: string | null, signal: { cancelled: boolean }, report = true) {
     if (swapLock.current || signal.cancelled || outgoing !== visible()) return false;
-    const incoming = hidden();
     const next = cloudinaryPlaybackUrl(incomingUrl);
-    if (!incoming || !next || sameSrc(outgoing, next)) return false;
+    if (!next || sameSrc(outgoing, next)) return false;
+    const incoming = idleLayer(next);
+    if (!incoming) return false;
     swapLock.current = true;
+    holdFrame(outgoing);
     const cycleId = outgoing.dataset.cycle ?? propsRef.current.cycleId;
     const clipToken = outgoing.dataset.token ?? propsRef.current.clipToken;
     if (!sameSrc(incoming, next)) fill(incoming, next);
@@ -193,12 +269,15 @@ export function TvPicture(props: {
         ok = await Promise.race([
           waitReady,
           new Promise<boolean>((resolve) => {
-            const onEnd = () => resolve(false);
+            const onEnd = () => {
+              holdFrame(outgoing);
+              resolve(ready());
+            };
             outgoing.addEventListener("ended", onEnd, { once: true });
             window.setTimeout(() => {
               outgoing.removeEventListener("ended", onEnd);
               resolve(ready());
-            }, Math.max(40, remaining * 1000 + 30));
+            }, Math.max(40, remaining * 1000 + 80));
           }),
         ]);
       } else {
@@ -206,12 +285,8 @@ export function TvPicture(props: {
       }
     }
     if (!ok || signal.cancelled) {
-      if (outgoing.ended || (Number.isFinite(outgoing.duration) && outgoing.duration - outgoing.currentTime <= 0.04)) {
-        freezeLastFrame(outgoing);
-      }
-      if (!ready()) {
-        await waitUntil(incoming, ready, ["canplaythrough", "canplay", "loadeddata"], signal);
-      }
+      holdFrame(outgoing);
+      if (!ready()) await waitUntil(incoming, ready, ["canplaythrough", "canplay", "loadeddata"], signal);
     }
     if (signal.cancelled || incoming.readyState < 2) {
       swapLock.current = false;
@@ -221,42 +296,38 @@ export function TvPicture(props: {
     incoming.dataset.cycle = propsRef.current.cycleId;
     incoming.dataset.token = propsRef.current.clipToken;
     incoming.loop = propsRef.current.loop;
+    holdFrame(outgoing);
     const started = await playLayer(incoming, true, propsRef.current.loop);
     if (!started || signal.cancelled) {
+      holdFrame(outgoing);
       swapLock.current = false;
       return false;
     }
-    const framed = await waitForFirstFrame(incoming, signal);
+    const framed = await waitForDecodedFrame(incoming, signal);
     if (!framed) {
+      holdFrame(outgoing);
       swapLock.current = false;
       return false;
     }
+    captureFrame(incoming, canvasRef.current);
     if (propsRef.current.armed) incoming.muted = propsRef.current.muted;
     await runCrossfade(incoming, outgoing, signal);
+    holdFrame(incoming);
     freezeLastFrame(outgoing);
     outgoing.muted = true;
     outgoing.loop = false;
-    const index = incoming === layers[0].current ? 0 : 1;
-    incoming.classList.remove("back", "entering", "leaving");
-    incoming.classList.add("front");
-    outgoing.classList.remove("front", "entering", "leaving");
-    outgoing.classList.add("back");
-    applyCrossfadeStyle(incoming, 1, 0);
-    applyCrossfadeStyle(outgoing, 0, 8);
-    // Drop inline styles only after the class already matches, so CSS cannot flash black.
-    incoming.style.opacity = "";
-    incoming.style.filter = "";
-    outgoing.style.opacity = "";
-    outgoing.style.filter = "";
-    frontIndex.current = index;
-    setFront(index);
+    const index = layers.findIndex((item) => item.current === incoming);
+    assignClasses(incoming, allLayers().filter((video) => video !== incoming));
+    frontIndex.current = index >= 0 ? index : frontIndex.current;
+    setFront(frontIndex.current);
     if (propsRef.current.armed) incoming.muted = propsRef.current.muted;
     swapLock.current = false;
     fails.current = 0;
     if (report) reportEnded(cycleId, clipToken);
+    primeBuffers(next);
     const queued = pendingUrl.current;
     pendingUrl.current = null;
-    if (queued && !sameSrc(visible(), cloudinaryPlaybackUrl(queued))) {
+    if (queued && !sameSrc(visible(), queued)) {
       const shown = visible();
       if (shown) void overlap(shown, queued, { cancelled: false }, false);
     }
@@ -267,14 +338,13 @@ export function TvPicture(props: {
     const signal = { cancelled: false };
     const desired = cloudinaryPlaybackUrl(props.url);
     const current = visible();
-    const buffer = hidden();
-    if (!current || !buffer) return () => {
+    if (!current) return () => {
       signal.cancelled = true;
     };
 
     void (async () => {
       if (!desired) {
-        if (current.getAttribute("src")) freezeLastFrame(current);
+        if (current.getAttribute("src")) holdFrame(current);
         return;
       }
       current.loop = props.loop;
@@ -284,6 +354,7 @@ export function TvPicture(props: {
         pendingUrl.current = null;
         if (props.armed || props.muted) await playLayer(current, props.muted || !props.armed, props.loop);
         if (props.armed) current.muted = props.muted;
+        primeBuffers(desired);
         return;
       }
       if (swapLock.current) {
@@ -296,8 +367,10 @@ export function TvPicture(props: {
         if (!ready || signal.cancelled) return;
         applyCrossfadeStyle(current, 1, 0);
         await playLayer(current, true, props.loop);
-        await waitForFirstFrame(current, signal);
+        await waitForDecodedFrame(current, signal);
+        captureFrame(current, canvasRef.current);
         if (props.armed) current.muted = props.muted;
+        primeBuffers(desired);
         return;
       }
       await overlap(current, desired, signal, false);
@@ -309,12 +382,9 @@ export function TvPicture(props: {
   }, [props.url, props.cycleId, props.clipToken, props.loop, props.muted, props.armed]);
 
   useEffect(() => {
-    const buffer = hidden();
-    const next = cloudinaryPlaybackUrl(props.preloadUrl);
-    if (!buffer || !next || swapLock.current) return;
-    if (sameSrc(visible(), next) || sameSrc(buffer, next)) return;
-    fill(buffer, next);
-  }, [props.preloadUrl, props.url, front]);
+    if (swapLock.current) return;
+    primeBuffers(props.url);
+  }, [props.preloadUrls.join("|"), props.url, front]);
 
   useEffect(() => {
     const current = visible();
@@ -328,11 +398,11 @@ export function TvPicture(props: {
     const tick = () => {
       if (stopped) return;
       const video = visible();
-      if (video && !video.loop && !swapLock.current) {
-        if (shouldPrerollSwap(video.currentTime, video.duration, CROSSFADE_SECONDS)) {
-          void overlap(video, propsRef.current.preloadUrl, { cancelled: false }, true);
-          frame = requestAnimationFrame(tick);
-          return;
+      if (video && video.readyState >= 2) {
+        const remaining = video.duration - video.currentTime;
+        if (!Number.isFinite(remaining) || remaining <= 1.2) holdFrame(video);
+        if (!video.loop && !swapLock.current && shouldPrerollSwap(video.currentTime, video.duration)) {
+          void overlap(video, propsRef.current.preloadUrls[0] ?? null, { cancelled: false }, true);
         }
       }
       frame = requestAnimationFrame(tick);
@@ -346,33 +416,35 @@ export function TvPicture(props: {
 
   return (
     <>
-      {[0, 1].map((index) => (
+      <canvas ref={canvasRef} className="frame-hold" aria-hidden="true" />
+      {layers.map((ref, index) => (
         <video
           key={index}
-          ref={layers[index]}
+          ref={ref}
           className={`layer${index === front ? " front" : " back"}`}
           playsInline
           muted
           preload="auto"
+          crossOrigin="anonymous"
           onTimeUpdate={(event) => {
             const video = event.currentTarget;
+            if (video === visible()) holdFrame(video);
             if (video !== visible() || video.loop || swapLock.current) return;
-            if (!shouldPrerollSwap(video.currentTime, video.duration, CROSSFADE_SECONDS)) return;
-            void overlap(video, propsRef.current.preloadUrl, { cancelled: false }, true);
+            if (!shouldPrerollSwap(video.currentTime, video.duration)) return;
+            void overlap(video, propsRef.current.preloadUrls[0] ?? null, { cancelled: false }, true);
           }}
           onEnded={(event) => {
             const video = event.currentTarget;
+            holdFrame(video);
             if (video.loop) return;
             if (video === visible() && !swapLock.current) {
-              freezeLastFrame(video);
-              void overlap(video, propsRef.current.preloadUrl ?? propsRef.current.url, { cancelled: false }, true);
-              return;
+              void overlap(video, propsRef.current.preloadUrls[0] ?? propsRef.current.url, { cancelled: false }, true);
             }
-            freezeLastFrame(video);
           }}
           onError={(event) => {
             const video = event.currentTarget;
             if (video !== visible()) return;
+            holdFrame(video);
             fails.current += 1;
             if (fails.current < 3) {
               video.load();
