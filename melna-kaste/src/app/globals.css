@@ -234,10 +234,16 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
   background: transparent;
   display: block;
   border: 0;
+  opacity: 0;
+  filter: blur(8px);
+  transform: translateZ(0);
+  will-change: opacity, filter;
 }
 .picture.bleed .layer { object-fit: cover; }
-.picture .layer.front { z-index: 2; }
-.picture .layer.back { z-index: 1; }
+.picture .layer.front { z-index: 2; opacity: 1; filter: none; }
+.picture .layer.back { z-index: 1; opacity: 0; filter: blur(8px); }
+.picture .layer.leaving { z-index: 2; }
+.picture .layer.entering { z-index: 3; }
 .picture.placeholder .layer { opacity: 0; }
 .portrait {
   position: absolute;

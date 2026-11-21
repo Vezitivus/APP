@@ -16,7 +16,7 @@ import {
   type Playback,
   type Settings,
 } from "./types";
-import { resolveCallVideo, specialOpen, standbyPlaylist } from "./videos";
+import { resolveCallVideo, specialEnd, specialOpen, standbyPlaylist } from "./videos";
 
 export class GameError extends Error {
   constructor(
@@ -170,7 +170,7 @@ function handle(
       note("resume", "Spēle turpinās");
       return "ok";
     case "finish":
-      finish(state, note);
+      finish(state, ctx, note);
       return "ok";
     case "reset":
       reset(state, ctx, note);
@@ -433,7 +433,7 @@ function resumePlay(state: GameState, ctx: Ctx, note: (type: string, summary: st
   note("resume_play", "Pievienošanās slēgta. Uzdevumi pārkārtoti.");
 }
 
-function finish(state: GameState, note: (type: string, summary: string) => void) {
+function finish(state: GameState, ctx: Ctx, note: (type: string, summary: string) => void) {
   if (state.active) {
     state.active.outcome = { result: "skipped" };
     state.active.status = "done";
@@ -446,7 +446,17 @@ function finish(state: GameState, note: (type: string, summary: string) => void)
   state.paused = true;
   state.nextAutoAt = null;
   state.testCycleDeadline = null;
-  state.playback.mode = "idle";
+  const ending = specialEnd(state.videos);
+  if (ending) {
+    state.playback = {
+      ...playback(ctx, "outro"),
+      clipId: ending.id,
+      announcementUrl: ending.url,
+    };
+  } else {
+    state.playback.mode = "idle";
+    state.playback.announcementUrl = null;
+  }
   note("finish", "Spēle pabeigta");
 }
 
@@ -687,6 +697,12 @@ function clipEnded(
     note("intro", "Sākuma video pabeigts");
     return "ok";
   }
+  if (state.playback.mode === "outro") {
+    state.playback.mode = "idle";
+    state.playback.announcementUrl = null;
+    note("end", "Noslēguma video pabeigts");
+    return "ok";
+  }
   if (state.playback.mode === "announcement") {
     openQueuedCall(state, ctx, note);
     return "ok";
@@ -738,6 +754,12 @@ function clipFailed(
   if (state.playback.mode === "intro") {
     warn(state, ctx, "Sākuma video neizdevās atskaņot. Spēle turpinās bez tā.");
     beginStandby(state, ctx, true);
+    return "ok";
+  }
+  if (state.playback.mode === "outro") {
+    warn(state, ctx, "Noslēguma video neizdevās atskaņot.");
+    state.playback.mode = "idle";
+    state.playback.announcementUrl = null;
     return "ok";
   }
   if (state.playback.mode === "announcement") {

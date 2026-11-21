@@ -10,3 +10,9 @@ node_modules
 *.log
 tsconfig.tsbuildinfo
 .DS_Store
+
+# Crossfade probe build output
+tests/e2e/dist/
+tests/e2e/crossfade-results.json
+tests/e2e/clips/
+

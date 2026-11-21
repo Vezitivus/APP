@@ -148,7 +148,7 @@ export interface Playback {
   index: number;
   clipId: string | null;
   clipToken: string;
-  mode: "idle" | "standby" | "announcement" | "intro" | "static" | "hold";
+  mode: "idle" | "standby" | "announcement" | "intro" | "outro" | "static" | "hold";
   announcementUrl: string | null;
   cycleIntact: boolean;
   failureRounds: number;

@@ -40,6 +40,19 @@ export interface TvState {
   playerNames: string[];
 }
 
+function upcomingPlaybackUrl(
+  state: GameState,
+  playlist: ReturnType<typeof standbyPlaylist>,
+  current: ReturnType<typeof standbyPlaylist>[number] | null,
+  next: ReturnType<typeof standbyPlaylist>[number] | null,
+): string | null {
+  if (state.playback.mode === "standby") return next?.url ?? current?.url ?? null;
+  // After special_open, and after Turpināt, the next picture is the first standby clip.
+  // During an announcement the same call clip continues in hold, so do not preroll standby.
+  if (state.playback.mode === "intro" || state.playback.mode === "hold") return playlist[0]?.url ?? null;
+  return null;
+}
+
 export function toTvState(state: GameState, now: number, options?: { includePreload?: boolean }): TvState {
   const playlist = standbyPlaylist(state.videos);
   const current = playlist[state.playback.index] ?? null;
@@ -61,7 +74,7 @@ export function toTvState(state: GameState, now: number, options?: { includePrel
       index: state.playback.index,
       total: playlist.length,
       clipUrl: state.playback.mode === "standby" ? current?.url ?? null : null,
-      nextUrl: state.playback.mode === "standby" ? next?.url ?? null : null,
+      nextUrl: upcomingPlaybackUrl(state, playlist, current, next),
       announcementUrl: state.playback.announcementUrl,
     },
     screen: tvScreen(state),

@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  CROSSFADE_BLUR_PX,
+  CROSSFADE_SECONDS,
   SWAP_LEAD_SECONDS,
   cloudinaryPlaybackUrl,
+  crossfadeStyle,
   lastFrameTime,
   nextBufferUrl,
   remainingSeconds,
@@ -32,9 +35,16 @@ describe("TV atskaņošanas URL un pārslēgšana", () => {
   });
 
   it("nākamo klipu sāk gatavot pirms beigām un tur pēdējo kadru", () => {
-    expect(shouldPrerollSwap(4.6, 5, 0.45)).toBe(true);
-    expect(shouldPrerollSwap(4.0, 5, 0.45)).toBe(false);
-    expect(shouldPrerollSwap(0, 0.3, SWAP_LEAD_SECONDS)).toBe(true);
+    expect(shouldPrerollSwap(4.85, 5, 0.2)).toBe(true);
+    expect(shouldPrerollSwap(4.6, 5, 0.2)).toBe(false);
+    expect(shouldPrerollSwap(0.15, 0.3, SWAP_LEAD_SECONDS)).toBe(true);
+    expect(SWAP_LEAD_SECONDS).toBe(CROSSFADE_SECONDS);
+    expect(crossfadeStyle(0, "incoming")).toEqual({ opacity: 0, blur: CROSSFADE_BLUR_PX });
+    expect(crossfadeStyle(1, "incoming")).toEqual({ opacity: 1, blur: 0 });
+    expect(crossfadeStyle(0, "outgoing")).toEqual({ opacity: 1, blur: 0 });
+    expect(crossfadeStyle(1, "outgoing")).toEqual({ opacity: 0, blur: CROSSFADE_BLUR_PX });
+    expect(crossfadeStyle(0.5, "incoming").opacity).toBeCloseTo(0.5);
+    expect(crossfadeStyle(0.5, "incoming").blur).toBeCloseTo(CROSSFADE_BLUR_PX / 2);
     expect(shouldPrerollSwap(Number.NaN, 5)).toBe(false);
     expect(remainingSeconds(4.2, 5)).toBeCloseTo(0.8);
     expect(remainingSeconds(1, Number.NaN)).toBeNull();

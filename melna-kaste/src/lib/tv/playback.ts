@@ -22,8 +22,10 @@ export function sameMediaUrl(left: string | null | undefined, right: string | nu
   return cloudinaryPlaybackUrl(left) === cloudinaryPlaybackUrl(right);
 }
 
-/** Start the hidden player this many seconds before the current clip ends. */
-export const SWAP_LEAD_SECONDS = 0.45;
+/** Start the incoming clip and the visible overlap this many seconds before the current clip ends. */
+export const SWAP_LEAD_SECONDS = 0.2;
+export const CROSSFADE_SECONDS = SWAP_LEAD_SECONDS;
+export const CROSSFADE_BLUR_PX = 8;
 
 export function remainingSeconds(currentTime: number, duration: number): number | null {
   if (!Number.isFinite(currentTime) || !Number.isFinite(duration) || duration <= 0) return null;
@@ -34,6 +36,18 @@ export function shouldPrerollSwap(currentTime: number, duration: number, leadSec
   const remaining = remainingSeconds(currentTime, duration);
   if (remaining === null) return false;
   return remaining <= leadSeconds;
+}
+
+/** progress 0 = fade start, 1 = fade done. */
+export function crossfadeStyle(progress: number, role: "incoming" | "outgoing"): { opacity: number; blur: number } {
+  const p = Math.min(1, Math.max(0, progress));
+  if (role === "incoming") return { opacity: p, blur: (1 - p) * CROSSFADE_BLUR_PX };
+  return { opacity: 1 - p, blur: p * CROSSFADE_BLUR_PX };
+}
+
+export function applyCrossfadeStyle(element: { style: { opacity: string; filter: string } }, opacity: number, blur: number) {
+  element.style.opacity = String(opacity);
+  element.style.filter = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : "none";
 }
 
 export function lastFrameTime(duration: number): number | null {
