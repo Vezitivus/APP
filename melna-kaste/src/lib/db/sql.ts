@@ -5,7 +5,6 @@ import { serverEnv } from "@/lib/server/env";
 export type Sql = ReturnType<typeof postgres>;
 export type Tx = postgres.TransactionSql<Record<string, never>>;
 
-const POOLER_PORT = 6543;
 /**
  * OpenNext stores the current request on this symbol (AsyncLocalStorage).
  * A new object is created for each request, so a WeakMap keyed by it cannot
@@ -23,15 +22,10 @@ function isCloudflareWorker(): boolean {
 }
 
 export function databaseConfigured(): boolean {
-  return Boolean(hyperdriveUrl() || serverEnv("DATABASE_URL"));
+  return Boolean(serverEnv("DATABASE_URL") || hyperdriveUrl());
 }
 
-/**
- * Cloudflare Hyperdrive binding (`HYPERDRIVE` in wrangler.jsonc).
- * Workers cannot verify Supabase's TLS certificate directly (postgres.js then
- * reconnects until "Too many subrequests"). Hyperdrive does TLS to Supabase
- * itself, and the Worker talks to Hyperdrive without client SSL.
- */
+/** Used only when DATABASE_URL is not set. */
 function hyperdriveUrl(): string | null {
   const scope = (globalThis as Record<symbol, unknown>)[CLOUDFLARE_CONTEXT] as
     | { env?: { HYPERDRIVE?: { connectionString?: unknown } } }
@@ -42,7 +36,7 @@ function hyperdriveUrl(): string | null {
 
 export function sql(): Sql {
   if (isCloudflareWorker()) return workerSql();
-  nodeClient ??= open(nodeOptions());
+  nodeClient ??= open(databaseUrl(), nodeOptions());
   return nodeClient;
 }
 
@@ -52,13 +46,19 @@ function workerSql(): Sql {
     const existing = workerClients.get(scope);
     if (existing) return existing;
   }
-  const hyperdrive = hyperdriveUrl();
-  const client = hyperdrive
-    ? postgres(hyperdrive, { ...workerOptions(), ssl: false })
-    : open(workerOptions());
+  const direct = serverEnv("DATABASE_URL");
+  const client = direct
+    ? open(direct, workerOptions())
+    : open(requireHyperdrive(), { ...workerOptions(), ssl: false });
   if (scope) workerClients.set(scope, client);
   closeAfterResponse(client);
   return client;
+}
+
+function requireHyperdrive(): string {
+  const url = hyperdriveUrl();
+  if (!url) throw new Error("DATABASE_URL nav iestatīts");
+  return url;
 }
 
 function requestScope(): RequestScope | null {
@@ -77,44 +77,32 @@ function closeAfterResponse(client: Sql) {
   }
 }
 
-function open(options: postgres.Options<Record<string, postgres.PostgresType>>): Sql {
-  return postgres(databaseUrl(), options);
+function open(url: string, options: postgres.Options<Record<string, postgres.PostgresType>>): Sql {
+  return postgres(url, options);
 }
 
 function databaseUrl(): string {
   const url = serverEnv("DATABASE_URL");
   if (!url) throw new Error("DATABASE_URL nav iestatīts");
-  if (serverEnv("DATABASE_SSL") === "disable") return url;
-  if (portOf(url) !== POOLER_PORT) {
-    throw new Error("DATABASE_URL jābūt Supabase transaction pooler portam 6543");
-  }
   return url;
 }
 
-function portOf(url: string): number | null {
-  try {
-    const parsed = new URL(url);
-    if (parsed.port) return Number(parsed.port);
-    return parsed.protocol.startsWith("postgres") ? 5432 : null;
-  } catch {
-    const at = url.lastIndexOf("@");
-    const host = at >= 0 ? url.slice(at + 1) : url;
-    const match = host.match(/:(\d+)(?:\/|$)/);
-    return match ? Number(match[1]) : null;
-  }
-}
-
 function sslMode(): "require" | false {
-  return serverEnv("DATABASE_SSL") === "disable" ? false : "require";
+  if (serverEnv("DATABASE_SSL") === "disable") return false;
+  return "require";
 }
 
 function workerOptions(): postgres.Options<Record<string, postgres.PostgresType>> {
+  // Workers always verify TLS and do not trust the Supabase private CA.
+  // rejectUnauthorized is not implemented, so ssl:true retries until
+  // "Too many subrequests". Plain TCP works on the Supabase pooler; Hyperdrive
+  // already used ssl:false (encrypted only on the Hyperdrive-to-origin hop).
   return {
     prepare: false,
     max: 1,
     idle_timeout: 5,
-    connect_timeout: 15,
-    ssl: sslMode(),
+    connect_timeout: 8,
+    ssl: false,
     fetch_types: false,
   };
 }

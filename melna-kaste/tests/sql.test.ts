@@ -67,7 +67,7 @@ describe("postgres klients", () => {
     );
   });
 
-  it("uz Worker katram pieprasījumam ir savs klients un ssl require", async () => {
+  it("uz Worker katram pieprasījumam ir savs klients un ssl ir izslēgts", async () => {
     asWorker();
     process.env.DATABASE_URL = POOLER;
     const scopes: object[] = [];
@@ -86,7 +86,7 @@ describe("postgres klients", () => {
     expect(postgres).toHaveBeenCalledTimes(2);
     expect(postgres).toHaveBeenCalledWith(
       POOLER,
-      expect.objectContaining({ prepare: false, ssl: "require", max: 1, fetch_types: false }),
+      expect.objectContaining({ prepare: false, ssl: false, max: 1, fetch_types: false }),
     );
     expect(after).toHaveBeenCalledTimes(2);
     const close = after.mock.calls[0]?.[0] as () => Promise<void>;
@@ -103,22 +103,34 @@ describe("postgres klients", () => {
     expect(postgres).toHaveBeenCalledTimes(2);
   });
 
-  it("uz Worker atraida tiešo 5432 adresi un neizpauž paroli", async () => {
+  it("uz Worker ņem DATABASE_URL arī uz session pooler 5432", async () => {
     asWorker();
     process.env.DATABASE_URL = DIRECT;
     const { sql } = await loadSql();
-    expect(() => sql()).toThrow(/6543/);
-    try {
-      sql();
-    } catch (error) {
-      expect(String(error)).not.toContain("secret");
-    }
-    expect(postgres).not.toHaveBeenCalled();
+    sql();
+    expect(postgres).toHaveBeenCalledWith(
+      DIRECT,
+      expect.objectContaining({ prepare: false, ssl: false, max: 1 }),
+    );
   });
 });
 
 describe("Hyperdrive", () => {
-  it("uz Worker izmanto HYPERDRIVE bez klienta SSL", async () => {
+  it("uz Worker DATABASE_URL ir primārais, pat ja ir HYPERDRIVE", async () => {
+    asWorker();
+    process.env.DATABASE_URL = POOLER;
+    const HD = "postgresql://user:pw@abc.hyperdrive.local:5432/postgres";
+    (globalThis as Record<symbol, unknown>)[CONTEXT] = { env: { HYPERDRIVE: { connectionString: HD } } };
+    const { sql } = await loadSql();
+    sql();
+    expect(postgres).toHaveBeenCalledWith(
+      POOLER,
+      expect.objectContaining({ prepare: false, ssl: false, max: 1 }),
+    );
+    expect(postgres).not.toHaveBeenCalledWith(HD, expect.anything());
+  });
+
+  it("uz Worker bez DATABASE_URL izmanto HYPERDRIVE bez klienta SSL", async () => {
     asWorker();
     const HD = "postgresql://user:pw@abc.hyperdrive.local:5432/postgres";
     (globalThis as Record<symbol, unknown>)[CONTEXT] = { env: { HYPERDRIVE: { connectionString: HD } } };
