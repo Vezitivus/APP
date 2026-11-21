@@ -276,6 +276,30 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
 }
 .center { align-content: center; }
 .lobby { gap: 1.2vh; }
+.join-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2.2vw;
+  padding: 2.4vh 4vw 8vh;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.28) 55%, transparent 100%);
+}
+.join-bar .qr-frame .qr { width: min(16vh, 18vw); }
+.join-copy { text-align: left; max-width: 46vw; }
+.join-title {
+  margin: 0 0 0.6vh;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(1.4rem, 2.6vw, 2.6rem);
+  line-height: 1.05;
+  color: var(--gold-2, #f4e4bc);
+}
+.join-bar .quiet { margin: 0; font-size: clamp(0.85rem, 1.3vw, 1.15rem); }
 .name {
   font-family: var(--font-serif), Georgia, serif;
   font-size: clamp(2.6rem, 6vw, 6.2rem);

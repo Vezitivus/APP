@@ -1,8 +1,8 @@
-import { randomCode, randomToken, sha256 } from "@/lib/auth/crypto";
-import { createSession, issueTvPair, limit, mutate } from "@/lib/db/repository";
+import { randomCode, sha256 } from "@/lib/auth/crypto";
+import { createSession, issueTvPair, limit, mutate, readCurrent } from "@/lib/db/repository";
 import { validateCustomCard } from "@/lib/game/engine";
 import { toAdminState } from "@/lib/game/project";
-import { TEST_PLAYER_NAMES, type Action, type CardDef } from "@/lib/game/types";
+import { type Action, type CardDef } from "@/lib/game/types";
 import { asResponse, clientIp, jsonError, publicOrigin } from "@/lib/http/http";
 import { requireAdmin, serverCtx } from "@/lib/server/context";
 
@@ -13,7 +13,10 @@ const ALLOWED = new Set<Action["type"]>([
   "remove_player",
   "set_eligible",
   "update_settings",
+  "activate",
   "start",
+  "open_join",
+  "resume_play",
   "pause",
   "resume",
   "finish",
@@ -33,7 +36,6 @@ const ALLOWED = new Set<Action["type"]>([
   "confirm_perk",
   "upsert_card",
   "delete_card",
-  "add_test_players",
   "reissue_recovery",
 ]);
 
@@ -44,8 +46,14 @@ export async function POST(request: Request) {
     const body = (await request.json().catch(() => null)) as (Action & { confirm?: boolean }) | { type: "create_game" } | null;
     if (!body || typeof body.type !== "string") return jsonError(400, "Nederīgs pieprasījums.", "invalid");
     const ctx = serverCtx();
-    if (body.type === "create_game") {
-      const state = await createSession(ctx.now);
+    if (body.type === "create_game" || body.type === "activate") {
+      let state = body.type === "activate" ? await readCurrent() : null;
+      if (!state) state = await createSession(ctx.now);
+      if (body.type === "activate") {
+        const result = await mutate({ type: "activate" }, ctx);
+        if (result.error) return jsonError(409, result.error.message, result.error.code);
+        state = result.state;
+      }
       const token = await issueTvPair(state.id);
       return Response.json({
         game: toAdminState(state, ctx.now),
@@ -71,15 +79,6 @@ export async function POST(request: Request) {
 }
 
 async function buildAction(body: Action & { confirm?: boolean }): Promise<Action | null> {
-  if (body.type === "add_test_players") {
-    return {
-      type: "add_test_players",
-      players: TEST_PLAYER_NAMES.map(() => {
-        const recoveryCode = randomCode();
-        return { sessionHash: sha256(randomToken()), recoveryHash: sha256(recoveryCode), recoveryCode };
-      }),
-    };
-  }
   if (body.type === "reissue_recovery") {
     if (!("playerId" in body) || typeof body.playerId !== "string") return null;
     const recoveryCode = randomCode();

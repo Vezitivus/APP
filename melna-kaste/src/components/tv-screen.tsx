@@ -121,6 +121,7 @@ export function TvScreen({ invalidPair }: { invalidPair: boolean }) {
         ) : null}
       </div>
       {paired && armed && game ? <Stage game={game} /> : null}
+      {paired && armed && game?.joinOpen && (game.screen.kind === "standby" || game.screen.kind === "static") ? <JoinBar game={game} /> : null}
       {!paired ? (
         <form className="overlay" onSubmit={pair}>
           <div className="gate-box frame">
@@ -156,7 +157,7 @@ export function TvScreen({ invalidPair }: { invalidPair: boolean }) {
 
 function Stage({ game }: { game: TvState }) {
   const screen = game.screen;
-  if (screen.kind === "lobby") return <Lobby game={game} />;
+  if (screen.kind === "lobby") return null;
   if (screen.kind === "call") return <CallHold name={screen.name} title={screen.title} path={screen.qrPath} />;
   if (screen.kind === "claimed") {
     return (
@@ -184,27 +185,35 @@ function Stage({ game }: { game: TvState }) {
   return null;
 }
 
-function Lobby({ game }: { game: TvState }) {
+function JoinBar({ game }: { game: TvState }) {
   const [src, setSrc] = useState("");
   useEffect(() => {
-    const url = `${window.location.origin}/join?code=${game.code}`;
+    const url = `${window.location.origin}${game.joinPath}`;
     void QRCode.toDataURL(url, {
       margin: 1,
-      width: 900,
+      width: 640,
       errorCorrectionLevel: "H",
       color: { dark: "#1a140c", light: "#f6f0e4" },
     }).then(setSrc);
-  }, [game.code]);
+  }, [game.joinPath]);
+  const names = game.playerNames;
+  const label = names.length === 0
+    ? "Vēl neviens nav iekšā"
+    : names.length === 1
+      ? "1 dalībnieks"
+      : `${names.length} dalībnieki`;
   return (
-    <div className="center lobby">
-      <p className="kicker">Pievienojies</p>
+    <div className="join-bar">
       {src ? (
         <div className="qr-frame">
           <img className="qr" alt="Pievienošanās QR kods" src={src} />
         </div>
       ) : null}
-      <p className="code">{game.code}</p>
-      <p className="quiet">{game.playerCount} jau iekšā</p>
+      <div className="join-copy">
+        <p className="kicker">Pievienojies</p>
+        <p className="join-title">Skenē un ieraksti savu vārdu</p>
+        <p className="quiet">{label}{names.length ? ` · ${names.join("  ·  ")}` : ""}</p>
+      </div>
     </div>
   );
 }

@@ -16,6 +16,7 @@ export async function POST(request: Request) {
     const state = await readCurrent();
     if (!state) return jsonError(409, "Spēle vēl nav izveidota.", "not_ready");
     if (state.phase === "FINISHED") return jsonError(409, "Spēle ir pabeigta.", "finished");
+    if (!state.joinOpen) return jsonError(409, "Pievienošanās tagad nav atvērta.", "not_ready");
     const code = (body?.code ?? "").trim().toUpperCase();
     if (code && code !== state.code) return jsonError(404, "Spēles kods nav pareizs.", "code");
     const secret = randomToken();

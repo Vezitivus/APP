@@ -89,9 +89,9 @@ export function AdminPanel() {
       <main className="home">
         <section className="frame">
           <p className="kicker">Režija</p>
-          <h1>Jauna spēle</h1>
-          <p className="lede">Iepriekšējās spēles paliek datubāzē. Šī poga izveido jaunu sesiju.</p>
-          <button className="btn" type="button" onClick={() => void send({ type: "create_game" })}>Izveidot spēli</button>
+          <h1>Aktivizēt spēli</h1>
+          <p className="lede">Izveido vakaru, palaiž standby ekrānā un parāda pievienošanās QR kodu.</p>
+          <button className="btn" type="button" onClick={() => void send({ type: "activate" })}>Aktivizēt spēli</button>
           {tvUrl ? <p><a href={tvUrl}>Atvērt TV</a></p> : null}
           {message ? <p className="warn">{message}</p> : null}
         </section>
@@ -107,7 +107,7 @@ export function AdminPanel() {
         <header className="status">
           <div>
             <p className="kicker">Režija · {game.code}</p>
-            <h1 className="phase">{PHASES[game.phase] ?? game.phase}</h1>
+            <h1 className="phase">{game.phase === "LOBBY" && game.joinOpen ? "Reģistrācija" : PHASES[game.phase] ?? game.phase}</h1>
             <div className="row">
               {game.paused ? <span className="pill">Pauze</span> : null}
               <span className="pill">{game.autoCalls ? "Auto ieslēgts" : "Auto izslēgts"}</span>
@@ -121,7 +121,7 @@ export function AdminPanel() {
           </div>
         </header>
         {message ? <p className="warn">{message}</p> : null}
-        {tvUrl ? <p>TV saite: <a href={tvUrl}>{tvUrl}</a></p> : <p className="quiet">Jaunu TV saiti iegūsi, sākot spēli vai izveidojot jaunu.</p>}
+        {tvUrl ? <p>TV saite: <a href={tvUrl}>{tvUrl}</a></p> : <p className="quiet">Jaunu TV saiti iegūsi, aktivizējot spēli.</p>}
 
         {game.active?.tvHold ? (
           <section className="continue-banner">
@@ -160,14 +160,27 @@ export function AdminPanel() {
         <section className="card">
           <h2>Vadība</h2>
           <div className="row">
-            <button className="btn" type="button" onClick={() => void send({ type: "start" })} disabled={game.phase !== "LOBBY"}>Sākt</button>
-            <button className="btn-ghost" type="button" onClick={() => void send({ type: game.paused ? "resume" : "pause" })}>{game.paused ? "Atsākt auto" : "Apturēt auto"}</button>
+            {!game.started && !game.joinOpen ? (
+              <button className="btn" type="button" onClick={() => void send({ type: "activate" })}>Aktivizēt spēli</button>
+            ) : null}
+            {!game.started && game.joinOpen ? (
+              <button className="btn" type="button" onClick={() => void send({ type: "start" })} disabled={game.players.filter((player) => !player.removed).length < 2}>Sākt spēli</button>
+            ) : null}
+            {game.started && !game.joinOpen ? (
+              <button className="btn" type="button" onClick={() => void send({ type: "open_join" })}>Pievienot spēlētājus</button>
+            ) : null}
+            {game.started && game.joinOpen ? (
+              <button className="btn continue" type="button" onClick={() => void send({ type: "resume_play" })}>Atsākt</button>
+            ) : null}
+            <button className="btn" type="button" onClick={() => void send({ type: "call_now" })} disabled={!game.started}>Izsaukt</button>
+            <button className="btn-ghost" type="button" onClick={() => void send({ type: game.paused ? "resume" : "pause" })}>{game.paused ? "Turpināt auto" : "Apturēt auto"}</button>
             <button className="btn-ghost" type="button" onClick={() => void send({ type: "set_auto", enabled: !game.autoCalls })}>{game.autoCalls ? "Izslēgt auto" : "Ieslēgt auto"}</button>
             <button className="btn-ghost" type="button" onClick={() => void send({ type: "finish" })}>Pabeigt</button>
             <button className="btn-danger" type="button" onClick={() => resetArmed ? void send({ type: "reset", confirm: true }).then(() => setResetArmed(false)) : setResetArmed(true)}>
               {resetArmed ? "Apstiprināt atiestatīšanu" : "Atiestatīt"}
             </button>
           </div>
+          <p className="quiet">Aktivizēt palaiž standby un pievienošanās QR. Sākt spēli noņem QR un rāda sākuma video. Spēles laikā Pievienot spēlētājus atkal rāda QR; Atsākt to noņem, vēlreiz rāda sākuma video un pārkārto uzdevumus jaunajiem dalībniekiem. Izsaukt sāk izsaukumu uzreiz.</p>
         </section>
 
         <section className="card">
@@ -195,7 +208,7 @@ export function AdminPanel() {
 
         <StandbySlots slots={game.standbySlots} />
         <Prepare game={game} onSend={send} />
-        <Players game={game} onSend={send} onTest={() => void send({ type: "add_test_players" })} codes={codes} />
+        <Players game={game} onSend={send} codes={codes} />
         <Settings game={game} onSend={send} />
         <Missions game={game} onSend={send} />
         <section className="card">
@@ -291,11 +304,10 @@ function Prepare({ game, onSend }: { game: AdminState; onSend: (body: object) =>
   );
 }
 
-function Players({ game, onSend, onTest, codes }: { game: AdminState; onSend: (body: object) => Promise<void>; onTest: () => void; codes: { name: string; recoveryCode: string }[] }) {
+function Players({ game, onSend, codes }: { game: AdminState; onSend: (body: object) => Promise<void>; codes: { name: string; recoveryCode: string }[] }) {
   return (
     <section className="card">
       <h2>Dalībnieki</h2>
-      <button className="btn-ghost" type="button" onClick={onTest}>Pievienot 6 testa dalībniekus</button>
       {codes.length ? <ul>{codes.map((code) => <li key={code.recoveryCode}>{code.name}: {code.recoveryCode}</li>)}</ul> : null}
       {game.players.map((player) => (
         <PlayerRow key={player.id} player={player} onSend={onSend} />

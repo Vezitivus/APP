@@ -35,6 +35,9 @@ export interface TvState {
   /** Only for the paired TV, so the call clip can be preloaded. Omitted from the public feed. */
   preloadCallUrl: string | null;
   endVideoUrl: string | null;
+  joinOpen: boolean;
+  joinPath: string;
+  playerNames: string[];
 }
 
 export function toTvState(state: GameState, now: number, options?: { includePreload?: boolean }): TvState {
@@ -64,11 +67,17 @@ export function toTvState(state: GameState, now: number, options?: { includePrel
     screen: tvScreen(state),
     preloadCallUrl: options?.includePreload && state.queue ? state.queue.callVideoUrl : null,
     endVideoUrl: state.phase === "FINISHED" ? specialEnd(state.videos)?.url ?? null : null,
+    joinOpen: Boolean(state.joinOpen),
+    joinPath: `/join?code=${state.code}`,
+    playerNames: state.joinOpen
+      ? state.players.filter((player) => !player.removed).map((player) => player.publicName)
+      : [],
   };
 }
 
 function tvScreen(state: GameState): TvState["screen"] {
-  if (state.phase === "LOBBY") return { kind: "lobby" };
+  if (state.phase === "LOBBY" && !state.joinOpen) return { kind: "lobby" };
+  if (state.phase === "LOBBY") return standbyScreen(state);
   if (state.phase === "FINISHED") return { kind: "finished" };
   if (state.playback.mode === "intro") return { kind: "intro" };
   if (state.playback.mode === "announcement" || state.phase === "ANNOUNCEMENT") return { kind: "announcement" };
@@ -201,6 +210,8 @@ export interface AdminState {
   }[];
   catalog: { id: string; title: string; category: string; minPlayers: number; videoFile: string }[];
   joinPath: string;
+  started: boolean;
+  joinOpen: boolean;
 }
 
 export function toAdminState(state: GameState, now: number): AdminState {
@@ -302,6 +313,8 @@ export function toAdminState(state: GameState, now: number): AdminState {
       videoFile: card.videoFile,
     })),
     joinPath: `/join?code=${state.code}`,
+    started: Boolean(state.started),
+    joinOpen: Boolean(state.joinOpen),
   };
 }
 
