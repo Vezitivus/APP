@@ -574,6 +574,10 @@ describe("spēles norise un taimeri", () => {
     expect(state.playback.mode).toBe("intro");
     const duringIntro = toTvState(state, NOW);
     expect(duringIntro.playback.nextUrl).toContain("1.mp4");
+    expect(duringIntro.playback.nextNextUrl).toContain("2.mp4");
+    const preloaded = toTvState(state, NOW, { includePreload: true });
+    expect(preloaded.openVideoUrl).toContain("special_open.mp4");
+    expect(preloaded.endVideoUrl).toContain("special_end.mp4");
     state = act(state, { type: "clip_ended", cycleId: state.playback.cycleId, clipToken: state.playback.clipToken }, ctx(NOW)).state;
     expect(state.playback.mode).toBe("standby");
     expect(state.playback.index).toBe(0);
@@ -584,6 +588,7 @@ describe("spēles norise un taimeri", () => {
     const last = toTvState(state, NOW);
     expect(last.playback.clipUrl).toContain("20.mp4");
     expect(last.playback.nextUrl).toContain("1.mp4");
+    expect(last.playback.nextNextUrl).toContain("2.mp4");
     state = act(state, { type: "finish" }, ctx(NOW)).state;
     expect(state.playback.mode).toBe("outro");
     expect(toTvState(state, NOW).playback.announcementUrl).toContain("special_end.mp4");

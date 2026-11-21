@@ -190,7 +190,7 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
   height: 100dvh;
   width: 100vw;
   overflow: hidden;
-  background: #000;
+  background: #121212;
   position: relative;
 }
 .picture {
@@ -199,7 +199,7 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
   left: 0;
   width: 100%;
   height: 100%;
-  background: #000;
+  background: #121212;
   transform: translate3d(0, 0, 0);
   z-index: 1;
   transition:
@@ -217,7 +217,7 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
   height: 38vh;
   transform: translate3d(-50%, 0, 0);
   z-index: 2;
-  background: #050505;
+  background: #121212;
   border: 1px solid #f3e6c4;
   box-shadow:
     0 0 0 4px #2c261c,
@@ -225,6 +225,17 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
     0 24px 70px rgba(0, 0, 0, 0.55),
     0 0 32px rgba(224, 194, 122, 0.22);
 }
+.picture .frame-hold {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  z-index: 0;
+  pointer-events: none;
+  display: block;
+}
+.picture.bleed .frame-hold { object-fit: cover; }
 .picture .layer {
   position: absolute;
   inset: 0;

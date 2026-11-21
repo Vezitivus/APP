@@ -7,12 +7,12 @@ const clips = ["./clips/red.mp4", "./clips/gold.mp4", "./clips/blue.mp4"];
 function App() {
   const [index, setIndex] = useState(0);
   const url = clips[index];
-  const preloadUrl = clips[(index + 1) % clips.length];
+  const preloadUrls = [clips[(index + 1) % clips.length], clips[(index + 2) % clips.length]];
   return (
     <div className="picture" data-index={index}>
       <TvPicture
         url={url}
-        preloadUrl={preloadUrl}
+        preloadUrls={preloadUrls}
         loop={false}
         muted={true}
         cycleId="cycle"

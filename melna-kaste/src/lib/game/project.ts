@@ -1,5 +1,5 @@
 import { cardById, catalog } from "./cards";
-import { specialEnd, standbyPlaylist, standbySlots } from "./videos";
+import { specialEnd, specialOpen, standbyPlaylist, standbySlots } from "./videos";
 import type { GameState, Mission, Perk, Phase, Player } from "./types";
 import { publicPhase, tvCallHeld, waitingForStandbyLoop } from "./engine";
 
@@ -20,6 +20,7 @@ export interface TvState {
     total: number;
     clipUrl: string | null;
     nextUrl: string | null;
+    nextNextUrl: string | null;
     announcementUrl: string | null;
   };
   screen:
@@ -34,6 +35,7 @@ export interface TvState {
     | { kind: "finished" };
   /** Only for the paired TV, so the call clip can be preloaded. Omitted from the public feed. */
   preloadCallUrl: string | null;
+  openVideoUrl: string | null;
   endVideoUrl: string | null;
   joinOpen: boolean;
   joinPath: string;
@@ -53,11 +55,30 @@ function upcomingPlaybackUrl(
   return null;
 }
 
+function upcomingSecondUrl(
+  state: GameState,
+  playlist: ReturnType<typeof standbyPlaylist>,
+  after: string | null,
+): string | null {
+  if (!playlist.length) return null;
+  if (state.playback.mode === "standby") {
+    const second = playlist[(state.playback.index + 2) % playlist.length];
+    return second && second.url !== after ? second.url : playlist[0]?.url ?? null;
+  }
+  if (state.playback.mode === "intro" || state.playback.mode === "hold") {
+    const second = playlist[1] ?? playlist[0];
+    return second && second.url !== after ? second.url : null;
+  }
+  return null;
+}
+
 export function toTvState(state: GameState, now: number, options?: { includePreload?: boolean }): TvState {
   const playlist = standbyPlaylist(state.videos);
   const current = playlist[state.playback.index] ?? null;
   const next = playlist.length ? playlist[(state.playback.index + 1) % playlist.length] : null;
+  const nextUrl = upcomingPlaybackUrl(state, playlist, current, next);
   const phase = publicPhase(state.phase);
+  const includePreload = Boolean(options?.includePreload);
   return {
     version: state.version,
     phase,
@@ -74,12 +95,14 @@ export function toTvState(state: GameState, now: number, options?: { includePrel
       index: state.playback.index,
       total: playlist.length,
       clipUrl: state.playback.mode === "standby" ? current?.url ?? null : null,
-      nextUrl: upcomingPlaybackUrl(state, playlist, current, next),
+      nextUrl,
+      nextNextUrl: upcomingSecondUrl(state, playlist, nextUrl),
       announcementUrl: state.playback.announcementUrl,
     },
     screen: tvScreen(state),
-    preloadCallUrl: options?.includePreload && state.queue ? state.queue.callVideoUrl : null,
-    endVideoUrl: state.phase === "FINISHED" ? specialEnd(state.videos)?.url ?? null : null,
+    preloadCallUrl: includePreload && state.queue ? state.queue.callVideoUrl : null,
+    openVideoUrl: includePreload ? specialOpen(state.videos)?.url ?? null : null,
+    endVideoUrl: includePreload || state.phase === "FINISHED" ? specialEnd(state.videos)?.url ?? null : null,
     joinOpen: Boolean(state.joinOpen),
     joinPath: `/join?code=${state.code}`,
     playerNames: state.joinOpen
